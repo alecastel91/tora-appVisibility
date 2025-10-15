@@ -188,6 +188,16 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async createProfile(profileData) {
+    const response = await fetch(`${API_URL}/profiles`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(profileData)
+    });
+
+    return this.handleResponse(response);
+  }
+
   // CONNECTION ENDPOINTS
   async likeProfile(profileId) {
     const response = await fetch(`${API_URL}/connections/like/${profileId}`, {

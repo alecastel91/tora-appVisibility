@@ -8,9 +8,10 @@ import { dummyProfiles } from '../../data/profiles';
 import CalendarScreen from './CalendarScreen';
 import EditProfileScreen from './EditProfileScreen';
 import RepresentedArtistsScreen from './RepresentedArtistsScreen';
+import AddProfileScreen from './AddProfileScreen';
 
 const ProfileScreen = () => {
-  const { user, updateUser, userProfiles, currentProfileId, switchProfile } = useAppContext();
+  const { user, updateUser, userProfiles, switchProfile, addProfile } = useAppContext();
   const { t } = useLanguage();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -20,6 +21,7 @@ const ProfileScreen = () => {
   const [showAllGenres, setShowAllGenres] = useState(false);
   const [showRAEvents, setShowRAEvents] = useState(false);
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
+  const [showAddProfile, setShowAddProfile] = useState(false);
   const fileInputRef = useRef(null);
   
   const [editForm] = useState({
@@ -85,6 +87,19 @@ const ProfileScreen = () => {
   // Show full-screen edit profile if requested
   if (showEditProfile) {
     return <EditProfileScreen onClose={() => setShowEditProfile(false)} />;
+  }
+
+  // Show add profile screen if requested
+  if (showAddProfile) {
+    return (
+      <AddProfileScreen
+        onClose={() => setShowAddProfile(false)}
+        onSuccess={(newProfile) => {
+          // Switch to the new profile
+          switchProfile(newProfile._id || newProfile.id);
+        }}
+      />
+    );
   }
 
   return (
@@ -175,11 +190,15 @@ const ProfileScreen = () => {
             <CalendarIcon /> {t('profile.calendar')}
           </button>
         )}
-        <button 
+        <button
           className="btn btn-secondary btn-full-width"
           onClick={() => setShowProfileSwitcher(true)}
         >
-          <SwitchIcon /> Switch Profile
+          {userProfiles.length > 1 ? (
+            <><SwitchIcon /> Switch Profile</>
+          ) : (
+            <><AddIcon /> Add Profile</>
+          )}
         </button>
       </div>
 
@@ -339,19 +358,21 @@ const ProfileScreen = () => {
       <Modal
         isOpen={showProfileSwitcher}
         onClose={() => setShowProfileSwitcher(false)}
-        title="Switch Profile"
+        title={userProfiles.length > 1 ? "Switch Profile" : "Add Profile"}
       >
         <div className="profile-switcher-content">
-          <p className="profile-switcher-description">
-            Select which profile you want to manage:
-          </p>
+          {userProfiles.length > 1 && (
+            <p className="profile-switcher-description">
+              Select which profile you want to manage:
+            </p>
+          )}
           <div className="profile-switcher-list">
             {userProfiles.map(profile => (
               <div
-                key={profile.id}
-                className={`profile-switcher-item ${profile.id === currentProfileId ? 'active' : ''}`}
+                key={profile._id || profile.id}
+                className={`profile-switcher-item ${profile._id === user?._id || profile.id === user?.id ? 'active' : ''}`}
                 onClick={() => {
-                  switchProfile(profile.id);
+                  switchProfile(profile._id || profile.id);
                   setShowProfileSwitcher(false);
                 }}
               >
@@ -369,11 +390,28 @@ const ProfileScreen = () => {
                   </span>
                   <p className="switcher-location">{profile.location}</p>
                 </div>
-                {profile.id === currentProfileId && (
+                {(profile._id === user?._id || profile.id === user?.id) && (
                   <div className="active-indicator">✓</div>
                 )}
               </div>
             ))}
+
+            {/* Add Profile Button */}
+            <div
+              className="profile-switcher-item add-profile-item"
+              onClick={() => {
+                setShowProfileSwitcher(false);
+                setShowAddProfile(true);
+              }}
+            >
+              <div className="switcher-avatar add-avatar">
+                <AddIcon />
+              </div>
+              <div className="switcher-info">
+                <h4>Add New Profile</h4>
+                <p className="add-profile-description">Create another professional profile</p>
+              </div>
+            </div>
           </div>
         </div>
       </Modal>
