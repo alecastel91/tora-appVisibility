@@ -4,10 +4,12 @@
 .auth-screen {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
   padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .auth-container {
