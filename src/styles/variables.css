@@ -1,0 +1,58 @@
+:root {
+  /* Primary Colors */
+  --primary-pink: #FF3366;
+  --primary-pink-hover: #FF1A4D;
+  --primary-pink-light: rgba(255, 51, 102, 0.1);
+  
+  /* Background Colors */
+  --bg-black: #000000;
+  --bg-dark: #0A0A0A;
+  --bg-card: #111111;
+  --bg-card-dark: #0D0D0D;
+  
+  /* Border Colors */
+  --border-dark: #222222;
+  --border-light: #333333;
+  
+  /* Text Colors */
+  --text-white: #FFFFFF;
+  --text-gray: #999999;
+  --text-gray-light: #666666;
+  
+  /* Role Colors */
+  --role-artist: #6B5FFF;
+  --role-venue: #FF5757;
+  --role-promoter: #00D4FF;
+  --role-agent: #FFB800;
+  
+  /* Status Colors */
+  --status-online: #00FF88;
+  --status-offline: #666666;
+  
+  /* Gradients */
+  --gradient-purple: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-pink: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 50%;
+  
+  /* Font Sizes */
+  --font-xs: 11px;
+  --font-sm: 13px;
+  --font-base: 15px;
+  --font-md: 16px;
+  --font-lg: 18px;
+  --font-xl: 24px;
+  --font-2xl: 32px;
+}

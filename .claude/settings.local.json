@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(npm install)",
+      "Bash(npm start)",
+      "Bash(PORT=3001 npm start)",
+      "Bash(sed:*)",
+      "Bash(npm install:*)",
+      "Read(//Users/alessandrocastelbuono/Desktop/tora-backend/**)",
+      "Bash(node:*)",
+      "Bash(python3:*)",
+      "Bash(lsof:*)",
+      "Bash(brew:*)",
+      "Bash(mongosh:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(xargs kill:*)",
+      "Bash(kill:*)",
+      "Bash(pkill:*)",
+      "Bash(ipconfig:*)",
+      "Bash(cat:*)",
+      "Read(//Users/alessandrocastelbuono/Downloads/**)",
+      "Read(//Users/alessandrocastelbuono/Desktop/**)",
+      "Bash(git init:*)",
+      "Bash(cd:*)",
+      "Bash(git commit -m \"Initial commit: TORA backend with MongoDB Atlas\")",
+      "Bash(git config:*)",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(railway login:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
