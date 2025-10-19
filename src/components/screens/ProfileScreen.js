@@ -70,9 +70,9 @@ const ProfileScreen = () => {
   };
 
 
-  // Sample liked profiles
-  const likedProfiles = dummyProfiles.filter(p => p.role === 'VENUE').slice(0, 3);
-  const connections = dummyProfiles.filter(p => p.role === 'ARTIST').slice(0, 5);
+  // Real liked profiles and connections will come from backend
+  const likedProfiles = [];
+  const connections = [];
 
   // Show full-screen calendar if requested
   if (showCalendar) {
