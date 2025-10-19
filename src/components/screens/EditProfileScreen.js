@@ -3,6 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { genresList } from '../../data/profiles';
 import { CloseIcon } from '../../utils/icons';
+import apiService from '../../services/api';
 
 const EditProfileScreen = ({ onClose }) => {
   const { user, updateUser } = useAppContext();
@@ -14,13 +15,31 @@ const EditProfileScreen = ({ onClose }) => {
   const [selectedGenres, setSelectedGenres] = useState(new Set(user?.genres || []));
   const [showAllGenres, setShowAllGenres] = useState(false);
   const [showGenresDropdown, setShowGenresDropdown] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSave = () => {
-    updateUser({
-      ...editedUser,
-      genres: Array.from(selectedGenres)
-    });
-    onClose();
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+
+      const updatedProfile = {
+        ...editedUser,
+        genres: Array.from(selectedGenres)
+      };
+
+      // Save to backend
+      const response = await apiService.updateProfile(user._id, updatedProfile);
+
+      // Update local state with response from backend
+      updateUser(response.profile || updatedProfile);
+
+      onClose();
+    } catch (err) {
+      console.error('Failed to save profile:', err);
+      setError(err.message || 'Failed to save profile. Please try again.');
+      setSaving(false);
+    }
   };
 
   const handleGenreToggle = (genre) => {
@@ -210,13 +229,26 @@ const EditProfileScreen = ({ onClose }) => {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="error-message" style={{
+            color: '#ff3366',
+            padding: '12px',
+            background: 'rgba(255, 51, 102, 0.1)',
+            borderRadius: '8px',
+            marginTop: '16px'
+          }}>
+            {error}
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="edit-actions">
-          <button className="btn btn-secondary btn-full" onClick={onClose}>
+          <button className="btn btn-secondary btn-full" onClick={onClose} disabled={saving}>
             Cancel
           </button>
-          <button className="btn btn-primary btn-full" onClick={handleSave}>
-            Save Changes
+          <button className="btn btn-primary btn-full" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
