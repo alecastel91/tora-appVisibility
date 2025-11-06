@@ -76,6 +76,12 @@ const ProfileScreen = () => {
 
   const [selectedGenres, setSelectedGenres] = useState(editForm.genres || []);
 
+  // DEBUG: Log profile count
+  useEffect(() => {
+    console.log('🔍 [ProfileScreen] userProfiles count:', userProfiles?.length || 0);
+    console.log('🔍 [ProfileScreen] userProfiles:', userProfiles);
+  }, [userProfiles]);
+
   // OPTIMIZED: Use cached profile data from AppContext instead of fetching
   const likedProfilesList = likedProfilesData || [];
   const likerProfilesList = likerProfilesData || [];

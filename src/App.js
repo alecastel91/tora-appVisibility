@@ -47,7 +47,8 @@ function App() {
       if (token) {
         try {
           const data = await apiService.getCurrentUser();
-          updateUser(data.profile);
+          // Use profiles array if available, otherwise fallback to single profile
+          updateUser(data.profiles || data.profile);
           setIsAuthenticated(true);
         } catch (error) {
           console.error('Auth check failed:', error);
@@ -60,7 +61,8 @@ function App() {
   }, []);
 
   const handleLoginSuccess = (data) => {
-    updateUser(data.profile);
+    // Use profiles array if available, otherwise fallback to single profile
+    updateUser(data.profiles || data.profile);
     setIsAuthenticated(true);
   };
 

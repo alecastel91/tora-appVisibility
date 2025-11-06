@@ -97,11 +97,14 @@ export const AppProvider = ({ children }) => {
 
     // If userData has multiple profiles, set them
     if (userData.profiles && Array.isArray(userData.profiles)) {
+      console.log('🔍 [AppContext updateUser] Setting profiles array - count:', userData.profiles.length);
+      console.log('🔍 [AppContext updateUser] Profiles:', userData.profiles.map(p => p.name));
       setUserProfiles(userData.profiles);
       // Set the first profile as active or find the active one
       const activeProfile = userData.profiles.find(p => p.isActive) || userData.profiles[0];
       setUser(activeProfile);
     } else {
+      console.log('🔍 [AppContext updateUser] Setting SINGLE profile:', userData.name || userData);
       // Single profile update - update within existing profiles array
       const profileId = userData._id || userData.id;
 
