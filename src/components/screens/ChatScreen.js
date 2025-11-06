@@ -1,15 +1,48 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import apiService from '../../services/api';
 
-const ChatScreen = ({ user, onClose }) => {
-  const { messages, sendMessage } = useAppContext();
+const ChatScreen = ({ user, onClose, onOpenProfile }) => {
+  const { user: currentUser, sendMessage } = useAppContext();
   const { t } = useLanguage();
   const [inputMessage, setInputMessage] = useState('');
+  const [userMessages, setUserMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const userMessages = messages[user.id] || [];
+  // Fetch messages when component mounts
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!currentUser || !currentUser._id || !user || !user._id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await apiService.getMessageThread(currentUser._id, user._id);
+
+        // Transform backend messages to match the format expected by the UI
+        const transformedMessages = (response.messages || []).map(msg => ({
+          text: msg.text,
+          timestamp: msg.createdAt,
+          isMe: msg.from._id === currentUser._id,
+          isSystem: false
+        }));
+
+        setUserMessages(transformedMessages);
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+        setUserMessages([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, [currentUser, user]);
 
   useEffect(() => {
     scrollToBottom();
@@ -20,10 +53,27 @@ const ChatScreen = ({ user, onClose }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (inputMessage.trim()) {
-      sendMessage(user.id, inputMessage);
-      setInputMessage('');
+      try {
+        // Send message to backend
+        await sendMessage(user._id, inputMessage);
+
+        // Clear input
+        setInputMessage('');
+
+        // Refresh messages
+        const response = await apiService.getMessageThread(currentUser._id, user._id);
+        const transformedMessages = (response.messages || []).map(msg => ({
+          text: msg.text,
+          timestamp: msg.createdAt,
+          isMe: msg.from._id === currentUser._id,
+          isSystem: false
+        }));
+        setUserMessages(transformedMessages);
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   };
 
@@ -93,7 +143,7 @@ const ChatScreen = ({ user, onClose }) => {
             <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <div className="chat-user-info">
+        <div className="chat-user-info" onClick={() => onOpenProfile && onOpenProfile(user)} style={{ cursor: 'pointer' }}>
           <div className={`chat-avatar ${getAvatarClass(user.role)}`}>
             {user.avatar ? (
               <img src={user.avatar} alt={user.name} />

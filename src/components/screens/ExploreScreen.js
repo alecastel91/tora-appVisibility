@@ -45,15 +45,19 @@ const ExploreScreen = ({ onOpenChat, onNavigateToMessages }) => {
     return words.slice(0, maxWords).join(' ') + '...';
   };
 
-  const handleSwipe = (direction) => {
+  const handleSwipe = async (direction) => {
     if (!currentProfile) return;
-    
+
     setSwipeDirection(direction);
-    
+
     if (direction === 'right') {
-      toggleLike(currentProfile.id);
+      try {
+        await toggleLike(currentProfile.id);
+      } catch (error) {
+        console.error('Error liking profile:', error);
+      }
     }
-    
+
     // Move to next profile after animation
     setTimeout(() => {
       setCurrentIndex(prev => prev + 1);

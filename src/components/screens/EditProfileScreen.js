@@ -1,42 +1,129 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { genresList } from '../../data/profiles';
+import { genresList, zones, countriesByZone, citiesByCountry, getZoneFromCountry } from '../../data/profiles';
 import { CloseIcon } from '../../utils/icons';
 import apiService from '../../services/api';
 
 const EditProfileScreen = ({ onClose }) => {
   const { user, updateUser } = useAppContext();
   const { t } = useLanguage();
+
+  // Parse existing location
+  const parseLocation = (location) => {
+    if (!location) return { city: '', country: '', zone: '' };
+    const parts = location.split(',').map(p => p.trim());
+    if (parts.length >= 2) {
+      const city = parts[0];
+      const country = parts[1];
+      const zone = getZoneFromCountry(country) || '';
+      return { city, country, zone };
+    }
+    return { city: '', country: '', zone: '' };
+  };
+
+  const initialLocation = parseLocation(user?.location);
+
   const [editedUser, setEditedUser] = useState({
     ...user,
-    genres: user?.genres || []
+    genres: user?.genres || [],
+    city: initialLocation.city,
+    country: initialLocation.country,
+    zone: initialLocation.zone
   });
   const [selectedGenres, setSelectedGenres] = useState(new Set(user?.genres || []));
   const [showAllGenres, setShowAllGenres] = useState(false);
   const [showGenresDropdown, setShowGenresDropdown] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [customCity, setCustomCity] = useState('');
+  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
+
+  // Cascading dropdown handlers
+  const handleZoneChange = (zone) => {
+    setEditedUser({
+      ...editedUser,
+      zone,
+      country: '', // Reset country when zone changes
+      city: ''     // Reset city when zone changes
+    });
+    setShowCustomCityInput(false);
+    setCustomCity('');
+  };
+
+  const handleCountryChange = (country) => {
+    setEditedUser({
+      ...editedUser,
+      country,
+      city: '' // Reset city when country changes
+    });
+    setShowCustomCityInput(false);
+    setCustomCity('');
+  };
+
+  const handleCityChange = (city) => {
+    if (city === 'Other') {
+      setShowCustomCityInput(true);
+      setEditedUser({ ...editedUser, city: customCity });
+    } else {
+      setShowCustomCityInput(false);
+      setCustomCity('');
+      setEditedUser({ ...editedUser, city });
+    }
+  };
+
+  const handleCustomCityChange = (value) => {
+    setCustomCity(value);
+    setEditedUser({ ...editedUser, city: value });
+  };
+
+  // Get available countries based on selected zone
+  const availableCountries = editedUser.zone ? countriesByZone[editedUser.zone] || [] : [];
+
+  // Get available cities based on selected country
+  const availableCities = editedUser.country ? citiesByCountry[editedUser.country] || [] : [];
 
   const handleSave = async () => {
     try {
       setSaving(true);
       setError(null);
 
+      // Combine city and country into location string
+      const location = editedUser.city && editedUser.country
+        ? `${editedUser.city}, ${editedUser.country}`
+        : editedUser.location || '';
+
       const updatedProfile = {
         ...editedUser,
+        location, // Use combined location string
         genres: Array.from(selectedGenres)
       };
 
+      // Remove zone, city, country from the payload as we only store location
+      delete updatedProfile.zone;
+      delete updatedProfile.city;
+      delete updatedProfile.country;
+
+      // Use id or _id depending on what's available
+      const profileId = user._id || user.id;
+
+      if (!profileId) {
+        setError('Profile ID is missing. Please log out and log back in.');
+        setSaving(false);
+        return;
+      }
+
       // Save to backend
-      const response = await apiService.updateProfile(user._id, updatedProfile);
+      const response = await apiService.updateProfile(profileId, updatedProfile);
 
       // Update local state with response from backend
-      updateUser(response.profile || updatedProfile);
+      // Backend returns profile directly, not wrapped in { profile: ... }
+      updateUser(response);
 
       onClose();
     } catch (err) {
       console.error('Failed to save profile:', err);
+      console.error('Error details:', { message: err.message, stack: err.stack });
       setError(err.message || 'Failed to save profile. Please try again.');
       setSaving(false);
     }
@@ -92,15 +179,61 @@ const EditProfileScreen = ({ onClose }) => {
             </select>
           </div>
 
+          {/* Cascading Location Dropdowns */}
           <div className="form-group">
-            <label>{t('profile.location')}</label>
-            <input
-              type="text"
-              value={editedUser.location || ''}
-              onChange={(e) => setEditedUser({ ...editedUser, location: e.target.value })}
-              placeholder="City, Country"
-            />
+            <label>Zone</label>
+            <select
+              value={editedUser.zone || ''}
+              onChange={(e) => handleZoneChange(e.target.value)}
+            >
+              <option value="">Select Zone</option>
+              {zones.map(zone => (
+                <option key={zone} value={zone}>{zone}</option>
+              ))}
+            </select>
           </div>
+
+          {editedUser.zone && (
+            <div className="form-group">
+              <label>Country</label>
+              <select
+                value={editedUser.country || ''}
+                onChange={(e) => handleCountryChange(e.target.value)}
+              >
+                <option value="">Select Country</option>
+                {availableCountries.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {editedUser.country && (
+            <div className="form-group">
+              <label>City</label>
+              <select
+                value={editedUser.city || ''}
+                onChange={(e) => handleCityChange(e.target.value)}
+              >
+                <option value="">Select City</option>
+                {availableCities.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {showCustomCityInput && (
+            <div className="form-group">
+              <label>Enter City Name</label>
+              <input
+                type="text"
+                value={customCity}
+                onChange={(e) => handleCustomCityChange(e.target.value)}
+                placeholder="Enter city name"
+              />
+            </div>
+          )}
 
           {editedUser.role === 'VENUE' && (
             <div className="form-group">
@@ -186,27 +319,47 @@ const EditProfileScreen = ({ onClose }) => {
               onChange={(e) => setEditedUser({ ...editedUser, mixtape: e.target.value })}
               placeholder="https://soundcloud.com/..."
             />
+            <p style={{
+              fontSize: '11px',
+              color: '#888',
+              marginTop: '4px',
+              lineHeight: '1.4'
+            }}>
+              💡 If using a share link: Open it in your web browser, then copy the full URL from the address bar
+            </p>
           </div>
 
-          <div className="form-group">
-            <label>Spotify Artist</label>
-            <input
-              type="url"
-              value={editedUser.spotify || ''}
-              onChange={(e) => setEditedUser({ ...editedUser, spotify: e.target.value })}
-              placeholder="https://open.spotify.com/artist/..."
-            />
-          </div>
+          {editedUser.role === 'ARTIST' && (
+            <div className="form-group">
+              <label>Spotify Artist</label>
+              <input
+                type="url"
+                value={editedUser.spotify || ''}
+                onChange={(e) => setEditedUser({ ...editedUser, spotify: e.target.value })}
+                placeholder="https://open.spotify.com/artist/..."
+              />
+              <p style={{
+                fontSize: '11px',
+                color: '#888',
+                marginTop: '4px',
+                lineHeight: '1.4'
+              }}>
+                💡 If using a share link: Open it in your web browser, then copy the full URL from the address bar
+              </p>
+            </div>
+          )}
 
-          <div className="form-group">
-            <label>Resident Advisor</label>
-            <input
-              type="url"
-              value={editedUser.residentAdvisor || ''}
-              onChange={(e) => setEditedUser({ ...editedUser, residentAdvisor: e.target.value })}
-              placeholder="https://ra.co/dj/..."
-            />
-          </div>
+          {editedUser.role === 'ARTIST' && (
+            <div className="form-group">
+              <label>Resident Advisor</label>
+              <input
+                type="url"
+                value={editedUser.residentAdvisor || ''}
+                onChange={(e) => setEditedUser({ ...editedUser, residentAdvisor: e.target.value })}
+                placeholder="https://ra.co/dj/..."
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label>Instagram</label>

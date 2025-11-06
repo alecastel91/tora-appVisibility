@@ -1,45 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { dummyProfiles } from '../../data/profiles';
+import apiService from '../../services/api';
 
 const MessagesScreen = ({ onOpenChat }) => {
-  const { messages, receivedRequests, acceptRequest, declineRequest } = useAppContext();
+  const { user, getConversations, acceptRequest, declineRequest } = useAppContext();
   const { t } = useLanguage();
   const [conversations, setConversations] = useState([]);
+  const [connectionRequests, setConnectionRequests] = useState([]);
   const [activeTab, setActiveTab] = useState('messages'); // 'messages' or 'requests'
+  const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
+
+  // Function to fetch all data
+  const fetchData = async () => {
+    if (!user || !user._id) {
+      setLoading(false);
+      return;
+    }
+
+    if (loading) return; // Prevent duplicate fetches
+
+    try {
+      setLoading(true);
+
+      // OPTIMIZED: Fetch both in parallel
+      const [convos, requestsData] = await Promise.all([
+        getConversations(),
+        apiService.getReceivedRequests(user._id)
+      ]);
+
+      setConversations(convos);
+      setConnectionRequests(requestsData.requests || []);
+      setDataLoaded(true);
+    } catch (error) {
+      console.error('Error fetching messages data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Build conversations from messages
-    const convos = [];
-    
-    // Add conversations from messages
-    Object.keys(messages).forEach(userId => {
-      const userMessages = messages[userId];
-      if (userMessages && userMessages.length > 0) {
-        const profile = dummyProfiles.find(p => p.id === parseInt(userId));
-        if (profile) {
-          const lastMessage = userMessages[userMessages.length - 1];
-          convos.push({
-            id: profile.id,
-            name: profile.name,
-            avatar: profile.avatar,
-            role: profile.role,
-            lastMessage: lastMessage.text,
-            timestamp: getTimeAgo(lastMessage.timestamp),
-            unread: false,
-            rawTimestamp: new Date(lastMessage.timestamp),
-            profile: profile
-          });
-        }
-      }
-    });
-
-    // Sort by most recent first
-    convos.sort((a, b) => b.rawTimestamp - a.rawTimestamp);
-    
-    setConversations(convos);
-  }, [messages]);
+    // Only fetch if not already loaded or user changed
+    if (!dataLoaded || conversations.length === 0) {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?._id]);
 
   const getTimeAgo = (timestamp) => {
     const now = new Date();
@@ -70,31 +77,37 @@ const MessagesScreen = ({ onOpenChat }) => {
     return roleClass[role] || 'avatar-artist';
   };
 
-  // Get received connection requests
-  const requestProfiles = Array.from(receivedRequests).map(profileId => {
-    return dummyProfiles.find(p => p.id === profileId);
-  }).filter(p => p);
+  if (loading) {
+    return (
+      <div className="screen active messages-screen">
+        <div className="empty-state">
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="screen active messages-screen">
       {/* Tab Navigation */}
       <div className="messages-tabs">
-        <button 
+        <button
           className={`messages-tab ${activeTab === 'messages' ? 'active' : ''}`}
           onClick={() => setActiveTab('messages')}
         >
           Messages
-          {conversations.length > 0 && (
-            <span className="tab-count">{conversations.length}</span>
-          )}
+          {(() => {
+            const totalUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+            return totalUnread > 0 && <span className="tab-count">{totalUnread}</span>;
+          })()}
         </button>
-        <button 
+        <button
           className={`messages-tab ${activeTab === 'requests' ? 'active' : ''}`}
           onClick={() => setActiveTab('requests')}
         >
           Requests
-          {requestProfiles.length > 0 && (
-            <span className="tab-count">{requestProfiles.length}</span>
+          {connectionRequests.length > 0 && (
+            <span className="tab-count">{connectionRequests.length}</span>
           )}
         </button>
       </div>
@@ -104,24 +117,36 @@ const MessagesScreen = ({ onOpenChat }) => {
           // Messages Tab
           conversations.length > 0 ? (
             conversations.map(conv => (
-              <div 
-                key={conv.id} 
-                className="message-card"
+              <div
+                key={conv.profile._id || conv.profile.id}
+                className={`message-card ${conv.unreadCount > 0 ? 'unread' : ''}`}
                 onClick={() => onOpenChat && onOpenChat(conv.profile)}
               >
-                <div className={`message-avatar ${getAvatarClass(conv.role)}`}>
-                  {conv.avatar ? (
-                    <img src={conv.avatar} alt={conv.name} />
+                <div className={`message-avatar ${getAvatarClass(conv.profile.role)}`}>
+                  {conv.profile.avatar ? (
+                    <img src={conv.profile.avatar} alt={conv.profile.name} />
                   ) : (
-                    getInitial(conv.name)
+                    getInitial(conv.profile.name)
                   )}
                 </div>
                 <div className="message-content">
                   <div className="message-info">
-                    <h3>{conv.name}</h3>
-                    <p className="message-preview">{conv.lastMessage}</p>
+                    <h3 style={{ fontWeight: conv.unreadCount > 0 ? 'bold' : 'normal' }}>
+                      {conv.profile.name}
+                    </h3>
+                    <p
+                      className="message-preview"
+                      style={{ fontWeight: conv.unreadCount > 0 ? 'bold' : 'normal' }}
+                    >
+                      {conv.lastMessage.text}
+                    </p>
                   </div>
-                  <span className="message-time">{conv.timestamp}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                    <span className="message-time">{getTimeAgo(conv.lastMessage.createdAt)}</span>
+                    {conv.unreadCount > 0 && (
+                      <span className="unread-badge">{conv.unreadCount}</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
@@ -132,40 +157,44 @@ const MessagesScreen = ({ onOpenChat }) => {
           )
         ) : (
           // Requests Tab
-          requestProfiles.length > 0 ? (
-            requestProfiles.map(profile => (
-              <div 
-                key={profile.id} 
+          connectionRequests.length > 0 ? (
+            connectionRequests.map(request => (
+              <div
+                key={request.requestId}
                 className="message-card request-card"
-                onClick={() => onOpenChat && onOpenChat(profile)}
+                onClick={() => onOpenChat && onOpenChat(request.profile)}
               >
-                <div className={`message-avatar ${getAvatarClass(profile.role)}`}>
-                  {profile.avatar ? (
-                    <img src={profile.avatar} alt={profile.name} />
+                <div className={`message-avatar ${getAvatarClass(request.profile.role)}`}>
+                  {request.profile.avatar ? (
+                    <img src={request.profile.avatar} alt={request.profile.name} />
                   ) : (
-                    getInitial(profile.name)
+                    getInitial(request.profile.name)
                   )}
                 </div>
                 <div className="message-content">
                   <div className="message-info">
-                    <h3>{profile.name}</h3>
-                    <p className="message-preview">Connection request pending</p>
+                    <h3>{request.profile.name}</h3>
+                    <p className="message-preview">
+                      {request.message || 'Connection request pending'}
+                    </p>
                   </div>
                   <div className="request-actions">
                     <button
                       className="btn btn-sm btn-primary"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        acceptRequest(profile.id);
+                        await acceptRequest(request.requestId);
+                        await fetchData(); // Refresh the requests list
                       }}
                     >
                       Accept
                     </button>
                     <button
                       className="btn btn-sm btn-outline"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
-                        declineRequest(profile.id);
+                        await declineRequest(request.requestId);
+                        await fetchData(); // Refresh the requests list
                       }}
                     >
                       Decline

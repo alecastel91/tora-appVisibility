@@ -81,8 +81,6 @@ class ApiService {
   }
 
   async login(email, password) {
-    console.log('API Service: Attempting login to', `${API_URL}/auth/login`);
-
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -90,12 +88,7 @@ class ApiService {
         body: JSON.stringify({ email, password })
       });
 
-      console.log('API Service: Response status', response.status);
-      console.log('API Service: Response headers', response.headers);
-
-      // Get response text to debug
       const responseText = await response.text();
-      console.log('API Service: Response text', responseText);
 
       // Parse the response text as JSON
       let data;
@@ -103,7 +96,6 @@ class ApiService {
         data = JSON.parse(responseText);
       } catch (parseError) {
         console.error('Failed to parse response as JSON:', parseError);
-        console.error('Response was:', responseText);
         throw new Error('Invalid JSON response from server');
       }
 
@@ -196,20 +188,10 @@ class ApiService {
     });
 
     return this.handleResponse(response);
-  }
+  },
 
-  // CONNECTION ENDPOINTS
-  async likeProfile(profileId) {
-    const response = await fetch(`${API_URL}/connections/like/${profileId}`, {
-      method: 'POST',
-      headers: this.getHeaders()
-    });
-
-    return this.handleResponse(response);
-  }
-
-  async unlikeProfile(profileId) {
-    const response = await fetch(`${API_URL}/connections/like/${profileId}`, {
+  async deleteProfile(profileId) {
+    const response = await fetch(`${API_URL}/profiles/${profileId}`, {
       method: 'DELETE',
       headers: this.getHeaders()
     });
@@ -217,19 +199,47 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async sendConnectionRequest(profileId, message = '') {
-    const response = await fetch(`${API_URL}/connections/request`, {
+  // CONNECTION ENDPOINTS
+  async toggleLike(fromProfileId, toProfileId) {
+    const response = await fetch(`${API_URL}/connections/like/${toProfileId}`, {
       method: 'POST',
       headers: this.getHeaders(),
-      body: JSON.stringify({ to: profileId, message })
+      body: JSON.stringify({ fromProfileId })
     });
 
     return this.handleResponse(response);
   }
 
-  // MESSAGE ENDPOINTS
-  async getMessages(userId) {
-    const response = await fetch(`${API_URL}/messages/${userId}`, {
+  async sendConnectionRequest(from, to, message = '') {
+    const response = await fetch(`${API_URL}/connections/request`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ from, to, message })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async acceptConnectionRequest(requestId) {
+    const response = await fetch(`${API_URL}/connections/accept/${requestId}`, {
+      method: 'POST',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async declineConnectionRequest(requestId) {
+    const response = await fetch(`${API_URL}/connections/decline/${requestId}`, {
+      method: 'POST',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getLikedProfiles(profileId) {
+    const response = await fetch(`${API_URL}/connections/liked/${profileId}`, {
       method: 'GET',
       headers: this.getHeaders()
     });
@@ -237,11 +247,105 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async sendMessage(userId, text) {
-    const response = await fetch(`${API_URL}/messages`, {
+  async getConnectedProfiles(profileId) {
+    const response = await fetch(`${API_URL}/connections/connections/${profileId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getSentRequests(profileId) {
+    const response = await fetch(`${API_URL}/connections/sent-requests/${profileId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getReceivedRequests(profileId) {
+    const response = await fetch(`${API_URL}/connections/received-requests/${profileId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getLikers(profileId) {
+    const response = await fetch(`${API_URL}/connections/likers/${profileId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  // OPTIMIZED: Get all profile data in one request
+  async getProfileData(profileId) {
+    const response = await fetch(`${API_URL}/connections/profile-data/${profileId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getNotifications(profileId) {
+    const response = await fetch(`${API_URL}/connections/notifications/${profileId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async clearNotifications(profileId) {
+    const response = await fetch(`${API_URL}/connections/notifications/${profileId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  // MESSAGE ENDPOINTS
+  async getConversations(profileId) {
+    const response = await fetch(`${API_URL}/messages/conversations/${profileId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getMessageThread(profileId, otherProfileId) {
+    const response = await fetch(`${API_URL}/messages/thread/${profileId}/${otherProfileId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async sendMessage(from, to, text, connectionRequestId = null) {
+    const response = await fetch(`${API_URL}/messages/send`, {
       method: 'POST',
       headers: this.getHeaders(),
-      body: JSON.stringify({ to: userId, text })
+      body: JSON.stringify({ from, to, text, connectionRequestId })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  // Resolve short URLs to full URLs
+  async resolveUrl(url) {
+    const response = await fetch(`${API_URL}/resolve-url`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ url })
     });
 
     return this.handleResponse(response);

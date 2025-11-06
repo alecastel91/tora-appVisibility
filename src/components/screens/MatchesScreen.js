@@ -92,7 +92,8 @@ const MatchesScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
   const handleSendMessage = () => {
     if (selectedProfile) {
-      sendConnectionRequest(selectedProfile.id, message.trim() || '');
+      const profileId = selectedProfile._id || selectedProfile.id;
+      sendConnectionRequest(profileId, message.trim() || '');
       setShowMessageModal(false);
       setMessage('');
       setSelectedProfile(null);

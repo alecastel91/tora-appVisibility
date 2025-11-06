@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import apiService from '../../services/api';
+import { genresList, zones, countriesByZone, citiesByCountry } from '../../data/profiles';
 
 const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
   const [step, setStep] = useState(1); // 1: Basic info, 2: Profile details
@@ -11,19 +12,15 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
     // Step 2 - Profile
     name: '',
     role: 'ARTIST',
+    zone: '',
     city: '',
     country: '',
     genres: []
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const availableGenres = [
-    'House', 'Techno', 'Deep House', 'Tech House',
-    'Melodic Techno', 'Progressive House', 'Minimal',
-    'Drum & Bass', 'Dubstep', 'Trance', 'Ambient',
-    'Experimental', 'Disco', 'Funk', 'Soul', 'Jazz'
-  ];
+  const [customCity, setCustomCity] = useState('');
+  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -40,6 +37,50 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
         : [...prev.genres, genre]
     }));
   };
+
+  // Cascading dropdown handlers
+  const handleZoneChange = (zone) => {
+    setFormData({
+      ...formData,
+      zone,
+      country: '', // Reset country when zone changes
+      city: ''     // Reset city when zone changes
+    });
+    setShowCustomCityInput(false);
+    setCustomCity('');
+  };
+
+  const handleCountryChange = (country) => {
+    setFormData({
+      ...formData,
+      country,
+      city: '' // Reset city when country changes
+    });
+    setShowCustomCityInput(false);
+    setCustomCity('');
+  };
+
+  const handleCityChange = (city) => {
+    if (city === 'Other') {
+      setShowCustomCityInput(true);
+      setFormData({ ...formData, city: customCity });
+    } else {
+      setShowCustomCityInput(false);
+      setCustomCity('');
+      setFormData({ ...formData, city });
+    }
+  };
+
+  const handleCustomCityChange = (value) => {
+    setCustomCity(value);
+    setFormData({ ...formData, city: value });
+  };
+
+  // Get available countries based on selected zone
+  const availableCountries = formData.zone ? countriesByZone[formData.zone] || [] : [];
+
+  // Get available cities based on selected country
+  const availableCities = formData.country ? citiesByCountry[formData.country] || [] : [];
 
   const handleNextStep = (e) => {
     e.preventDefault();
@@ -65,7 +106,15 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
     setLoading(true);
 
     try {
-      const { confirmPassword, ...signupData } = formData;
+      // Combine city and country into location string
+      const location = formData.city && formData.country
+        ? `${formData.city}, ${formData.country}`
+        : '';
+
+      // Remove temporary fields and add location
+      const { confirmPassword, zone, ...signupData } = formData;
+      signupData.location = location;
+
       const data = await apiService.signup(signupData);
 
       // Save user data and redirect
@@ -191,34 +240,74 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
               </div>
             </div>
 
+            {/* Cascading Location Dropdowns */}
             <div className="form-group">
-              <input
-                type="text"
-                name="city"
-                placeholder="City"
-                value={formData.city}
-                onChange={handleChange}
+              <label>Zone</label>
+              <select
+                value={formData.zone || ''}
+                onChange={(e) => handleZoneChange(e.target.value)}
                 required
                 className="form-input"
-              />
+              >
+                <option value="">Select Zone</option>
+                {zones.map(zone => (
+                  <option key={zone} value={zone}>{zone}</option>
+                ))}
+              </select>
             </div>
 
-            <div className="form-group">
-              <input
-                type="text"
-                name="country"
-                placeholder="Country"
-                value={formData.country}
-                onChange={handleChange}
-                required
-                className="form-input"
-              />
-            </div>
+            {formData.zone && (
+              <div className="form-group">
+                <label>Country</label>
+                <select
+                  value={formData.country || ''}
+                  onChange={(e) => handleCountryChange(e.target.value)}
+                  required
+                  className="form-input"
+                >
+                  <option value="">Select Country</option>
+                  {availableCountries.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {formData.country && (
+              <div className="form-group">
+                <label>City</label>
+                <select
+                  value={formData.city || ''}
+                  onChange={(e) => handleCityChange(e.target.value)}
+                  required
+                  className="form-input"
+                >
+                  <option value="">Select City</option>
+                  {availableCities.map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {showCustomCityInput && (
+              <div className="form-group">
+                <label>Enter City Name</label>
+                <input
+                  type="text"
+                  value={customCity}
+                  onChange={(e) => handleCustomCityChange(e.target.value)}
+                  placeholder="Enter city name"
+                  required
+                  className="form-input"
+                />
+              </div>
+            )}
 
             <div className="form-group">
               <label>Select Your Genres (optional)</label>
               <div className="genre-selector">
-                {availableGenres.map(genre => (
+                {genresList.map(genre => (
                   <button
                     key={genre}
                     type="button"

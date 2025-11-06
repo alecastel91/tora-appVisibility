@@ -35,7 +35,15 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
       onNavigateToMessages();
     }
   };
-  
+
+  const handleLike = async () => {
+    try {
+      await toggleLike(profileId);
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
+  };
+
   const handleSendMessage = () => {
     sendConnectionRequest(profileId, message.trim() || '');
     setShowMessageModal(false);
@@ -62,7 +70,6 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
         <button className="back-btn" onClick={onClose}>
           <CloseIcon />
         </button>
-        <h1>{profile.name}</h1>
         <div style={{ width: '24px' }}></div>
       </div>
       
@@ -134,11 +141,19 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
           {profile.mixtape && (
             <div className="embed-card">
               <h4>Latest Mix</h4>
-              <iframe 
-                src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(profile.mixtape)}&color=%23ff3366&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`}
+              <iframe
+                src={(() => {
+                  // Convert mobile SoundCloud URL to regular URL for embed
+                  let soundcloudUrl = profile.mixtape;
+                  if (soundcloudUrl.includes('m.soundcloud.com')) {
+                    soundcloudUrl = soundcloudUrl.replace('m.soundcloud.com', 'soundcloud.com');
+                  }
+                  return `https://w.soundcloud.com/player/?url=${encodeURIComponent(soundcloudUrl)}&color=%23ff3366&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`;
+                })()}
                 frameBorder="0"
                 className="embed-iframe soundcloud-embed"
                 title="SoundCloud Mix"
+                allow="autoplay"
               />
             </div>
           )}
@@ -146,24 +161,16 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
           {profile.spotify && (
             <div className="embed-card">
               <h4>Spotify Artist</h4>
-              <iframe 
+              <iframe
                 src={(() => {
-                  // Try to extract artist ID from URL, or use a default
+                  // Extract artist ID from URL and convert to embed URL
                   const spotifyUrl = profile.spotify;
                   if (spotifyUrl.includes('/artist/')) {
                     const artistId = spotifyUrl.split('/artist/')[1]?.split('?')[0];
-                    // Map known artist names to real Spotify IDs
-                    const artistIdMap = {
-                      'charlottedewitte': '1Xw1bPKYWsOPTvhbYOLa7G',
-                      'amelielens': '0UFz5jBFwlNKaq7JmRnFJ1',
-                      'benklock': '1VWvH904DqXmOPqWGYpcvm',
-                      'ninakraviz': '4jj0DBvlOKXRNkNyw8SIlB',
-                      'djnobu': '3EPcykAa9mr5CBXcDBQCxS',
-                      'aldonna': '3EPcykAa9mr5CBXcDBQCxS'
-                    };
-                    return `https://open.spotify.com/embed/artist/${artistIdMap[artistId] || '3EPcykAa9mr5CBXcDBQCxS'}`;
+                    return `https://open.spotify.com/embed/artist/${artistId}`;
                   }
-                  return 'https://open.spotify.com/embed/artist/3EPcykAa9mr5CBXcDBQCxS';
+                  // If not a proper Spotify artist URL, return as-is
+                  return spotifyUrl;
                 })()}
                 frameBorder="0"
                 allowTransparency="true"
@@ -222,9 +229,9 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
         
         {/* Action Buttons */}
         <div className="profile-actions-bottom">
-          <button 
+          <button
             className={`btn ${isLiked ? 'btn-primary' : 'btn-outline'} btn-full-width`}
-            onClick={() => toggleLike(profileId)}
+            onClick={handleLike}
           >
             <HeartIcon /> {isLiked ? 'Liked' : 'Like'}
           </button>

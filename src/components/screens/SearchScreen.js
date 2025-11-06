@@ -26,19 +26,39 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [profilesLoaded, setProfilesLoaded] = useState(false); // Track if profiles loaded
 
   // Dropdown states
   const [openDropdown, setOpenDropdown] = useState(null);
 
   // Fetch profiles from backend
   const fetchProfiles = async () => {
+    if (loading || profilesLoaded) return; // Prevent duplicate fetches
+
+    const startTime = performance.now();
+    console.log('🔍 [SearchScreen] Starting to fetch profiles');
+
     setLoading(true);
     try {
+      const apiStartTime = performance.now();
       // Use the public endpoint for now
       const profiles = await apiService.searchProfiles();
-      setSearchResults(profiles || []);
+      const apiEndTime = performance.now();
+      console.log(`✅ [SearchScreen] API call completed in ${(apiEndTime - apiStartTime).toFixed(0)}ms, got ${profiles?.length || 0} profiles`);
+
+      // Filter out current user's profile
+      const filteredProfiles = (profiles || []).filter(profile => {
+        const profileId = profile._id || profile.id;
+        const userId = user?._id || user?.id;
+        return profileId !== userId;
+      });
+      setSearchResults(filteredProfiles);
+      setProfilesLoaded(true);
+
+      const endTime = performance.now();
+      console.log(`✅ [SearchScreen] Total fetch time: ${(endTime - startTime).toFixed(0)}ms`);
     } catch (error) {
-      console.error('Error fetching profiles:', error);
+      console.error('❌ [SearchScreen] Error fetching profiles:', error);
       setSearchResults([]);
     } finally {
       setLoading(false);
@@ -46,9 +66,12 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   };
 
   useEffect(() => {
-    // Load profiles on component mount
-    fetchProfiles();
-  }, []);
+    // Load profiles on component mount only if not already loaded
+    if (!profilesLoaded) {
+      fetchProfiles();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profilesLoaded]);
 
   const handleSearch = async () => {
     setHasSearched(true);
@@ -56,16 +79,22 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
     try {
       const params = {};
 
-      // Add filters to params
+      // Add filters to params - send all selected values as arrays for OR logic
       if (searchQuery) params.search = searchQuery;
-      if (filters.roles.length > 0) params.role = filters.roles[0];
-      if (filters.zones.length > 0) params.zone = filters.zones[0];
-      if (filters.countries.length > 0) params.country = filters.countries[0];
-      if (filters.cities.length > 0) params.city = filters.cities[0];
-      if (filters.genres.length > 0) params.genre = filters.genres[0];
+      if (filters.roles.length > 0) params.roles = filters.roles.join(',');
+      if (filters.zones.length > 0) params.zones = filters.zones.join(',');
+      if (filters.countries.length > 0) params.countries = filters.countries.join(',');
+      if (filters.cities.length > 0) params.cities = filters.cities.join(',');
+      if (filters.genres.length > 0) params.genres = filters.genres.join(',');
 
       const profiles = await apiService.searchProfiles(params);
-      setSearchResults(profiles || []);
+      // Filter out current user's profile
+      const filteredProfiles = (profiles || []).filter(profile => {
+        const profileId = profile._id || profile.id;
+        const userId = user?._id || user?.id;
+        return profileId !== userId;
+      });
+      setSearchResults(filteredProfiles);
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults([]);
@@ -114,8 +143,17 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
 
   const activeFilterCount = Object.values(filters).reduce((count, arr) => count + arr.length, 0);
 
-  const handleLike = (profileId) => {
-    toggleLike(profileId);
+  const handleLike = async (profileId) => {
+    console.log('Like button clicked for profile:', profileId);
+    console.log('Current user:', user);
+    try {
+      console.log('Calling toggleLike...');
+      await toggleLike(profileId);
+      console.log('Toggle like successful!');
+    } catch (error) {
+      console.error('Error liking profile:', error);
+      alert('Failed to like profile: ' + error.message);
+    }
   };
 
   const handleConnect = (profile) => {
@@ -138,7 +176,8 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
 
   const handleSendMessage = () => {
     if (selectedProfile) {
-      sendConnectionRequest(selectedProfile.id, message.trim() || '');
+      const profileId = selectedProfile._id || selectedProfile.id;
+      sendConnectionRequest(profileId, message.trim() || '');
       setShowMessageModal(false);
       setMessage('');
       setSelectedProfile(null);

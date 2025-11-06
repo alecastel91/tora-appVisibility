@@ -4,6 +4,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { zones, countriesByZone, citiesByCountry } from '../../data/profiles';
 import { CloseIcon } from '../../utils/icons';
 import Modal from '../common/Modal';
+import apiService from '../../services/api';
 
 const CalendarScreen = ({ onClose }) => {
   const { t } = useLanguage();
@@ -65,14 +66,31 @@ const CalendarScreen = ({ onClose }) => {
 
   const availableOptions = getAvailableLookingForOptions();
 
-  const handleClose = () => {
-    // Save available dates to user profile
-    updateUser({ 
-      ...user, 
-      availableDates: Array.from(selectedDates),
-      schedules: schedules 
-    });
-    onClose();
+  const handleClose = async () => {
+    try {
+      const profileId = user._id || user.id;
+
+      if (!profileId) {
+        console.error('Profile ID is missing');
+        onClose();
+        return;
+      }
+
+      // Save available dates and schedules to backend
+      const updatedProfile = await apiService.updateProfile(profileId, {
+        ...user,
+        availableDates: Array.from(selectedDates),
+        schedules: schedules
+      });
+
+      // Update local state with response from backend
+      updateUser(updatedProfile);
+      onClose();
+    } catch (error) {
+      console.error('Failed to save calendar data:', error);
+      // Still close even if save fails
+      onClose();
+    }
   };
 
   const handleDateClick = (day) => {
@@ -88,7 +106,7 @@ const CalendarScreen = ({ onClose }) => {
     setSelectedDates(newSelected);
   };
 
-  const handleSaveSchedule = () => {
+  const handleSaveSchedule = async () => {
     if (scheduleForm.startDate && scheduleForm.endDate) {
       const newSchedule = {
         id: editingScheduleId || `schedule-${Date.now()}`,
@@ -98,30 +116,49 @@ const CalendarScreen = ({ onClose }) => {
 
       let updatedSchedules;
       if (editingScheduleId) {
-        updatedSchedules = schedules.map(s => 
+        updatedSchedules = schedules.map(s =>
           s.id === editingScheduleId ? newSchedule : s
         );
       } else {
         updatedSchedules = [...schedules, newSchedule];
       }
 
-      setSchedules(updatedSchedules);
-      updateUser({ schedules: updatedSchedules });
-      
-      setShowLocationModal(false);
-      setEditingScheduleId(null);
-      setScheduleForm({
-        zone: '',
-        country: '',
-        city: '',
-        startDate: '',
-        endDate: '',
-        lookingFor: {
-          promoter: false,
-          venue: false,
-          artist: false
+      try {
+        const profileId = user._id || user.id;
+
+        if (!profileId) {
+          console.error('Profile ID is missing');
+          return;
         }
-      });
+
+        // Save to backend
+        const updatedProfile = await apiService.updateProfile(profileId, {
+          ...user,
+          schedules: updatedSchedules
+        });
+
+        // Update local state
+        setSchedules(updatedSchedules);
+        updateUser(updatedProfile);
+
+        setShowLocationModal(false);
+        setEditingScheduleId(null);
+        setScheduleForm({
+          zone: '',
+          country: '',
+          city: '',
+          startDate: '',
+          endDate: '',
+          lookingFor: {
+            promoter: false,
+            venue: false,
+            artist: false
+          }
+        });
+      } catch (error) {
+        console.error('Failed to save schedule:', error);
+        alert('Failed to save schedule. Please try again.');
+      }
     }
   };
 
@@ -131,10 +168,30 @@ const CalendarScreen = ({ onClose }) => {
     setShowLocationModal(true);
   };
 
-  const handleRemoveSchedule = (scheduleId) => {
+  const handleRemoveSchedule = async (scheduleId) => {
     const updatedSchedules = schedules.filter(s => s.id !== scheduleId);
-    setSchedules(updatedSchedules);
-    updateUser({ schedules: updatedSchedules });
+
+    try {
+      const profileId = user._id || user.id;
+
+      if (!profileId) {
+        console.error('Profile ID is missing');
+        return;
+      }
+
+      // Save to backend
+      const updatedProfile = await apiService.updateProfile(profileId, {
+        ...user,
+        schedules: updatedSchedules
+      });
+
+      // Update local state
+      setSchedules(updatedSchedules);
+      updateUser(updatedProfile);
+    } catch (error) {
+      console.error('Failed to remove schedule:', error);
+      alert('Failed to remove schedule. Please try again.');
+    }
   };
 
   const openNewScheduleModal = () => {

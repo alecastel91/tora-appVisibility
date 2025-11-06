@@ -1,28 +1,61 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import Modal from '../common/Modal';
 import RAEventsModal from '../common/RAEventsModal';
 import { CalendarIcon, UploadIcon, SwitchIcon, AddIcon } from '../../utils/icons';
-import { dummyProfiles } from '../../data/profiles';
 import CalendarScreen from './CalendarScreen';
 import EditProfileScreen from './EditProfileScreen';
 import RepresentedArtistsScreen from './RepresentedArtistsScreen';
 import AddProfileScreen from './AddProfileScreen';
+import apiService from '../../services/api';
 
 const ProfileScreen = () => {
-  const { user, updateUser, userProfiles, switchProfile, addProfile } = useAppContext();
+  const { user, updateUser, userProfiles, switchProfile, addProfile, likedProfiles, likedProfilesData, connectedUsers, connectedUsersData, likerProfilesData } = useAppContext();
   const { t } = useLanguage();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showRepresentedArtists, setShowRepresentedArtists] = useState(false);
   const [showLikesList, setShowLikesList] = useState(false);
+  const [showLikersList, setShowLikersList] = useState(false);
   const [showConnectionsList, setShowConnectionsList] = useState(false);
   const [showAllGenres, setShowAllGenres] = useState(false);
   const [showRAEvents, setShowRAEvents] = useState(false);
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
   const [showAddProfile, setShowAddProfile] = useState(false);
   const fileInputRef = useRef(null);
+  const [resolvedSoundCloudUrl, setResolvedSoundCloudUrl] = useState(null);
+  const [resolvedSpotifyId, setResolvedSpotifyId] = useState(null);
+
+  // Handle SoundCloud URLs
+  React.useEffect(() => {
+    if (user?.mixtape) {
+      // Accept soundcloud.com or m.soundcloud.com URLs (not on.soundcloud.com short links)
+      const isValidSoundCloud = (user.mixtape.includes('soundcloud.com/') || user.mixtape.includes('m.soundcloud.com/'))
+        && !user.mixtape.includes('on.soundcloud.com');
+
+      if (isValidSoundCloud) {
+        // Convert m.soundcloud.com to soundcloud.com for embed
+        const embedUrl = user.mixtape.replace('m.soundcloud.com', 'soundcloud.com');
+        setResolvedSoundCloudUrl(embedUrl);
+      } else {
+        setResolvedSoundCloudUrl(null);
+      }
+    }
+  }, [user?.mixtape]);
+
+  // Handle Spotify URLs
+  React.useEffect(() => {
+    if (user?.spotify) {
+      // Only accept full spotify.com URLs with /artist/
+      if (user.spotify.includes('open.spotify.com') && user.spotify.includes('/artist/')) {
+        const artistId = user.spotify.split('/artist/')[1]?.split('?')[0]?.split('/')[0];
+        setResolvedSpotifyId(artistId);
+      } else {
+        setResolvedSpotifyId(null);
+      }
+    }
+  }, [user?.spotify]);
   
   const [editForm] = useState({
     name: user?.name || 'Your Name',
@@ -43,13 +76,48 @@ const ProfileScreen = () => {
 
   const [selectedGenres, setSelectedGenres] = useState(editForm.genres || []);
 
+  // OPTIMIZED: Use cached profile data from AppContext instead of fetching
+  const likedProfilesList = likedProfilesData || [];
+  const likerProfilesList = likerProfilesData || [];
+  const connectionsList = connectedUsersData || [];
 
-  const handleImageUpload = (event) => {
+  // No need to fetch - data is already loaded in AppContext
+  useEffect(() => {
+    // This effect is now just for debugging/logging if needed
+    if (user?._id) {
+      console.log('ProfileScreen: Using cached profile data');
+      console.log('Liked profiles:', likedProfilesList.length);
+      console.log('Likers:', likerProfilesList.length);
+      console.log('Connections:', connectionsList.length);
+    }
+  }, [user?._id, likedProfilesList.length, likerProfilesList.length, connectionsList.length]);
+
+  const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        updateUser({ ...user, avatar: reader.result });
+      reader.onloadend = async () => {
+        try {
+          const avatarData = reader.result;
+          const profileId = user._id || user.id;
+
+          if (!profileId) {
+            console.error('Profile ID is missing');
+            return;
+          }
+
+          // Save to backend immediately
+          const updatedProfile = await apiService.updateProfile(profileId, {
+            ...user,
+            avatar: avatarData
+          });
+
+          // Update local state with response from backend
+          updateUser(updatedProfile);
+        } catch (error) {
+          console.error('Failed to upload avatar:', error);
+          alert('Failed to upload image. Please try again.');
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -68,11 +136,6 @@ const ProfileScreen = () => {
     };
     return roleClasses[role] || 'role-badge';
   };
-
-
-  // Real liked profiles and connections will come from backend
-  const likedProfiles = [];
-  const connections = [];
 
   // Show full-screen calendar if requested
   if (showCalendar) {
@@ -154,15 +217,15 @@ const ProfileScreen = () => {
 
       <div className="profile-stats">
         <div className="stat-item" onClick={() => setShowLikesList(true)}>
-          <span className="stat-value">12</span>
+          <span className="stat-value">{likedProfiles.size}</span>
           <span className="stat-label">{t('profile.liked')}</span>
         </div>
-        <div className="stat-item" onClick={() => setShowLikesList(true)}>
-          <span className="stat-value">47</span>
+        <div className="stat-item" onClick={() => setShowLikersList(true)}>
+          <span className="stat-value">{likerProfilesList.length}</span>
           <span className="stat-label">{t('profile.likes')}</span>
         </div>
         <div className="stat-item" onClick={() => setShowConnectionsList(true)}>
-          <span className="stat-value">23</span>
+          <span className="stat-value">{connectedUsers.size}</span>
           <span className="stat-label">{t('profile.connections')}</span>
         </div>
       </div>
@@ -248,26 +311,56 @@ const ProfileScreen = () => {
         {user?.mixtape && (
           <div className="embed-card">
             <h4>Latest Mix</h4>
-            <iframe 
-              src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(user.mixtape)}&color=%23ff3366&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`}
-              frameBorder="0"
-              className="embed-iframe soundcloud-embed"
-              title="SoundCloud Mix"
-            />
+            {resolvedSoundCloudUrl ? (
+              <iframe
+                src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(resolvedSoundCloudUrl)}&color=%23ff3366&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`}
+                frameBorder="0"
+                className="embed-iframe soundcloud-embed"
+                title="SoundCloud Mix"
+              />
+            ) : (
+              <div className="embed-placeholder">
+                <p style={{ marginBottom: '8px' }}>⚠️ Please use the full SoundCloud URL</p>
+                <p style={{ fontSize: '12px', opacity: 0.7, marginBottom: '12px' }}>
+                  Example: https://soundcloud.com/artist/track-name
+                </p>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setShowEditProfile(true)}
+                >
+                  Update Link
+                </button>
+              </div>
+            )}
           </div>
         )}
-        
+
         {user?.spotify && (
           <div className="embed-card">
             <h4>Spotify Artist</h4>
-            <iframe 
-              src={`https://open.spotify.com/embed/artist/${user.spotify.split('/artist/')[1]?.split('?')[0]}`}
-              frameBorder="0"
-              allowTransparency="true"
-              allow="encrypted-media"
-              className="embed-iframe spotify-embed"
-              title="Spotify Artist Profile"
-            />
+            {resolvedSpotifyId ? (
+              <iframe
+                src={`https://open.spotify.com/embed/artist/${resolvedSpotifyId}`}
+                frameBorder="0"
+                allowTransparency="true"
+                allow="encrypted-media"
+                className="embed-iframe spotify-embed"
+                title="Spotify Artist Profile"
+              />
+            ) : (
+              <div className="embed-placeholder">
+                <p style={{ marginBottom: '8px' }}>⚠️ Please use the full Spotify URL</p>
+                <p style={{ fontSize: '12px', opacity: 0.7, marginBottom: '12px' }}>
+                  Example: https://open.spotify.com/artist/XXXXX
+                </p>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setShowEditProfile(true)}
+                >
+                  Update Link
+                </button>
+              </div>
+            )}
           </div>
         )}
         
@@ -318,19 +411,55 @@ const ProfileScreen = () => {
       <Modal
         isOpen={showLikesList}
         onClose={() => setShowLikesList(false)}
-        title={t('profile.likes')}
+        title="Profiles You Liked"
       >
         <div className="profiles-list">
-          {likedProfiles.map(profile => (
-            <div key={profile.id} className="profile-list-item">
-              <img src={profile.avatar} alt={profile.name} />
-              <div className="profile-info">
-                <h4>{profile.name}</h4>
-                <span className="profile-role">{profile.role}</span>
-                <span className="profile-location">{profile.location}</span>
+          {likedProfilesList.length > 0 ? (
+            likedProfilesList.map(profile => (
+              <div key={profile._id || profile.id} className="profile-list-item">
+                {profile.avatar ? (
+                  <img src={profile.avatar} alt={profile.name} />
+                ) : (
+                  <div className="profile-avatar-placeholder">{profile.name.charAt(0)}</div>
+                )}
+                <div className="profile-info">
+                  <h4>{profile.name}</h4>
+                  <span className="profile-role">{profile.role}</span>
+                  <span className="profile-location">{profile.location}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p>No liked profiles yet</p>
+          )}
+        </div>
+      </Modal>
+
+      {/* Likers List Modal */}
+      <Modal
+        isOpen={showLikersList}
+        onClose={() => setShowLikersList(false)}
+        title="Profiles That Liked You"
+      >
+        <div className="profiles-list">
+          {likerProfilesList.length > 0 ? (
+            likerProfilesList.map(profile => (
+              <div key={profile._id || profile.id} className="profile-list-item">
+                {profile.avatar ? (
+                  <img src={profile.avatar} alt={profile.name} />
+                ) : (
+                  <div className="profile-avatar-placeholder">{profile.name.charAt(0)}</div>
+                )}
+                <div className="profile-info">
+                  <h4>{profile.name}</h4>
+                  <span className="profile-role">{profile.role}</span>
+                  <span className="profile-location">{profile.location}</span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No one has liked you yet</p>
+          )}
         </div>
       </Modal>
 
@@ -341,16 +470,24 @@ const ProfileScreen = () => {
         title={t('profile.connections')}
       >
         <div className="profiles-list">
-          {connections.map(profile => (
-            <div key={profile.id} className="profile-list-item">
-              <img src={profile.avatar} alt={profile.name} />
-              <div className="profile-info">
-                <h4>{profile.name}</h4>
-                <span className="profile-role">{profile.role}</span>
-                <span className="profile-location">{profile.location}</span>
+          {connectionsList.length > 0 ? (
+            connectionsList.map(profile => (
+              <div key={profile._id || profile.id} className="profile-list-item">
+                {profile.avatar ? (
+                  <img src={profile.avatar} alt={profile.name} />
+                ) : (
+                  <div className="profile-avatar-placeholder">{profile.name.charAt(0)}</div>
+                )}
+                <div className="profile-info">
+                  <h4>{profile.name}</h4>
+                  <span className="profile-role">{profile.role}</span>
+                  <span className="profile-location">{profile.location}</span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p>No connections yet</p>
+          )}
         </div>
       </Modal>
 
@@ -421,6 +558,7 @@ const ProfileScreen = () => {
         isOpen={showRAEvents}
         onClose={() => setShowRAEvents(false)}
         artistName={user?.name}
+        raUrl={user?.residentAdvisor}
       />
     </div>
   );
