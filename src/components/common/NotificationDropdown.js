@@ -1,14 +1,25 @@
 import React from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAppContext } from '../../contexts/AppContext';
 
 const NotificationDropdown = ({ onClose, onClearNotifications }) => {
   const { t } = useLanguage();
-  
-  const notifications = [
-    { id: 1, text: `Alex Rossi ${t('notifications.likedProfile')}`, time: `2 ${t('notifications.minAgo')}` },
-    { id: 2, text: `${t('notifications.bookingRequest')} Fabric London`, time: `1 ${t('notifications.hourAgo')}` },
-    { id: 3, text: `Marco ${t('notifications.acceptedConnection')}`, time: `3 ${t('notifications.hoursAgo')}` }
-  ];
+  const { notifications } = useAppContext();
+
+  // Helper to format time ago
+  const getTimeAgo = (timestamp) => {
+    const now = new Date();
+    const notifTime = new Date(timestamp);
+    const diffMs = now - notifTime;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return t('notifications.justNow') || 'Just now';
+    if (diffMins < 60) return `${diffMins} ${t('notifications.minAgo') || 'min ago'}`;
+    if (diffHours < 24) return `${diffHours} ${t('notifications.hourAgo') || 'h ago'}`;
+    return `${diffDays} ${t('notifications.daysAgo') || 'd ago'}`;
+  };
 
   return (
     <div className="notifications-dropdown">
@@ -17,12 +28,18 @@ const NotificationDropdown = ({ onClose, onClearNotifications }) => {
         <button onClick={onClearNotifications}>{t('notifications.clearAll')}</button>
       </div>
       <div className="notifications-list">
-        {notifications.map(notif => (
-          <div key={notif.id} className="notification-item">
-            <p>{notif.text}</p>
-            <span className="notification-time">{notif.time}</span>
+        {notifications && notifications.length > 0 ? (
+          notifications.map(notif => (
+            <div key={notif._id || notif.id} className="notification-item">
+              <p>{notif.message || notif.text}</p>
+              <span className="notification-time">{getTimeAgo(notif.createdAt || notif.timestamp)}</span>
+            </div>
+          ))
+        ) : (
+          <div className="notification-item empty">
+            <p>{t('notifications.noNotifications') || 'No notifications'}</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
