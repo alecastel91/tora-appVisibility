@@ -524,45 +524,51 @@ const ProfileScreen = () => {
             </p>
           )}
           <div className="profile-switcher-list">
-            {userProfiles.map(profile => (
-              <div
-                key={profile._id || profile.id}
-                className={`profile-switcher-item ${profile._id === user?._id || profile.id === user?.id ? 'active' : ''}`}
-                onClick={() => {
-                  switchProfile(profile._id || profile.id);
-                  setShowProfileSwitcher(false);
-                }}
-              >
-                <div className="switcher-avatar">
-                  {profile.avatar ? (
-                    <img src={profile.avatar} alt={profile.name} />
-                  ) : (
-                    profile.name.charAt(0).toUpperCase()
+            {userProfiles.map(profile => {
+              const profileId = profile._id || profile.id;
+              const currentUserId = user?._id || user?.id;
+              const isActive = profileId === currentUserId;
+
+              return (
+                <div
+                  key={profileId}
+                  className={`profile-switcher-item ${isActive ? 'active' : ''}`}
+                  onClick={() => {
+                    switchProfile(profileId);
+                    setShowProfileSwitcher(false);
+                  }}
+                >
+                  <div className="switcher-avatar">
+                    {profile.avatar ? (
+                      <img src={profile.avatar} alt={profile.name} />
+                    ) : (
+                      profile.name.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div className="switcher-info">
+                    <h4>{profile.name}</h4>
+                    <span className={`role-badge ${profile.role.toLowerCase()}`}>
+                      {profile.role}
+                    </span>
+                    <p className="switcher-location">{profile.location}</p>
+                  </div>
+                  {isActive && (
+                    <div className="active-indicator">✓</div>
+                  )}
+                  {!isActive && userProfiles.length > 1 && (
+                    <button
+                      className="delete-profile-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProfileToDelete(profile);
+                      }}
+                    >
+                      <TrashIcon />
+                    </button>
                   )}
                 </div>
-                <div className="switcher-info">
-                  <h4>{profile.name}</h4>
-                  <span className={`role-badge ${profile.role.toLowerCase()}`}>
-                    {profile.role}
-                  </span>
-                  <p className="switcher-location">{profile.location}</p>
-                </div>
-                {(profile._id === user?._id || profile.id === user?.id) && (
-                  <div className="active-indicator">✓</div>
-                )}
-                {(profile._id !== user?._id && profile.id !== user?.id) && userProfiles.length > 1 && (
-                  <button
-                    className="delete-profile-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setProfileToDelete(profile);
-                    }}
-                  >
-                    <TrashIcon />
-                  </button>
-                )}
-              </div>
-            ))}
+              );
+            })}
 
             {/* Add Profile Button */}
             <div
