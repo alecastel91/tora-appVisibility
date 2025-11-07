@@ -2894,6 +2894,15 @@
   background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
 }
 
+.message-avatar.avatar-deleted {
+  background: #555;
+  opacity: 0.6;
+}
+
+.message-card.deleted-profile {
+  opacity: 0.8;
+}
+
 .message-content {
   flex: 1;
   display: flex;

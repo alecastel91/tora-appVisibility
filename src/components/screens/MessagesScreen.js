@@ -116,40 +116,49 @@ const MessagesScreen = ({ onOpenChat }) => {
         {activeTab === 'messages' ? (
           // Messages Tab
           conversations.length > 0 ? (
-            conversations.map(conv => (
-              <div
-                key={conv.profile._id || conv.profile.id}
-                className={`message-card ${conv.unreadCount > 0 ? 'unread' : ''}`}
-                onClick={() => onOpenChat && onOpenChat(conv.profile)}
-              >
-                <div className={`message-avatar ${getAvatarClass(conv.profile.role)}`}>
-                  {conv.profile.avatar ? (
-                    <img src={conv.profile.avatar} alt={conv.profile.name} />
-                  ) : (
-                    getInitial(conv.profile.name)
-                  )}
-                </div>
-                <div className="message-content">
-                  <div className="message-info">
-                    <h3 style={{ fontWeight: conv.unreadCount > 0 ? 'bold' : 'normal' }}>
-                      {conv.profile.name}
-                    </h3>
-                    <p
-                      className="message-preview"
-                      style={{ fontWeight: conv.unreadCount > 0 ? 'bold' : 'normal' }}
-                    >
-                      {conv.lastMessage.text}
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                    <span className="message-time">{getTimeAgo(conv.lastMessage.createdAt)}</span>
-                    {conv.unreadCount > 0 && (
-                      <span className="unread-badge">{conv.unreadCount}</span>
+            conversations.map(conv => {
+              const isDeleted = conv.profile.isDeleted || false;
+              return (
+                <div
+                  key={conv.profile._id || conv.profile.id}
+                  className={`message-card ${conv.unreadCount > 0 ? 'unread' : ''} ${isDeleted ? 'deleted-profile' : ''}`}
+                  onClick={() => onOpenChat && onOpenChat(conv.profile)}
+                >
+                  <div className={`message-avatar ${isDeleted ? 'avatar-deleted' : getAvatarClass(conv.profile.role)}`}>
+                    {conv.profile.avatar && !isDeleted ? (
+                      <img src={conv.profile.avatar} alt={conv.profile.name} />
+                    ) : (
+                      getInitial(conv.profile.name)
                     )}
                   </div>
+                  <div className="message-content">
+                    <div className="message-info">
+                      <h3 style={{
+                        fontWeight: conv.unreadCount > 0 ? 'bold' : 'normal',
+                        color: isDeleted ? '#888' : 'inherit'
+                      }}>
+                        {conv.profile.name}
+                      </h3>
+                      <p
+                        className="message-preview"
+                        style={{
+                          fontWeight: conv.unreadCount > 0 ? 'bold' : 'normal',
+                          color: isDeleted ? '#888' : 'inherit'
+                        }}
+                      >
+                        {conv.lastMessage.text}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                      <span className="message-time">{getTimeAgo(conv.lastMessage.createdAt)}</span>
+                      {conv.unreadCount > 0 && (
+                        <span className="unread-badge">{conv.unreadCount}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="empty-state">
               <p>{t('messages.noMessages')}</p>
