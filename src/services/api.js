@@ -190,6 +190,15 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async deleteProfile(profileId) {
+    const response = await fetch(`${API_URL}/profiles/${profileId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   // CONNECTION ENDPOINTS
   async toggleLike(fromProfileId, toProfileId) {
     const response = await fetch(`${API_URL}/connections/like/${toProfileId}`, {
