@@ -148,6 +148,27 @@ export const AppProvider = ({ children }) => {
     setUserProfiles(prev => [...prev, newProfile]);
   };
 
+  const deleteProfile = async (profileId) => {
+    try {
+      // Call backend API to delete profile
+      await apiService.deleteProfile(profileId);
+
+      // Remove from userProfiles array
+      const updatedProfiles = userProfiles.filter(p => (p._id || p.id) !== profileId);
+      setUserProfiles(updatedProfiles);
+
+      // If we deleted the current profile, switch to another one
+      if ((user._id || user.id) === profileId) {
+        if (updatedProfiles.length > 0) {
+          switchProfile(updatedProfiles[0]._id || updatedProfiles[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      throw error;
+    }
+  };
+
   // Helper function to reload profile data (call after likes/connections change)
   const reloadProfileData = async () => {
     if (!user || !user._id) return;
@@ -404,6 +425,7 @@ export const AppProvider = ({ children }) => {
     userProfiles,
     switchProfile,
     addProfile,
+    deleteProfile,
     reloadProfileData,
     getCalendarMatches,
     getLocationFilteredProfiles,
