@@ -3,7 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import Modal from '../common/Modal';
 import RAEventsModal from '../common/RAEventsModal';
-import { CalendarIcon, UploadIcon, SwitchIcon, AddIcon } from '../../utils/icons';
+import { CalendarIcon, UploadIcon, SwitchIcon, AddIcon, TrashIcon } from '../../utils/icons';
 import CalendarScreen from './CalendarScreen';
 import EditProfileScreen from './EditProfileScreen';
 import RepresentedArtistsScreen from './RepresentedArtistsScreen';
@@ -11,7 +11,7 @@ import AddProfileScreen from './AddProfileScreen';
 import apiService from '../../services/api';
 
 const ProfileScreen = () => {
-  const { user, updateUser, userProfiles, switchProfile, addProfile, likedProfiles, likedProfilesData, connectedUsers, connectedUsersData, likerProfilesData } = useAppContext();
+  const { user, updateUser, userProfiles, switchProfile, addProfile, deleteProfile, likedProfiles, likedProfilesData, connectedUsers, connectedUsersData, likerProfilesData } = useAppContext();
   const { t } = useLanguage();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -23,6 +23,7 @@ const ProfileScreen = () => {
   const [showRAEvents, setShowRAEvents] = useState(false);
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
   const [showAddProfile, setShowAddProfile] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState(null);
   const fileInputRef = useRef(null);
   const [resolvedSoundCloudUrl, setResolvedSoundCloudUrl] = useState(null);
   const [resolvedSpotifyId, setResolvedSpotifyId] = useState(null);
@@ -141,6 +142,19 @@ const ProfileScreen = () => {
       'AGENT': 'role-badge agent'
     };
     return roleClasses[role] || 'role-badge';
+  };
+
+  const handleDeleteProfile = async () => {
+    if (!profileToDelete) return;
+
+    try {
+      await deleteProfile(profileToDelete._id || profileToDelete.id);
+      setProfileToDelete(null);
+      setShowProfileSwitcher(false);
+    } catch (error) {
+      console.error('Failed to delete profile:', error);
+      alert(error.message || 'Failed to delete profile. Please try again.');
+    }
   };
 
   // Show full-screen calendar if requested
@@ -536,6 +550,17 @@ const ProfileScreen = () => {
                 {(profile._id === user?._id || profile.id === user?.id) && (
                   <div className="active-indicator">✓</div>
                 )}
+                {(profile._id !== user?._id && profile.id !== user?.id) && userProfiles.length > 1 && (
+                  <button
+                    className="delete-profile-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileToDelete(profile);
+                    }}
+                  >
+                    <TrashIcon />
+                  </button>
+                )}
               </div>
             ))}
 
@@ -566,6 +591,34 @@ const ProfileScreen = () => {
         artistName={user?.name}
         raUrl={user?.residentAdvisor}
       />
+
+      {/* Delete Profile Confirmation Modal */}
+      {profileToDelete && (
+        <Modal
+          isOpen={!!profileToDelete}
+          onClose={() => setProfileToDelete(null)}
+          title="Delete Profile"
+        >
+          <div className="delete-profile-confirmation">
+            <p>Are you sure you want to delete the profile <strong>{profileToDelete.name}</strong>?</p>
+            <p className="warning-text">This action cannot be undone.</p>
+            <div className="confirmation-buttons">
+              <button
+                className="cancel-btn"
+                onClick={() => setProfileToDelete(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="delete-btn"
+                onClick={handleDeleteProfile}
+              >
+                Delete Profile
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

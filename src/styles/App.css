@@ -4374,6 +4374,83 @@
   margin-left: 12px;
 }
 
+.delete-profile-btn {
+  background: transparent;
+  border: none;
+  color: #ff4444;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-profile-btn:hover {
+  background: rgba(255, 68, 68, 0.1);
+  transform: scale(1.1);
+}
+
+.delete-profile-confirmation {
+  padding: 20px 0;
+}
+
+.delete-profile-confirmation p {
+  margin-bottom: 16px;
+  color: var(--text-white);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.delete-profile-confirmation .warning-text {
+  color: #ff4444;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.confirmation-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.confirmation-buttons .cancel-btn {
+  background: var(--bg-secondary);
+  color: var(--text-white);
+  border: 1px solid var(--border-color);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.confirmation-buttons .cancel-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--primary-pink);
+}
+
+.confirmation-buttons .delete-btn {
+  background: #ff4444;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.confirmation-buttons .delete-btn:hover {
+  background: #ff2222;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+}
+
 /* Secondary button style */
 .btn-secondary {
   background: var(--bg-secondary);
