@@ -2988,16 +2988,12 @@
 .chat-deleted-banner {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
   padding: 12px 16px;
-  background: rgba(255, 193, 7, 0.1);
-  border-bottom: 1px solid rgba(255, 193, 7, 0.3);
-  color: #ffc107;
+  background: rgba(220, 53, 69, 0.1);
+  border-bottom: 1px solid rgba(220, 53, 69, 0.3);
+  color: #dc3545;
   font-size: 14px;
-}
-
-.chat-deleted-banner svg {
-  flex-shrink: 0;
 }
 
 .chat-input-disabled {
