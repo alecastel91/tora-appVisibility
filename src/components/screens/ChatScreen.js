@@ -143,7 +143,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
             <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <div className="chat-user-info" onClick={() => onOpenProfile && onOpenProfile(user)} style={{ cursor: 'pointer' }}>
+        <div
+          className="chat-user-info"
+          onClick={() => {
+            if (!(user.isDeleted || user.deleted) && onOpenProfile) {
+              onOpenProfile(user);
+            }
+          }}
+          style={{ cursor: user.isDeleted || user.deleted ? 'default' : 'pointer' }}
+        >
           <div className={`chat-avatar ${user.isDeleted || user.deleted ? 'avatar-deleted' : getAvatarClass(user.role)}`}>
             {user.avatar ? (
               <img src={user.avatar} alt={user.name} />
