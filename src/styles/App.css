@@ -4932,8 +4932,11 @@
 .view-profile-content {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
   padding: 20px;
   padding-bottom: 80px;
+  min-height: 0;
 }
 
 .profile-name-role-container {
