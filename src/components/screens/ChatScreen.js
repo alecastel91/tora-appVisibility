@@ -146,7 +146,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         <div className="chat-user-info" onClick={() => onOpenProfile && onOpenProfile(user)} style={{ cursor: 'pointer' }}>
           <div className={`chat-avatar ${user.isDeleted || user.deleted ? 'avatar-deleted' : getAvatarClass(user.role)}`}>
             {user.avatar ? (
-              <img src={user.avatar} alt={user.name} style={{ opacity: user.isDeleted || user.deleted ? 0.5 : 1 }} />
+              <img src={user.avatar} alt={user.name} />
             ) : (
               getInitial(user.name)
             )}

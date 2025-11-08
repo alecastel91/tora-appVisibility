@@ -126,7 +126,7 @@ const MessagesScreen = ({ onOpenChat }) => {
                 >
                   <div className={`message-avatar ${isDeleted ? 'avatar-deleted' : getAvatarClass(conv.profile.role)}`}>
                     {conv.profile.avatar ? (
-                      <img src={conv.profile.avatar} alt={conv.profile.name} style={{ opacity: isDeleted ? 0.5 : 1 }} />
+                      <img src={conv.profile.avatar} alt={conv.profile.name} />
                     ) : (
                       getInitial(conv.profile.name)
                     )}

@@ -2895,8 +2895,12 @@
 }
 
 .message-avatar.avatar-deleted {
-  background: #555;
-  opacity: 0.6;
+  background: #555 !important;
+}
+
+.message-avatar.avatar-deleted img {
+  opacity: 0.5;
+  filter: grayscale(100%);
 }
 
 .message-card.deleted-profile {
@@ -3060,6 +3064,15 @@
 
 .chat-avatar.avatar-agent {
   background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.chat-avatar.avatar-deleted {
+  background: #555 !important;
+}
+
+.chat-avatar.avatar-deleted img {
+  opacity: 0.5;
+  filter: grayscale(100%);
 }
 
 .chat-user-details {
