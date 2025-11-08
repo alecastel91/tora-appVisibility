@@ -152,12 +152,24 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
             )}
           </div>
           <div className="chat-user-details">
-            <h3>{user.name}</h3>
+            <h3 style={{ color: user.isDeleted || user.deleted ? '#888' : 'inherit' }}>{user.name}</h3>
             <span className="chat-role">{user.role}</span>
             <span className="chat-location">{user.location}</span>
           </div>
         </div>
       </div>
+
+      {/* Banner for deleted profiles */}
+      {(user.isDeleted || user.deleted) && (
+        <div className="chat-deleted-banner">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>This profile is no longer active</span>
+        </div>
+      )}
 
       <div className="chat-messages">
         {userMessages.length === 0 && (
@@ -199,29 +211,35 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="chat-input-container">
-        <div className="chat-input-wrapper">
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder={t('messages.writeYourMessage')}
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="chat-input"
-          />
-          <button 
-            className="send-btn"
-            onClick={handleSend}
-            disabled={!inputMessage.trim()}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+      {!(user.isDeleted || user.deleted) ? (
+        <div className="chat-input-container">
+          <div className="chat-input-wrapper">
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder={t('messages.writeYourMessage')}
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="chat-input"
+            />
+            <button
+              className="send-btn"
+              onClick={handleSend}
+              disabled={!inputMessage.trim()}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="chat-input-disabled">
+          <p>You cannot send messages to inactive profiles</p>
+        </div>
+      )}
     </div>
   );
 };
