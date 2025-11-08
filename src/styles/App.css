@@ -4931,12 +4931,14 @@
 
 .view-profile-content {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding: 20px;
   padding-bottom: 80px;
   min-height: 0;
+  max-height: calc(100vh - 60px);
+  position: relative;
 }
 
 .profile-name-role-container {
