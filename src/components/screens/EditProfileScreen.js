@@ -395,6 +395,20 @@ const EditProfileScreen = ({ onClose }) => {
           </div>
         )}
 
+        {/* Error Message */}
+        {error && (
+          <div style={{
+            padding: '12px 16px',
+            marginBottom: '20px',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            border: '1px solid rgba(220, 53, 69, 0.3)',
+            borderRadius: '8px',
+            color: '#dc3545'
+          }}>
+            {error}
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="edit-actions">
           <button className="btn btn-secondary btn-full" onClick={onClose} disabled={saving}>
