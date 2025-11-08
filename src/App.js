@@ -8,6 +8,7 @@ import MatchesScreen from './components/screens/MatchesScreen';
 import ExploreScreen from './components/screens/ExploreScreen';
 import MessagesScreen from './components/screens/MessagesScreen';
 import ChatScreen from './components/screens/ChatScreen';
+import ViewProfileScreen from './components/screens/ViewProfileScreen';
 import LoginScreen from './components/screens/LoginScreen';
 import SignupScreen from './components/screens/SignupScreen';
 import Modal from './components/common/Modal';
@@ -23,6 +24,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
   const [activeChatUser, setActiveChatUser] = useState(null);
+  const [viewingProfile, setViewingProfile] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
@@ -190,10 +192,21 @@ function App() {
         <main className="app-content">
           {renderScreen()}
         </main>
-        {activeChatUser && (
+        {activeChatUser && !viewingProfile && (
           <ChatScreen
             user={activeChatUser}
             onClose={() => setActiveChatUser(null)}
+            onOpenProfile={(profile) => setViewingProfile(profile)}
+          />
+        )}
+        {viewingProfile && (
+          <ViewProfileScreen
+            profile={viewingProfile}
+            onClose={() => setViewingProfile(null)}
+            onOpenChat={(user) => {
+              setViewingProfile(null);
+              setActiveChatUser(user);
+            }}
           />
         )}
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
