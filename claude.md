@@ -304,12 +304,35 @@ tora-app/
 - Fixed premium modal pricing layout
 - Implemented subscription flow simulation
 
+### Remove Connection Feature (November 2025)
+- **Remove Connection Button**: Added to ViewProfileScreen for connected users
+- **Confirmation Modal**: Warning dialog before removing connection
+- **Backend Implementation**: DELETE endpoint `/api/connections/remove/:profileId`
+  - Removes both `CONNECTED` and `CONNECTION_REQUEST` types with `ACCEPTED` status
+  - Bidirectional deletion (removes connection in both directions)
+  - Cache invalidation for both profiles after removal
+- **UI Updates**: Button changes from "Message" to "Connect" after removal
+- **Chat Restrictions**: Messaging disabled for disconnected users
+  - Input box hidden when no longer connected
+  - Disclaimer message explaining disconnection status
+  - Chat history preserved for reference
+- **Smooth UX**: No page reload required, clean state management
+
+### UI/UX Improvements (November 2025)
+- **BookingsScreen Modal**: Fixed button sizing for Decline/Review/Accept CTAs
+  - Reduced padding and font-size for better fit
+  - Consistent button heights across all actions
+  - Equal-width buttons with proper flex layout
+- **Message Button**: Matched height with booking action buttons
+- **Button Styling**: Improved spacing and alignment throughout
+
 ### Bug Fixes
 - Fixed overlapping buttons in ViewProfileScreen
 - Corrected spacing between profile elements
 - Fixed Spotify embed display issues
 - Separated sent/received connection requests properly
 - Fixed profile data mismatch in calendar matches
+- Fixed connection status detection (checks both CONNECTED and CONNECTION_REQUEST types)
 
 ## Running the App
 
