@@ -4,7 +4,7 @@ const ja = {
     profile: 'プロフィール',
     search: '検索',
     matches: 'マッチング',
-    explore: '探索',
+    bookings: '予約',
     messages: 'メッセージ'
   },
   

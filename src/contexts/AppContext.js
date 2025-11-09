@@ -419,6 +419,24 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const removeConnection = async (profileId) => {
+    if (!user || !user._id) {
+      console.error('No active user profile');
+      return;
+    }
+
+    try {
+      // Call backend to remove the connection
+      await apiService.removeConnection(user._id, profileId);
+
+      // Reload profile data to get updated connections
+      await reloadProfileData();
+    } catch (error) {
+      console.error('Error removing connection:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     updateUser,
@@ -451,7 +469,8 @@ export const AppProvider = ({ children }) => {
     connectionRequests: sentRequests, // Backward compatibility
     sendConnectionRequest,
     acceptRequest,
-    declineRequest
+    declineRequest,
+    removeConnection
   };
 
   return (

@@ -4,10 +4,11 @@ import { LinkIcon, HeartIcon, CloseIcon } from '../../utils/icons';
 import RAEventsModal from '../common/RAEventsModal';
 
 const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages }) => {
-  const { likedProfiles, toggleLike, sentRequests, sendConnectionRequest, connectedUsers } = useAppContext();
+  const { likedProfiles, toggleLike, sentRequests, sendConnectionRequest, connectedUsers, removeConnection } = useAppContext();
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [message, setMessage] = useState('');
   const [showRAEvents, setShowRAEvents] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
 
   if (!profile) {
     return null;
@@ -49,7 +50,22 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
     setShowMessageModal(false);
     setMessage('');
   };
-  
+
+  const handleRemoveConnection = async () => {
+    try {
+      await removeConnection(profileId);
+      setShowRemoveModal(false);
+
+      // Close the profile screen
+      if (onClose) {
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error removing connection:', error);
+      alert('Failed to remove connection');
+    }
+  };
+
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : 'A';
   };
@@ -252,6 +268,18 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
             </button>
           )}
         </div>
+
+        {/* Remove Connection Button (only shown if connected) */}
+        {isConnected && (
+          <div className="profile-remove-connection">
+            <button
+              className="btn btn-outline btn-remove-connection"
+              onClick={() => setShowRemoveModal(true)}
+            >
+              Remove Connection
+            </button>
+          </div>
+        )}
       </div>
         
       {/* Message Modal */}
@@ -286,11 +314,37 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
         
       {/* RA Events Modal */}
       {showRAEvents && (
-        <RAEventsModal 
+        <RAEventsModal
           isOpen={showRAEvents}
           onClose={() => setShowRAEvents(false)}
           artistName={profile.name}
         />
+      )}
+
+      {/* Remove Connection Confirmation Modal */}
+      {showRemoveModal && (
+        <div className="message-modal-overlay" onClick={() => setShowRemoveModal(false)}>
+          <div className="message-modal-bottom" onClick={(e) => e.stopPropagation()}>
+            <h2 className="message-modal-title">Remove Connection?</h2>
+            <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '20px' }}>
+              Are you sure you want to remove your connection with {profile.name}? You can always reconnect later.
+            </p>
+            <div className="message-modal-actions">
+              <button
+                className="btn btn-outline btn-modal-cancel"
+                onClick={() => setShowRemoveModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-outline btn-remove-confirm"
+                onClick={handleRemoveConnection}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

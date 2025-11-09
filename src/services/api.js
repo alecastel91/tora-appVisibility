@@ -238,6 +238,16 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async removeConnection(fromProfileId, toProfileId) {
+    const response = await fetch(`${API_URL}/connections/remove/${toProfileId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ fromProfileId })
+    });
+
+    return this.handleResponse(response);
+  }
+
   async getLikedProfiles(profileId) {
     const response = await fetch(`${API_URL}/connections/liked/${profileId}`, {
       method: 'GET',
@@ -346,6 +356,82 @@ class ApiService {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ url })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  // Deals / Bookings
+  async createDeal(dealData) {
+    const response = await fetch(`${API_URL}/deals`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(dealData)
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getDeals(filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    const url = queryParams ? `${API_URL}/deals?${queryParams}` : `${API_URL}/deals`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getDeal(dealId, profileId) {
+    const url = profileId
+      ? `${API_URL}/deals/${dealId}?profileId=${profileId}`
+      : `${API_URL}/deals/${dealId}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async acceptDeal(dealId, profileId) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/accept`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async declineDeal(dealId, profileId, reason) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/decline`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId, reason })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async counterDeal(dealId, counterData) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/counter`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(counterData)
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async deleteDeal(dealId, profileId) {
+    const response = await fetch(`${API_URL}/deals/${dealId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId })
     });
 
     return this.handleResponse(response);

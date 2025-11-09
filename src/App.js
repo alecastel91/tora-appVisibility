@@ -6,6 +6,7 @@ import ProfileScreen from './components/screens/ProfileScreen';
 import SearchScreen from './components/screens/SearchScreen';
 import MatchesScreen from './components/screens/MatchesScreen';
 import ExploreScreen from './components/screens/ExploreScreen';
+import BookingsScreen from './components/screens/BookingsScreen';
 import MessagesScreen from './components/screens/MessagesScreen';
 import ChatScreen from './components/screens/ChatScreen';
 import ViewProfileScreen from './components/screens/ViewProfileScreen';
@@ -39,8 +40,9 @@ function App() {
   const [passwordChangeError, setPasswordChangeError] = useState('');
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
   const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const { t, language, changeLanguage, availableLanguages } = useLanguage();
-  const { updateUser } = useAppContext();
+  const { updateUser, user, getConversations } = useAppContext();
 
   // Check if user is already logged in
   useEffect(() => {
@@ -61,6 +63,32 @@ function App() {
     };
     checkAuth();
   }, []);
+
+  // Fetch unread messages count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!isAuthenticated || !user || !user._id) return;
+
+      try {
+        const conversations = await getConversations();
+        const totalUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+        setUnreadMessagesCount(totalUnread);
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Refresh every 30 seconds when authenticated
+    const interval = setInterval(() => {
+      if (isAuthenticated && user && user._id) {
+        fetchUnreadCount();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, user, activeChatUser]); // Refresh when chat changes
 
   const handleLoginSuccess = (data) => {
     // Use profiles array if available, otherwise fallback to single profile
@@ -122,8 +150,8 @@ function App() {
         return <SearchScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onOpenPremium={() => setShowPremium(true)} />;
       case 'matches':
         return <MatchesScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
-      case 'explore':
-        return <ExploreScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
+      case 'bookings':
+        return <BookingsScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
       case 'messages':
         return <MessagesScreen onOpenChat={setActiveChatUser} />;
       default:
@@ -209,7 +237,7 @@ function App() {
             }}
           />
         )}
-        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabBar activeTab={activeTab} onTabChange={setActiveTab} unreadMessagesCount={unreadMessagesCount} />
         
         {/* Settings Modal */}
         <Modal

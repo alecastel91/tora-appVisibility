@@ -4,7 +4,7 @@ const en = {
     profile: 'Profile',
     search: 'Search',
     matches: 'Matches',
-    explore: 'Explore',
+    bookings: 'Bookings',
     messages: 'Messages'
   },
   

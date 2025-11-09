@@ -139,15 +139,28 @@ const MessagesScreen = ({ onOpenChat }) => {
                       }}>
                         {conv.profile.name}
                       </h3>
-                      <p
-                        className="message-preview"
-                        style={{
-                          fontWeight: conv.unreadCount > 0 ? 'bold' : 'normal',
-                          color: isDeleted ? '#888' : 'inherit'
-                        }}
-                      >
-                        {conv.lastMessage.text}
-                      </p>
+                      <div className="message-preview-container">
+                        {conv.lastMessage.isSystemMessage && conv.lastMessage.dealId && (
+                          <div className="message-preview-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                              <line x1="16" y1="2" x2="16" y2="6"></line>
+                              <line x1="8" y1="2" x2="8" y2="6"></line>
+                              <line x1="3" y1="10" x2="21" y2="10"></line>
+                              <polygon points="12,11.5 13.2,14 15.8,14.3 13.9,16.1 14.4,18.7 12,17.4 9.6,18.7 10.1,16.1 8.2,14.3 10.8,14" fill="currentColor" stroke="none"></polygon>
+                            </svg>
+                          </div>
+                        )}
+                        <p
+                          className="message-preview"
+                          style={{
+                            fontWeight: conv.unreadCount > 0 ? 'bold' : 'normal',
+                            color: isDeleted ? '#888' : 'inherit'
+                          }}
+                        >
+                          {conv.lastMessage.text}
+                        </p>
+                      </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                       <span className="message-time">{getTimeAgo(conv.lastMessage.createdAt)}</span>
