@@ -173,6 +173,9 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
       if (formData.includeMeals) extras.meals = formData.mealsNote || 'Included';
 
       // Call backend API to create deal
+      // Round fee to 2 decimal places to avoid floating point precision errors
+      const feeValue = Math.round(parseFloat(formData.fee) * 100) / 100;
+
       const dealData = {
         initiatorProfileId: currentUser._id,
         recipientProfileId: recipientProfile._id,
@@ -186,7 +189,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
         endTime: formData.eventEndTime,
         setStartTime: formData.setStartTime,
         setEndTime: formData.setEndTime,
-        fee: Number(formData.fee),
+        fee: feeValue,
         currency: formData.currency,
         performanceType: formData.performanceType,
         setDuration: setDuration,

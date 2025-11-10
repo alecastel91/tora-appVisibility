@@ -336,7 +336,9 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       }
 
       // For now, we'll send a message about the counter-offer
-      const counterMessage = `Counter-Offer:\nFee: ${Number(reviewData.fee).toLocaleString()} ${reviewData.currency}${extrasText}${reviewData.notes ? `\n\nNotes: ${reviewData.notes}` : ''}`;
+      // Round fee to 2 decimal places to avoid floating point precision errors
+      const feeValue = Math.round(parseFloat(reviewData.fee) * 100) / 100;
+      const counterMessage = `Counter-Offer:\nFee: ${feeValue.toLocaleString()} ${reviewData.currency}${extrasText}${reviewData.notes ? `\n\nNotes: ${reviewData.notes}` : ''}`;
 
       await apiService.sendMessage(
         currentUser._id,
