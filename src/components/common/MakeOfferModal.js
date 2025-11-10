@@ -117,6 +117,18 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
       setError('Event date is required');
       return;
     }
+
+    // Validate that date is not in the past
+    const selectedDate = new Date(formData.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      alert('Event date cannot be in the past');
+      return;
+    }
+
     if (!formData.fee || parseFloat(formData.fee) <= 0) {
       setError('Please enter a valid fee amount');
       return;

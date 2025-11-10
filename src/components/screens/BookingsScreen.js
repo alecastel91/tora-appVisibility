@@ -10,6 +10,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const [error, setError] = useState('');
   const [dealToDelete, setDealToDelete] = useState(null);
   const [expandedDealId, setExpandedDealId] = useState(null);
+  const [dealToDecline, setDealToDecline] = useState(null);
+  const [declineReason, setDeclineReason] = useState('');
 
   useEffect(() => {
     fetchDeals();
@@ -48,14 +50,20 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     }
   };
 
-  const handleDeclineDeal = async (dealId) => {
+  const handleDeclineDeal = async () => {
+    if (!dealToDecline) return;
+
     try {
-      await apiService.declineDeal(dealId, currentUser._id);
+      await apiService.declineDeal(dealToDecline, currentUser._id, declineReason);
+      setDealToDecline(null);
+      setDeclineReason('');
       // Refresh deals after declining
       fetchDeals();
     } catch (err) {
       console.error('Error declining deal:', err);
       alert(err.message || 'Failed to decline offer');
+      setDealToDecline(null);
+      setDeclineReason('');
     }
   };
 
@@ -177,8 +185,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
       : deal.initiator;
     const isExpanded = expandedDealId === deal._id;
 
+    const dealDate = new Date(deal.date);
+    const dayNumber = dealDate.getDate();
+
     return (
       <div key={deal._id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
+        <div className="booking-date-badge">
+          {dayNumber}
+        </div>
         <div className="booking-compact-view">
           <div
             className="party-avatar"
@@ -208,18 +222,6 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               <span className={getStatusBadgeClass(deal.status)}>
                 {deal.status}
               </span>
-              {isOutgoing && deal.status === 'PENDING' && (
-                <button
-                  className="btn-delete-offer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDealToDelete(deal._id);
-                  }}
-                  title="Delete offer"
-                >
-                  ✕
-                </button>
-              )}
             </div>
           </div>
 
@@ -334,7 +336,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               <div className="booking-actions">
                 <button
                   className="btn btn-outline btn-decline"
-                  onClick={() => handleDeclineDeal(deal._id)}
+                  onClick={() => setDealToDecline(deal._id)}
                 >
                   Decline
                 </button>
@@ -369,6 +371,19 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               </svg>
               Message
             </button>
+
+            {/* Delete offer button (only for outgoing pending offers) */}
+            {isOutgoing && deal.status === 'PENDING' && (
+              <button
+                className="btn btn-outline btn-delete-offer-expanded"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDealToDelete(deal._id);
+                }}
+              >
+                Delete Offer
+              </button>
+            )}
           </>
         )}
       </div>
@@ -481,6 +496,48 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 onClick={handleDeleteDeal}
               >
                 Delete Offer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Decline Offer Modal */}
+      {dealToDecline && (
+        <div className="delete-modal-overlay" onClick={() => {
+          setDealToDecline(null);
+          setDeclineReason('');
+        }}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-header">
+              <h3>Decline Offer</h3>
+            </div>
+            <div className="delete-modal-content">
+              <p>Please provide a reason for declining this offer (optional):</p>
+              <textarea
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                placeholder="e.g., Date conflict, budget doesn't work, etc."
+                className="decline-reason-textarea"
+                rows="4"
+                autoFocus
+              />
+            </div>
+            <div className="delete-modal-actions">
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  setDealToDecline(null);
+                  setDeclineReason('');
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleDeclineDeal}
+              >
+                Decline Offer
               </button>
             </div>
           </div>

@@ -7921,15 +7921,15 @@ select.form-input {
 .bookings-cluster {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .cluster-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  margin-bottom: 12px;
+  padding: 4px 12px;
+  margin-bottom: 6px;
 }
 
 .cluster-header h2 {
@@ -7949,17 +7949,35 @@ select.form-input {
 
 .booking-card {
   position: relative;
-  padding: 14px;
+  padding: 10px;
   background: rgba(30, 30, 30, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   transition: all 0.2s;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .booking-card:hover {
   background: rgba(40, 40, 40, 0.9);
   transform: translateY(-1px);
+}
+
+.booking-date-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  z-index: 1;
 }
 
 .booking-compact-view {
@@ -8163,6 +8181,26 @@ select.form-input {
   padding: 10px 12px !important;
   font-size: 13px;
   line-height: 1.2;
+}
+
+.btn-delete-offer-expanded {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px !important;
+  font-size: 13px;
+  line-height: 1.2;
+  color: rgba(244, 67, 54, 0.9);
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.btn-delete-offer-expanded:hover {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.6);
+  color: #F44336;
 }
 
 @media (max-width: 768px) {
@@ -8663,13 +8701,16 @@ select.form-input {
   flex-shrink: 0;
 }
 
-.party-status-row .btn-delete-offer {
+.booking-compact-view .btn-delete-offer {
+  position: absolute;
+  bottom: 0;
+  right: 36px;
   background: none;
   border: none;
   color: #F44336;
   font-size: 18px;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8678,10 +8719,9 @@ select.form-input {
   padding: 0;
   font-weight: 700;
   line-height: 1;
-  margin-right: 4px;
 }
 
-.party-status-row .btn-delete-offer:hover {
+.booking-compact-view .btn-delete-offer:hover {
   color: #fff;
   background: rgba(244, 67, 54, 0.2);
   border-radius: 4px;
@@ -8716,7 +8756,7 @@ select.form-input {
 
 .booking-compact-view .btn-expand-arrow {
   position: absolute;
-  top: 0;
+  bottom: 0;
   right: 0;
   background: none;
   border: none;
@@ -8852,6 +8892,30 @@ select.form-input {
   color: var(--text-gray);
   font-size: 13px;
   margin: 0;
+}
+
+.decline-reason-textarea {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-white);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  margin-top: 12px;
+  min-height: 80px;
+}
+
+.decline-reason-textarea:focus {
+  outline: none;
+  border-color: var(--primary-pink);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.decline-reason-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .delete-modal-actions {
