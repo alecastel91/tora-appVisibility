@@ -1172,7 +1172,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   <span className="detail-value">
                     {declineReasonData.declinedBy && declineReasonData.declinedBy._id === currentUser._id
                       ? 'You'
-                      : user.name}
+                      : (declineReasonData.declinedBy?.name || 'Unknown')}
                   </span>
                 </div>
                 <div className="offer-detail-row">
