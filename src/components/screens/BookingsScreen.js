@@ -53,6 +53,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const handleDeclineDeal = async () => {
     if (!dealToDecline) return;
 
+    if (!declineReason.trim()) {
+      alert('Please provide a reason for declining');
+      return;
+    }
+
     try {
       await apiService.declineDeal(dealToDecline, currentUser._id, declineReason);
       setDealToDecline(null);
@@ -513,7 +518,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               <h3>Decline Offer</h3>
             </div>
             <div className="delete-modal-content">
-              <p>Please provide a reason for declining this offer (optional):</p>
+              <p>Please provide a reason for declining this offer:</p>
               <textarea
                 value={declineReason}
                 onChange={(e) => setDeclineReason(e.target.value)}

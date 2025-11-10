@@ -8840,7 +8840,7 @@ select.form-input {
 }
 
 .delete-modal {
-  background: var(--card-bg);
+  background: #1a1a1a;
   border: 1px solid var(--border-color);
   border-radius: 16px;
   width: 90%;
@@ -8897,8 +8897,8 @@ select.form-input {
 .decline-reason-textarea {
   width: 100%;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   color: var(--text-white);
   font-size: 14px;
@@ -8911,11 +8911,11 @@ select.form-input {
 .decline-reason-textarea:focus {
   outline: none;
   border-color: var(--primary-pink);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .decline-reason-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .delete-modal-actions {
