@@ -509,6 +509,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 const isDeclined = dealStatus && dealStatus.status === 'DECLINED';
                 const isAccepted = msg.text.includes('Booking Confirmed!') || msg.text.includes('accepted') || (dealStatus && dealStatus.status === 'ACCEPTED');
 
+                // For declined/accepted offers, check who actually declined/accepted it
+                let displayName = msg.isMe ? 'You' : user.name;
+                if (isDeclined && dealStatus.declinedBy) {
+                  displayName = dealStatus.declinedBy._id === currentUser._id ? 'You' : dealStatus.declinedBy.name;
+                } else if (isAccepted) {
+                  // For accepted offers, use msg.isMe since the message sender is the one who accepted
+                  displayName = msg.isMe ? 'You' : user.name;
+                }
+
                 return (
                   <div className="message-with-timestamp">
                     <div className="offer-card-message">
@@ -536,7 +545,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                           )}
                         </div>
                         <div className="offer-card-text">
-                          <p className="offer-card-name">{msg.isMe ? 'You' : user.name}</p>
+                          <p className="offer-card-name">{displayName}</p>
                           <p className="offer-card-action">
                             {isDeclined ? 'declined offer' : isAccepted ? 'accepted offer' : 'sent an offer'}
                           </p>
