@@ -849,9 +849,10 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   <input
                     type="number"
                     step="1"
+                    min="0"
                     value={reviewData.fee}
-                    onChange={(e) => setReviewData({ ...reviewData, fee: Math.round(Number(e.target.value)) })}
-                    placeholder="Enter fee amount"
+                    onChange={(e) => setReviewData({ ...reviewData, fee: e.target.value })}
+                    placeholder="0"
                     className="form-input"
                   />
                 </div>

@@ -394,11 +394,11 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
                 <label>Fee *</label>
                 <input
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   value={formData.fee}
                   onChange={(e) => handleChange('fee', e.target.value)}
-                  placeholder="0.00"
+                  placeholder="0"
                   className="form-input"
                   required
                 />
