@@ -402,5 +402,83 @@ npm run build
 - Contract management and booking workflow systems
 - Multi-category media and press kit management
 
+## Recent Updates (November 10, 2025)
+
+### Booking System Improvements
+- **Compact Booking Cards**: Reduced card size and spacing in BookingsScreen for better visual density
+- **Date Badge Display**: Added day-of-month number badge to each booking card (top-right corner, 32px square)
+- **Past Date Validation**: Prevent creating offers with dates in the past - alert popup shows if attempted
+- **Decline with Reason Modal**: When declining offers, users can now provide an optional reason via textarea modal
+- **Improved Spacing**: Reduced month/year header spacing to match card gap for better visual hierarchy
+
+### Critical Database Configuration
+**IMPORTANT**: The backend MUST be connected to **local MongoDB** (`mongodb://localhost:27017/tora`), NOT MongoDB Atlas.
+
+The booking offers, profiles, and all application data are stored in the local MongoDB database. If the backend is connected to Atlas, all booking data will appear missing.
+
+**Backend Environment (.env)**:
+```
+MONGODB_URI=mongodb://localhost:27017/tora
+```
+
+**Common Issue**: Multiple backend server instances can cause port conflicts. If bookings disappear:
+1. Check which process is listening on port 5001: `lsof -i :5001`
+2. Kill all backend processes: `pkill -f "node.*server.js"`
+3. Restart backend: `cd tora-backend && npm run dev`
+4. Verify connection shows: `✅ MongoDB Connected: localhost`
+
+### Booking Offer System
+- **Offer Cards in Chat**: System messages with `dealId` display as interactive booking offer cards
+- **Message with Emojis**: Booking offer previews include emojis (💰 fee, 📅 date, 📍 venue) for better scanability
+- **Calendar Star Icon**: Booking offer cards show calendar icon with star overlay
+- **Decline Reasons**: Optional reason textarea when declining offers from BookingsScreen
+- **Date Badges**: Day number displayed on each booking card for easy chronological scanning
+
+## Recent Updates (November 11, 2025)
+
+### Currency and Fee Input Improvements
+- **Fixed Currency Rounding Precision**: Resolved floating point precision errors that caused 300 USD to be stored as 299.93 USD
+  - Applied `Math.round(parseFloat(fee) * 100) / 100` rounding to all fee inputs
+  - Affects: MakeOfferModal (initial offers) and ChatScreen (counter-offers)
+  - Ensures accurate currency values across all currencies (USD, EUR, GBP, JPY)
+- **Integer-Only Fee Input**: Changed fee input fields to only accept whole numbers
+  - Changed `step="0.01"` to `step="1"`
+  - Changed placeholder from "0.00" to "0"
+  - Added `min="0"` to prevent negative values
+  - Backend rounding still ensures precision if decimals somehow get through
+
+### Decline Flow Improvements
+- **Required Decline Reason**: Made decline reason mandatory when declining from BookingsScreen
+  - Alert shows if user tries to decline without providing reason
+  - Removed "(optional)" text from modal
+  - Consistent with ChatScreen decline behavior
+- **Improved Modal Readability**: Increased transparency/opacity for better contrast
+  - Textarea background: 0.05 → 0.12 (140% increase)
+  - Textarea border: 0.1 → 0.15 (50% increase)
+  - Focus background: 0.08 → 0.15 (87% increase)
+  - Placeholder text: 0.3 → 0.4 (33% increase)
+  - Modal background: Changed to solid #1a1a1a for better contrast
+- **Decline Messages in Chat**: Declining from BookingsScreen now sends proper chat message
+  - Creates system message with decline card showing venue, date, and reason
+  - Message includes event name in subject: "Booking Offer Declined: {eventName}"
+  - Notification sent to other party
+  - Message appears in both conversation lists with preview text
+- **Correct Person Attribution**: Fixed "Declined By" to show actual person who declined
+  - Checks `dealStatus.declinedBy` field instead of message sender
+  - Shows "You declined offer" when current user declined
+  - Shows "{Name} declined offer" when other party declined
+  - Example: Al Jones declines → MOVE sees "Al Jones declined offer", Al Jones sees "You declined offer"
+- **Backend Population**: Added `.populate('declinedBy')` to both GET /api/deals endpoints
+  - Ensures declinedBy field includes full profile object (name, role, avatar)
+  - Fixes issue where "Declined By: Unknown" was showing
+
+### Message Preview Cleanup
+- **Removed Emojis from Conversation List**: Message previews no longer show emojis and details
+  - Added `previewText` field to Message model for clean previews
+  - Booking offers show: "New Booking Offer: {eventName}" (no emojis or fee/date details)
+  - Accepted bookings show: "Booking Confirmed! {name} accepted your offer"
+  - Full details with emojis still visible inside chat conversation
+  - Backend API returns `previewText` instead of full `text` for conversation list
+
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.
