@@ -3,15 +3,38 @@ import { useAppContext } from '../../contexts/AppContext';
 import { CloseIcon, AddIcon } from '../../utils/icons';
 import ViewProfileScreen from './ViewProfileScreen';
 import ManageArtistScreen from './ManageArtistScreen';
+import SearchArtistsModal from '../common/SearchArtistsModal';
 import { dummyProfiles } from '../../data/profiles';
+import apiService from '../../services/api';
 
 const RepresentedArtistsScreen = ({ onClose }) => {
   const { user } = useAppContext();
-  const [showAddArtist, setShowAddArtist] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [managingArtist, setManagingArtist] = useState(null);
+  const [sending, setSending] = useState(false);
 
   const representedArtists = user?.representingArtists || [];
+
+  const handleSelectArtist = async (artist, message = '') => {
+    try {
+      const agentProfileId = user._id || user.id;
+      const artistProfileId = artist._id || artist.id;
+
+      await apiService.sendRepresentationRequest(
+        agentProfileId,
+        artistProfileId,
+        message // Use the provided message (can be empty)
+      );
+
+      // Don't close the modal - let the user send multiple requests
+      // The button will turn grey automatically via SearchArtistsModal's state update
+    } catch (error) {
+      console.error('Error sending representation request:', error);
+      throw error; // Re-throw so SearchArtistsModal can handle it
+    }
+  };
+
 
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : 'A';
@@ -58,7 +81,7 @@ const RepresentedArtistsScreen = ({ onClose }) => {
         <h1>Represented Artists</h1>
         <button
           className="add-artist-btn"
-          onClick={() => setShowAddArtist(true)}
+          onClick={() => setShowSearchModal(true)}
         >
           <AddIcon />
         </button>
@@ -111,34 +134,20 @@ const RepresentedArtistsScreen = ({ onClose }) => {
             <p>Start building your roster by adding artists you represent.</p>
             <button
               className="btn btn-primary"
-              onClick={() => setShowAddArtist(true)}
+              onClick={() => setShowSearchModal(true)}
             >
               <AddIcon /> Add First Artist
             </button>
           </div>
         )}
 
-        {showAddArtist && (
-          <div className="add-artist-modal-overlay" onClick={() => setShowAddArtist(false)}>
-            <div className="add-artist-modal" onClick={(e) => e.stopPropagation()}>
-              <h3>Add New Artist</h3>
-              <p>Connect with artists on TORA and send them representation requests, or add artists manually.</p>
-              <div className="add-artist-options">
-                <button className="btn btn-outline btn-full">
-                  Search TORA Artists
-                </button>
-                <button className="btn btn-primary btn-full">
-                  Add Manually
-                </button>
-              </div>
-              <button
-                className="btn btn-secondary btn-full"
-                onClick={() => setShowAddArtist(false)}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
+        {showSearchModal && (
+          <SearchArtistsModal
+            key={Date.now()} // Force remount on each open to fetch fresh data
+            onClose={() => setShowSearchModal(false)}
+            onSelectArtist={handleSelectArtist}
+            currentAgentId={user?._id || user?.id}
+          />
         )}
 
       </div>

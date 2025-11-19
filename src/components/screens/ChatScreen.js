@@ -5,7 +5,7 @@ import apiService from '../../services/api';
 import MakeOfferModal from '../common/MakeOfferModal';
 
 const ChatScreen = ({ user, onClose, onOpenProfile }) => {
-  const { user: currentUser, sendMessage, connectedUsers } = useAppContext();
+  const { user: currentUser, sendMessage, connectedUsers, reloadProfileData } = useAppContext();
   const { t } = useLanguage();
   const [inputMessage, setInputMessage] = useState('');
   const [userMessages, setUserMessages] = useState([]);
@@ -24,6 +24,9 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   const [showDeclineReasonModal, setShowDeclineReasonModal] = useState(false);
   const [declineReasonData, setDeclineReasonData] = useState(null);
   const [dealStatuses, setDealStatuses] = useState({}); // Cache deal statuses
+  const [connectionRequests, setConnectionRequests] = useState({}); // Cache connection requests
+  const [showRepresentationDetails, setShowRepresentationDetails] = useState(false);
+  const [selectedRepresentationRequest, setSelectedRepresentationRequest] = useState(null);
   const [reviewData, setReviewData] = useState({
     fee: '',
     currency: 'USD',
@@ -50,7 +53,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         timestamp: msg.createdAt,
         isMe: msg.from._id === currentUser._id,
         isSystem: msg.isSystemMessage || false,
-        dealId: msg.dealId || null
+        dealId: msg.dealId || null,
+        connectionRequestId: msg.connectionRequest ? (msg.connectionRequest._id || msg.connectionRequest) : null
       }));
 
       setUserMessages(transformedMessages);
@@ -78,6 +82,26 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
           })
         );
         setDealStatuses(statuses);
+      }
+
+      // Fetch connection request details for all messages with connectionRequestId
+      const connectionRequestIds = transformedMessages
+        .filter(msg => msg.connectionRequestId)
+        .map(msg => msg.connectionRequestId);
+
+      if (connectionRequestIds.length > 0) {
+        const requests = {};
+        await Promise.all(
+          connectionRequestIds.map(async (requestId) => {
+            try {
+              const requestResponse = await apiService.getConnectionRequest(requestId);
+              requests[requestId] = requestResponse;
+            } catch (error) {
+              console.error(`Error fetching connection request ${requestId}:`, error);
+            }
+          })
+        );
+        setConnectionRequests(requests);
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -313,6 +337,68 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     setShowReviewModal(true);
   };
 
+  // Representation request handlers
+  const handleViewRepresentation = (requestId) => {
+    const request = connectionRequests[requestId];
+    if (request) {
+      setSelectedRepresentationRequest(request);
+      setShowRepresentationDetails(true);
+    }
+  };
+
+  const handleAcceptRepresentation = async () => {
+    if (!selectedRepresentationRequest) return;
+
+    try {
+      await apiService.acceptRepresentationRequest(selectedRepresentationRequest._id);
+
+      // Close modal
+      setShowRepresentationDetails(false);
+      setSelectedRepresentationRequest(null);
+
+      // Refresh messages to show updated status
+      await fetchMessages();
+
+      // Update the connection request cache
+      const updatedRequest = await apiService.getConnectionRequest(selectedRepresentationRequest._id);
+      setConnectionRequests(prev => ({
+        ...prev,
+        [selectedRepresentationRequest._id]: updatedRequest
+      }));
+
+      // Reload profile data to update representingArtists array
+      await reloadProfileData();
+    } catch (error) {
+      console.error('Error accepting representation request:', error);
+      alert(error.message || 'Failed to accept representation request');
+    }
+  };
+
+  const handleDeclineRepresentation = async () => {
+    if (!selectedRepresentationRequest) return;
+
+    try {
+      await apiService.declineRepresentationRequest(selectedRepresentationRequest._id);
+
+      // Close modal
+      setShowRepresentationDetails(false);
+      setSelectedRepresentationRequest(null);
+
+      // Refresh messages to show updated status
+      await fetchMessages();
+
+      // Update the connection request cache
+      const updatedRequest = await apiService.getConnectionRequest(selectedRepresentationRequest._id);
+      setConnectionRequests(prev => ({
+        ...prev,
+        [selectedRepresentationRequest._id]: updatedRequest
+      }));
+    } catch (error) {
+      console.error('Error declining representation request:', error);
+      alert(error.message || 'Failed to decline representation request');
+    }
+  };
+
   const handleSubmitReview = async () => {
     if (!selectedOffer || reviewData.fee === '' || reviewData.fee === null || reviewData.fee === undefined) {
       alert('Please enter a fee amount');
@@ -503,6 +589,66 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 </div>
                 <span className="message-timestamp">{formatMessageTime(msg.timestamp)}</span>
               </div>
+            ) : msg.isSystem && msg.connectionRequestId ? (
+              (() => {
+                const request = connectionRequests[msg.connectionRequestId];
+                if (!request) return null;
+
+                const isAccepted = request.status === 'ACCEPTED';
+                const isDeclined = request.status === 'REJECTED';
+                const isPending = request.status === 'PENDING';
+                const isRepresentationRequest = request.type === 'REPRESENTATION_REQUEST';
+                const displayName = msg.isMe ? 'You' : user.name;
+
+                // Check if the current user is the recipient (not the sender)
+                const isRecipient = !msg.isMe;
+
+                // Extract the custom message from the system message text
+                const customMessage = request.message || '';
+
+                return (
+                  <div className="message-with-timestamp">
+                    <div className="offer-card-message">
+                      <div className="offer-card-content">
+                        <div className={`offer-card-icon ${isDeclined ? 'declined-offer-icon' : isAccepted ? 'accepted-offer-icon' : ''}`}>
+                          {isDeclined ? (
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="15" y1="9" x2="9" y2="15"></line>
+                              <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                          ) : isAccepted ? (
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <polyline points="9 12 11 14 15 10"></polyline>
+                            </svg>
+                          ) : (
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="9" cy="7" r="4"></circle>
+                              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                          )}
+                        </div>
+                        <div className="offer-card-text">
+                          <p className="offer-card-name">{displayName}</p>
+                          <p className="offer-card-action">
+                            {isDeclined ? 'declined representation request' : isAccepted ? 'accepted representation request' : 'sent representation request'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-outline btn-view-offer"
+                        onClick={() => handleViewRepresentation(msg.connectionRequestId)}
+                      >
+                        View
+                      </button>
+                    </div>
+                    <span className="message-timestamp">{formatMessageTime(msg.timestamp)}</span>
+                  </div>
+                );
+              })()
             ) : msg.isSystem && msg.dealId ? (
               (() => {
                 const dealStatus = dealStatuses[msg.dealId];
@@ -1190,6 +1336,76 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Representation Request Details Modal */}
+      {showRepresentationDetails && selectedRepresentationRequest && (
+        <div className="modal-overlay" onClick={() => setShowRepresentationDetails(false)}>
+          <div className="modal-content offer-details-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Representation Request</h3>
+              <button className="modal-close" onClick={() => setShowRepresentationDetails(false)}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="offer-detail-section" style={{ marginBottom: '24px' }}>
+                {selectedRepresentationRequest.message && (
+                  <div className="offer-detail-row">
+                    <span className="detail-label">Message:</span>
+                    <span className="detail-value representation-message">
+                      {selectedRepresentationRequest.message}
+                    </span>
+                  </div>
+                )}
+                {!selectedRepresentationRequest.message && (
+                  <div className="offer-detail-row">
+                    <span className="detail-value representation-no-message" style={{ textAlign: 'center', color: '#888' }}>
+                      No message included with this request.
+                    </span>
+                  </div>
+                )}
+              </div>
+              {selectedRepresentationRequest.status === 'PENDING' && (
+                <div className="modal-actions" style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={handleDeclineRepresentation}
+                  >
+                    Decline
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleAcceptRepresentation}
+                  >
+                    Accept
+                  </button>
+                </div>
+              )}
+              {selectedRepresentationRequest.status === 'ACCEPTED' && (
+                <div className="offer-status-message accepted">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="9 12 11 14 15 10"></polyline>
+                  </svg>
+                  <span>This request has been accepted</span>
+                </div>
+              )}
+              {selectedRepresentationRequest.status === 'REJECTED' && (
+                <div className="offer-status-message declined">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                  </svg>
+                  <span>This request has been declined</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
