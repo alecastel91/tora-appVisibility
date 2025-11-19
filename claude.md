@@ -480,5 +480,94 @@ MONGODB_URI=mongodb://localhost:27017/tora
   - Full details with emojis still visible inside chat conversation
   - Backend API returns `previewText` instead of full `text` for conversation list
 
+## Recent Updates (November 20, 2025)
+
+### Bidirectional Representation Request System
+- **Artist-Agent Representation Flow**: Complete bidirectional system for representation requests
+  - **Agent → Artist**: Agents can send representation requests to artists
+  - **Artist → Agent**: Artists can send representation requests to agents
+  - **Accept/Decline**: Only the receiver can accept or decline the request
+  - **Bidirectional Updates**: Both profiles update correctly regardless of who sends/accepts
+- **representingArtists Array**: Agent profiles have embedded artist data
+  - Source of truth for accepted representation relationships
+  - Contains: profileId, name, location, avatar, genres, contact info
+  - Automatically updated when representation request is accepted
+  - Used by RepresentedArtistsScreen to display roster
+- **Search Modal Integration**: SearchArtistsModal and SearchAgentsModal properly display representation status
+  - Button changes to "✓ Represented" in green (btn-success) when relationship is established
+  - Checks both representingArtists array AND ACCEPTED requests for backward compatibility
+  - Real-time status updates after acceptance
+  - Force remount on modal open to fetch fresh data (key={Date.now()})
+- **Chat Integration**: Representation requests can be accepted/declined from ChatScreen
+  - System messages show representation request details
+  - Accept/Decline buttons in chat interface
+  - Calls reloadProfileData() after acceptance to sync state
+  - Notifications sent to both parties
+- **Backend Implementation**:
+  - acceptRepresentation() method in Connection model handles both directions
+  - Profile data cache invalidation after relationship changes
+  - API endpoints: /api/connections/representation-request, /api/connections/accept-representation, /api/connections/decline-representation
+  - Message integration for representation request flow
+- **Button State Priority**: Clear hierarchy for button display
+  1. ✓ Represented (green, disabled) - Accepted representation
+  2. Declined (grey, disabled) - Request was rejected
+  3. Requested (grey, disabled) - Pending connection request
+  4. Pending (grey, disabled) - Pending representation request (if connected)
+  5. Send Request (primary, active) - Can send representation request (if connected)
+  6. Connect (primary, active) - Default state, can send connection request
+- **Console Logging**: Comprehensive debug logging for troubleshooting
+  - Request counts (sent, received, accepted)
+  - representingArtists array contents
+  - Connection status tracking
+  - Profile data updates
+
+## Recent Updates (November 17, 2025)
+
+### Enhanced Agent Dashboard with KPIs
+- **ManageArtistScreen Redesign**: Comprehensive dashboard showing key performance indicators for each artist
+  - **Key Performance Indicators**: 4 hero metrics at top
+    - Upcoming Gigs (count with date range)
+    - Total Revenue YTD (currency with growth %)
+    - Average Fill Rate (percentage with trend indicator)
+    - Average Rating (star rating out of 5)
+  - **Revenue Breakdown**: Quarterly revenue visualization
+    - Q1-Q4 bars with actual vs target amounts
+    - Progress bars showing completion percentage
+    - Color-coded: green for on/above target, yellow for close, red for below
+  - **Booking Pipeline**: Active booking stages visualization
+    - Confirmed, Pending, In Discussion, Proposals counts
+    - Visual progress through pipeline stages
+  - **Top Markets**: Geographic performance breakdown
+    - Top 4-5 markets with booking counts
+    - Percentage of total bookings
+    - Sortable by activity
+  - **Upcoming Bookings**: Next 4-5 confirmed events
+    - Date, venue, event name, fee
+    - Status badges (Confirmed, Pending Payment, etc.)
+    - Quick access to booking details
+  - **Engagement Metrics**: Artist profile and communication stats
+    - Total Followers count
+    - Response Rate percentage
+    - Active Proposals count
+  - **Quick Actions**: 6 key management actions
+    - Book New Gig, View Schedule, Financial Overview
+    - Analytics, Contracts, Media Kit
+    - Direct navigation to specialized screens
+  - **Recent Activity Feed**: Timeline of latest actions
+    - Chronological list of bookings, payments, messages
+    - Timestamps and action icons
+    - Quick context for recent developments
+- **Design Implementation**:
+  - Grid-based layout for desktop/tablet responsiveness
+  - Card-based components with consistent styling
+  - Color-coded status indicators and progress bars
+  - Mock data for demonstration and testing
+  - Professional data visualization with charts
+- **Navigation Flow**:
+  - RepresentedArtistsScreen shows simple artist cards (unchanged)
+  - "Manage" button opens comprehensive dashboard
+  - Dashboard includes quick actions to 6 specialized management screens
+  - Maintains existing screen structure while adding KPI visibility
+
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.
