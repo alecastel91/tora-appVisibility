@@ -20,6 +20,9 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
   const [messageText, setMessageText] = useState('');
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState('');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewingRequest, setReviewingRequest] = useState(null);
+  const [receivedRequestIds, setReceivedRequestIds] = useState(new Set());
 
   // Fetch all agents and sent requests on mount
   useEffect(() => {
@@ -36,20 +39,35 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
       console.log('[SearchAgentsModal] Profile data received:', {
         artistId: currentArtistId,
         sentRequestsCount: data.sentRequests?.length,
-        receivedRequestsCount: data.requests?.length
+        receivedRequestsCount: data.requests?.length,
+        representedBy: data.profile?.representedBy
       });
+
+      console.log('[SearchAgentsModal] All received requests:', data.requests);
 
       // Extract IDs of agents we've sent PENDING representation requests to
       const sentRequestedAgentIds = (data.sentRequests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'PENDING')
         .map(req => req.to._id || req.to.id);
 
-      // Extract IDs of agents who sent us PENDING representation requests
-      const receivedRequestedAgentIds = (data.requests || [])
+      // Extract IDs of agents who sent us PENDING representation OR connection requests
+      const receivedRepRequestAgentIds = (data.requests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'PENDING')
         .map(req => req.from._id || req.from.id || req.from);
 
-      // Extract IDs of agents with ACCEPTED representation requests (bidirectional)
+      const receivedConnRequestAgentIds = (data.requests || [])
+        .filter(req => req.type === 'CONNECTION_REQUEST' && req.status === 'PENDING')
+        .map(req => req.from._id || req.from.id || req.from);
+
+      console.log('[SearchAgentsModal] Received CONNECTION_REQUEST IDs:', receivedConnRequestAgentIds);
+
+      const receivedRequestedAgentIds = [...receivedRepRequestAgentIds, ...receivedConnRequestAgentIds];
+
+      // Check representedBy field (source of truth for Artist's representation status)
+      const representedByAgentId = data.profile?.representedBy?.agentId?.toString() ||
+                                   data.profile?.representedBy?.agentId;
+
+      // Also check ACCEPTED representation requests for backward compatibility
       const acceptedRequestedAgentIds = (data.sentRequests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'ACCEPTED')
         .map(req => req.to._id || req.to.id);
@@ -60,10 +78,24 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
 
       // Combine both sent and received pending requests
       const allPendingRequestIds = [...sentRequestedAgentIds, ...receivedRequestedAgentIds];
-      const allAcceptedRequestIds = [...acceptedRequestedAgentIds, ...acceptedReceivedAgentIds];
+
+      // Combine all accepted: from representedBy field + ACCEPTED requests
+      const allAcceptedRequestIds = [
+        ...(representedByAgentId ? [representedByAgentId] : []),
+        ...acceptedRequestedAgentIds,
+        ...acceptedReceivedAgentIds
+      ];
+
+      console.log('[SearchAgentsModal] Accepted agent IDs:', {
+        representedByAgentId,
+        acceptedRequestedAgentIds,
+        acceptedReceivedAgentIds,
+        allAcceptedRequestIds
+      });
 
       setSentRequestIds(new Set(allPendingRequestIds));
       setAcceptedRequestIds(new Set(allAcceptedRequestIds));
+      setReceivedRequestIds(new Set(receivedRequestedAgentIds)); // Track received requests separately
 
       // Extract IDs of agents who DECLINED our representation requests
       const declinedAgentIds = (data.sentRequests || [])
@@ -82,16 +114,24 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
 
       setConnectedIds(new Set(connectedAgentIds));
 
-      // Extract IDs of agents with pending connection requests
-      const pendingConnectionAgentIds = (data.sentRequests || [])
+      // Extract IDs of agents with pending connection requests (both sent and received)
+      const sentPendingConnectionAgentIds = (data.sentRequests || [])
         .filter(req => req.type === 'CONNECTION_REQUEST' && req.status === 'PENDING')
         .map(req => req.to._id || req.to.id);
-      setPendingConnectionIds(new Set(pendingConnectionAgentIds));
+
+      const receivedPendingConnectionAgentIds = (data.requests || [])
+        .filter(req => req.type === 'CONNECTION_REQUEST' && req.status === 'PENDING')
+        .map(req => req.from._id || req.from.id || req.from);
+
+      const allPendingConnectionIds = [...sentPendingConnectionAgentIds, ...receivedPendingConnectionAgentIds];
+      setPendingConnectionIds(new Set(allPendingConnectionIds));
 
       console.log('[SearchAgentsModal] Final state:', {
         connectedCount: connectedAgentIds.length,
-        pendingCount: pendingConnectionAgentIds.length,
-        representationRequestsCount: allPendingRequestIds.length
+        pendingCount: allPendingConnectionIds.length,
+        representationRequestsCount: allPendingRequestIds.length,
+        pendingConnectionIds: allPendingConnectionIds,
+        receivedRequestIds: receivedRequestedAgentIds
       });
     } catch (error) {
       console.error('[SearchAgentsModal] Error fetching sent requests:', error);
@@ -182,6 +222,9 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
       setSelectedAgent(null);
       setMessageText('');
 
+      // Refetch data to update UI
+      await fetchSentRequests();
+
     } catch (error) {
       console.error('Error in handleSendRequest:', error);
     } finally {
@@ -207,6 +250,9 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
       setSelectedAgent(null);
       setConnectionMessage('');
 
+      // Refetch data to update UI
+      await fetchSentRequests();
+
     } catch (error) {
       console.error('Error sending connection request:', error);
       alert('Failed to send connection request');
@@ -225,6 +271,118 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
     setShowMessageModal(false);
     setSelectedAgent(null);
     setMessageText('');
+  };
+
+  const handleReviewClick = async (agent) => {
+    try {
+      const agentId = agent._id || agent.id;
+      // Fetch the full profile data to get the request details
+      const data = await apiService.getProfileData(currentArtistId);
+
+      // Find the request from this agent (either representation or connection)
+      const request = (data.requests || []).find(req => {
+        const fromId = req.from._id || req.from.id || req.from;
+        return String(fromId) === String(agentId) &&
+               (req.type === 'REPRESENTATION_REQUEST' || req.type === 'CONNECTION_REQUEST') &&
+               req.status === 'PENDING';
+      });
+
+      if (request) {
+        setReviewingRequest(request);
+        setSelectedAgent(agent);
+        setShowReviewModal(true);
+      }
+    } catch (error) {
+      console.error('Error fetching request details:', error);
+    }
+  };
+
+  const handleAcceptRepresentation = async () => {
+    if (!reviewingRequest || !selectedAgent) return;
+
+    setSending(true);
+    try {
+      const requestId = reviewingRequest._id || reviewingRequest.id;
+      const agentId = selectedAgent._id || selectedAgent.id;
+
+      // Accept the request (either representation or connection)
+      await apiService.acceptRequest(requestId);
+
+      // Update local state based on request type
+      if (reviewingRequest.type === 'CONNECTION_REQUEST') {
+        // For connection requests, update connected state
+        setConnectedIds(prev => new Set([...prev, agentId]));
+      } else {
+        // For representation requests, update accepted state
+        setAcceptedRequestIds(prev => new Set([...prev, agentId]));
+      }
+
+      // Remove from received and sent request lists
+      setReceivedRequestIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(agentId);
+        return newSet;
+      });
+      setSentRequestIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(agentId);
+        return newSet;
+      });
+
+      // Close modal
+      setShowReviewModal(false);
+      setReviewingRequest(null);
+      setSelectedAgent(null);
+
+      // Refetch data to update UI
+      await fetchSentRequests();
+
+    } catch (error) {
+      console.error('Error accepting request:', error);
+      alert('Failed to accept request');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleDeclineRepresentation = async () => {
+    if (!reviewingRequest || !selectedAgent) return;
+
+    setSending(true);
+    try {
+      const requestId = reviewingRequest._id || reviewingRequest.id;
+
+      // Decline the representation request
+      await apiService.declineRequest(requestId);
+
+      // Update local state
+      const agentId = selectedAgent._id || selectedAgent.id;
+      setDeclinedRequestIds(prev => new Set([...prev, agentId]));
+      setReceivedRequestIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(agentId);
+        return newSet;
+      });
+      setSentRequestIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(agentId);
+        return newSet;
+      });
+
+      // Close modal
+      setShowReviewModal(false);
+      setReviewingRequest(null);
+      setSelectedAgent(null);
+
+      // Refetch data to update UI
+      await fetchSentRequests();
+
+    } catch (error) {
+      console.error('Error declining representation request:', error);
+      alert('Failed to decline representation request');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -273,6 +431,19 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                 </div>
               ) : (
                 <>
+                  {/* Info banner about connection requirement */}
+                  <div className="info-banner" style={{
+                    padding: '12px 16px',
+                    marginBottom: '16px',
+                    backgroundColor: 'rgba(255, 51, 102, 0.1)',
+                    border: '1px solid rgba(255, 51, 102, 0.3)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: '#ccc'
+                  }}>
+                    To send a representation request, you must be connected with the agent first.
+                  </div>
+
                   <div className="results-header">
                     <p>{agents.length} agent{agents.length !== 1 ? 's' : ''} found</p>
                   </div>
@@ -283,36 +454,36 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                     const wasDeclined = declinedRequestIds.has(agentId);
                     const isConnected = connectedIds.has(agentId);
                     const hasPendingConnection = pendingConnectionIds.has(agentId);
+                    const hasReceivedRequest = receivedRequestIds.has(agentId);
 
-                    // Determine button state and text
-                    let buttonText = 'Connect';
+                    // Simplified button logic: always show Send Request (greyed out if not connected)
+                    let buttonText = 'Send Request';
                     let buttonClass = 'btn-primary';
                     let buttonDisabled = false;
-                    let buttonAction = () => handleConnectClick(agent);
+                    let buttonAction = () => handleRequestClick(agent);
 
                     if (hasAccepted) {
-                      buttonText = '✓ Represented';
+                      buttonText = 'Represented';
                       buttonClass = 'btn-success';
                       buttonDisabled = true;
+                      buttonAction = null;
                     } else if (wasDeclined) {
                       buttonText = 'Declined';
                       buttonClass = 'btn-secondary';
                       buttonDisabled = true;
-                    } else if (hasPendingConnection) {
-                      buttonText = 'Requested';
+                      buttonAction = null;
+                    } else if (hasRequested) {
+                      // Already sent representation request
+                      buttonText = 'Pending';
                       buttonClass = 'btn-secondary';
                       buttonDisabled = true;
-                    } else if (isConnected) {
-                      if (hasRequested) {
-                        buttonText = 'Pending';
-                        buttonClass = 'btn-secondary';
-                        buttonDisabled = true;
-                      } else {
-                        buttonText = 'Send Request';
-                        buttonClass = 'btn-primary';
-                        buttonDisabled = false;
-                        buttonAction = () => handleRequestClick(agent);
-                      }
+                      buttonAction = null;
+                    } else if (!isConnected) {
+                      // Not connected - grey out the button
+                      buttonText = 'Send Request';
+                      buttonClass = 'btn-disabled';
+                      buttonDisabled = true;
+                      buttonAction = null;
                     }
 
                     return (
@@ -337,7 +508,7 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                           className={`btn btn-sm ${buttonClass}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (!buttonDisabled) {
+                            if (!buttonDisabled && buttonAction) {
                               buttonAction();
                             }
                           }}
@@ -458,6 +629,81 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                 disabled={sending}
               >
                 {sending ? 'Sending...' : 'Send Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Representation Request Modal */}
+      {showReviewModal && selectedAgent && reviewingRequest && (
+        <div className="modal-overlay" onClick={() => {
+          setShowReviewModal(false);
+          setSelectedAgent(null);
+          setReviewingRequest(null);
+        }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                {reviewingRequest.type === 'CONNECTION_REQUEST' ? 'Connection Request' : 'Representation Request'} from {selectedAgent.name}
+              </h2>
+              <button className="close-btn" onClick={() => {
+                setShowReviewModal(false);
+                setSelectedAgent(null);
+                setReviewingRequest(null);
+              }}>
+                <CloseIcon />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="review-modal-profile">
+                <div className="artist-avatar">
+                  {selectedAgent.avatar ? (
+                    <img src={selectedAgent.avatar} alt={selectedAgent.name} />
+                  ) : (
+                    getInitial(selectedAgent.name)
+                  )}
+                </div>
+                <div className="review-modal-info">
+                  <h3>{selectedAgent.name}</h3>
+                  <p className="artist-location">{selectedAgent.location}</p>
+                  <span className={`role-badge ${selectedAgent.role.toLowerCase()}`}>
+                    {selectedAgent.role}
+                  </span>
+                </div>
+              </div>
+
+              {reviewingRequest.message && reviewingRequest.message.trim() ? (
+                <div className="review-modal-message">
+                  <label>Message:</label>
+                  <div className="message-content">{reviewingRequest.message}</div>
+                </div>
+              ) : (
+                <div className="review-modal-message">
+                  <p className="system-message-text">
+                    {reviewingRequest.type === 'CONNECTION_REQUEST'
+                      ? `${selectedAgent.name} wants to connect`
+                      : `${selectedAgent.name} wants to represent you`}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-outline"
+                onClick={handleDeclineRepresentation}
+                disabled={sending}
+              >
+                {sending ? 'Processing...' : 'Decline'}
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleAcceptRepresentation}
+                disabled={sending}
+              >
+                {sending ? 'Processing...' : 'Accept'}
               </button>
             </div>
           </div>

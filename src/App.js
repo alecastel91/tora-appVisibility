@@ -64,15 +64,28 @@ function App() {
     checkAuth();
   }, []);
 
-  // Fetch unread messages count
+  // Fetch unread messages count (includes both unread messages and connection requests)
   useEffect(() => {
     const fetchUnreadCount = async () => {
       if (!isAuthenticated || !user || !user._id) return;
 
       try {
-        const conversations = await getConversations();
-        const totalUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
-        setUnreadMessagesCount(totalUnread);
+        // Fetch both conversations and connection requests
+        const [conversations, requestsData] = await Promise.all([
+          getConversations(),
+          apiService.getReceivedRequests(user._id)
+        ]);
+
+        // Count unread messages in conversations
+        const conversationUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+
+        // Count pending connection requests
+        const requestsCount = (requestsData.requests || []).length;
+
+        // Total badge count = unread messages + pending requests
+        const totalBadgeCount = conversationUnread + requestsCount;
+
+        setUnreadMessagesCount(totalBadgeCount);
       } catch (error) {
         console.error('Error fetching unread count:', error);
       }

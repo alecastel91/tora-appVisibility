@@ -788,7 +788,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
           <p>
             {(user.isDeleted || user.deleted)
               ? 'You cannot send messages to inactive profiles'
-              : `You are no longer connected with ${user.name}. You cannot send messages unless you reconnect.`
+              : `You are not connected with ${user.name}. You cannot send messages unless you connect.`
             }
           </p>
         </div>

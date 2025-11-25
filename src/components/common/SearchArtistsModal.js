@@ -20,6 +20,9 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
   const [messageText, setMessageText] = useState('');
   const [showConnectionModal, setShowConnectionModal] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState('');
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewingRequest, setReviewingRequest] = useState(null);
+  const [receivedRequestIds, setReceivedRequestIds] = useState(new Set());
 
   // Fetch all artists and sent requests on mount
   useEffect(() => {
@@ -43,25 +46,34 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       // Extract IDs of artists we've sent PENDING representation requests to
       const sentRequestedArtistIds = (data.sentRequests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'PENDING')
-        .map(req => req.to._id || req.to.id);
+        .map(req => String(req.to._id || req.to.id || req.to));
 
-      // Extract IDs of artists who sent us PENDING representation requests
-      const receivedRequestedArtistIds = (data.requests || [])
+      // Extract IDs of artists who sent us PENDING representation OR connection requests
+      const receivedRepRequestArtistIds = (data.requests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'PENDING')
-        .map(req => req.from._id || req.from.id || req.from);
+        .map(req => String(req.from._id || req.from.id || req.from));
+
+      const receivedConnRequestArtistIds = (data.requests || [])
+        .filter(req => req.type === 'CONNECTION_REQUEST' && req.status === 'PENDING')
+        .map(req => String(req.from._id || req.from.id || req.from));
+
+      const receivedRequestedArtistIds = [...receivedRepRequestArtistIds, ...receivedConnRequestArtistIds];
 
       // Extract IDs from representingArtists array (source of truth for accepted representations)
       const representedArtistIds = (data.profile?.representingArtists || [])
-        .map(artist => artist.profileId?.toString() || artist.profileId);
+        .map(artist => String(artist.profileId));
+
+      console.log('[SearchArtistsModal] representingArtists:', data.profile?.representingArtists);
+      console.log('[SearchArtistsModal] representedArtistIds:', representedArtistIds);
 
       // Also check ACCEPTED requests for backward compatibility
       const acceptedRequestedArtistIds = (data.sentRequests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'ACCEPTED')
-        .map(req => req.to._id || req.to.id);
+        .map(req => String(req.to._id || req.to.id || req.to));
 
       const acceptedReceivedArtistIds = (data.requests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'ACCEPTED')
-        .map(req => req.from._id || req.from.id || req.from);
+        .map(req => String(req.from._id || req.from.id || req.from));
 
       // Combine both sent and received pending requests
       const allPendingRequestIds = [...sentRequestedArtistIds, ...receivedRequestedArtistIds];
@@ -69,18 +81,21 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       // Combine all accepted: from representingArtists array + ACCEPTED requests
       const allAcceptedRequestIds = [...representedArtistIds, ...acceptedRequestedArtistIds, ...acceptedReceivedArtistIds];
 
+      console.log('[SearchArtistsModal] allAcceptedRequestIds:', allAcceptedRequestIds);
+
       setSentRequestIds(new Set(allPendingRequestIds));
       setAcceptedRequestIds(new Set(allAcceptedRequestIds));
+      setReceivedRequestIds(new Set(receivedRequestedArtistIds)); // Track received requests separately
 
       // Extract IDs of artists who DECLINED our representation requests
       const declinedArtistIds = (data.sentRequests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'REJECTED')
-        .map(req => req.to._id || req.to.id);
+        .map(req => String(req.to._id || req.to.id || req.to));
       setDeclinedRequestIds(new Set(declinedArtistIds));
 
       // Extract IDs of artists we're connected to
       // Use connectedProfileIds from backend (already processed)
-      const connectedArtistIds = data.connectedProfileIds || [];
+      const connectedArtistIds = (data.connectedProfileIds || []).map(id => String(id));
 
       console.log('[SearchArtistsModal] Connection data:', {
         connectedProfileIdsCount: connectedArtistIds.length,
@@ -92,7 +107,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       // Extract IDs of artists with pending connection requests
       const pendingConnectionArtistIds = (data.sentRequests || [])
         .filter(req => req.type === 'CONNECTION_REQUEST' && req.status === 'PENDING')
-        .map(req => req.to._id || req.to.id);
+        .map(req => String(req.to._id || req.to.id || req.to));
       setPendingConnectionIds(new Set(pendingConnectionArtistIds));
 
       console.log('[SearchArtistsModal] Final state:', {
@@ -158,7 +173,8 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
   };
 
   const handleCardClick = (artist) => {
-    setViewingProfile(artist._id || artist.id);
+    console.log('[SearchArtistsModal] Card clicked, opening profile:', artist._id || artist.id);
+    setViewingProfile(artist);  // Pass full artist object
   };
 
   const handleConnectClick = (artist) => {
@@ -193,6 +209,9 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       setSelectedArtist(null);
       setMessageText('');
 
+      // Refetch data to update UI
+      await fetchSentRequests();
+
     } catch (error) {
       console.error('Error in handleSendRequest:', error);
     } finally {
@@ -218,6 +237,9 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       setSelectedArtist(null);
       setConnectionMessage('');
 
+      // Refetch data to update UI
+      await fetchSentRequests();
+
     } catch (error) {
       console.error('Error sending connection request:', error);
       alert('Failed to send connection request');
@@ -236,6 +258,118 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
     setShowMessageModal(false);
     setSelectedArtist(null);
     setMessageText('');
+  };
+
+  const handleReviewClick = async (artist) => {
+    try {
+      const artistId = String(artist._id || artist.id);
+      // Fetch the full profile data to get the request details
+      const data = await apiService.getProfileData(currentAgentId);
+
+      // Find the request from this artist (either representation or connection)
+      const request = (data.requests || []).find(req => {
+        const fromId = String(req.from._id || req.from.id || req.from);
+        return fromId === artistId &&
+               (req.type === 'REPRESENTATION_REQUEST' || req.type === 'CONNECTION_REQUEST') &&
+               req.status === 'PENDING';
+      });
+
+      if (request) {
+        setReviewingRequest(request);
+        setSelectedArtist(artist);
+        setShowReviewModal(true);
+      }
+    } catch (error) {
+      console.error('Error fetching request details:', error);
+    }
+  };
+
+  const handleAcceptRepresentation = async () => {
+    if (!reviewingRequest || !selectedArtist) return;
+
+    setSending(true);
+    try {
+      const requestId = reviewingRequest._id || reviewingRequest.id;
+      const artistId = String(selectedArtist._id || selectedArtist.id);
+
+      // Accept the request (either representation or connection)
+      await apiService.acceptRequest(requestId);
+
+      // Update local state based on request type
+      if (reviewingRequest.type === 'CONNECTION_REQUEST') {
+        // For connection requests, update connected state
+        setConnectedIds(prev => new Set([...prev, artistId]));
+      } else {
+        // For representation requests, update accepted state
+        setAcceptedRequestIds(prev => new Set([...prev, artistId]));
+      }
+
+      // Remove from received and sent request lists
+      setReceivedRequestIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(artistId);
+        return newSet;
+      });
+      setSentRequestIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(artistId);
+        return newSet;
+      });
+
+      // Close modal
+      setShowReviewModal(false);
+      setReviewingRequest(null);
+      setSelectedArtist(null);
+
+      // Refetch data to update UI
+      await fetchSentRequests();
+
+    } catch (error) {
+      console.error('Error accepting request:', error);
+      alert('Failed to accept request');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleDeclineRepresentation = async () => {
+    if (!reviewingRequest || !selectedArtist) return;
+
+    setSending(true);
+    try {
+      const requestId = reviewingRequest._id || reviewingRequest.id;
+
+      // Decline the representation request
+      await apiService.declineRequest(requestId);
+
+      // Update local state
+      const artistId = String(selectedArtist._id || selectedArtist.id);
+      setDeclinedRequestIds(prev => new Set([...prev, artistId]));
+      setReceivedRequestIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(artistId);
+        return newSet;
+      });
+      setSentRequestIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(artistId);
+        return newSet;
+      });
+
+      // Close modal
+      setShowReviewModal(false);
+      setReviewingRequest(null);
+      setSelectedArtist(null);
+
+      // Refetch data to update UI
+      await fetchSentRequests();
+
+    } catch (error) {
+      console.error('Error declining representation request:', error);
+      alert('Failed to decline representation request');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -284,46 +418,59 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
                 </div>
               ) : (
                 <>
+                  {/* Info banner about connection requirement */}
+                  <div className="info-banner" style={{
+                    padding: '12px 16px',
+                    marginBottom: '16px',
+                    backgroundColor: 'rgba(255, 51, 102, 0.1)',
+                    border: '1px solid rgba(255, 51, 102, 0.3)',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: '#ccc'
+                  }}>
+                    To send a representation request, you must be connected with the artist first.
+                  </div>
+
                   <div className="results-header">
                     <p>{artists.length} artist{artists.length !== 1 ? 's' : ''} found</p>
                   </div>
                   {artists.map((artist) => {
-                    const artistId = artist._id || artist.id;
+                    const artistId = String(artist._id || artist.id);
                     const hasRequested = sentRequestIds.has(artistId);
                     const hasAccepted = acceptedRequestIds.has(artistId);
                     const wasDeclined = declinedRequestIds.has(artistId);
                     const isConnected = connectedIds.has(artistId);
-                    const hasPendingConnection = pendingConnectionIds.has(artistId);
 
-                    // Determine button state and text
-                    let buttonText = 'Connect';
+                    console.log('[SearchArtistsModal] Checking artist:', artist.name, artistId, 'hasAccepted:', hasAccepted, 'acceptedRequestIds:', [...acceptedRequestIds]);
+
+                    // Simplified button logic: always show Send Request (greyed out if not connected)
+                    let buttonText = 'Send Request';
                     let buttonClass = 'btn-primary';
                     let buttonDisabled = false;
-                    let buttonAction = () => handleConnectClick(artist);
+                    let buttonAction = () => handleRequestClick(artist);
 
                     if (hasAccepted) {
-                      buttonText = '✓ Represented';
+                      buttonText = 'Represented';
                       buttonClass = 'btn-success';
                       buttonDisabled = true;
+                      buttonAction = null;
                     } else if (wasDeclined) {
                       buttonText = 'Declined';
                       buttonClass = 'btn-secondary';
                       buttonDisabled = true;
-                    } else if (hasPendingConnection) {
-                      buttonText = 'Requested';
+                      buttonAction = null;
+                    } else if (hasRequested) {
+                      // Already sent representation request
+                      buttonText = 'Pending';
                       buttonClass = 'btn-secondary';
                       buttonDisabled = true;
-                    } else if (isConnected) {
-                      if (hasRequested) {
-                        buttonText = 'Pending';
-                        buttonClass = 'btn-secondary';
-                        buttonDisabled = true;
-                      } else {
-                        buttonText = 'Send Request';
-                        buttonClass = 'btn-primary';
-                        buttonDisabled = false;
-                        buttonAction = () => handleRequestClick(artist);
-                      }
+                      buttonAction = null;
+                    } else if (!isConnected) {
+                      // Not connected - grey out the button
+                      buttonText = 'Send Request';
+                      buttonClass = 'btn-disabled';
+                      buttonDisabled = true;
+                      buttonAction = null;
                     }
 
                     return (
@@ -348,7 +495,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
                           className={`btn btn-sm ${buttonClass}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (!buttonDisabled) {
+                            if (!buttonDisabled && buttonAction) {
                               buttonAction();
                             }
                           }}
@@ -369,10 +516,13 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
 
       {/* Profile View Modal - rendered on top */}
       {viewingProfile && (
-        <ViewProfileScreen
-          profileId={viewingProfile}
-          onClose={() => setViewingProfile(null)}
-        />
+        <>
+          {console.log('[SearchArtistsModal] Rendering ViewProfileScreen for:', viewingProfile._id || viewingProfile.id)}
+          <ViewProfileScreen
+            profile={viewingProfile}
+            onClose={() => setViewingProfile(null)}
+          />
+        </>
       )}
 
       {/* Connection Modal - rendered on top of everything */}
@@ -469,6 +619,81 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
                 disabled={sending}
               >
                 {sending ? 'Sending...' : 'Send Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Representation Request Modal */}
+      {showReviewModal && selectedArtist && reviewingRequest && (
+        <div className="modal-overlay" onClick={() => {
+          setShowReviewModal(false);
+          setSelectedArtist(null);
+          setReviewingRequest(null);
+        }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                {reviewingRequest.type === 'CONNECTION_REQUEST' ? 'Connection Request' : 'Representation Request'} from {selectedArtist.name}
+              </h2>
+              <button className="close-btn" onClick={() => {
+                setShowReviewModal(false);
+                setSelectedArtist(null);
+                setReviewingRequest(null);
+              }}>
+                <CloseIcon />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="review-modal-profile">
+                <div className="artist-avatar">
+                  {selectedArtist.avatar ? (
+                    <img src={selectedArtist.avatar} alt={selectedArtist.name} />
+                  ) : (
+                    getInitial(selectedArtist.name)
+                  )}
+                </div>
+                <div className="review-modal-info">
+                  <h3>{selectedArtist.name}</h3>
+                  <p className="artist-location">{selectedArtist.location}</p>
+                  <span className={`role-badge ${selectedArtist.role.toLowerCase()}`}>
+                    {selectedArtist.role}
+                  </span>
+                </div>
+              </div>
+
+              {reviewingRequest.message && reviewingRequest.message.trim() ? (
+                <div className="review-modal-message">
+                  <label>Message:</label>
+                  <div className="message-content">{reviewingRequest.message}</div>
+                </div>
+              ) : (
+                <div className="review-modal-message">
+                  <p className="system-message-text">
+                    {reviewingRequest.type === 'CONNECTION_REQUEST'
+                      ? `${selectedArtist.name} wants to connect`
+                      : `${selectedArtist.name} wants you to represent them`}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="btn btn-outline"
+                onClick={handleDeclineRepresentation}
+                disabled={sending}
+              >
+                {sending ? 'Processing...' : 'Decline'}
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleAcceptRepresentation}
+                disabled={sending}
+              >
+                {sending ? 'Processing...' : 'Accept'}
               </button>
             </div>
           </div>
