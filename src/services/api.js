@@ -321,6 +321,44 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // REPRESENTATION REQUEST ENDPOINTS
+  async sendRepresentationRequest(fromProfileId, toProfileId, message = '') {
+    const response = await fetch(`${API_URL}/connections/representation-request`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ fromProfileId, toProfileId, message })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async acceptRepresentationRequest(requestId) {
+    const response = await fetch(`${API_URL}/connections/accept-representation/${requestId}`, {
+      method: 'POST',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async declineRepresentationRequest(requestId) {
+    const response = await fetch(`${API_URL}/connections/decline-representation/${requestId}`, {
+      method: 'POST',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getConnectionRequest(requestId) {
+    const response = await fetch(`${API_URL}/connections/request/${requestId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   // MESSAGE ENDPOINTS
   async getConversations(profileId) {
     const response = await fetch(`${API_URL}/messages/conversations/${profileId}`, {

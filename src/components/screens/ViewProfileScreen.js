@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { LinkIcon, HeartIcon, CloseIcon } from '../../utils/icons';
 import RAEventsModal from '../common/RAEventsModal';
+import ConnectionChoiceModal from '../common/ConnectionChoiceModal';
 
 const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages }) => {
-  const { likedProfiles, toggleLike, sentRequests, sendConnectionRequest, connectedUsers, removeConnection } = useAppContext();
+  const { likedProfiles, toggleLike, sentRequests, receivedRequests, sendConnectionRequest, connectedUsers, removeConnection } = useAppContext();
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [message, setMessage] = useState('');
   const [showRAEvents, setShowRAEvents] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [showConnectionChoice, setShowConnectionChoice] = useState(false);
 
   if (!profile) {
     return null;
@@ -19,11 +21,51 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
 
   const isLiked = likedProfiles.has(profileId);
   const isRequested = sentRequests.has(profileId);
+  const hasReceivedRequest = receivedRequests.has(profileId);
   const isConnected = connectedUsers.has(profileId);
+  const hasPendingRequest = isRequested || hasReceivedRequest;
 
   const handleConnect = () => {
-    if (!isRequested) {
-      setShowMessageModal(true);
+    console.log('handleConnect called!');
+    console.log('hasPendingRequest:', hasPendingRequest);
+
+    if (!hasPendingRequest) {
+      console.log('profile.representedBy:', profile.representedBy);
+
+      // Check if profile has a valid representedBy agent (with name and agentId)
+      const hasValidAgent = profile.representedBy &&
+                            (profile.representedBy.name || profile.representedBy.agentName) &&
+                            (profile.representedBy.agentId || profile.representedBy._id);
+
+      console.log('hasValidAgent:', hasValidAgent);
+
+      // If profile has a valid representedBy agent, show choice modal
+      // Otherwise show the old message modal
+      if (hasValidAgent) {
+        console.log('Opening connection choice modal');
+        setShowConnectionChoice(true);
+      } else {
+        console.log('Opening message modal');
+        setShowMessageModal(true);
+      }
+    }
+  };
+
+  const handleConnectionChoice = async (targetProfileId, type, artistContext = null, userMessage = '') => {
+    console.log('handleConnectionChoice called:', { targetProfileId, type, artistContext, userMessage });
+
+    try {
+      // Use the user's custom message
+      console.log('Sending connection request...', { targetProfileId, message: userMessage });
+      await sendConnectionRequest(targetProfileId, userMessage);
+      console.log('Connection request sent successfully!');
+
+      // Show success feedback
+      const targetName = type === 'AGENT' ? artistContext.representedBy.name : profile.name;
+      alert(`Connection request sent to ${targetName}!`);
+    } catch (error) {
+      console.error('Error sending connection request:', error);
+      alert(`Failed to send connection request: ${error.message}`);
     }
   };
 
@@ -260,14 +302,24 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
             </button>
           ) : (
             <button
-              className={`btn ${isRequested ? 'btn-disabled' : 'btn-primary'} btn-full-width`}
+              className={`btn ${hasPendingRequest ? 'btn-disabled' : 'btn-primary'} btn-full-width`}
               onClick={handleConnect}
-              disabled={isRequested}
+              disabled={hasPendingRequest}
             >
-              {isRequested ? 'Requested' : 'Connect'}
+              {hasPendingRequest ? 'Pending' : 'Connect'}
             </button>
           )}
         </div>
+
+        {/* Represented By Badge */}
+        {profile.representedBy && (profile.representedBy.name || profile.representedBy.agentName) && (
+          <div className="represented-by-container">
+            <div className="represented-by-badge">
+              <span className="represented-icon">🤝</span>
+              Represented by {profile.representedBy.name || profile.representedBy.agentName}
+            </div>
+          </div>
+        )}
 
         {/* Remove Connection Button (only shown if connected) */}
         {isConnected && (
@@ -345,6 +397,15 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
             </div>
           </div>
         </div>
+      )}
+
+      {/* Connection Choice Modal */}
+      {showConnectionChoice && (
+        <ConnectionChoiceModal
+          artist={profile}
+          onClose={() => setShowConnectionChoice(false)}
+          onConnect={handleConnectionChoice}
+        />
       )}
     </div>
   );

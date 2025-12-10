@@ -8,6 +8,10 @@ import CalendarScreen from './CalendarScreen';
 import EditProfileScreen from './EditProfileScreen';
 import RepresentedArtistsScreen from './RepresentedArtistsScreen';
 import AddProfileScreen from './AddProfileScreen';
+import ManageArtistScreen from './ManageArtistScreen';
+import ViewProfileScreen from './ViewProfileScreen';
+import SearchAgentsModal from '../common/SearchAgentsModal';
+import ChatScreen from './ChatScreen';
 import apiService from '../../services/api';
 
 const ProfileScreen = () => {
@@ -16,6 +20,8 @@ const ProfileScreen = () => {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showRepresentedArtists, setShowRepresentedArtists] = useState(false);
+  const [showFindAgent, setShowFindAgent] = useState(false);
+  const [showAgentChat, setShowAgentChat] = useState(false);
   const [showLikesList, setShowLikesList] = useState(false);
   const [showLikersList, setShowLikersList] = useState(false);
   const [showConnectionsList, setShowConnectionsList] = useState(false);
@@ -24,6 +30,9 @@ const ProfileScreen = () => {
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
   const [showAddProfile, setShowAddProfile] = useState(false);
   const [profileToDelete, setProfileToDelete] = useState(null);
+  const [agentProfile, setAgentProfile] = useState(null); // For artists: their agent
+  const [viewingArtistProfile, setViewingArtistProfile] = useState(null);
+  const [managingArtist, setManagingArtist] = useState(null);
   const fileInputRef = useRef(null);
   const [resolvedSoundCloudUrl, setResolvedSoundCloudUrl] = useState(null);
   const [resolvedSpotifyId, setResolvedSpotifyId] = useState(null);
@@ -82,6 +91,40 @@ const ProfileScreen = () => {
     console.log('🔍 [ProfileScreen] userProfiles count:', userProfiles?.length || 0);
     console.log('🔍 [ProfileScreen] userProfiles:', userProfiles);
   }, [userProfiles]);
+
+  // Fetch representation status for artists
+  useEffect(() => {
+    const fetchRepresentationStatus = async () => {
+      if (user?.role === 'ARTIST' && user?._id) {
+        try {
+          const data = await apiService.getProfileData(user._id);
+
+          // Check if there's an accepted representation request where the artist received it
+          const acceptedRepresentation = (data.requests || []).find(
+            req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'ACCEPTED'
+          );
+
+          // Or check if there's an accepted sent request (artist requested agent)
+          const acceptedSentRequest = (data.sentRequests || []).find(
+            req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'ACCEPTED'
+          );
+
+          if (acceptedRepresentation) {
+            setAgentProfile(acceptedRepresentation.from);
+          } else if (acceptedSentRequest) {
+            setAgentProfile(acceptedSentRequest.to);
+          } else {
+            setAgentProfile(null);
+          }
+        } catch (error) {
+          console.error('Error fetching representation status:', error);
+          setAgentProfile(null);
+        }
+      }
+    };
+
+    fetchRepresentationStatus();
+  }, [user]);
 
   // OPTIMIZED: Use cached profile data from AppContext instead of fetching
   const likedProfilesList = likedProfilesData || [];
@@ -156,6 +199,45 @@ const ProfileScreen = () => {
       alert(error.message || 'Failed to delete profile. Please try again.');
     }
   };
+
+  const handleSelectAgent = async (agent, message = '') => {
+    try {
+      const artistProfileId = user._id || user.id;
+      const agentProfileId = agent._id || agent.id;
+
+      await apiService.sendRepresentationRequest(
+        artistProfileId,
+        agentProfileId,
+        message
+      );
+
+      // Request sent successfully
+      // The button will update automatically via state management in SearchAgentsModal
+    } catch (error) {
+      console.error('Error sending representation request:', error);
+      throw error; // Re-throw so SearchAgentsModal can handle it
+    }
+  };
+
+  // Show manage artist screen if selected
+  if (managingArtist) {
+    return (
+      <ManageArtistScreen
+        artist={managingArtist}
+        onClose={() => setManagingArtist(null)}
+      />
+    );
+  }
+
+  // Show viewing artist profile if selected
+  if (viewingArtistProfile) {
+    return (
+      <ViewProfileScreen
+        profileId={viewingArtistProfile}
+        onClose={() => setViewingArtistProfile(null)}
+      />
+    );
+  }
 
   // Show full-screen calendar if requested
   if (showCalendar) {
@@ -266,12 +348,34 @@ const ProfileScreen = () => {
             <AddIcon /> Represented Artists
           </button>
         ) : (
-          <button
-            className="btn btn-outline btn-full-width"
-            onClick={() => setShowCalendar(true)}
-          >
-            <CalendarIcon /> {t('profile.calendar')}
-          </button>
+          <>
+            <button
+              className="btn btn-outline btn-full-width"
+              onClick={() => setShowCalendar(true)}
+            >
+              <CalendarIcon /> {t('profile.calendar')}
+            </button>
+            {user?.role === 'ARTIST' && (
+              agentProfile ? (
+                <button
+                  className="btn btn-outline btn-full-width"
+                  onClick={() => setShowAgentChat(true)}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Message Agent
+                </button>
+              ) : (
+                <button
+                  className="btn btn-outline btn-full-width"
+                  onClick={() => setShowFindAgent(true)}
+                >
+                  <AddIcon /> Find Agent
+                </button>
+              )
+            )}
+          </>
         )}
         <button
           className="btn btn-secondary btn-full-width"
@@ -297,8 +401,12 @@ const ProfileScreen = () => {
         <div className="agent-artists-section">
           <h3>Artists Representing</h3>
           <div className="agent-artists-grid">
-            {user?.representingArtists ? user.representingArtists.map(artist => (
-              <div key={artist.id} className="agent-artist-card">
+            {user?.representingArtists && user.representingArtists.length > 0 ? user.representingArtists.map(artist => (
+              <div
+                key={artist.id}
+                className="agent-artist-card"
+                onClick={() => setViewingArtistProfile(artist.id)}
+              >
                 <div className="agent-artist-avatar">
                   {artist.avatar ? (
                     <img src={artist.avatar} alt={artist.name} />
@@ -309,17 +417,23 @@ const ProfileScreen = () => {
                 <div className="agent-artist-info">
                   <h4>{artist.name}</h4>
                   <p>{artist.location}</p>
-                  <div className="agent-artist-genres">
-                    {artist.genres?.slice(0, 2).map(genre => (
-                      <span key={genre} className="genre-tag-small">{genre}</span>
-                    ))}
-                  </div>
+                </div>
+                <div className="agent-artist-actions">
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setManagingArtist(artist);
+                    }}
+                  >
+                    Manage
+                  </button>
                 </div>
               </div>
             )) : (
               <div className="no-artists-message">
                 <p>No artists added yet</p>
-                <button className="btn btn-outline">Add Artists</button>
+                <button className="btn btn-outline" onClick={() => setShowRepresentedArtists(true)}>Add Artists</button>
               </div>
             )}
           </div>
@@ -624,6 +738,23 @@ const ProfileScreen = () => {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* Find Agent Modal for Artists */}
+      {showFindAgent && (
+        <SearchAgentsModal
+          onClose={() => setShowFindAgent(false)}
+          onSelectAgent={handleSelectAgent}
+          currentArtistId={user?._id || user?.id}
+        />
+      )}
+
+      {/* Agent Chat Modal for Artists */}
+      {showAgentChat && agentProfile && (
+        <ChatScreen
+          user={agentProfile}
+          onClose={() => setShowAgentChat(false)}
+        />
       )}
     </div>
   );

@@ -91,26 +91,21 @@ const RepresentedArtistsScreen = ({ onClose }) => {
         {representedArtists.length > 0 ? (
           <div className="artists-list">
             {representedArtists.map((artist) => (
-              <div key={artist.id} className="artist-card">
-                <div className="artist-avatar">
+              <div key={artist.id} className="artist-card-row">
+                <div className="artist-avatar-small">
                   {artist.avatar ? (
                     <img src={artist.avatar} alt={artist.name} />
                   ) : (
                     getInitial(artist.name)
                   )}
                 </div>
-                <div className="artist-info">
-                  <h3 className="artist-name">{artist.name}</h3>
-                  <p className="artist-location">{artist.location}</p>
-                  {artist.genres && artist.genres.length > 0 && (
-                    <div className="artist-genres">
-                      {artist.genres.map(genre => (
-                        <span key={genre} className="genre-tag-small">{genre}</span>
-                      ))}
-                    </div>
-                  )}
+                <div className="artist-card-content">
+                  <div className="artist-row-info">
+                    <div className="artist-name-inline">{artist.name}</div>
+                    <div className="artist-location-inline">{artist.location}</div>
+                  </div>
                 </div>
-                <div className="artist-actions">
+                <div className="artist-row-actions">
                   <button
                     className="btn btn-outline btn-sm"
                     onClick={() => handleViewProfile(artist.id)}

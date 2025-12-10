@@ -326,6 +326,21 @@ tora-app/
 - **Message Button**: Matched height with booking action buttons
 - **Button Styling**: Improved spacing and alignment throughout
 
+### Connection Request Flow Updates (December 2025)
+- **Agent Representation Modal**: Artists represented by agents now show connection choice modal
+  - Two options: Connect with Agent (for booking inquiries) or Connect with Artist (for collaboration)
+  - Simplified message modal design - removed profile card display
+  - Custom message input for both agent and artist connections
+  - Uses app-standard SVG line icons (info, handshake, user)
+- **Sent Requests Visibility**: Connection requests now appear immediately in sender's mailbox
+  - Backend filtering updated to show PENDING sent requests in conversations
+  - Chat displays sent request message but disables input until accepted
+  - Message: "Connection request pending. You can send messages once [Name] accepts your request."
+  - Full messaging enabled once request is accepted
+- **Custom Message Handling**: User's custom message properly sent instead of default template
+  - Fixed ViewProfileScreen to pass userMessage parameter correctly
+  - Custom message preserved across agent and artist connection flows
+
 ### Bug Fixes
 - Fixed overlapping buttons in ViewProfileScreen
 - Corrected spacing between profile elements
@@ -333,6 +348,8 @@ tora-app/
 - Separated sent/received connection requests properly
 - Fixed profile data mismatch in calendar matches
 - Fixed connection status detection (checks both CONNECTED and CONNECTION_REQUEST types)
+- Fixed backend message filtering to correctly identify sent vs received connection requests
+- Fixed agent location display in connection modals using populated profile data
 
 ## Running the App
 
@@ -568,6 +585,67 @@ MONGODB_URI=mongodb://localhost:27017/tora
   - "Manage" button opens comprehensive dashboard
   - Dashboard includes quick actions to 6 specialized management screens
   - Maintains existing screen structure while adding KPI visibility
+
+## Recent Updates (November 26, 2025)
+
+### Representation Request Flow Simplification
+- **Simplified Button Logic**: Streamlined representation request UX across search modals
+  - **SearchAgentsModal** (Artist view): Always shows "Send Request" button
+  - **SearchArtistsModal** (Agent view): Always shows "Send Request" button
+  - Button is greyed out (btn-disabled) when not connected, active when connected
+  - Info banner at top explains: "To send a representation request, you must be connected with the agent/artist first"
+  - Clear button states with logical priority:
+    1. ✓ Represented (green, disabled) - Accepted representation
+    2. Declined (grey, disabled) - Request was rejected
+    3. Pending (grey, disabled) - Pending representation request
+    4. Send Request (greyed, disabled) - Not connected yet
+    5. Send Request (active, enabled) - Connected and ready to send
+- **Removed Complex State Tracking**: Eliminated need to track CONNECTION_REQUEST states across screens
+  - Avoids caching issues and stale data
+  - Cleaner, more maintainable code
+  - Better user experience with always-visible CTAs
+
+### Message Notification System Improvements
+- **Badge Notifications for Requests**: Messages tab now shows red badge for all pending activity
+  - **Unread Messages**: Counts unread messages in existing conversations
+  - **Connection Requests**: Counts pending connection requests (CONNECTION_REQUEST with PENDING status)
+  - **Total Badge Count**: Combined count of both message types
+  - Badge updates in real-time when requests are sent/received
+- **Backend Message Filtering**: Modified conversation endpoint to properly display representation requests
+  - **REPRESENTATION_REQUEST Messages**: Always visible regardless of status (PENDING or ACCEPTED)
+  - **CONNECTION_REQUEST Messages**: Only visible when status is ACCEPTED
+  - Ensures representation requests appear immediately in Messages tab
+  - Creates proper system messages for representation request flow
+- **App.js Badge Logic**: Updated unread count calculation
+  ```javascript
+  const [conversations, requestsData] = await Promise.all([
+    getConversations(),
+    apiService.getReceivedRequests(user._id)
+  ]);
+  const conversationUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+  const requestsCount = (requestsData.requests || []).length;
+  const totalBadgeCount = conversationUnread + requestsCount;
+  ```
+
+### Chat Message Updates
+- **Disconnection Message Clarity**: Updated disabled chat message text
+  - Changed from: "You are no longer connected with {name}. You cannot send messages unless you reconnect."
+  - Changed to: "You are not connected with {name}. You cannot send messages unless you connect."
+  - More appropriate for all scenarios (never connected vs disconnected)
+  - Clearer call-to-action for users
+
+### Technical Implementation
+- **Files Modified**:
+  - `SearchAgentsModal.js` - Simplified button logic, added info banner
+  - `SearchArtistsModal.js` - Same simplification pattern
+  - `App.js` - Updated badge count to include connection requests
+  - `ChatScreen.js` - Updated disabled message text
+  - `messages.js` (backend) - Modified filter to allow REPRESENTATION_REQUEST messages
+- **Design Approach**: Prioritized UX clarity over complex state management
+  - Always-visible buttons with clear disabled states
+  - Info banners for requirement explanation
+  - Consolidated notification system
+  - Better user feedback throughout request flow
 
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.

@@ -146,6 +146,29 @@ export const ClipboardCheckIcon = () => (
   </svg>
 );
 
+export const InfoIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <path d="M12 16v-4"></path>
+    <path d="M12 8h.01"></path>
+  </svg>
+);
+
+export const HandshakeIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 12l4-4 4 4-4 4-4-4z"></path>
+    <path d="M12 12l-4-4-4 4 4 4 4-4z"></path>
+    <path d="M8 8l8 8"></path>
+  </svg>
+);
+
+export const UserIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+);
+
 // Simplified icons for better rendering
 export const ExploreIcon = EyeIcon;
 export const BookingsIcon = ClipboardCheckIcon;

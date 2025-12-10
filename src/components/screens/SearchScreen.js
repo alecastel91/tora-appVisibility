@@ -3,12 +3,13 @@ import { zones, countriesByZone, citiesByCountry, genresList } from '../../data/
 import { HeartIcon, FilterIcon } from '../../utils/icons';
 import ViewProfileScreen from './ViewProfileScreen';
 import Modal from '../common/Modal';
+import ConnectionChoiceModal from '../common/ConnectionChoiceModal';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import apiService from '../../services/api';
 
 const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
-  const { user, likedProfiles, toggleLike, sentRequests, sendConnectionRequest, connectedUsers } = useAppContext();
+  const { user, likedProfiles, toggleLike, sentRequests, sendConnectionRequest, connectedUsers, receivedRequests, acceptConnectionRequest, declineConnectionRequest } = useAppContext();
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -23,13 +24,22 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const [hasSearched, setHasSearched] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showConnectionChoice, setShowConnectionChoice] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [profilesLoaded, setProfilesLoaded] = useState(false); // Track if profiles loaded
+  const [reviewingRequest, setReviewingRequest] = useState(null);
 
   // Dropdown states
   const [openDropdown, setOpenDropdown] = useState(null);
+
+  // Debug: Log when showConnectionChoice changes
+  useEffect(() => {
+    console.log('showConnectionChoice state changed:', showConnectionChoice);
+    console.log('selectedProfile:', selectedProfile?.name);
+  }, [showConnectionChoice, selectedProfile]);
 
   // Fetch profiles from backend
   const fetchProfiles = async () => {
@@ -157,10 +167,46 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   };
 
   const handleConnect = (profile) => {
+    console.log('SearchScreen handleConnect called with profile:', profile);
+    console.log('profile.representedBy:', profile.representedBy);
+
     const profileId = profile._id || profile.id;
     if (!sentRequests.has(profileId)) {
       setSelectedProfile(profile);
-      setShowMessageModal(true);
+
+      // Check if profile has valid representedBy data
+      const hasValidAgent = !!(
+        profile.representedBy &&
+        (profile.representedBy.name || profile.representedBy.agentName) &&
+        (profile.representedBy.agentId || profile.representedBy._id)
+      );
+
+      console.log('hasValidAgent:', hasValidAgent);
+      console.log('  profile.representedBy:', profile.representedBy);
+
+      // If artist has a valid agent, show connection choice modal
+      // Otherwise show the regular message modal
+      if (hasValidAgent) {
+        console.log('Opening ConnectionChoiceModal');
+        setShowConnectionChoice(true);
+      } else {
+        console.log('Opening message modal');
+        setShowMessageModal(true);
+      }
+    }
+  };
+
+  const handleConnectionChoice = async (targetProfileId, type, artistContext = null, userMessage = '') => {
+    try {
+      // Use the user's message if provided
+      await sendConnectionRequest(targetProfileId, userMessage);
+
+      // Show success feedback
+      const targetName = type === 'AGENT' ? artistContext.representedBy.name : selectedProfile.name;
+      alert(`Connection request sent to ${targetName}!`);
+    } catch (error) {
+      console.error('Error sending connection request:', error);
+      alert(`Failed to send connection request: ${error.message}`);
     }
   };
 
@@ -174,13 +220,74 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
     }
   };
 
-  const handleSendMessage = () => {
+  const handleReview = async (profile) => {
+    try {
+      const profileId = profile._id || profile.id;
+      // Fetch the full profile data to get the request details
+      const data = await apiService.getProfileData(user._id || user.id);
+
+      // Find the request from this profile
+      const request = (data.requests || []).find(req => {
+        const fromId = req.from._id || req.from.id || req.from;
+        return String(fromId) === String(profileId) && req.type === 'CONNECTION_REQUEST' && req.status === 'PENDING';
+      });
+
+      if (request) {
+        setReviewingRequest(request);
+        setSelectedProfile(profile);
+        setShowReviewModal(true);
+      }
+    } catch (error) {
+      console.error('Error fetching request details:', error);
+    }
+  };
+
+  const handleAcceptRequest = async () => {
+    if (reviewingRequest && selectedProfile) {
+      try {
+        const requestId = reviewingRequest._id || reviewingRequest.id;
+        await acceptConnectionRequest(requestId);
+        setShowReviewModal(false);
+        setReviewingRequest(null);
+        setSelectedProfile(null);
+
+        // Refetch profiles to update UI
+        await fetchProfiles();
+      } catch (error) {
+        console.error('Error accepting request:', error);
+        alert('Failed to accept request');
+      }
+    }
+  };
+
+  const handleDeclineRequest = async () => {
+    if (reviewingRequest && selectedProfile) {
+      try {
+        const requestId = reviewingRequest._id || reviewingRequest.id;
+        await declineConnectionRequest(requestId);
+        setShowReviewModal(false);
+        setReviewingRequest(null);
+        setSelectedProfile(null);
+
+        // Refetch profiles to update UI
+        await fetchProfiles();
+      } catch (error) {
+        console.error('Error declining request:', error);
+        alert('Failed to decline request');
+      }
+    }
+  };
+
+  const handleSendMessage = async () => {
     if (selectedProfile) {
       const profileId = selectedProfile._id || selectedProfile.id;
-      sendConnectionRequest(profileId, message.trim() || '');
+      await sendConnectionRequest(profileId, message.trim() || '');
       setShowMessageModal(false);
       setMessage('');
       setSelectedProfile(null);
+
+      // Refetch profiles to update UI with new request status
+      await fetchProfiles();
     }
   };
 
@@ -257,11 +364,12 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
             const isLiked = likedProfiles.has(profileId);
             const isRequested = sentRequests.has(profileId);
             const isConnected = connectedUsers.has(profileId);
+            const hasReceivedRequest = receivedRequests.has(profileId);
 
             return (
               <div key={profileId} className="search-result-card">
                 <div className="result-content">
-                  <div 
+                  <div
                     className={`result-avatar avatar-${profile.role.toLowerCase()} clickable`}
                     onClick={() => handleProfileClick(profile)}
                   >
@@ -272,7 +380,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
                     )}
                     {profile.isVerified && <span className="verified-badge">✓</span>}
                   </div>
-                  <div 
+                  <div
                     className="result-info clickable"
                     onClick={() => handleProfileClick(profile)}
                   >
@@ -299,13 +407,19 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
                     >
                       Message
                     </button>
+                  ) : hasReceivedRequest || isRequested ? (
+                    <button
+                      className="btn btn-disabled btn-connect"
+                      disabled={true}
+                    >
+                      Pending
+                    </button>
                   ) : (
                     <button
-                      className={`btn ${isRequested ? 'btn-disabled' : 'btn-primary'} btn-connect`}
+                      className="btn btn-primary btn-connect"
                       onClick={() => handleConnect(profile)}
-                      disabled={isRequested}
                     >
-                      {isRequested ? t('search.requested') : t('search.connect')}
+                      {t('search.connect')}
                     </button>
                   )}
                 </div>
@@ -513,7 +627,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
               className="message-textarea-bottom"
             />
             <div className="message-modal-actions">
-              <button 
+              <button
                 className="btn btn-outline btn-modal-cancel"
                 onClick={() => {
                   setShowMessageModal(false);
@@ -523,11 +637,80 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
               >
                 {t('messages.cancel')}
               </button>
-              <button 
+              <button
                 className="btn btn-primary btn-modal-send"
                 onClick={handleSendMessage}
               >
                 {t('messages.send')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Connection Choice Modal */}
+      {console.log('[RENDER] showConnectionChoice:', showConnectionChoice, 'selectedProfile:', selectedProfile?.name)}
+      {showConnectionChoice && selectedProfile && (
+        <ConnectionChoiceModal
+          artist={selectedProfile}
+          onClose={() => {
+            setShowConnectionChoice(false);
+            setSelectedProfile(null);
+          }}
+          onConnect={handleConnectionChoice}
+        />
+      )}
+
+      {/* Review Request Modal */}
+      {showReviewModal && selectedProfile && reviewingRequest && (
+        <div className="message-modal-overlay" onClick={() => {
+          setShowReviewModal(false);
+          setSelectedProfile(null);
+          setReviewingRequest(null);
+        }}>
+          <div className="message-modal-bottom" onClick={(e) => e.stopPropagation()}>
+            <h2 className="message-modal-title">Connection Request from {selectedProfile.name}</h2>
+
+            <div className="review-modal-profile">
+              <div className={`result-avatar avatar-${selectedProfile.role.toLowerCase()}`}>
+                {selectedProfile.avatar ? (
+                  <img src={selectedProfile.avatar} alt={selectedProfile.name} />
+                ) : (
+                  selectedProfile.name.charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="review-modal-info">
+                <h3>{selectedProfile.name}</h3>
+                <p className="result-location">{selectedProfile.location}</p>
+                <span className={`role-badge ${selectedProfile.role.toLowerCase()}`}>
+                  {selectedProfile.role}
+                </span>
+              </div>
+            </div>
+
+            {reviewingRequest.message && reviewingRequest.message.trim() ? (
+              <div className="review-modal-message">
+                <label>Message:</label>
+                <div className="message-content">{reviewingRequest.message}</div>
+              </div>
+            ) : (
+              <div className="review-modal-message">
+                <p className="system-message-text">{selectedProfile.name} wants to connect</p>
+              </div>
+            )}
+
+            <div className="message-modal-actions">
+              <button
+                className="btn btn-outline btn-modal-cancel"
+                onClick={handleDeclineRequest}
+              >
+                Decline
+              </button>
+              <button
+                className="btn btn-primary btn-modal-send"
+                onClick={handleAcceptRequest}
+              >
+                Accept
               </button>
             </div>
           </div>

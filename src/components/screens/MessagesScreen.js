@@ -197,7 +197,9 @@ const MessagesScreen = ({ onOpenChat }) => {
                   <div className="message-info">
                     <h3>{request.profile.name}</h3>
                     <p className="message-preview">
-                      {request.message || 'Connection request pending'}
+                      {request.type === 'REPRESENTATION_REQUEST'
+                        ? 'Representation Request'
+                        : (request.message || 'Connection request')}
                     </p>
                   </div>
                   <div className="request-actions">
@@ -205,7 +207,11 @@ const MessagesScreen = ({ onOpenChat }) => {
                       className="btn btn-sm btn-primary"
                       onClick={async (e) => {
                         e.stopPropagation();
-                        await acceptRequest(request.requestId);
+                        if (request.type === 'REPRESENTATION_REQUEST') {
+                          await apiService.acceptRepresentationRequest(request.requestId);
+                        } else {
+                          await acceptRequest(request.requestId);
+                        }
                         await fetchData(); // Refresh the requests list
                       }}
                     >
@@ -215,7 +221,11 @@ const MessagesScreen = ({ onOpenChat }) => {
                       className="btn btn-sm btn-outline"
                       onClick={async (e) => {
                         e.stopPropagation();
-                        await declineRequest(request.requestId);
+                        if (request.type === 'REPRESENTATION_REQUEST') {
+                          await apiService.declineRepresentationRequest(request.requestId);
+                        } else {
+                          await declineRequest(request.requestId);
+                        }
                         await fetchData(); // Refresh the requests list
                       }}
                     >

@@ -740,59 +740,85 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {!(user.isDeleted || user.deleted) && connectedUsers.has(user._id || user.id) ? (
-        <>
-          {canMakeOffer() && (
-            <div className="chat-offer-button-container">
-              <button
-                className="btn-make-offer"
-                onClick={() => setShowMakeOffer(true)}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="3" y1="9" x2="21" y2="9"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <path d="M9 16l2 2 4-4"></path>
-                </svg>
-                Make an Offer
-              </button>
+      {(() => {
+        // Check if there's a pending connection request sent by current user
+        const hasPendingRequest = Object.values(connectionRequests).some(req =>
+          req && req.status === 'PENDING' && req.type === 'CONNECTION_REQUEST' && req.from === currentUser._id
+        );
+
+        // User is deleted
+        if (user.isDeleted || user.deleted) {
+          return (
+            <div className="chat-input-disabled">
+              <p>You cannot send messages to inactive profiles</p>
             </div>
-          )}
-          <div className="chat-input-container">
-            <div className="chat-input-wrapper">
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder={t('messages.writeYourMessage')}
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="chat-input"
-              />
-              <button
-                className="send-btn"
-                onClick={handleSend}
-                disabled={!inputMessage.trim()}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+          );
+        }
+
+        // User is connected - show full chat functionality
+        if (connectedUsers.has(user._id || user.id)) {
+          return (
+            <>
+              {canMakeOffer() && (
+                <div className="chat-offer-button-container">
+                  <button
+                    className="btn-make-offer"
+                    onClick={() => setShowMakeOffer(true)}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="3" y1="9" x2="21" y2="9"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <path d="M9 16l2 2 4-4"></path>
+                    </svg>
+                    Make an Offer
+                  </button>
+                </div>
+              )}
+              <div className="chat-input-container">
+                <div className="chat-input-wrapper">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    placeholder={t('messages.writeYourMessage')}
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className="chat-input"
+                  />
+                  <button
+                    className="send-btn"
+                    onClick={handleSend}
+                    disabled={!inputMessage.trim()}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </>
+          );
+        }
+
+        // User has pending sent connection request - show disabled message
+        if (hasPendingRequest) {
+          return (
+            <div className="chat-input-disabled">
+              <p>Connection request pending. You can send messages once {user.name} accepts your request.</p>
             </div>
+          );
+        }
+
+        // Not connected - show cannot send message
+        return (
+          <div className="chat-input-disabled">
+            <p>You are not connected with {user.name}. You cannot send messages unless you connect.</p>
           </div>
-        </>
-      ) : (
-        <div className="chat-input-disabled">
-          <p>
-            {(user.isDeleted || user.deleted)
-              ? 'You cannot send messages to inactive profiles'
-              : `You are not connected with ${user.name}. You cannot send messages unless you connect.`
-            }
-          </p>
-        </div>
-      )}
+        );
+      })()}
 
       <MakeOfferModal
         isOpen={showMakeOffer}
