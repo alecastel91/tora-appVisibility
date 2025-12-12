@@ -27,10 +27,8 @@ const Calendar = ({ onClose }) => {
     endDate: ''
   });
   const [editingFilterId, setEditingFilterId] = useState(null);
-
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   
   const getDaysInMonth = (month, year) => {
     return new Date(year, month + 1, 0).getDate();
@@ -47,6 +45,24 @@ const Calendar = ({ onClose }) => {
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
+
+  const goToPreviousMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
 
   const handleDateClick = (day) => {
     const dateKey = `${currentYear}-${currentMonth + 1}-${day}`;
@@ -371,10 +387,22 @@ const Calendar = ({ onClose }) => {
     >
       <div className="calendar-container">
         <div className="calendar-header">
-          <h3>{monthNames[currentMonth]} {currentYear}</h3>
-          <p className="calendar-instructions">
-            {t('calendar.instructions')}
-          </p>
+          <button className="calendar-nav-btn" onClick={goToPreviousMonth}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M12 16L6 10L12 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <div className="calendar-month-title">
+            <h3>{monthNames[currentMonth]} {currentYear}</h3>
+            <p className="calendar-instructions">
+              {t('calendar.instructions')}
+            </p>
+          </div>
+          <button className="calendar-nav-btn" onClick={goToNextMonth}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M8 16L14 10L8 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
         </div>
         
         <div className="calendar-grid">

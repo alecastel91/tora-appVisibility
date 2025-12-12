@@ -150,6 +150,16 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async updateUserPreferences(preferences) {
+    const response = await fetch(`${API_URL}/auth/update-preferences`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(preferences)
+    });
+
+    return this.handleResponse(response);
+  }
+
   // PROFILE ENDPOINTS (we'll add these to backend next)
   async searchProfiles(filters = {}) {
     const queryParams = new URLSearchParams(filters).toString();
@@ -470,6 +480,35 @@ class ApiService {
       method: 'DELETE',
       headers: this.getHeaders(),
       body: JSON.stringify({ profileId })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  // Currency / Exchange Rate Endpoints
+  async getCurrentRates() {
+    const response = await fetch(`${API_URL}/currency/rates`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async convertCurrency(amount, fromCurrency, toCurrency) {
+    const response = await fetch(`${API_URL}/currency/convert`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ amount, fromCurrency, toCurrency })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async updateExchangeRates() {
+    const response = await fetch(`${API_URL}/currency/update-rates`, {
+      method: 'POST',
+      headers: this.getHeaders()
     });
 
     return this.handleResponse(response);

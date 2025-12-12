@@ -463,8 +463,8 @@
 /* Represented By Badge */
 .represented-by-container {
   padding: 0 16px;
-  margin-top: 24px;
-  margin-bottom: 0;
+  margin-top: 12px;
+  margin-bottom: 12px;
   display: flex;
   justify-content: center;
 }
@@ -668,15 +668,28 @@
   padding: 16px;
 }
 
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.calendar-month-title {
+  flex: 1;
+  text-align: center;
+}
+
 .calendar-header h3 {
   color: var(--text-white);
-  margin-bottom: 8px;
+  margin: 0 0 8px 0;
 }
 
 .calendar-instructions {
   color: var(--text-gray);
   font-size: var(--font-xs);
-  margin-bottom: 16px;
+  margin: 0;
 }
 
 .calendar-grid {
@@ -5119,7 +5132,7 @@
 
 .profile-remove-connection {
   padding: 0 16px;
-  margin-top: 24px;
+  margin-top: 12px;
   margin-bottom: 20px;
 }
 
@@ -8194,8 +8207,42 @@ select.form-input {
 .party-status-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.booking-card-right-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.via-agent-badge {
+  font-size: 12px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-gray);
+  white-space: nowrap;
+}
+
+.via-agent-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  background: rgba(255, 152, 0, 0.08);
+  border: 1px solid rgba(255, 152, 0, 0.2);
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.via-agent-info svg {
+  color: #FF9800;
+  margin-top: 2px;
 }
 
 .status-badge {
@@ -9541,6 +9588,16 @@ select.form-input {
   margin-bottom: 24px;
 }
 
+.dashboard-section > h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-white);
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .section-header {
   display: flex;
   align-items: center;
@@ -9553,6 +9610,9 @@ select.form-input {
   font-weight: 600;
   color: var(--text-white);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .section-header .badge {
@@ -9569,6 +9629,16 @@ select.form-input {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
+  margin-bottom: 24px;
+}
+
+.hero-metrics-two {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 24px;
 }
 
@@ -9641,9 +9711,9 @@ select.form-input {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  height: 160px;
-  gap: 8px;
-  padding: 16px;
+  height: 140px;
+  gap: 6px;
+  padding: 20px 12px 32px 12px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-dark);
   border-radius: var(--radius-md);
@@ -9655,6 +9725,7 @@ select.form-input {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
   height: 100%;
 }
 
@@ -9722,6 +9793,120 @@ select.form-input {
 .offer-details {
   font-size: 12px;
   color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.event-card-with-top-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-card-with-top-row .offer-actions {
+  align-self: center;
+  margin-top: 4px;
+}
+
+.event-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.event-top-row .offer-venue {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.event-top-row .status-badge {
+  flex-shrink: 0;
+}
+
+.offer-details-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.expand-arrow-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.expand-arrow-btn:hover {
+  color: var(--text-white);
+}
+
+.event-details-expanded {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dark);
+}
+
+.event-detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-dark);
+}
+
+.event-detail-item:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 12px;
+  color: var(--text-white);
+  text-align: right;
+}
+
+.offer-status {
+  margin-top: 6px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-white);
+}
+
+.status-badge.status-confirmed {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.status-badge.status-pending-payment {
+  background: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+}
+
+.status-badge.status-offer-pending {
+  background: rgba(255, 51, 102, 0.15);
+  color: var(--primary-pink);
 }
 
 .offer-actions {
@@ -9823,6 +10008,160 @@ select.form-input {
   margin-bottom: 6px;
 }
 
+/* Inline Calendar for Events Tab */
+.calendar-inline-wrapper {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.calendar-header-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.calendar-month-info {
+  flex: 1;
+  text-align: center;
+}
+
+.calendar-month-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-white);
+  margin: 0 0 8px 0;
+}
+
+.calendar-month-info .calendar-instructions {
+  font-size: 12px;
+  color: var(--text-gray);
+  margin: 0;
+}
+
+.calendar-nav-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.calendar-nav-btn:hover {
+  color: var(--text-white);
+}
+
+/* Travel Schedules Section */
+.travel-schedules-section {
+  margin-top: 24px;
+}
+
+.travel-schedules-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.travel-schedules-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-white);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.travel-schedules-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.travel-schedules-empty p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0 0 20px 0;
+}
+
+.btn-add-travel-schedule {
+  background: transparent;
+  border: 2px dashed var(--primary-pink);
+  border-radius: var(--radius-md);
+  padding: 12px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-pink);
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  max-width: 400px;
+}
+
+.btn-add-travel-schedule:hover {
+  background: rgba(255, 51, 102, 0.1);
+  border-color: var(--primary-pink);
+}
+
+.travel-schedules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.travel-schedule-item {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-rows: auto auto;
+  gap: 4px 8px;
+  align-items: center;
+}
+
+.schedule-location {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-white);
+  grid-column: 1 / -1;
+}
+
+.schedule-bottom-row {
+  font-size: 12px;
+  color: var(--text-secondary);
+  grid-column: 1 / 2;
+  display: contents;
+}
+
+.icon-btn-edit,
+.icon-btn-delete {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.icon-btn-edit:hover,
+.icon-btn-delete:hover,
+.icon-btn:hover {
+  color: var(--primary-pink);
+}
+
 .event-status-details {
   font-size: 12px;
   color: var(--text-secondary);
@@ -9904,7 +10243,26 @@ select.form-input {
   .hero-metrics {
     grid-template-columns: 1fr;
   }
-  
+
+  .hero-metrics-two {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 100%;
+  }
+
+  .revenue-chart {
+    height: 120px;
+    padding: 16px 8px 28px 8px;
+    gap: 4px;
+  }
+
+  .chart-value {
+    font-size: 9px;
+  }
+
+  .chart-label {
+    font-size: 10px;
+  }
+
   .offer-card {
     flex-direction: column;
     align-items: flex-start;

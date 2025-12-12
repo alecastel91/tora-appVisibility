@@ -55,7 +55,13 @@
       "Bash(echo:*)",
       "Bash(ls:*)",
       "Bash(/dev/null)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(time curl:*)",
+      "Bash(for i in {1..5})",
+      "Bash(do time curl -s \"http://localhost:5001/api/profiles?page=1&limit=5\")",
+      "Bash(done)",
+      "Bash(host:*)",
+      "Bash(ping:*)"
     ],
     "deny": [],
     "ask": []

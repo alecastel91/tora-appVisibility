@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { CloseIcon, AddIcon } from '../../utils/icons';
 import ViewProfileScreen from './ViewProfileScreen';
@@ -11,8 +11,10 @@ const RepresentedArtistsScreen = ({ onClose }) => {
   const { user } = useAppContext();
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
+  const [fullProfileData, setFullProfileData] = useState(null);
   const [managingArtist, setManagingArtist] = useState(null);
   const [sending, setSending] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const representedArtists = user?.representingArtists || [];
 
@@ -40,13 +42,31 @@ const RepresentedArtistsScreen = ({ onClose }) => {
     return name ? name.charAt(0).toUpperCase() : 'A';
   };
 
-  const handleViewProfile = (artistId) => {
-    // Find the artist in dummyProfiles to show their external profile
-    const artistProfile = dummyProfiles.find(profile => profile.id === artistId);
-    if (artistProfile) {
-      setViewingProfile(artistProfile.id);
+  const handleViewProfile = async (artist) => {
+    // Fetch the full profile data from the API
+    // Note: artist object from representingArtists has profileId field
+    const artistId = artist.profileId || artist._id || artist.id;
+    if (artistId) {
+      setLoading(true);
+      try {
+        const response = await apiService.getProfile(artistId);
+        setFullProfileData(response);
+        setViewingProfile(artistId);
+      } catch (error) {
+        console.error('Error fetching artist profile:', error);
+        alert('Failed to load artist profile');
+      } finally {
+        setLoading(false);
+      }
     }
   };
+
+  // Reset full profile data when closing the profile view
+  useEffect(() => {
+    if (!viewingProfile) {
+      setFullProfileData(null);
+    }
+  }, [viewingProfile]);
 
   const handleManageArtist = (artist) => {
     setManagingArtist(artist);
@@ -62,13 +82,30 @@ const RepresentedArtistsScreen = ({ onClose }) => {
     );
   }
 
-  // Show viewing profile if selected
-  if (viewingProfile) {
+  // Show viewing profile if selected and data is loaded
+  if (viewingProfile && fullProfileData) {
     return (
       <ViewProfileScreen
-        profileId={viewingProfile}
+        profile={fullProfileData}
         onClose={() => setViewingProfile(null)}
       />
+    );
+  }
+
+  // Show loading state while fetching profile
+  if (loading) {
+    return (
+      <div className="screen active represented-artists-screen">
+        <div className="represented-artists-header">
+          <button className="back-btn" onClick={onClose}>
+            <CloseIcon />
+          </button>
+          <h1>Represented Artists</h1>
+        </div>
+        <div className="loading-state" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
+          <p>Loading profile...</p>
+        </div>
+      </div>
     );
   }
 
@@ -91,7 +128,7 @@ const RepresentedArtistsScreen = ({ onClose }) => {
         {representedArtists.length > 0 ? (
           <div className="artists-list">
             {representedArtists.map((artist) => (
-              <div key={artist.id} className="artist-card-row">
+              <div key={artist.profileId || artist._id || artist.id} className="artist-card-row">
                 <div className="artist-avatar-small">
                   {artist.avatar ? (
                     <img src={artist.avatar} alt={artist.name} />
@@ -108,7 +145,7 @@ const RepresentedArtistsScreen = ({ onClose }) => {
                 <div className="artist-row-actions">
                   <button
                     className="btn btn-outline btn-sm"
-                    onClick={() => handleViewProfile(artist.id)}
+                    onClick={() => handleViewProfile(artist)}
                   >
                     View Profile
                   </button>

@@ -41,8 +41,18 @@ function App() {
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
   const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [preferredCurrency, setPreferredCurrency] = useState('USD');
+  const [accountUser, setAccountUser] = useState(null); // Account-level user data (email, currency, etc)
   const { t, language, changeLanguage, availableLanguages } = useLanguage();
-  const { updateUser, user, getConversations } = useAppContext();
+  const { updateUser, user, getConversations, setPreferredCurrency: setContextCurrency } = useAppContext();
+
+  // Available currencies
+  const availableCurrencies = [
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'GBP', symbol: '£', name: 'British Pound' },
+    { code: 'JPY', symbol: '¥', name: 'Japanese Yen' }
+  ];
 
   // Check if user is already logged in
   useEffect(() => {
@@ -51,6 +61,13 @@ function App() {
       if (token) {
         try {
           const data = await apiService.getCurrentUser();
+          // Store account-level user data
+          if (data.user) {
+            setAccountUser(data.user);
+            const currency = data.user.preferredCurrency || 'USD';
+            setPreferredCurrency(currency);
+            setContextCurrency(currency); // Also update AppContext
+          }
           // Use profiles array if available, otherwise fallback to single profile
           updateUser(data.profiles || data.profile);
           setIsAuthenticated(true);
@@ -63,6 +80,14 @@ function App() {
     };
     checkAuth();
   }, []);
+
+  // Load user's preferred currency from account (not profile)
+  useEffect(() => {
+    if (accountUser && accountUser.preferredCurrency) {
+      setPreferredCurrency(accountUser.preferredCurrency);
+      setContextCurrency(accountUser.preferredCurrency); // Also update AppContext
+    }
+  }, [accountUser]);
 
   // Fetch unread messages count (includes both unread messages and connection requests)
   useEffect(() => {
@@ -104,6 +129,13 @@ function App() {
   }, [isAuthenticated, user, activeChatUser]); // Refresh when chat changes
 
   const handleLoginSuccess = (data) => {
+    // Store account-level user data
+    if (data.user) {
+      setAccountUser(data.user);
+      const currency = data.user.preferredCurrency || 'USD';
+      setPreferredCurrency(currency);
+      setContextCurrency(currency); // Also update AppContext
+    }
     // Use profiles array if available, otherwise fallback to single profile
     updateUser(data.profiles || data.profile);
     setIsAuthenticated(true);
@@ -152,6 +184,32 @@ function App() {
       setPasswordChangeError(error.message || 'Failed to change password');
     } finally {
       setPasswordChangeLoading(false);
+    }
+  };
+
+  const handleCurrencyChange = async (currencyCode) => {
+    if (!accountUser) return;
+
+    try {
+      // Update local state immediately for better UX
+      setPreferredCurrency(currencyCode);
+      setContextCurrency(currencyCode); // Also update AppContext
+
+      // Update on backend (account-level, not profile-level)
+      const response = await apiService.updateUserPreferences({
+        preferredCurrency: currencyCode
+      });
+
+      // Update account user state
+      if (response.user) {
+        setAccountUser(response.user);
+      }
+    } catch (error) {
+      console.error('Failed to update currency preference:', error);
+      // Revert on error
+      const originalCurrency = accountUser.preferredCurrency || 'USD';
+      setPreferredCurrency(originalCurrency);
+      setContextCurrency(originalCurrency);
     }
   };
 
@@ -287,7 +345,24 @@ function App() {
                 ))}
               </div>
             </div>
-            
+
+            <div className="settings-section">
+              <h3>Preferred Currency</h3>
+              <div className="language-selector">
+                {availableCurrencies.map(curr => (
+                  <button
+                    key={curr.code}
+                    className={`language-option ${preferredCurrency === curr.code ? 'active' : ''}`}
+                    onClick={() => handleCurrencyChange(curr.code)}
+                  >
+                    <span className="lang-name">{curr.symbol} {curr.code}</span>
+                    <span className="lang-native">{curr.name}</span>
+                    {preferredCurrency === curr.code && <span className="checkmark">✓</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="settings-section">
               <h3>{t('settings.notifications')}</h3>
               <div className="settings-item">

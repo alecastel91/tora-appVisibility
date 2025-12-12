@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
 import { zones, countriesByZone, citiesByCountry } from '../../data/profiles';
@@ -8,7 +8,6 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
   const { user: currentUser } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [representedArtists, setRepresentedArtists] = useState([]);
 
   // Form state - simplified for Venue/Promoter initial offer
   const [formData, setFormData] = useState({
@@ -26,8 +25,6 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
     setStartTime: '',
     setEndTime: '',
     notes: '',
-    selectedArtistId: '',
-    selectedArtistName: '',
     // Extras
     includeTravelIn: false,
     travelInNote: '',
@@ -41,40 +38,10 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
     mealsNote: ''
   });
 
-  // Fetch represented artists when modal opens and recipient is an agent
-  useEffect(() => {
-    const fetchRepresentedArtists = async () => {
-      if (isOpen && recipientProfile && recipientProfile.role === 'AGENT') {
-        try {
-          // Fetch the full profile data to get representingArtists array
-          const profileData = await apiService.getProfile(recipientProfile._id);
-          setRepresentedArtists(profileData.representingArtists || []);
-        } catch (error) {
-          console.error('Error fetching represented artists:', error);
-          setRepresentedArtists([]);
-        }
-      } else {
-        setRepresentedArtists([]);
-      }
-    };
-
-    fetchRepresentedArtists();
-  }, [isOpen, recipientProfile]);
-
   if (!isOpen) return null;
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleArtistChange = (e) => {
-    const selectedId = e.target.value;
-    const selectedArtist = representedArtists.find(artist => artist.profileId === selectedId);
-    setFormData(prev => ({
-      ...prev,
-      selectedArtistId: selectedId,
-      selectedArtistName: selectedArtist ? selectedArtist.name : ''
-    }));
   };
 
   // Cascading dropdown handlers for location
@@ -130,10 +97,6 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
     setError('');
 
     // Validation
-    if (recipientProfile.role === 'AGENT' && !formData.selectedArtistId) {
-      setError('Please select an artist to book');
-      return;
-    }
     if (!formData.venueName.trim()) {
       setError('Venue name is required');
       return;
@@ -231,9 +194,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
         performanceType: formData.performanceType,
         setDuration: setDuration,
         extras: Object.keys(extras).length > 0 ? extras : undefined,
-        notes: formData.notes,
-        artistId: formData.selectedArtistId || undefined,
-        artistName: formData.selectedArtistName || undefined
+        notes: formData.notes
       };
 
       const response = await apiService.createDeal(dealData);
@@ -263,8 +224,6 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
         setStartTime: '',
         setEndTime: '',
         notes: '',
-        selectedArtistId: '',
-        selectedArtistName: '',
         includeTravelIn: false,
         travelInNote: '',
         includeTravelOut: false,
@@ -315,29 +274,6 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
           {error && (
             <div className="error-message">
               {error}
-            </div>
-          )}
-
-          {recipientProfile.role === 'AGENT' && (
-            <div className="form-section">
-              <h4>Artist Selection</h4>
-
-              <div className="form-group">
-                <label>Select Artist to Book *</label>
-                <select
-                  value={formData.selectedArtistId}
-                  onChange={handleArtistChange}
-                  className="form-input"
-                  required
-                >
-                  <option value="">Select an artist</option>
-                  {representedArtists.map(artist => (
-                    <option key={artist.profileId} value={artist.profileId}>
-                      {artist.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
           )}
 

@@ -190,6 +190,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
       : deal.initiator;
     const isExpanded = expandedDealId === deal._id;
 
+    // Check if this is a deal viewed by the artist via their agent
+    const isViaAgent = deal.artistId && deal.artistId === currentUser._id && deal.artist._id !== currentUser._id;
+    // Get agent name for the "via agent" indicator
+    const agentName = isViaAgent ? deal.artist.name : null;
+
     const dealDate = new Date(deal.date);
     const dayNumber = dealDate.getDate();
 
@@ -227,6 +232,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               <span className={getStatusBadgeClass(deal.status)}>
                 {deal.status}
               </span>
+              {isViaAgent && (
+                <span className="via-agent-badge">
+                  via agent
+                </span>
+              )}
             </div>
           </div>
 
@@ -247,6 +257,12 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 <div className="booking-detail-row">
                   <span className="detail-label">Event:</span>
                   <span className="detail-value">{deal.eventName}</span>
+                </div>
+              )}
+              {deal.artistName && (
+                <div className="booking-detail-row">
+                  <span className="detail-label">Artist:</span>
+                  <span className="detail-value">{deal.artistName}</span>
                 </div>
               )}
               <div className="booking-detail-row">
@@ -336,8 +352,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               )}
             </div>
 
-            {/* Action buttons for incoming offers */}
-            {!isOutgoing && (deal.status === 'PENDING' || deal.status === 'NEGOTIATING') && (
+            {/* Action buttons for incoming offers - hide for artist viewing via agent */}
+            {!isOutgoing && !isViaAgent && (deal.status === 'PENDING' || deal.status === 'NEGOTIATING') && (
               <div className="booking-actions">
                 <button
                   className="btn btn-outline btn-decline"
@@ -366,16 +382,30 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               </div>
             )}
 
-            {/* Show chat button */}
-            <button
-              className="btn btn-outline btn-chat"
-              onClick={() => onOpenChat && onOpenChat(otherParty)}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-              </svg>
-              Message
-            </button>
+            {/* Info message for artist viewing via agent */}
+            {isViaAgent && (deal.status === 'PENDING' || deal.status === 'NEGOTIATING') && (
+              <div className="via-agent-info">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12" y2="8"></line>
+                </svg>
+                <span>This booking is being managed by your agent. Only your agent can accept or decline this offer.</span>
+              </div>
+            )}
+
+            {/* Show chat button - hide for via-agent bookings */}
+            {!isViaAgent && (
+              <button
+                className="btn btn-outline btn-chat"
+                onClick={() => onOpenChat && onOpenChat(otherParty)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Message
+              </button>
+            )}
 
             {/* Delete offer button (only for outgoing pending offers) */}
             {isOutgoing && deal.status === 'PENDING' && (

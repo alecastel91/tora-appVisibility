@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
-import { LinkIcon, HeartIcon, CloseIcon } from '../../utils/icons';
+import { LinkIcon, HeartIcon, CloseIcon, HandshakeIcon } from '../../utils/icons';
 import RAEventsModal from '../common/RAEventsModal';
 import ConnectionChoiceModal from '../common/ConnectionChoiceModal';
 
@@ -315,7 +315,7 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
         {profile.representedBy && (profile.representedBy.name || profile.representedBy.agentName) && (
           <div className="represented-by-container">
             <div className="represented-by-badge">
-              <span className="represented-icon">🤝</span>
+              <span className="represented-icon"><HandshakeIcon /></span>
               Represented by {profile.representedBy.name || profile.representedBy.agentName}
             </div>
           </div>

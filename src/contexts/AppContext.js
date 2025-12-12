@@ -27,6 +27,9 @@ export const AppProvider = ({ children }) => {
   // Multiple profiles for the same user (to be loaded from backend)
   const [userProfiles, setUserProfiles] = useState([]);
 
+  // Account-level preferred currency (not profile-specific)
+  const [preferredCurrency, setPreferredCurrency] = useState('USD');
+
   // Track loading state to prevent duplicate fetches
   const [isLoadingProfileData, setIsLoadingProfileData] = useState(false);
 
@@ -470,7 +473,9 @@ export const AppProvider = ({ children }) => {
     sendConnectionRequest,
     acceptRequest,
     declineRequest,
-    removeConnection
+    removeConnection,
+    preferredCurrency,
+    setPreferredCurrency
   };
 
   return (
