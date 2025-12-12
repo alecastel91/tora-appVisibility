@@ -73,12 +73,15 @@ tora-app/
 
 ### 2. Calendar with Travel Scheduling
 - Full-page calendar interface (not modal)
+- Month navigation with previous/next buttons
 - Green dates indicate availability
-- Drag selection for multiple dates
-- Long press to add location filters (Zone/Country/City)
+- Click dates to toggle availability
 - Travel schedule management below calendar
+- Schedule form with Zone/Country/City cascading selects
 - "ADD TRAVEL SCHEDULE" button when no schedules exist
-- Save button fixed at bottom of screen
+- Schedules displayed with location labels and formatted dates (YYYY-MM-DD)
+- Instant close with background save to MongoDB Atlas
+- Cross-device synchronization (PC and phone)
 - **Agent Role**: Replaced with Represented Artists management interface
 
 ### 3. Search & Discovery
@@ -248,6 +251,19 @@ tora-app/
 - Optimized re-renders with proper state management
 - Efficient list rendering
 - Touch event optimization for mobile
+
+## Recent Updates (December 12, 2025)
+
+### Calendar & Schedule System Fixes
+- **Cross-Device Persistence**: Fixed calendar and travel schedules syncing across PC and phone
+  - Resolved field name mismatch: backend uses `travelSchedule`, frontend was using `schedules`
+  - Fixed Profile model `toJSON()` to include `_id` field explicitly
+  - Updated `.env` to use network IP (192.168.2.100:5001) for cross-device API access
+- **Calendar Navigation**: Added previous/next month navigation buttons with centered month/year display
+- **Date Formatting**: Implemented `formatDate()` helper to display dates in YYYY-MM-DD format instead of ISO strings
+- **Instant UI Updates**: Calendar closes immediately after clicking X, then saves to backend in background
+- **Schedule Display**: Proper location labels (City → Country → Zone priority) and formatted dates in schedule cards
+- **State Synchronization**: Added useEffect to keep local schedules state in sync with context updates
 
 ## Recent Updates (September 16, 2025)
 
