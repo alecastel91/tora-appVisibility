@@ -11,8 +11,15 @@ const CalendarScreen = ({ onClose }) => {
   const { user, updateUser } = useAppContext();
   const [selectedDates, setSelectedDates] = useState(new Set(user?.availableDates || []));
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [schedules, setSchedules] = useState(user?.schedules || []);
+  const [schedules, setSchedules] = useState(user?.travelSchedule || []);
   const [editingScheduleId, setEditingScheduleId] = useState(null);
+
+  // Update schedules when user changes (to keep in sync with context)
+  React.useEffect(() => {
+    if (user?.travelSchedule) {
+      setSchedules(user.travelSchedule);
+    }
+  }, [user?.travelSchedule]);
   
   const [scheduleForm, setScheduleForm] = useState({
     zone: '',
@@ -27,9 +34,10 @@ const CalendarScreen = ({ onClose }) => {
     }
   });
 
-  const currentDate = new Date();
-  const currentMonth = currentDate.getMonth();
-  const currentYear = currentDate.getFullYear();
+  // State for calendar navigation
+  const todayDate = new Date();
+  const [currentMonth, setCurrentMonth] = useState(todayDate.getMonth());
+  const [currentYear, setCurrentYear] = useState(todayDate.getFullYear());
   
   const getDaysInMonth = (month, year) => {
     return new Date(year, month + 1, 0).getDate();
@@ -66,31 +74,79 @@ const CalendarScreen = ({ onClose }) => {
 
   const availableOptions = getAvailableLookingForOptions();
 
-  const handleClose = async () => {
-    try {
-      const profileId = user._id || user.id;
-
-      if (!profileId) {
-        console.error('Profile ID is missing');
-        onClose();
-        return;
-      }
-
-      // Save available dates and schedules to backend
-      const updatedProfile = await apiService.updateProfile(profileId, {
-        ...user,
-        availableDates: Array.from(selectedDates),
-        schedules: schedules
-      });
-
-      // Update local state with response from backend
-      updateUser(updatedProfile);
-      onClose();
-    } catch (error) {
-      console.error('Failed to save calendar data:', error);
-      // Still close even if save fails
-      onClose();
+  // Navigation functions
+  const goToPreviousMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
     }
+  };
+
+  const goToNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
+  const goToToday = () => {
+    setCurrentMonth(todayDate.getMonth());
+    setCurrentYear(todayDate.getFullYear());
+  };
+
+  const handleClose = () => {
+    console.log('[CalendarScreen] Closing with schedules:', schedules);
+    console.log('[CalendarScreen] User object:', user);
+
+    // Get profile ID - try multiple possible fields
+    const profileId = user?._id || user?.id;
+
+    if (!profileId) {
+      console.error('[CalendarScreen] Cannot save - Profile ID is missing. User object:', user);
+      // Still close the screen even if we can't save
+      onClose();
+      return;
+    }
+
+    console.log('[CalendarScreen] Using profileId:', profileId);
+
+    // Update context immediately with current state before closing
+    const updatedUserData = {
+      ...user,
+      availableDates: Array.from(selectedDates),
+      travelSchedule: schedules
+    };
+
+    console.log('[CalendarScreen] Updating context with:', updatedUserData);
+    updateUser(updatedUserData);
+
+    // Close immediately
+    onClose();
+
+    // Save to backend in background (don't await)
+    const saveData = async () => {
+      try {
+        console.log('[CalendarScreen] Saving to backend, profileId:', profileId, 'data:', {
+          availableDates: Array.from(selectedDates),
+          travelSchedule: schedules
+        });
+
+        // Save available dates and schedules to backend
+        const result = await apiService.updateProfile(profileId, {
+          availableDates: Array.from(selectedDates),
+          travelSchedule: schedules
+        });
+        console.log('[CalendarScreen] Backend save successful:', result);
+      } catch (error) {
+        console.error('[CalendarScreen] Failed to save calendar data:', error);
+      }
+    };
+
+    saveData();
   };
 
   const handleDateClick = (day) => {
@@ -123,6 +179,9 @@ const CalendarScreen = ({ onClose }) => {
         updatedSchedules = [...schedules, newSchedule];
       }
 
+      // Update local state immediately for instant feedback
+      setSchedules(updatedSchedules);
+
       try {
         const profileId = user._id || user.id;
 
@@ -134,11 +193,10 @@ const CalendarScreen = ({ onClose }) => {
         // Save to backend
         const updatedProfile = await apiService.updateProfile(profileId, {
           ...user,
-          schedules: updatedSchedules
+          travelSchedule: updatedSchedules
         });
 
-        // Update local state
-        setSchedules(updatedSchedules);
+        // Update context with backend response
         updateUser(updatedProfile);
 
         setShowLocationModal(false);
@@ -157,6 +215,8 @@ const CalendarScreen = ({ onClose }) => {
         });
       } catch (error) {
         console.error('Failed to save schedule:', error);
+        // Revert local state on error
+        setSchedules(schedules);
         alert('Failed to save schedule. Please try again.');
       }
     }
@@ -182,7 +242,7 @@ const CalendarScreen = ({ onClose }) => {
       // Save to backend
       const updatedProfile = await apiService.updateProfile(profileId, {
         ...user,
-        schedules: updatedSchedules
+        travelSchedule: updatedSchedules
       });
 
       // Update local state
@@ -220,6 +280,15 @@ const CalendarScreen = ({ onClose }) => {
     return 'Location';
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const getLookingForLabel = (schedule) => {
     const looking = [];
     if (schedule.lookingFor?.promoter) looking.push('Promoters');
@@ -238,14 +307,50 @@ const CalendarScreen = ({ onClose }) => {
     });
   };
 
+  const getSchedulePosition = (day) => {
+    const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const current = new Date(dateStr);
+
+    for (const schedule of schedules) {
+      const start = new Date(schedule.startDate);
+      const end = new Date(schedule.endDate);
+
+      if (current >= start && current <= end) {
+        const isStart = current.getTime() === start.getTime();
+        const isEnd = current.getTime() === end.getTime();
+        const isSingle = isStart && isEnd;
+
+        return {
+          hasSchedule: true,
+          isStart: isStart && !isSingle,
+          isEnd: isEnd && !isSingle,
+          isSingle: isSingle,
+          isMiddle: !isStart && !isEnd,
+          schedule: schedule  // Include the schedule object
+        };
+      }
+    }
+
+    return { hasSchedule: false };
+  };
+
+  const getLocationDisplayText = (schedule) => {
+    if (!schedule) return '';
+    // Priority: City → Country → Zone
+    if (schedule.city) return schedule.city;
+    if (schedule.country) return schedule.country;
+    if (schedule.zone) return schedule.zone;
+    return '';
+  };
+
   const renderCalendarDays = () => {
     const days = [];
     const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-    
+
     // Render weekday headers
-    weekDays.forEach(day => {
+    weekDays.forEach((day, index) => {
       days.push(
-        <div key={`header-${day}`} className="calendar-weekday">
+        <div key={`header-${index}`} className="calendar-weekday">
           {day}
         </div>
       );
@@ -262,16 +367,33 @@ const CalendarScreen = ({ onClose }) => {
     for (let day = 1; day <= daysInMonth; day++) {
       const dateKey = `${currentYear}-${currentMonth + 1}-${day}`;
       const isSelected = selectedDates.has(dateKey);
-      const hasSchedule = isDateInSchedule(day);
-      
+      const schedulePos = getSchedulePosition(day);
+
+      let scheduleClasses = '';
+      if (schedulePos.hasSchedule) {
+        if (schedulePos.isSingle) {
+          scheduleClasses = 'schedule-single';
+        } else if (schedulePos.isStart) {
+          scheduleClasses = 'schedule-start';
+        } else if (schedulePos.isEnd) {
+          scheduleClasses = 'schedule-end';
+        } else if (schedulePos.isMiddle) {
+          scheduleClasses = 'schedule-middle';
+        }
+      }
+
       days.push(
         <div
           key={`day-${day}`}
-          className={`calendar-day ${isSelected ? 'available' : ''} ${hasSchedule ? 'has-location' : ''}`}
+          className={`calendar-day ${isSelected ? 'available' : ''} ${scheduleClasses}`}
           onClick={() => handleDateClick(day)}
         >
           {day}
-          {hasSchedule && <span className="location-dot"></span>}
+          {schedulePos.hasSchedule && (
+            <div className="schedule-label">
+              {getLocationDisplayText(schedulePos.schedule)}
+            </div>
+          )}
         </div>
       );
     }
@@ -286,12 +408,21 @@ const CalendarScreen = ({ onClose }) => {
           <CloseIcon />
         </button>
         <h1>{t('calendar.title') || 'Calendar & Schedule'}</h1>
+        <div style={{ width: '40px' }}></div>
       </div>
 
       <div className="calendar-content">
         <div className="calendar-container">
           <div className="calendar-month-header">
-            <h3>{monthNames[currentMonth]} {currentYear}</h3>
+            <div className="calendar-nav">
+              <button className="calendar-nav-btn" onClick={goToPreviousMonth} title="Previous month">
+                ‹
+              </button>
+              <h3 className="calendar-month-title">{monthNames[currentMonth]} {currentYear}</h3>
+              <button className="calendar-nav-btn" onClick={goToNextMonth} title="Next month">
+                ›
+              </button>
+            </div>
             <p className="calendar-instructions">
               Tap dates to mark availability • Manage your schedules below
             </p>
@@ -336,32 +467,26 @@ const CalendarScreen = ({ onClose }) => {
               </button>
             </div>
           ) : (
-            <div className="schedules-list">
+            <div className="travel-schedules-list">
               {schedules.map((schedule) => (
-                <div key={schedule.id} className="schedule-card">
-                  <div className="schedule-info">
-                    <div className="schedule-location">
-                      📍 {getLocationLabel(schedule)}
-                    </div>
-                    <div className="schedule-dates">
-                      📅 {schedule.startDate} to {schedule.endDate}
-                    </div>
-                    <div className="schedule-looking-for">
-                      Looking for: {getLookingForLabel(schedule)}
-                    </div>
+                <div key={schedule.id} className="travel-schedule-item">
+                  <div className="schedule-location">
+                    {getLocationLabel(schedule)}
                   </div>
-                  <div className="schedule-actions">
-                    <button
-                      className="btn-icon"
-                      onClick={() => handleEditSchedule(schedule)}
-                    >
-                      ✏️
+                  <div className="schedule-bottom-row">
+                    {formatDate(schedule.startDate)} - {formatDate(schedule.endDate)}
+                    <button className="icon-btn-edit" onClick={() => handleEditSchedule(schedule)} title="Edit schedule">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
                     </button>
-                    <button
-                      className="btn-icon btn-danger"
-                      onClick={() => handleRemoveSchedule(schedule.id)}
-                    >
-                      🗑️
+                    <button className="icon-btn-delete" onClick={() => handleRemoveSchedule(schedule.id)} title="Delete schedule">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
                     </button>
                   </div>
                 </div>
