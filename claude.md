@@ -662,5 +662,44 @@ MONGODB_URI=mongodb://localhost:27017/tora
   - **Priority**: Agent management backend integration is highest priority for Phase 1
   - **Note**: Initial API integration attempt was rolled back due to connectivity issues; will be implemented properly in future update with proper error handling and testing
 
+### Revenue Overview Enhancement (December 12, 2025)
+- **ManageArtistScreen Dashboard Updates**: Enhanced revenue tracking with real data integration
+  - **Section Order**: Swapped Action Required and Revenue Overview sections - revenue now appears first
+  - **Horizontal Scrolling**: Revenue chart now scrolls horizontally to accommodate all months from 2024 onwards
+    - Custom scrollbar styling (6px height, dark theme colors)
+    - Touch-optimized scrolling with `-webkit-overflow-scrolling: touch`
+    - min-width: max-content ensures all columns are visible
+  - **Real Data Integration**: Chart connected to actual artist deal data from backend
+    - Fetches all deals with COMPLETED or past ACCEPTED status
+    - Groups revenue by month/year starting from January 2024
+    - Applies currency conversion to preferred currency using exchange rates API
+    - Updates in real-time when currency selector changes
+  - **Chart Design Improvements**:
+    - Uniform column width: 48px for all bars (previously variable)
+    - Chart height: 280px (doubled from original 140px)
+    - Number format: Rounded thousands (e.g., "13K" instead of "13.0K")
+    - Year labels: Displayed in light grey (#666, 9px font) below each month name
+    - Proper spacing: 10px gap between columns
+  - **Helper Function**: Added `getCurrencySymbol()` to display proper currency symbols (USD: $, EUR: €, GBP: £, JPY: ¥)
+  - **Month Generation**: Creates complete month array from 2024-01 to current month with zero-fill for months without revenue
+  - **Empty State**: Shows "Loading revenue data..." when chart data is being fetched
+
+- **Technical Implementation**:
+  - **Files Modified**:
+    - `ManageArtistScreen.js` - Added revenueChartData state, extended useEffect for data calculation
+    - `App.css` - Added .revenue-chart-scroll wrapper, updated chart container styling, added year label styles
+  - **Data Flow**:
+    1. Fetch deals from backend on component mount
+    2. Filter for historical deals from 2024 onwards (COMPLETED or past ACCEPTED)
+    3. Group by month/year and convert fees to preferred currency
+    4. Generate complete month array from 2024-01 to present
+    5. Calculate heights as percentage of max revenue
+    6. Render bars with currency symbol and formatted values
+
+- **Performance Considerations**:
+  - MongoDB Atlas network latency causes slower load times (inherent to cloud database)
+  - Currency conversion happens client-side using exchange rates API
+  - Chart recalculates when currency preference changes
+
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.
