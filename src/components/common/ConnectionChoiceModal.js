@@ -111,7 +111,6 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
               For booking inquiries
             </div>
           </div>
-          <div className="option-badge">Recommended</div>
         </button>
 
         {/* Option 2: Connect with Artist */}

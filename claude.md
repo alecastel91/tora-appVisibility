@@ -647,5 +647,20 @@ MONGODB_URI=mongodb://localhost:27017/tora
   - Consolidated notification system
   - Better user feedback throughout request flow
 
+### Connection Choice Modal Update (December 12, 2025)
+- **Removed "RECOMMENDED" Badge**: Simplified the agent connection option in ConnectionChoiceModal
+  - Removed the "Recommended" badge from the agent connection choice
+  - Cleaner UI with less visual clutter
+  - Users can still see agent option is for "booking inquiries" from the description
+  - **Files Modified**: `ConnectionChoiceModal.js` - Removed badge div element
+
+### Phase 1 Development Planning (December 12, 2025)
+- **Backend Integration Roadmap**: Planned comprehensive backend integration for Agent Management
+  - **Agent Management Dashboard**: Dashboard metrics (Upcoming Gigs, YTD Revenue) to be connected to backend deals/bookings
+  - **Events Management**: Calendar and event tracking to use real booking data
+  - **Artist Info Management**: Contact info, press kit, and technical riders from database
+  - **Priority**: Agent management backend integration is highest priority for Phase 1
+  - **Note**: Initial API integration attempt was rolled back due to connectivity issues; will be implemented properly in future update with proper error handling and testing
+
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.
