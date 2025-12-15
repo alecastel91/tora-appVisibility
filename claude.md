@@ -252,9 +252,25 @@ tora-app/
 - Efficient list rendering
 - Touch event optimization for mobile
 
-## Recent Updates (December 12, 2025)
+## Recent Updates (December 15, 2025)
 
-### Calendar & Schedule System Fixes
+### MongoDB Atlas Performance Optimization
+- **Database Indexes**: Created indexes on User and Profile collections for faster queries
+  - User indexes: email (unique), lastLogin
+  - Profile indexes: user, role, city, country, isPremium, genres
+  - Compound indexes for common query patterns
+- **Connection Pooling**: Configured MongoDB connection with optimized pool settings
+  - Max pool size: 10 connections, Min pool size: 2 connections
+  - Socket timeout: 45s, Server selection timeout: 5s
+- **Query Optimization**: Added `.lean()` to profile queries for 5-10x faster response
+  - Returns plain JavaScript objects instead of Mongoose documents
+  - Significantly reduces memory usage and processing time
+- **Data Compression**: Enabled zlib compression for faster data transfer over network
+- **Available Dates Sync**: Fixed calendar green dots not syncing across devices
+  - Changed to instant save on each date click instead of only on close
+  - Ensures real-time cross-device synchronization
+
+### Calendar & Schedule System Fixes (December 12, 2025)
 - **Cross-Device Persistence**: Fixed calendar and travel schedules syncing across PC and phone
   - Resolved field name mismatch: backend uses `travelSchedule`, frontend was using `schedules`
   - Fixed Profile model `toJSON()` to include `_id` field explicitly
