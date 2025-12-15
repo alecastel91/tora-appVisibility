@@ -718,12 +718,19 @@
   color: var(--text-white);
   font-size: var(--font-sm);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
   user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
 }
 
 .calendar-day:hover {
   background: var(--bg-card-dark);
+}
+
+.calendar-day:active {
+  transform: scale(0.95);
 }
 
 .calendar-day.available {
@@ -732,10 +739,90 @@
   color: var(--text-white);
 }
 
-.calendar-day.has-location {
+.calendar-day.available:hover {
+  background: #00d15a;
+  border-color: #00d15a;
+}
+
+/* Schedule label indicator */
+.calendar-day.schedule-single,
+.calendar-day.schedule-start,
+.calendar-day.schedule-middle,
+.calendar-day.schedule-end {
   position: relative;
 }
 
+.schedule-label {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: var(--primary-pink);
+  color: var(--text-white);
+  font-size: 6px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+/* Single day schedule - show as rounded pill, centered */
+.calendar-day.schedule-single .schedule-label {
+  left: 10%;
+  right: 10%;
+  border-radius: 2px;
+}
+
+/* Start of schedule - rounded on left, extends to right edge */
+.calendar-day.schedule-start .schedule-label {
+  left: 10%;
+  right: 0;
+  border-radius: 2px 0 0 2px;
+}
+
+/* End of schedule - rounded on right */
+.calendar-day.schedule-end .schedule-label {
+  right: 10%;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Middle of schedule - no rounding, full width */
+.calendar-day.schedule-middle .schedule-label {
+  border-radius: 0;
+}
+
+/* Schedule bar (no text) for middle and end days */
+.schedule-bar {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: var(--primary-pink);
+  border-radius: 0;
+}
+
+/* End of schedule bar - rounded on right, inset from edge */
+.calendar-day.schedule-end .schedule-bar {
+  right: 10%;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Middle of schedule bar - full width, no rounding */
+.calendar-day.schedule-middle .schedule-bar {
+  left: 0;
+  right: 0;
+  border-radius: 0;
+}
+
+/* Keep old dot styles for backward compatibility if needed */
 .location-dot {
   position: absolute;
   top: 2px;
@@ -764,7 +851,7 @@
   align-items: center;
   gap: 8px;
   color: var(--text-gray);
-  font-size: var(--font-sm);
+  font-size: 14px;
 }
 
 /* Looking for section */
@@ -1901,6 +1988,7 @@
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+  padding-bottom: 100px;
 }
 
 .calendar-month-header {
@@ -1920,9 +2008,47 @@
   margin: 0;
 }
 
+/* Calendar navigation */
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.calendar-nav .calendar-month-title {
+  color: var(--text-white);
+  font-size: 18px;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.calendar-nav-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-white);
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.calendar-nav-btn:hover {
+  background: var(--primary-pink);
+  border-color: var(--primary-pink);
+}
+
 .schedules-section {
-  margin-top: 32px;
-  padding: 20px;
+  margin-top: 8px;
+  padding: 16px;
   background: var(--bg-gray);
   border-radius: var(--radius-lg);
 }
@@ -1931,7 +2057,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .schedules-header h3 {
@@ -1947,12 +2073,12 @@
 
 .no-schedules {
   text-align: center;
-  padding: 40px 20px;
+  padding: 8px 20px 20px 20px;
   color: var(--text-gray);
 }
 
 .no-schedules p {
-  margin: 0 0 20px 0;
+  margin: 0 0 12px 0;
   font-size: 16px;
 }
 
@@ -5706,7 +5832,7 @@
 
 .legend-item span {
   color: var(--text-light);
-  font-size: 10px;
+  font-size: 14px;
 }
 
 /* Enhanced Country Tooltips */
@@ -8069,7 +8195,20 @@ select.form-input {
 .bookings-list {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 16px;
+}
+
+.events-month-cluster {
+  margin-bottom: 32px;
+}
+
+.month-year-header {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 20px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .bookings-cluster {
@@ -9642,6 +9781,16 @@ select.form-input {
   margin-bottom: 24px;
 }
 
+.hero-metrics-four {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 24px;
+}
+
 .metric-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-dark);
@@ -9707,21 +9856,48 @@ select.form-input {
 }
 
 /* Revenue Chart */
+/* Revenue Chart Scroll Container */
+.revenue-chart-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin-bottom: 8px;
+  border-radius: var(--radius-md);
+  -webkit-overflow-scrolling: touch;
+}
+
+.revenue-chart-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.revenue-chart-scroll::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
+.revenue-chart-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-dark);
+  border-radius: 3px;
+}
+
+.revenue-chart-scroll::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+
 .revenue-chart {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  height: 140px;
-  gap: 6px;
-  padding: 20px 12px 32px 12px;
+  justify-content: flex-start;
+  height: 200px;
+  gap: 10px;
+  padding: 24px 16px 50px 16px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-dark);
   border-radius: var(--radius-md);
-  margin-bottom: 8px;
+  min-width: max-content;
 }
 
 .chart-bar-container {
-  flex: 1;
+  width: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9751,6 +9927,26 @@ select.form-input {
   margin-top: 8px;
   font-size: 11px;
   color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.chart-year {
+  font-size: 9px;
+  color: #666;
+  font-weight: 400;
+}
+
+.no-revenue-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 
 .revenue-trend {
@@ -10245,6 +10441,11 @@ select.form-input {
   }
 
   .hero-metrics-two {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 100%;
+  }
+
+  .hero-metrics-four {
     grid-template-columns: repeat(2, 1fr);
     max-width: 100%;
   }

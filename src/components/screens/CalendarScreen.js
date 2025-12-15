@@ -14,12 +14,48 @@ const CalendarScreen = ({ onClose }) => {
   const [schedules, setSchedules] = useState(user?.travelSchedule || []);
   const [editingScheduleId, setEditingScheduleId] = useState(null);
 
+  // Drag selection state
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartDate, setDragStartDate] = useState(null);
+  const [dragMode, setDragMode] = useState(null); // 'select' or 'deselect'
+  const [hasDragged, setHasDragged] = useState(false); // Track if user actually dragged
+
+  // Refresh profile data from backend when calendar opens
+  // TEMPORARILY DISABLED - this was overwriting unsaved changes
+  // React.useEffect(() => {
+  //   const refreshProfileData = async () => {
+  //     try {
+  //       const profileId = user?._id || user?.id;
+  //       if (!profileId) return;
+
+  //       console.log('[CalendarScreen] Refreshing profile data from backend...');
+  //       const freshProfile = await apiService.getProfile(profileId);
+
+  //       // Update context with fresh data
+  //       updateUser(freshProfile);
+
+  //       // Update local state with fresh data
+  //       setSelectedDates(new Set(freshProfile.availableDates || []));
+  //       setSchedules(freshProfile.travelSchedule || []);
+
+  //       console.log('[CalendarScreen] Profile data refreshed successfully');
+  //     } catch (error) {
+  //       console.error('[CalendarScreen] Failed to refresh profile data:', error);
+  //     }
+  //   };
+
+  //   refreshProfileData();
+  // }, []); // Run once when component mounts
+
   // Update schedules when user changes (to keep in sync with context)
   React.useEffect(() => {
     if (user?.travelSchedule) {
       setSchedules(user.travelSchedule);
     }
   }, [user?.travelSchedule]);
+
+  // NOTE: We don't sync selectedDates from user.availableDates here because
+  // it would overwrite user changes during editing. The refresh happens on mount only.
   
   const [scheduleForm, setScheduleForm] = useState({
     zone: '',
@@ -149,47 +185,133 @@ const CalendarScreen = ({ onClose }) => {
     saveData();
   };
 
-  const handleDateClick = async (day) => {
-    const dateKey = `${currentYear}-${currentMonth + 1}-${day}`;
-    const newSelected = new Set(selectedDates);
+  // Save dates to backend
+  const saveDatesToBackend = async (dates) => {
+    try {
+      const profileId = user?._id || user?.id;
 
-    if (newSelected.has(dateKey)) {
+      if (!profileId) {
+        console.error('[CalendarScreen] Cannot save available dates - Profile ID is missing, user:', user);
+        return;
+      }
+
+      console.log('[CalendarScreen] Saving available dates to backend, profileId:', profileId, 'dates:', Array.from(dates));
+
+      // Update context immediately
+      const updatedUserData = {
+        ...user,
+        availableDates: Array.from(dates)
+      };
+      updateUser(updatedUserData);
+      console.log('[CalendarScreen] Context updated');
+
+      // Save to backend using apiService (same as handleClose does at line 175)
+      console.log('[CalendarScreen] Calling apiService.updateProfile...');
+
+      const result = await apiService.updateProfile(profileId, {
+        availableDates: Array.from(dates)
+      });
+
+      console.log('[CalendarScreen] API response:', result);
+      console.log('[CalendarScreen] Available dates saved successfully to backend');
+    } catch (error) {
+      console.error('[CalendarScreen] Failed to save available dates:', error);
+      console.error('[CalendarScreen] Error details:', error.message, error.stack);
+    }
+  };
+
+  // Handle mouse/touch down on a date (start potential drag)
+  const handleDateMouseDown = (day) => {
+    const dateKey = `${currentYear}-${currentMonth + 1}-${day}`;
+    setIsDragging(true);
+    setHasDragged(false); // Reset drag tracking
+    setDragStartDate(dateKey);
+
+    // Determine if we're selecting or deselecting based on current state
+    const isCurrentlySelected = selectedDates.has(dateKey);
+    setDragMode(isCurrentlySelected ? 'deselect' : 'select');
+
+    // Toggle immediately for instant visual feedback
+    const newSelected = new Set(selectedDates);
+    if (isCurrentlySelected) {
       newSelected.delete(dateKey);
     } else {
       newSelected.add(dateKey);
     }
 
-    // Update local state immediately for instant feedback
+    console.log('[CalendarScreen] Mouse down on date:', dateKey, 'New state:', Array.from(newSelected));
     setSelectedDates(newSelected);
+  };
 
-    // Save to backend immediately
-    try {
-      const profileId = user?._id || user?.id;
+  // Handle mouse/touch enter on a date (during drag)
+  const handleDateMouseEnter = (day) => {
+    if (!isDragging) return;
 
-      if (!profileId) {
-        console.error('[CalendarScreen] Cannot save available dates - Profile ID is missing');
-        return;
-      }
+    const dateKey = `${currentYear}-${currentMonth + 1}-${day}`;
 
-      console.log('[CalendarScreen] Saving available dates to backend:', Array.from(newSelected));
+    // If entering a different date, this is a drag not a click
+    if (dateKey !== dragStartDate) {
+      setHasDragged(true);
+      console.log('[CalendarScreen] Dragging detected');
+    }
 
-      // Update context immediately
-      const updatedUserData = {
-        ...user,
-        availableDates: Array.from(newSelected)
-      };
-      updateUser(updatedUserData);
+    const newSelected = new Set(selectedDates);
 
-      // Save to backend
-      await apiService.updateProfile(profileId, {
-        availableDates: Array.from(newSelected)
-      });
+    if (dragMode === 'select') {
+      newSelected.add(dateKey);
+    } else {
+      newSelected.delete(dateKey);
+    }
 
-      console.log('[CalendarScreen] Available dates saved successfully');
-    } catch (error) {
-      console.error('[CalendarScreen] Failed to save available dates:', error);
+    setSelectedDates(newSelected);
+  };
+
+  // Handle mouse/touch up (end drag or click)
+  const handleDateMouseUp = async () => {
+    if (isDragging) {
+      console.log('[CalendarScreen] Mouse up - hasDragged:', hasDragged, 'dragStartDate:', dragStartDate);
+
+      setIsDragging(false);
+      setDragStartDate(null);
+      setDragMode(null);
+      setHasDragged(false);
+
+      // Trigger save
+      setShouldSave(true);
     }
   };
+
+  // Save effect - triggered after drag/click completes
+  const [shouldSave, setShouldSave] = React.useState(false);
+
+  React.useEffect(() => {
+    console.log('[CalendarScreen] Save effect triggered - shouldSave:', shouldSave, 'selectedDates:', Array.from(selectedDates));
+    if (shouldSave) {
+      console.log('[CalendarScreen] Saving selectedDates:', Array.from(selectedDates));
+
+      // Call the existing saveDatesToBackend function
+      saveDatesToBackend(selectedDates);
+
+      setShouldSave(false);
+    }
+  }, [shouldSave, selectedDates, saveDatesToBackend]);
+
+  // Add effect to handle global mouse up (in case user releases outside calendar)
+  React.useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        handleDateMouseUp();
+      }
+    };
+
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener('touchend', handleGlobalMouseUp);
+
+    return () => {
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchend', handleGlobalMouseUp);
+    };
+  }, [isDragging, selectedDates]);
 
   const handleSaveSchedule = async () => {
     if (scheduleForm.startDate && scheduleForm.endDate) {
@@ -415,7 +537,36 @@ const CalendarScreen = ({ onClose }) => {
         <div
           key={`day-${day}`}
           className={`calendar-day ${isSelected ? 'available' : ''} ${scheduleClasses}`}
-          onClick={() => handleDateClick(day)}
+          onClick={() => {
+            console.log('[CalendarScreen] onClick fired for day:', day);
+            handleDateMouseDown(day);
+            handleDateMouseUp();
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            handleDateMouseDown(day);
+          }}
+          onMouseEnter={() => handleDateMouseEnter(day)}
+          onMouseUp={() => handleDateMouseUp()}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            handleDateMouseDown(day);
+          }}
+          onTouchMove={(e) => {
+            e.preventDefault();
+            // Get the element under the touch point
+            const touch = e.touches[0];
+            const element = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (element && element.classList.contains('calendar-day')) {
+              // Extract day number from the element's text content
+              const dayNum = parseInt(element.textContent);
+              if (!isNaN(dayNum)) {
+                handleDateMouseEnter(dayNum);
+              }
+            }
+          }}
+          onTouchEnd={() => handleDateMouseUp()}
+          style={{ userSelect: 'none', WebkitUserSelect: 'none', cursor: 'pointer' }}
         >
           {day}
           {schedulePos.hasSchedule && (
@@ -453,7 +604,7 @@ const CalendarScreen = ({ onClose }) => {
               </button>
             </div>
             <p className="calendar-instructions">
-              Tap dates to mark availability • Manage your schedules below
+              Tap dates to mark availability. Drag to select multiple dates.
             </p>
           </div>
           
