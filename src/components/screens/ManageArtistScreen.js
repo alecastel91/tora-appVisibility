@@ -8,7 +8,8 @@ import { useAppContext } from '../../contexts/AppContext';
 const ManageArtistScreen = ({ artist, onClose }) => {
   const { user, preferredCurrency } = useAppContext();
   const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, events, info
-  const [selectedDates, setSelectedDates] = useState(new Set());
+  const [artistProfile, setArtistProfile] = useState(artist); // Store full artist profile
+  const [selectedDates, setSelectedDates] = useState(new Set(artist?.availableDates || []));
   const [travelSchedule, setTravelSchedule] = useState(artist.travelSchedule || []);
   const [expandedEventId, setExpandedEventId] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
@@ -17,6 +18,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   const [dragStartDate, setDragStartDate] = useState(null);
   const [isActuallyDragging, setIsActuallyDragging] = useState(false);
   const [showTravelModal, setShowTravelModal] = useState(false);
+  const [editingScheduleIndex, setEditingScheduleIndex] = useState(null); // Track which schedule is being edited
   const [travelFilter, setTravelFilter] = useState({
     zone: '',
     country: '',
@@ -31,6 +33,11 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   const [upcomingGigs, setUpcomingGigs] = useState(null); // null means loading, number means loaded
   const [gigsError, setGigsError] = useState(false);
   const [ytdRevenue, setYtdRevenue] = useState(null); // null means loading, number means loaded
+  const [revenueChartData, setRevenueChartData] = useState([]); // Monthly revenue data from 2024 onwards
+  const [thisYearGigs, setThisYearGigs] = useState(null); // Total gigs this year (completed + upcoming)
+  const [expectedRevenue, setExpectedRevenue] = useState(null); // Expected revenue from upcoming gigs
+  const [deals, setDeals] = useState([]); // All deals for the artist
+  const [expandedDealId, setExpandedDealId] = useState(null); // Track expanded deal in events list
 
   // Fetch upcoming gigs and YTD revenue from backend
   useEffect(() => {
@@ -60,6 +67,9 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         console.log('ManageArtistScreen - API response:', response);
 
         if (response && response.deals) {
+          // Store all deals for events list
+          setDeals(response.deals || []);
+
           const today = new Date();
           const yearStart = new Date(today.getFullYear(), 0, 1); // January 1st of current year
 
@@ -73,6 +83,15 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
           setUpcomingGigs(upcoming.length);
           setGigsError(false);
+
+          // Calculate This Year Gigs: all deals this year (completed + upcoming)
+          const thisYearDeals = response.deals.filter(deal => {
+            const dealDate = new Date(deal.date);
+            const isThisYear = dealDate >= yearStart;
+            const hasRelevantStatus = ['COMPLETED', 'ACCEPTED', 'PENDING', 'NEGOTIATING'].includes(deal.status);
+            return isThisYear && hasRelevantStatus;
+          });
+          setThisYearGigs(thisYearDeals.length);
 
           // Calculate YTD Revenue: sum all COMPLETED or past ACCEPTED deals from current year
           const ytdDeals = response.deals.filter(deal => {
@@ -118,10 +137,104 @@ const ManageArtistScreen = ({ artist, onClose }) => {
             // No YTD deals
             setYtdRevenue(0);
           }
+
+          // Calculate Expected Revenue from upcoming gigs
+          if (upcoming.length > 0) {
+            try {
+              const ratesResponse = await apiService.getCurrentRates();
+              const rates = ratesResponse.rates;
+
+              let totalExpected = 0;
+              for (const deal of upcoming) {
+                const dealCurrency = deal.currency || 'USD';
+                const dealFee = parseFloat(deal.currentFee) || 0;
+
+                // Convert to preferred currency
+                let convertedFee = dealFee;
+                if (dealCurrency !== preferredCurrency) {
+                  const feeInUSD = dealCurrency === 'USD' ? dealFee : dealFee / rates[dealCurrency];
+                  convertedFee = preferredCurrency === 'USD' ? feeInUSD : feeInUSD * rates[preferredCurrency];
+                }
+
+                totalExpected += convertedFee;
+              }
+
+              setExpectedRevenue(Math.round(totalExpected * 100) / 100);
+            } catch (rateError) {
+              console.error('Error fetching exchange rates for expected revenue:', rateError);
+              const total = upcoming.reduce((sum, deal) => sum + (parseFloat(deal.currentFee) || 0), 0);
+              setExpectedRevenue(Math.round(total * 100) / 100);
+            }
+          } else {
+            setExpectedRevenue(0);
+          }
+
+          // Calculate monthly revenue data from 2024 onwards
+          const startDate = new Date('2024-01-01');
+          const historicalDeals = response.deals.filter(deal => {
+            const dealDate = new Date(deal.date);
+            const isFrom2024 = dealDate >= startDate;
+            const isCompleted = deal.status === 'COMPLETED';
+            const isAcceptedAndPast = deal.status === 'ACCEPTED' && dealDate < new Date();
+            return isFrom2024 && (isCompleted || isAcceptedAndPast);
+          });
+
+          // Group by month/year
+          const monthlyRevenue = {};
+          for (const deal of historicalDeals) {
+            const dealDate = new Date(deal.date);
+            const monthKey = `${dealDate.getFullYear()}-${String(dealDate.getMonth() + 1).padStart(2, '0')}`;
+
+            const dealCurrency = deal.currency || 'USD';
+            const dealFee = parseFloat(deal.currentFee) || 0;
+
+            // Convert to preferred currency
+            let convertedFee = dealFee;
+            if (dealCurrency !== preferredCurrency) {
+              try {
+                const ratesResponse = await apiService.getCurrentRates();
+                const rates = ratesResponse.rates;
+                const feeInUSD = dealCurrency === 'USD' ? dealFee : dealFee / rates[dealCurrency];
+                convertedFee = preferredCurrency === 'USD' ? feeInUSD : feeInUSD * rates[preferredCurrency];
+              } catch (err) {
+                console.error('Error converting currency for chart:', err);
+              }
+            }
+
+            if (!monthlyRevenue[monthKey]) {
+              monthlyRevenue[monthKey] = 0;
+            }
+            monthlyRevenue[monthKey] += convertedFee;
+          }
+
+          // Generate array from 2024-01 to current month
+          const chartData = [];
+          const currentDate = new Date();
+          let iterDate = new Date('2024-01-01');
+
+          while (iterDate <= currentDate) {
+            const monthKey = `${iterDate.getFullYear()}-${String(iterDate.getMonth() + 1).padStart(2, '0')}`;
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthName = monthNames[iterDate.getMonth()];
+            const year = iterDate.getFullYear();
+
+            chartData.push({
+              monthKey,
+              month: monthName,
+              year: year,
+              amount: Math.round(monthlyRevenue[monthKey] || 0)
+            });
+
+            // Move to next month
+            iterDate.setMonth(iterDate.getMonth() + 1);
+          }
+
+          setRevenueChartData(chartData);
         } else {
           // No deals found, set to 0
           setUpcomingGigs(0);
           setYtdRevenue(0);
+          setRevenueChartData([]);
           setGigsError(false);
         }
       } catch (error) {
@@ -135,6 +248,58 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
     fetchUpcomingGigs();
   }, [artist, preferredCurrency]); // Re-run when currency changes
+
+  // Fetch fresh artist profile data (including availableDates) when component mounts
+  useEffect(() => {
+    const fetchArtistProfile = async () => {
+      try {
+        const artistId = artist.profileId || artist._id || artist.id;
+
+        if (!artistId) {
+          console.warn('ManageArtistScreen - No artist ID found, using passed artist data');
+          return;
+        }
+
+        console.log('[ManageArtistScreen] Fetching fresh artist profile data for:', artistId);
+        const freshProfile = await apiService.getProfile(artistId);
+
+        console.log('[ManageArtistScreen] Fresh profile received:', freshProfile);
+
+        // Update artist profile state
+        setArtistProfile(freshProfile);
+
+        // Update available dates from fresh data
+        setSelectedDates(new Set(freshProfile.availableDates || []));
+
+        // Update travel schedule from fresh data
+        setTravelSchedule(freshProfile.travelSchedule || []);
+
+      } catch (error) {
+        console.error('[ManageArtistScreen] Error fetching artist profile:', error);
+      }
+    };
+
+    fetchArtistProfile();
+  }, []); // Run once on mount
+
+  // Scroll to top when component mounts or when switching to dashboard tab
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab]);
+
+  // Scroll revenue chart to show latest month
+  useEffect(() => {
+    if (activeTab === 'dashboard' && revenueChartData.length > 0) {
+      // Wait for the chart to render
+      setTimeout(() => {
+        const chartScroll = document.querySelector('.revenue-chart-scroll');
+        if (chartScroll) {
+          // Scroll to the right (end of chart)
+          chartScroll.scrollLeft = chartScroll.scrollWidth;
+        }
+      }, 100);
+    }
+  }, [activeTab, revenueChartData]);
 
   if (!artist) return null;
 
@@ -223,21 +388,34 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   const saveTravelSchedule = async () => {
     if (travelFilter.zone || travelFilter.country || travelFilter.city) {
       // Clean the schedule data - only keep the location and date fields
-      const newSchedule = {
+      const scheduleData = {
         zone: travelFilter.zone || '',
         country: travelFilter.country || '',
         city: travelFilter.city || '',
         startDate: travelFilter.startDate || '',
         endDate: travelFilter.endDate || '',
-        id: Date.now()
+        lookingFor: lookingFor
       };
-      const updatedSchedule = [...travelSchedule, newSchedule];
+
+      let updatedSchedule;
+      if (editingScheduleIndex !== null) {
+        // Editing existing schedule - replace it at the same index
+        updatedSchedule = travelSchedule.map((schedule, idx) =>
+          idx === editingScheduleIndex ? scheduleData : schedule
+        );
+      } else {
+        // Adding new schedule
+        scheduleData.id = Date.now();
+        updatedSchedule = [...travelSchedule, scheduleData];
+      }
+
       setTravelSchedule(updatedSchedule);
 
       // Save to backend
       try {
         console.log('Saving travel schedule:', updatedSchedule);
-        await apiService.updateProfile(artist._id, {
+        const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id || artist._id;
+        await apiService.updateProfile(artistId, {
           travelSchedule: updatedSchedule
         });
         console.log('Travel schedule saved successfully to backend');
@@ -257,15 +435,41 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       }
     }
     setShowTravelModal(false);
+    setEditingScheduleIndex(null); // Reset editing index
   };
 
   const editTravelSchedule = (index) => {
     const schedule = travelSchedule[index];
-    setTravelFilter(schedule);
+
+    // Format dates for HTML date input (YYYY-MM-DD)
+    const formatDateForInput = (dateString) => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    // Set travel filter with formatted dates
+    setTravelFilter({
+      zone: schedule.zone || '',
+      country: schedule.country || '',
+      city: schedule.city || '',
+      startDate: formatDateForInput(schedule.startDate),
+      endDate: formatDateForInput(schedule.endDate)
+    });
+
+    // Set looking for preferences
+    setLookingFor({
+      promoter: schedule.lookingFor?.promoter || false,
+      venue: schedule.lookingFor?.venue || false
+    });
+
+    // Set the editing index so save knows to update instead of add
+    setEditingScheduleIndex(index);
+
     setShowTravelModal(true);
-    // Remove the schedule temporarily - it will be re-added when saved
-    const updatedSchedule = travelSchedule.filter((_, i) => i !== index);
-    setTravelSchedule(updatedSchedule);
   };
 
   const deleteTravelSchedule = async (index) => {
@@ -303,6 +507,15 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     } else {
       return schedule.zone;
     }
+  };
+
+  const formatScheduleDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const getInitial = (name) => {
@@ -449,6 +662,16 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     }
   };
 
+  const getCurrencySymbol = (currency = 'USD') => {
+    const symbols = {
+      USD: '$',
+      EUR: '€',
+      GBP: '£',
+      JPY: '¥'
+    };
+    return symbols[currency] || '$';
+  };
+
   const getActionIcon = (type) => {
     switch (type) {
       case 'contract': return <FileIcon />;
@@ -460,8 +683,24 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
   const renderDashboardTab = () => (
     <div className="dashboard-tab">
-      {/* Hero Metrics */}
-      <div className="hero-metrics hero-metrics-two">
+      {/* Hero Metrics - 2x2 Grid */}
+      <div className="hero-metrics hero-metrics-four">
+        {/* Top Row */}
+        <div className="metric-card">
+          <div className="metric-icon"><CalendarIcon /></div>
+          <div className="metric-value">
+            {thisYearGigs === null ? '...' : thisYearGigs}
+          </div>
+          <div className="metric-label">This Year Gigs</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-icon"><DollarIcon /></div>
+          <div className="metric-value">
+            {ytdRevenue === null ? '...' : formatCurrencyWithSymbol(ytdRevenue, preferredCurrency)}
+          </div>
+          <div className="metric-label">This Year Revenue</div>
+        </div>
+        {/* Bottom Row */}
         <div className="metric-card">
           <div className="metric-icon"><CalendarIcon /></div>
           <div className="metric-value">
@@ -473,9 +712,47 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         <div className="metric-card">
           <div className="metric-icon"><DollarIcon /></div>
           <div className="metric-value">
-            {ytdRevenue === null ? '...' : formatCurrencyWithSymbol(ytdRevenue, preferredCurrency)}
+            {expectedRevenue === null ? '...' : formatCurrencyWithSymbol(expectedRevenue, preferredCurrency)}
           </div>
-          <div className="metric-label">YTD Revenue</div>
+          <div className="metric-label">Expected Revenue</div>
+        </div>
+      </div>
+
+      {/* Revenue Chart */}
+      <div className="dashboard-section revenue-overview-section">
+        <h3><TrendingUpIcon /> Revenue Overview</h3>
+        <div className="revenue-chart-scroll">
+          <div className="revenue-chart" style={{ minHeight: '200px' }}>
+            {revenueChartData.length > 0 ? (
+              (() => {
+                // Calculate maxRevenue once outside the loop
+                const maxRevenue = Math.max(...revenueChartData.map(d => d.amount), 1);
+                const currencySymbol = getCurrencySymbol(preferredCurrency);
+
+                return revenueChartData.map((item) => {
+                  const height = maxRevenue > 0 ? (item.amount / maxRevenue) * 100 : 0;
+
+                  return (
+                    <div key={item.monthKey} className="chart-bar-container">
+                      <div className="chart-bar" style={{ height: `${Math.max(height, 2)}%` }}>
+                        {item.amount > 0 && (
+                          <div className="chart-value">
+                            {currencySymbol}{item.amount >= 1000 ? Math.round(item.amount / 1000) + 'K' : Math.round(item.amount)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="chart-label">
+                        {item.month}
+                        <div className="chart-year">{item.year}</div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()
+            ) : (
+              <div className="no-revenue-data">Loading revenue data...</div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -494,47 +771,6 @@ const ManageArtistScreen = ({ artist, onClose }) => {
                 <div className="action-description">{item.description}</div>
               </div>
               <button className="btn btn-outline btn-sm">{item.action}</button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Revenue Chart */}
-      <div className="dashboard-section">
-        <h3><TrendingUpIcon /> Revenue Overview</h3>
-        <div className="revenue-chart">
-          {mockData.revenueData.map(item => {
-            const maxRevenue = Math.max(...mockData.revenueData.map(d => d.amount));
-            const height = (item.amount / maxRevenue) * 100;
-            return (
-              <div key={item.month} className="chart-bar-container">
-                <div className="chart-bar" style={{ height: `${height}%` }}>
-                  <div className="chart-value">${(item.amount / 1000).toFixed(0)}K</div>
-                </div>
-                <div className="chart-label">{item.month}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Pending Offers */}
-      <div className="dashboard-section">
-        <div className="section-header">
-          <h3><BriefcaseIcon /> Pending Booking Offers</h3>
-          <span className="badge">{mockData.pendingOffers.length}</span>
-        </div>
-        <div className="pending-offers">
-          {mockData.pendingOffers.map(offer => (
-            <div key={offer.id} className="offer-card">
-              <div className="offer-info">
-                <div className="offer-venue">{offer.venue}, {offer.location}</div>
-                <div className="offer-details">{offer.date} • {offer.currency}{offer.fee.toLocaleString()}</div>
-              </div>
-              <div className="offer-actions">
-                <button className="btn btn-outline btn-sm">Decline</button>
-                <button className="btn btn-primary btn-sm">Accept</button>
-              </div>
             </div>
           ))}
         </div>
@@ -559,7 +795,29 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
 
-    const handleDateClick = (day) => {
+    // Save available dates to backend
+    const saveAvailableDatesToBackend = async (dates) => {
+      try {
+        const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+
+        if (!artistId) {
+          console.error('[ManageArtistScreen] Cannot save available dates - Artist ID is missing');
+          return;
+        }
+
+        console.log('[ManageArtistScreen] Saving available dates to backend for artist:', artistId, 'dates:', Array.from(dates));
+
+        await apiService.updateProfile(artistId, {
+          availableDates: Array.from(dates)
+        });
+
+        console.log('[ManageArtistScreen] Available dates saved successfully');
+      } catch (error) {
+        console.error('[ManageArtistScreen] Failed to save available dates:', error);
+      }
+    };
+
+    const handleDateClick = async (day) => {
       const dateKey = `${currentYear}-${currentMonth + 1}-${day}`;
       const newSelected = new Set(selectedDates);
 
@@ -570,6 +828,9 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       }
 
       setSelectedDates(newSelected);
+
+      // Save to backend immediately
+      await saveAvailableDatesToBackend(newSelected);
     };
 
     const handleDragStart = (day) => {
@@ -605,10 +866,13 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       }
     };
 
-    const handleDragEnd = () => {
+    const handleDragEnd = async () => {
       setIsDragging(false);
       setDragStartDate(null);
       setIsActuallyDragging(false);
+
+      // Save to backend after drag completes
+      await saveAvailableDatesToBackend(selectedDates);
     };
 
     const handleTouchStart = (day) => {
@@ -633,14 +897,40 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       handleDragEnd();
     };
 
-    const isDateInTravelSchedule = (day) => {
+    const getSchedulePosition = (day) => {
       const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      return travelSchedule.some(schedule => {
+      const current = new Date(dateStr);
+
+      for (const schedule of travelSchedule) {
         const start = new Date(schedule.startDate);
         const end = new Date(schedule.endDate);
-        const current = new Date(dateStr);
-        return current >= start && current <= end;
-      });
+
+        if (current >= start && current <= end) {
+          const isStart = current.getTime() === start.getTime();
+          const isEnd = current.getTime() === end.getTime();
+          const isSingle = isStart && isEnd;
+
+          return {
+            hasSchedule: true,
+            isStart: isStart && !isSingle,
+            isEnd: isEnd && !isSingle,
+            isSingle: isSingle,
+            isMiddle: !isStart && !isEnd,
+            schedule: schedule  // Include the schedule object
+          };
+        }
+      }
+
+      return { hasSchedule: false };
+    };
+
+    const getLocationDisplayText = (schedule) => {
+      if (!schedule) return '';
+      // Priority: City → Country → Zone
+      if (schedule.city) return schedule.city;
+      if (schedule.country) return schedule.country;
+      if (schedule.zone) return schedule.zone;
+      return '';
     };
 
     const renderCalendarDays = () => {
@@ -667,12 +957,25 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       for (let day = 1; day <= daysInMonth; day++) {
         const dateKey = `${currentYear}-${currentMonth + 1}-${day}`;
         const isSelected = selectedDates.has(dateKey);
-        const hasSchedule = isDateInTravelSchedule(day);
+        const schedulePos = getSchedulePosition(day);
+
+        let scheduleClasses = '';
+        if (schedulePos.hasSchedule) {
+          if (schedulePos.isSingle) {
+            scheduleClasses = 'schedule-single';
+          } else if (schedulePos.isStart) {
+            scheduleClasses = 'schedule-start';
+          } else if (schedulePos.isEnd) {
+            scheduleClasses = 'schedule-end';
+          } else if (schedulePos.isMiddle) {
+            scheduleClasses = 'schedule-middle';
+          }
+        }
 
         days.push(
           <div
             key={`day-${day}`}
-            className={`calendar-day ${isSelected ? 'available' : ''} ${hasSchedule ? 'has-location' : ''}`}
+            className={`calendar-day ${isSelected ? 'available' : ''} ${scheduleClasses}`}
             onClick={(e) => {
               if (!isActuallyDragging) {
                 handleDateClick(day);
@@ -696,7 +999,11 @@ const ManageArtistScreen = ({ artist, onClose }) => {
             }}
           >
             {day}
-            {hasSchedule && <span className="location-dot"></span>}
+            {schedulePos.hasSchedule && (
+              <div className="schedule-label">
+                {getLocationDisplayText(schedulePos.schedule)}
+              </div>
+            )}
           </div>
         );
       }
@@ -743,6 +1050,214 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     );
   };
 
+  const renderUpcomingEvents = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Filter upcoming deals
+    const upcomingDeals = deals.filter(deal => {
+      const dealDate = new Date(deal.date);
+      dealDate.setHours(0, 0, 0, 0);
+      return dealDate >= today && deal.status !== 'DECLINED';
+    });
+
+    // Cluster deals by month/year
+    const clusters = {};
+    upcomingDeals.forEach(deal => {
+      const date = new Date(deal.date);
+      const monthYear = `${date.toLocaleString('en-US', { month: 'long' })} ${date.getFullYear()}`;
+
+      if (!clusters[monthYear]) {
+        clusters[monthYear] = {
+          monthYear,
+          date: date,
+          deals: []
+        };
+      }
+      clusters[monthYear].deals.push(deal);
+    });
+
+    // Sort clusters by date (ascending for upcoming)
+    const sortedClusters = Object.values(clusters).sort((a, b) => a.date - b.date);
+
+    // Sort deals within each cluster
+    sortedClusters.forEach(cluster => {
+      cluster.deals.sort((a, b) => new Date(a.date) - new Date(b.date));
+    });
+
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    };
+
+    const getStatusBadgeClass = (status) => {
+      switch (status) {
+        case 'PENDING':
+          return 'status-badge status-pending';
+        case 'NEGOTIATING':
+          return 'status-badge status-negotiating';
+        case 'ACCEPTED':
+          return 'status-badge status-accepted';
+        case 'COMPLETED':
+          return 'status-badge status-completed';
+        default:
+          return 'status-badge';
+      }
+    };
+
+    const toggleDealExpanded = (dealId) => {
+      setExpandedDealId(expandedDealId === dealId ? null : dealId);
+    };
+
+    if (upcomingDeals.length === 0) {
+      return (
+        <div className="no-events-message">
+          <p>No upcoming events</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="events-list-by-month">
+        {sortedClusters.map(cluster => (
+          <div key={cluster.monthYear} className="events-month-cluster">
+            <div className="month-year-header">{cluster.monthYear}</div>
+            <div className="bookings-list">
+              {cluster.deals.map(deal => {
+                const isExpanded = expandedDealId === deal._id;
+                const dealDate = new Date(deal.date);
+                const dayNumber = dealDate.getDate();
+                const otherParty = deal.venue || deal.artist || {};
+
+                // Check if this is a deal viewed by the artist via their agent
+                const artistProfileId = artist.profileId || artist._id || artist.id;
+                const isViaAgent = deal.artistId && deal.artistId === artistProfileId && deal.artist._id !== artistProfileId;
+
+                return (
+                  <div key={deal._id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
+                    <div className="booking-date-badge">
+                      {dayNumber}
+                    </div>
+                    <div className="booking-compact-view">
+                      <div
+                        className="party-avatar"
+                        onClick={() => toggleDealExpanded(deal._id)}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {otherParty.avatar ? (
+                          <img src={otherParty.avatar} alt={otherParty.name} />
+                        ) : (
+                          otherParty.name?.charAt(0).toUpperCase() || '?'
+                        )}
+                      </div>
+
+                      <div
+                        className="party-info"
+                        onClick={() => toggleDealExpanded(deal._id)}
+                        style={{ cursor: 'pointer', flex: 1 }}
+                      >
+                        <div className="party-name-role">
+                          <h3>{otherParty.name || 'Unknown'}</h3>
+                          {otherParty.role && (
+                            <span className={`role-badge ${otherParty.role.toLowerCase()}`}>
+                              {otherParty.role}
+                            </span>
+                          )}
+                        </div>
+                        <p className="party-location">{otherParty.location || 'Location TBD'}</p>
+                        <div className="party-status-row">
+                          <span className={getStatusBadgeClass(deal.status)}>
+                            {deal.status}
+                          </span>
+                          {isViaAgent && (
+                            <span className="via-agent-badge">
+                              via agent
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        className="btn-expand-arrow"
+                        onClick={() => toggleDealExpanded(deal._id)}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
+                          <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="booking-details">
+                        {deal.eventName && (
+                          <div className="booking-detail-row">
+                            <span className="detail-label">Event:</span>
+                            <span className="detail-value">{deal.eventName}</span>
+                          </div>
+                        )}
+                        {deal.artistName && (
+                          <div className="booking-detail-row">
+                            <span className="detail-label">Artist:</span>
+                            <span className="detail-value">{deal.artistName}</span>
+                          </div>
+                        )}
+                        <div className="booking-detail-row">
+                          <span className="detail-label">Venue:</span>
+                          <span className="detail-value">
+                            <div>{deal.venueName}</div>
+                            {deal.venue?.location && (
+                              <div className="detail-subtext">({deal.venue.location})</div>
+                            )}
+                          </span>
+                        </div>
+                        <div className="booking-detail-row">
+                          <span className="detail-label">Date:</span>
+                          <span className="detail-value">{formatDate(deal.date)}</span>
+                        </div>
+                        {deal.startTime && deal.endTime && (
+                          <div className="booking-detail-row">
+                            <span className="detail-label">Event Time:</span>
+                            <span className="detail-value">
+                              {deal.startTime} - {deal.endTime}
+                            </span>
+                          </div>
+                        )}
+                        {deal.performanceType && (
+                          <div className="booking-detail-row">
+                            <span className="detail-label">Type:</span>
+                            <span className="detail-value">{deal.performanceType}</span>
+                          </div>
+                        )}
+                        {deal.setStartTime && deal.setEndTime && (
+                          <div className="booking-detail-row">
+                            <span className="detail-label">Set Time:</span>
+                            <span className="detail-value">
+                              {deal.setStartTime} - {deal.setEndTime}
+                            </span>
+                          </div>
+                        )}
+                        <div className="booking-detail-row">
+                          <span className="detail-label">Fee:</span>
+                          <span className="detail-value">
+                            {deal.currency}{parseInt(deal.currentFee).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderEventsTab = () => (
     <div className="events-tab">
       {/* Calendar View */}
@@ -772,7 +1287,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
                     {getLocationDisplay(schedule)}
                   </div>
                   <div className="schedule-bottom-row">
-                    {schedule.startDate} - {schedule.endDate}
+                    {formatScheduleDate(schedule.startDate)} - {formatScheduleDate(schedule.endDate)}
                     <button className="icon-btn-edit" onClick={() => editTravelSchedule(index)} title="Edit schedule">
                       <EditIcon />
                     </button>
@@ -791,77 +1306,8 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       <div className="dashboard-section">
         <div className="section-header">
           <h3><ListIcon /> Upcoming Events</h3>
-          <span className="badge">{mockData.upcomingEvents.length}</span>
         </div>
-        <div className="pending-offers">
-          {mockData.upcomingEvents.map(event => {
-            const isExpanded = expandedEventId === event.id;
-            return (
-              <div key={event.id} className="offer-card event-card-with-top-row">
-                <div className="event-top-row">
-                  <div className="offer-venue">
-                    {event.venue}, {event.location}
-                  </div>
-                  <span className={`status-badge status-${event.status}`}>
-                    {getStatusIcon(event.status)} {event.statusLabel}
-                  </span>
-                </div>
-                <div className="offer-details-row">
-                  <div className="offer-details">
-                    {event.date} • {event.time} • {event.currency}{event.fee.toLocaleString()}
-                  </div>
-                  {event.status !== 'offer-pending' && (
-                    <button
-                      className="expand-arrow-btn"
-                      onClick={() => toggleEventDetails(event.id)}
-                    >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="none"
-                        style={{
-                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s'
-                        }}
-                      >
-                        <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
-                  )}
-                </div>
-
-                {isExpanded && (
-                  <div className="event-details-expanded">
-                    <div className="event-detail-item">
-                      <span className="detail-label">Status:</span>
-                      <span className="detail-value">{event.statusDetails}</span>
-                    </div>
-                    <div className="event-detail-item">
-                      <span className="detail-label">Promoter:</span>
-                      <span className="detail-value">{event.promoter || 'N/A'}</span>
-                    </div>
-                    <div className="event-detail-item">
-                      <span className="detail-label">Capacity:</span>
-                      <span className="detail-value">{event.capacity || 'N/A'}</span>
-                    </div>
-                    <div className="event-detail-item">
-                      <span className="detail-label">Notes:</span>
-                      <span className="detail-value">{event.notes || 'No additional notes'}</span>
-                    </div>
-                  </div>
-                )}
-
-                {event.status === 'offer-pending' && (
-                  <div className="offer-actions">
-                    <button className="btn btn-outline btn-sm">Decline</button>
-                    <button className="btn btn-primary btn-sm">Accept</button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        {renderUpcomingEvents()}
       </div>
     </div>
   );
@@ -1021,7 +1467,10 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       {/* Travel Schedule Modal */}
       <Modal
         isOpen={showTravelModal}
-        onClose={() => setShowTravelModal(false)}
+        onClose={() => {
+          setShowTravelModal(false);
+          setEditingScheduleIndex(null);
+        }}
         title="Add Travel Schedule"
         className="location-filter-modal"
       >
@@ -1113,7 +1562,10 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           <div className="form-actions">
             <button
               className="btn btn-outline"
-              onClick={() => setShowTravelModal(false)}
+              onClick={() => {
+                setShowTravelModal(false);
+                setEditingScheduleIndex(null);
+              }}
             >
               Cancel
             </button>

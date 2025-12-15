@@ -20,32 +20,33 @@ const CalendarScreen = ({ onClose }) => {
   const [dragMode, setDragMode] = useState(null); // 'select' or 'deselect'
   const [hasDragged, setHasDragged] = useState(false); // Track if user actually dragged
 
-  // Refresh profile data from backend when calendar opens
-  // TEMPORARILY DISABLED - this was overwriting unsaved changes
-  // React.useEffect(() => {
-  //   const refreshProfileData = async () => {
-  //     try {
-  //       const profileId = user?._id || user?.id;
-  //       if (!profileId) return;
+// Refresh travel schedule from backend when calendar opens
+  React.useEffect(() => {
+    const refreshTravelSchedule = async () => {
+      try {
+        const profileId = user?._id || user?.id;
+        if (!profileId) return;
 
-  //       console.log('[CalendarScreen] Refreshing profile data from backend...');
-  //       const freshProfile = await apiService.getProfile(profileId);
+        console.log('[CalendarScreen] Refreshing travel schedule from backend...');
+        const freshProfile = await apiService.getProfile(profileId);
 
-  //       // Update context with fresh data
-  //       updateUser(freshProfile);
+        // Only update travel schedule (not availableDates to avoid overwriting user edits)
+        setSchedules(freshProfile.travelSchedule || []);
 
-  //       // Update local state with fresh data
-  //       setSelectedDates(new Set(freshProfile.availableDates || []));
-  //       setSchedules(freshProfile.travelSchedule || []);
+        // Also update context to keep it in sync
+        updateUser({
+          ...user,
+          travelSchedule: freshProfile.travelSchedule || []
+        });
 
-  //       console.log('[CalendarScreen] Profile data refreshed successfully');
-  //     } catch (error) {
-  //       console.error('[CalendarScreen] Failed to refresh profile data:', error);
-  //     }
-  //   };
+        console.log('[CalendarScreen] Travel schedule refreshed successfully');
+      } catch (error) {
+        console.error('[CalendarScreen] Failed to refresh travel schedule:', error);
+      }
+    };
 
-  //   refreshProfileData();
-  // }, []); // Run once when component mounts
+    refreshTravelSchedule();
+  }, []); // Run once when component mounts
 
   // Update schedules when user changes (to keep in sync with context)
   React.useEffect(() => {
@@ -374,7 +375,30 @@ const CalendarScreen = ({ onClose }) => {
   };
 
   const handleEditSchedule = (schedule) => {
-    setScheduleForm(schedule);
+    // Format dates for HTML date input (YYYY-MM-DD)
+    const formatDateForInput = (dateString) => {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    // Set schedule form with properly formatted data
+    setScheduleForm({
+      zone: schedule.zone || '',
+      country: schedule.country || '',
+      city: schedule.city || '',
+      startDate: formatDateForInput(schedule.startDate),
+      endDate: formatDateForInput(schedule.endDate),
+      lookingFor: {
+        promoter: schedule.lookingFor?.promoter || false,
+        venue: schedule.lookingFor?.venue || false,
+        artist: schedule.lookingFor?.artist || false
+      }
+    });
+
     setEditingScheduleId(schedule.id);
     setShowLocationModal(true);
   };
