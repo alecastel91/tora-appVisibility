@@ -149,17 +149,46 @@ const CalendarScreen = ({ onClose }) => {
     saveData();
   };
 
-  const handleDateClick = (day) => {
+  const handleDateClick = async (day) => {
     const dateKey = `${currentYear}-${currentMonth + 1}-${day}`;
     const newSelected = new Set(selectedDates);
-    
+
     if (newSelected.has(dateKey)) {
       newSelected.delete(dateKey);
     } else {
       newSelected.add(dateKey);
     }
-    
+
+    // Update local state immediately for instant feedback
     setSelectedDates(newSelected);
+
+    // Save to backend immediately
+    try {
+      const profileId = user?._id || user?.id;
+
+      if (!profileId) {
+        console.error('[CalendarScreen] Cannot save available dates - Profile ID is missing');
+        return;
+      }
+
+      console.log('[CalendarScreen] Saving available dates to backend:', Array.from(newSelected));
+
+      // Update context immediately
+      const updatedUserData = {
+        ...user,
+        availableDates: Array.from(newSelected)
+      };
+      updateUser(updatedUserData);
+
+      // Save to backend
+      await apiService.updateProfile(profileId, {
+        availableDates: Array.from(newSelected)
+      });
+
+      console.log('[CalendarScreen] Available dates saved successfully');
+    } catch (error) {
+      console.error('[CalendarScreen] Failed to save available dates:', error);
+    }
   };
 
   const handleSaveSchedule = async () => {
