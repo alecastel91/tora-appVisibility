@@ -129,6 +129,10 @@ function App() {
   }, [isAuthenticated, user, activeChatUser]); // Refresh when chat changes
 
   const handleLoginSuccess = (data) => {
+    console.log('[App] Login success, received data:', data);
+    console.log('[App] Profiles:', data.profiles);
+    console.log('[App] Profile:', data.profile);
+
     // Store account-level user data
     if (data.user) {
       setAccountUser(data.user);
@@ -137,7 +141,9 @@ function App() {
       setContextCurrency(currency); // Also update AppContext
     }
     // Use profiles array if available, otherwise fallback to single profile
-    updateUser(data.profiles || data.profile);
+    const profileData = data.profiles || data.profile;
+    console.log('[App] Updating user with profile data:', profileData);
+    updateUser(profileData);
     setIsAuthenticated(true);
   };
 

@@ -209,6 +209,15 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async getProfileAvatar(profileId) {
+    const response = await fetch(`${API_URL}/profiles/${profileId}/avatar`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   // CONNECTION ENDPOINTS
   async toggleLike(fromProfileId, toProfileId) {
     const response = await fetch(`${API_URL}/connections/like/${toProfileId}`, {

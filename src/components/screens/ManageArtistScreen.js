@@ -19,6 +19,10 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   const [isActuallyDragging, setIsActuallyDragging] = useState(false);
   const [showTravelModal, setShowTravelModal] = useState(false);
   const [editingScheduleIndex, setEditingScheduleIndex] = useState(null); // Track which schedule is being edited
+
+  // Delete confirmation state
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [scheduleToDelete, setScheduleToDelete] = useState(null);
   const [travelFilter, setTravelFilter] = useState({
     zone: '',
     country: '',
@@ -472,8 +476,16 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     setShowTravelModal(true);
   };
 
-  const deleteTravelSchedule = async (index) => {
-    const updatedSchedule = travelSchedule.filter((_, i) => i !== index);
+  const deleteTravelSchedule = (index) => {
+    // Show confirmation dialog
+    setScheduleToDelete(index);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDeleteSchedule = async () => {
+    if (scheduleToDelete === null) return;
+
+    const updatedSchedule = travelSchedule.filter((_, i) => i !== scheduleToDelete);
     const previousSchedule = [...travelSchedule];
     setTravelSchedule(updatedSchedule);
 
@@ -483,6 +495,10 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         travelSchedule: updatedSchedule
       });
       console.log('Travel schedule deleted successfully from backend');
+
+      // Close confirmation dialog
+      setShowDeleteConfirmation(false);
+      setScheduleToDelete(null);
     } catch (error) {
       console.error('Failed to delete travel schedule:', error);
       // Revert on error
@@ -496,7 +512,16 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       } else {
         alert('Failed to delete travel schedule: ' + (error.message || 'Please try again'));
       }
+
+      // Close confirmation dialog
+      setShowDeleteConfirmation(false);
+      setScheduleToDelete(null);
     }
+  };
+
+  const cancelDeleteSchedule = () => {
+    setShowDeleteConfirmation(false);
+    setScheduleToDelete(null);
   };
 
   const getLocationDisplay = (schedule) => {
@@ -1574,6 +1599,31 @@ const ManageArtistScreen = ({ artist, onClose }) => {
               onClick={saveTravelSchedule}
             >
               Add Schedule
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteConfirmation}
+        onClose={cancelDeleteSchedule}
+        title="Delete Travel Schedule"
+      >
+        <div className="delete-confirmation">
+          <p>Are you sure you want to delete this travel schedule?</p>
+          <div className="form-actions">
+            <button
+              className="btn btn-secondary"
+              onClick={cancelDeleteSchedule}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-danger"
+              onClick={confirmDeleteSchedule}
+            >
+              Delete
             </button>
           </div>
         </div>

@@ -102,9 +102,11 @@ export const AppProvider = ({ children }) => {
     if (Array.isArray(userData)) {
       console.log('🔍 [AppContext updateUser] Received profiles ARRAY - count:', userData.length);
       console.log('🔍 [AppContext updateUser] Profiles:', userData.map(p => p.name));
+      console.log('🔍 [AppContext updateUser] First profile _id:', userData[0]?._id);
       setUserProfiles(userData);
       // Set the first profile as active
       const activeProfile = userData[0];
+      console.log('🔍 [AppContext updateUser] Setting active profile:', activeProfile.name, '_id:', activeProfile._id);
       setUser(activeProfile);
     }
     // Case 2: userData has a profiles property (object with profiles array)
@@ -119,8 +121,14 @@ export const AppProvider = ({ children }) => {
     // Case 3: Single profile object
     else {
       console.log('🔍 [AppContext updateUser] Setting SINGLE profile:', userData.name || userData);
+      console.log('🔍 [AppContext updateUser] Profile data:', userData);
+      console.log('🔍 [AppContext updateUser] Profile _id:', userData._id);
       // Single profile update - update within existing profiles array
       const profileId = userData._id || userData.id;
+
+      if (!profileId) {
+        console.error('🔍 [AppContext updateUser] WARNING: Profile has no _id!', userData);
+      }
 
       // Check if this profile already exists in userProfiles
       const existingIndex = userProfiles.findIndex(p => (p._id || p.id) === profileId);
@@ -129,10 +137,12 @@ export const AppProvider = ({ children }) => {
         // Update existing profile in the array
         const updatedProfiles = [...userProfiles];
         updatedProfiles[existingIndex] = userData;
+        console.log('🔍 [AppContext updateUser] Updated profile in array at index', existingIndex);
         setUserProfiles(updatedProfiles);
         setUser(userData);
       } else {
         // New profile (from signup/login) - add to array
+        console.log('🔍 [AppContext updateUser] Adding new profile to array');
         setUser(userData);
         setUserProfiles([...userProfiles, userData]);
       }
@@ -196,7 +206,11 @@ export const AppProvider = ({ children }) => {
       setNotifications(profileData.notifications || []);
 
       // Also reload user stats
+      console.log('🔍 [reloadProfileData] userData:', userData);
+      console.log('🔍 [reloadProfileData] userData.profiles:', userData.profiles);
       const currentProfile = userData.profiles.find(p => p._id === user._id);
+      console.log('🔍 [reloadProfileData] Found current profile:', currentProfile);
+      console.log('🔍 [reloadProfileData] Current profile _id:', currentProfile?._id);
       if (currentProfile) {
         setUser(currentProfile);
         // Update profiles array as well

@@ -14,6 +14,10 @@ const CalendarScreen = ({ onClose }) => {
   const [schedules, setSchedules] = useState(user?.travelSchedule || []);
   const [editingScheduleId, setEditingScheduleId] = useState(null);
 
+  // Delete confirmation state
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [scheduleToDelete, setScheduleToDelete] = useState(null);
+
   // Drag selection state
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState(null);
@@ -403,14 +407,24 @@ const CalendarScreen = ({ onClose }) => {
     setShowLocationModal(true);
   };
 
-  const handleRemoveSchedule = async (scheduleId) => {
-    const updatedSchedules = schedules.filter(s => s.id !== scheduleId);
+  const handleRemoveSchedule = (scheduleId) => {
+    // Show confirmation dialog
+    setScheduleToDelete(scheduleId);
+    setShowDeleteConfirmation(true);
+  };
+
+  const confirmDeleteSchedule = async () => {
+    if (!scheduleToDelete) return;
+
+    const updatedSchedules = schedules.filter(s => s.id !== scheduleToDelete);
 
     try {
       const profileId = user._id || user.id;
 
       if (!profileId) {
         console.error('Profile ID is missing');
+        setShowDeleteConfirmation(false);
+        setScheduleToDelete(null);
         return;
       }
 
@@ -423,10 +437,21 @@ const CalendarScreen = ({ onClose }) => {
       // Update local state
       setSchedules(updatedSchedules);
       updateUser(updatedProfile);
+
+      // Close confirmation dialog
+      setShowDeleteConfirmation(false);
+      setScheduleToDelete(null);
     } catch (error) {
       console.error('Failed to remove schedule:', error);
       alert('Failed to remove schedule. Please try again.');
+      setShowDeleteConfirmation(false);
+      setScheduleToDelete(null);
     }
+  };
+
+  const cancelDeleteSchedule = () => {
+    setShowDeleteConfirmation(false);
+    setScheduleToDelete(null);
   };
 
   const openNewScheduleModal = () => {
@@ -856,6 +881,31 @@ const CalendarScreen = ({ onClose }) => {
               onClick={handleSaveSchedule}
             >
               {editingScheduleId ? 'Update' : 'Save'} Schedule
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteConfirmation}
+        onClose={cancelDeleteSchedule}
+        title="Delete Travel Schedule"
+      >
+        <div className="delete-confirmation">
+          <p>Are you sure you want to delete this travel schedule?</p>
+          <div className="form-actions">
+            <button
+              className="btn btn-secondary"
+              onClick={cancelDeleteSchedule}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-danger"
+              onClick={confirmDeleteSchedule}
+            >
+              Delete
             </button>
           </div>
         </div>

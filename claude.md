@@ -74,15 +74,27 @@ tora-app/
 ### 2. Calendar with Travel Scheduling
 - Full-page calendar interface (not modal)
 - Month navigation with previous/next buttons
-- Green dates indicate availability
-- Click dates to toggle availability
-- Travel schedule management below calendar
-- Schedule form with Zone/Country/City cascading selects
-- "ADD TRAVEL SCHEDULE" button when no schedules exist
-- Schedules displayed with location labels and formatted dates (YYYY-MM-DD)
-- Instant close with background save to MongoDB Atlas
-- Cross-device synchronization (PC and phone)
+- **Available Dates**:
+  - Green dates indicate availability
+  - Click single date to toggle availability
+  - Drag to select/deselect multiple dates at once
+  - Instant save to backend on selection
+  - Persists across page refreshes and devices
+  - Touch-friendly with mobile support
+  - Syncs between CalendarScreen (profile) and ManageArtistScreen (agent view)
+- **Travel Schedule Management**:
+  - Schedule form with Zone/Country/City cascading selects
+  - "ADD TRAVEL SCHEDULE" button when no schedules exist
+  - Schedules displayed with location labels and formatted dates (YYYY-MM-DD)
+  - Location labels shown on calendar dates (city/country/zone)
+  - Edit and delete functionality with proper date formatting
+  - Instant save to backend with error handling
+  - Cross-device synchronization (PC and phone)
+  - Auto-refresh when switching between screens
 - **Agent Role**: Replaced with Represented Artists management interface
+  - Full calendar integration in Manage section
+  - Same available dates and travel schedule functionality
+  - Edits sync with artist's profile calendar
 
 ### 3. Search & Discovery
 - Search by name with real-time filtering
@@ -252,6 +264,65 @@ tora-app/
 - Efficient list rendering
 - Touch event optimization for mobile
 
+## Recent Updates (January 7, 2026)
+
+### Delete Confirmation Popup Implementation
+- **CalendarScreen.js**: Added delete confirmation modal for travel schedules
+  - New state: `showDeleteConfirmation`, `scheduleToDelete`
+  - Modified `handleRemoveSchedule()` to show confirmation dialog instead of immediate deletion
+  - Added `confirmDeleteSchedule()` function to perform deletion after user confirmation
+  - Added `cancelDeleteSchedule()` function to dismiss confirmation dialog
+  - Modal asks: "Are you sure you want to delete this travel schedule?"
+  - Two buttons: "Cancel" (secondary) and "Delete" (danger/red)
+  - Deletion only occurs after explicit user confirmation
+
+- **ManageArtistScreen.js**: Added identical delete confirmation modal
+  - Same confirmation flow for agent's manage artist calendar
+  - Consistent UX across both calendar views
+  - Proper error handling and state cleanup after deletion
+
+### Network Configuration and Deployment Fixes
+- **IP Address Management**: Addressed WiFi network changes causing connection issues
+  - Current IP: 192.168.2.103 (updated from 192.168.2.100)
+  - Attempted hostname approach (`MBPdiAlessandro.local`) but `.local` resolution not working on system
+  - Using direct IP address in `.env` file for now
+  - **Known Limitation**: IP address needs manual update when changing WiFi networks
+
+- **MongoDB Configuration**: Switched to MongoDB Atlas (cloud) temporarily
+  - Local MongoDB has version compatibility issue (database created with v8.2, installed version is v8.0.15)
+  - Backend `.env` configured to use Atlas: `mongodb+srv://acastelbuono:Michael-23!@tora.zwmh1nr.mongodb.net/tora`
+  - Connection confirmed: `ac-tftb7hf-shard-00-00.zwmh1nr.mongodb.net`
+  - All data safely stored in cloud database
+  - **Future Task**: Fix local MongoDB version compatibility for better performance
+
+- **React Dev Server Configuration**:
+  - Removed `proxy` setting from `package.json` (was causing API request failures)
+  - Removed `HOST=0.0.0.0` from npm start script (was breaking proxy functionality)
+  - Frontend now uses direct API URL from `.env`: `REACT_APP_API_URL=http://192.168.2.103:5001/api`
+  - **Current State**: App accessible on PC at `http://localhost:3001`
+  - **Limitation**: Not yet configured for simultaneous PC and phone access
+
+### Environment Configuration
+- **Frontend (.env)**:
+  ```
+  REACT_APP_API_URL=http://192.168.2.103:5001/api
+  ```
+
+- **Backend (.env)**:
+  ```
+  MONGODB_URI=mongodb+srv://acastelbuono:Michael-23!@tora.zwmh1nr.mongodb.net/tora?retryWrites=true&w=majority&appName=TORA
+  ```
+
+- **Package.json Changes**:
+  - Removed: `"proxy": "http://localhost:5001"`
+  - Modified start script from `"HOST=0.0.0.0 react-scripts start"` to `"react-scripts start"`
+
+### Known Issues to Address
+1. **Calendar Sync**: Changes between CalendarScreen and ManageArtistScreen may not immediately reflect without page refresh
+2. **Phone Access**: App not yet accessible from phone on same network (needs `HOST=0.0.0.0` with proper proxy configuration)
+3. **IP Address Dependency**: Requires manual `.env` update when switching WiFi networks (hostname approach didn't work)
+4. **Local MongoDB**: Version compatibility issue prevents using local database (needs upgrade from v8.0.15 to v8.2+ or database downgrade)
+
 ## Recent Updates (December 15, 2025)
 
 ### MongoDB Atlas Performance Optimization
@@ -382,6 +453,11 @@ tora-app/
 - Fixed connection status detection (checks both CONNECTED and CONNECTION_REQUEST types)
 - Fixed backend message filtering to correctly identify sent vs received connection requests
 - Fixed agent location display in connection modals using populated profile data
+- Fixed travel schedule date formatting (ISO → YYYY-MM-DD format)
+- Fixed travel schedule edit functionality to prevent data loss
+- Fixed calendar edit errors with proper date formatting for HTML inputs
+- Added travel schedule auto-refresh between CalendarScreen and ManageArtistScreen
+- Fixed ManageArtistScreen to scroll to top and show latest revenue data on load
 
 ## Running the App
 
@@ -408,6 +484,21 @@ npm run build
 6. **Language Support**: English and Japanese with complete UI translation
 7. **Calendar Privacy**: Premium users can hide their calendar while viewing others
 8. **Connection Requests**: Messages are optional when sending connection requests
+
+## Known Issues
+
+### Calendar Synchronization (To be fixed in next session)
+- **Issue**: Calendar data (available dates and travel schedules) not syncing perfectly between CalendarScreen and ManageArtistScreen
+- **Status**: Partial implementation completed
+  - ✅ Available dates save and sync between screens
+  - ✅ Travel schedules display with location labels on both calendars
+  - ✅ Date formatting fixed (YYYY-MM-DD instead of ISO format)
+  - ✅ Edit functionality working in both screens
+  - ⚠️ Sync timing issues remain - changes may not immediately reflect
+- **Next Steps**:
+  - Improve real-time sync mechanism between screens
+  - Add proper state invalidation when switching between screens
+  - Consider using shared state or event system for calendar updates
 
 ## Common Tasks
 
