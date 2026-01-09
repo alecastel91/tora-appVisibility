@@ -24,32 +24,36 @@ const CalendarScreen = ({ onClose }) => {
   const [dragMode, setDragMode] = useState(null); // 'select' or 'deselect'
   const [hasDragged, setHasDragged] = useState(false); // Track if user actually dragged
 
-// Refresh travel schedule from backend when calendar opens
+// Refresh travel schedule and available dates from backend when calendar opens
   React.useEffect(() => {
-    const refreshTravelSchedule = async () => {
+    const refreshCalendarData = async () => {
       try {
         const profileId = user?._id || user?.id;
         if (!profileId) return;
 
-        console.log('[CalendarScreen] Refreshing travel schedule from backend...');
+        console.log('[CalendarScreen] Refreshing calendar data from backend...');
         const freshProfile = await apiService.getProfile(profileId);
 
-        // Only update travel schedule (not availableDates to avoid overwriting user edits)
+        // Update travel schedule
         setSchedules(freshProfile.travelSchedule || []);
+
+        // Update available dates from backend
+        setSelectedDates(new Set(freshProfile.availableDates || []));
 
         // Also update context to keep it in sync
         updateUser({
           ...user,
-          travelSchedule: freshProfile.travelSchedule || []
+          travelSchedule: freshProfile.travelSchedule || [],
+          availableDates: freshProfile.availableDates || []
         });
 
-        console.log('[CalendarScreen] Travel schedule refreshed successfully');
+        console.log('[CalendarScreen] Calendar data refreshed successfully');
       } catch (error) {
-        console.error('[CalendarScreen] Failed to refresh travel schedule:', error);
+        console.error('[CalendarScreen] Failed to refresh calendar data:', error);
       }
     };
 
-    refreshTravelSchedule();
+    refreshCalendarData();
   }, []); // Run once when component mounts
 
   // Update schedules when user changes (to keep in sync with context)
@@ -59,8 +63,8 @@ const CalendarScreen = ({ onClose }) => {
     }
   }, [user?.travelSchedule]);
 
-  // NOTE: We don't sync selectedDates from user.availableDates here because
-  // it would overwrite user changes during editing. The refresh happens on mount only.
+  // NOTE: We refresh both availableDates and travelSchedule from backend on mount
+  // This ensures we have the latest data when switching between CalendarScreen and ManageArtistScreen
   
   const [scheduleForm, setScheduleForm] = useState({
     zone: '',
@@ -320,19 +324,58 @@ const CalendarScreen = ({ onClose }) => {
 
   const handleSaveSchedule = async () => {
     if (scheduleForm.startDate && scheduleForm.endDate) {
-      const newSchedule = {
-        id: editingScheduleId || `schedule-${Date.now()}`,
-        ...scheduleForm,
-        createdAt: new Date().toISOString()
-      };
+      // Validate that end date is not before start date
+      const startDate = new Date(scheduleForm.startDate);
+      const endDate = new Date(scheduleForm.endDate);
+
+      if (endDate < startDate) {
+        alert('End date cannot be before start date. Please adjust your dates.');
+        return;
+      }
+
+      // Check for overlapping schedules
+      const hasOverlap = schedules.some((schedule) => {
+        // Skip the schedule being edited (check both id and _id)
+        if (editingScheduleId && (schedule.id === editingScheduleId || schedule._id === editingScheduleId)) {
+          return false;
+        }
+
+        const existingStart = new Date(schedule.startDate);
+        const existingEnd = new Date(schedule.endDate);
+
+        // Check if date ranges overlap
+        // Two date ranges overlap if: start1 <= end2 AND start2 <= end1
+        return startDate <= existingEnd && existingStart <= endDate;
+      });
+
+      if (hasOverlap) {
+        alert('This travel schedule overlaps with an existing schedule. Please choose different dates.');
+        return;
+      }
 
       let updatedSchedules;
       if (editingScheduleId) {
-        updatedSchedules = schedules.map(s =>
-          s.id === editingScheduleId ? newSchedule : s
-        );
+        // Editing existing schedule - preserve all existing fields
+        updatedSchedules = schedules.map(s => {
+          // Check both id and _id (backend uses _id, frontend uses id)
+          if (s.id === editingScheduleId || s._id === editingScheduleId) {
+            return {
+              ...s,              // Preserve all existing fields (including _id, createdAt, etc.)
+              ...scheduleForm    // Override with new form data
+            };
+          }
+          return s;
+        });
+        console.log('[CalendarScreen] Editing existing schedule with id:', editingScheduleId);
       } else {
+        // Adding new schedule
+        const newSchedule = {
+          id: `schedule-${Date.now()}`,
+          ...scheduleForm,
+          createdAt: new Date().toISOString()
+        };
         updatedSchedules = [...schedules, newSchedule];
+        console.log('[CalendarScreen] Adding new schedule with id:', newSchedule.id);
       }
 
       // Update local state immediately for instant feedback
@@ -403,7 +446,10 @@ const CalendarScreen = ({ onClose }) => {
       }
     });
 
-    setEditingScheduleId(schedule.id);
+    // Use _id if available (backend), otherwise use id (frontend)
+    const scheduleId = schedule._id || schedule.id;
+    console.log('[CalendarScreen] Editing schedule with id:', scheduleId);
+    setEditingScheduleId(scheduleId);
     setShowLocationModal(true);
   };
 
@@ -416,7 +462,11 @@ const CalendarScreen = ({ onClose }) => {
   const confirmDeleteSchedule = async () => {
     if (!scheduleToDelete) return;
 
-    const updatedSchedules = schedules.filter(s => s.id !== scheduleToDelete);
+    // Check both id and _id (backend uses _id, frontend uses id)
+    const updatedSchedules = schedules.filter(s => {
+      const scheduleId = s._id || s.id;
+      return scheduleId !== scheduleToDelete;
+    });
 
     try {
       const profileId = user._id || user.id;
@@ -474,10 +524,21 @@ const CalendarScreen = ({ onClose }) => {
   };
 
   const getLocationLabel = (schedule) => {
-    if (schedule.city) return schedule.city;
-    if (schedule.country) return schedule.country;
-    if (schedule.zone) return schedule.zone;
-    return 'Location';
+    const parts = [];
+
+    // Add each location part if it exists and is not empty
+    if (schedule.city && schedule.city.trim()) {
+      parts.push(schedule.city);
+    }
+    if (schedule.country && schedule.country.trim()) {
+      parts.push(schedule.country);
+    }
+    if (schedule.zone && schedule.zone.trim()) {
+      parts.push(schedule.zone);
+    }
+
+    // Return all parts joined with commas, or fallback
+    return parts.length > 0 ? parts.join(', ') : 'No location';
   };
 
   const formatDate = (dateString) => {
@@ -710,7 +771,7 @@ const CalendarScreen = ({ onClose }) => {
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                       </svg>
                     </button>
-                    <button className="icon-btn-delete" onClick={() => handleRemoveSchedule(schedule.id)} title="Delete schedule">
+                    <button className="icon-btn-delete" onClick={() => handleRemoveSchedule(schedule._id || schedule.id)} title="Delete schedule">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M3 6h18"/>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>

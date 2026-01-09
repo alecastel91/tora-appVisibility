@@ -391,7 +391,38 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
   const saveTravelSchedule = async () => {
     if (travelFilter.zone || travelFilter.country || travelFilter.city) {
-      // Clean the schedule data - only keep the location and date fields
+      // Validate that end date is not before start date
+      if (travelFilter.startDate && travelFilter.endDate) {
+        const startDate = new Date(travelFilter.startDate);
+        const endDate = new Date(travelFilter.endDate);
+
+        if (endDate < startDate) {
+          alert('End date cannot be before start date. Please adjust your dates.');
+          return;
+        }
+
+        // Check for overlapping schedules
+        const hasOverlap = travelSchedule.some((schedule, idx) => {
+          // Skip the schedule being edited
+          if (editingScheduleIndex !== null && idx === editingScheduleIndex) {
+            return false;
+          }
+
+          const existingStart = new Date(schedule.startDate);
+          const existingEnd = new Date(schedule.endDate);
+
+          // Check if date ranges overlap
+          // Two date ranges overlap if: start1 <= end2 AND start2 <= end1
+          return startDate <= existingEnd && existingStart <= endDate;
+        });
+
+        if (hasOverlap) {
+          alert('This travel schedule overlaps with an existing schedule. Please choose different dates.');
+          return;
+        }
+      }
+
+      // Prepare the schedule data
       const scheduleData = {
         zone: travelFilter.zone || '',
         country: travelFilter.country || '',
@@ -401,30 +432,60 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         lookingFor: lookingFor
       };
 
+      console.log('[ManageArtistScreen] Creating/editing schedule with data:', scheduleData);
+      console.log('[ManageArtistScreen] travelFilter values:', {
+        zone: travelFilter.zone,
+        country: travelFilter.country,
+        city: travelFilter.city
+      });
+
       let updatedSchedule;
       if (editingScheduleIndex !== null) {
-        // Editing existing schedule - replace it at the same index
+        // Editing existing schedule - preserve existing ID and merge new data
+        const existingSchedule = travelSchedule[editingScheduleIndex];
+        const updatedScheduleData = {
+          ...existingSchedule,  // Preserve all existing fields (including _id, id, etc.)
+          ...scheduleData       // Override with new data
+        };
+
         updatedSchedule = travelSchedule.map((schedule, idx) =>
-          idx === editingScheduleIndex ? scheduleData : schedule
+          idx === editingScheduleIndex ? updatedScheduleData : schedule
         );
+
+        console.log('[ManageArtistScreen] Editing existing schedule at index:', editingScheduleIndex);
       } else {
         // Adding new schedule
         scheduleData.id = Date.now();
         updatedSchedule = [...travelSchedule, scheduleData];
+
+        console.log('[ManageArtistScreen] Adding new schedule with id:', scheduleData.id);
       }
 
+      // Update local state immediately for instant feedback
       setTravelSchedule(updatedSchedule);
 
       // Save to backend
       try {
-        console.log('Saving travel schedule:', updatedSchedule);
+        console.log('[ManageArtistScreen] Saving travel schedule:', updatedSchedule);
         const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id || artist._id;
-        await apiService.updateProfile(artistId, {
+
+        // Save to backend
+        const updatedProfile = await apiService.updateProfile(artistId, {
           travelSchedule: updatedSchedule
         });
-        console.log('Travel schedule saved successfully to backend');
+
+        console.log('[ManageArtistScreen] Travel schedule saved successfully, refreshing profile');
+
+        // Refresh artist profile from backend to get latest data
+        const freshProfile = await apiService.getProfile(artistId);
+
+        // Update artist profile state with fresh data
+        setArtistProfile(freshProfile);
+        setTravelSchedule(freshProfile.travelSchedule || []);
+
+        console.log('[ManageArtistScreen] Profile refreshed with latest data');
       } catch (error) {
-        console.error('Failed to save travel schedule:', error);
+        console.error('[ManageArtistScreen] Failed to save travel schedule:', error);
         // Revert on error
         setTravelSchedule(travelSchedule);
 
@@ -487,20 +548,35 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
     const updatedSchedule = travelSchedule.filter((_, i) => i !== scheduleToDelete);
     const previousSchedule = [...travelSchedule];
+
+    // Update local state immediately
     setTravelSchedule(updatedSchedule);
 
     // Save to backend
     try {
-      await apiService.updateProfile(artist._id, {
+      console.log('[ManageArtistScreen] Deleting travel schedule, new array:', updatedSchedule);
+      const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id || artist._id;
+
+      await apiService.updateProfile(artistId, {
         travelSchedule: updatedSchedule
       });
-      console.log('Travel schedule deleted successfully from backend');
+
+      console.log('[ManageArtistScreen] Travel schedule deleted successfully, refreshing profile');
+
+      // Refresh artist profile from backend to get latest data
+      const freshProfile = await apiService.getProfile(artistId);
+
+      // Update artist profile state with fresh data
+      setArtistProfile(freshProfile);
+      setTravelSchedule(freshProfile.travelSchedule || []);
+
+      console.log('[ManageArtistScreen] Profile refreshed with latest data');
 
       // Close confirmation dialog
       setShowDeleteConfirmation(false);
       setScheduleToDelete(null);
     } catch (error) {
-      console.error('Failed to delete travel schedule:', error);
+      console.error('[ManageArtistScreen] Failed to delete travel schedule:', error);
       // Revert on error
       setTravelSchedule(previousSchedule);
 
@@ -525,13 +601,21 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   };
 
   const getLocationDisplay = (schedule) => {
-    if (schedule.city && schedule.country) {
-      return `${schedule.city}, ${schedule.country}`;
-    } else if (schedule.country) {
-      return schedule.country;
-    } else {
-      return schedule.zone;
+    const parts = [];
+
+    // Add each location part if it exists and is not empty
+    if (schedule.city && schedule.city.trim()) {
+      parts.push(schedule.city);
     }
+    if (schedule.country && schedule.country.trim()) {
+      parts.push(schedule.country);
+    }
+    if (schedule.zone && schedule.zone.trim()) {
+      parts.push(schedule.zone);
+    }
+
+    // Return all parts joined with commas, or fallback
+    return parts.length > 0 ? parts.join(', ') : 'No location';
   };
 
   const formatScheduleDate = (dateString) => {
@@ -837,6 +921,9 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         });
 
         console.log('[ManageArtistScreen] Available dates saved successfully');
+
+        // NOTE: We don't refresh the profile here because it would reset selectedDates
+        // while the user is still clicking/dragging. The profile gets refreshed on mount.
       } catch (error) {
         console.error('[ManageArtistScreen] Failed to save available dates:', error);
       }
