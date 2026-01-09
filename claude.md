@@ -264,6 +264,48 @@ tora-app/
 - Efficient list rendering
 - Touch event optimization for mobile
 
+## Recent Updates (January 9, 2026)
+
+### Calendar Travel Schedule Fixes - ID Mismatch Resolution
+- **Issue**: Travel schedule edit and delete functions were not working in CalendarScreen
+- **Root Cause**: MongoDB backend schedules use `_id` field, while frontend schedules use `id` field
+- **Files Fixed**:
+  - `CalendarScreen.js`:
+    - Line 339: Updated overlap detection to check both `schedule.id` and `schedule._id` when skipping edited schedule
+    - Lines 466-469: Fixed delete filter to check both `s._id` and `s.id` when removing schedule
+    - Line 774: Updated delete button to pass `schedule._id || schedule.id` instead of just `schedule.id`
+  - `ManageArtistScreen.js`: Already had correct ID handling from previous session
+
+### Environment Variable and Cache Issues
+- **Backend Server Loop Issue**: Backend was stuck in infinite loop processing messages, preventing API responses
+  - Fixed by restarting backend server cleanly
+- **React Environment Variables**: Cleared cache (`rm -rf node_modules/.cache`) caused React to lose environment variables
+  - React only reads `.env` at startup, not during runtime
+  - Solution: Explicitly passed environment variables when starting React:
+    ```bash
+    REACT_APP_API_URL=http://192.168.2.103:5001/api HOST=0.0.0.0 PORT=3001 npm start
+    ```
+- **Login Issue**: User account password was forgotten from October 2025 account creation
+  - Reset password to `password123` using bcrypt hash in MongoDB
+
+### Key Learnings
+- **Always restart React after clearing cache** to ensure environment variables are reloaded
+- **ID field inconsistency**: Backend MongoDB uses `_id`, frontend generates `id`, all comparisons must check both
+- **Three places to check for ID issues**: filter conditions, button onClick handlers, and comparison logic
+
+### Configuration Status
+- **Frontend**: http://192.168.2.103:3001 (accessible from network)
+- **Backend**: http://192.168.2.103:5001 (responsive)
+- **Database**: Local MongoDB at localhost:27017/tora (fast performance)
+- **CORS**: Configured to allow 192.168.2.103:3001
+
+### Fixed Functionality
+- ✅ Travel schedule editing in CalendarScreen
+- ✅ Travel schedule deletion in CalendarScreen
+- ✅ Login authentication working
+- ✅ Environment variables properly loaded
+- ✅ Backend responding to API requests
+
 ## Recent Updates (January 7, 2026)
 
 ### Delete Confirmation Popup Implementation
