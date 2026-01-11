@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { CloseIcon, CalendarIcon, DollarIcon, AlertIcon, FileIcon, MailIcon, TrendingUpIcon, BriefcaseIcon, PlaneIcon, ListIcon, EditIcon, TrashIcon } from '../../utils/icons';
 import Modal from '../common/Modal';
-import { zones, countriesByZone, citiesByCountry } from '../../data/profiles';
+import { zones, countriesByZone, citiesByCountry, genresList } from '../../data/profiles';
 import apiService from '../../services/api';
 import { useAppContext } from '../../contexts/AppContext';
 
 const ManageArtistScreen = ({ artist, onClose }) => {
   const { user, preferredCurrency } = useAppContext();
-  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, events, info
+  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, events, info, documents
   const [artistProfile, setArtistProfile] = useState(artist); // Store full artist profile
   const [selectedDates, setSelectedDates] = useState(new Set(artist?.availableDates || []));
   const [travelSchedule, setTravelSchedule] = useState(artist.travelSchedule || []);
@@ -23,6 +23,25 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   // Delete confirmation state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState(null);
+
+  // Artist info editing state (full profile edit)
+  const [showArtistInfoModal, setShowArtistInfoModal] = useState(false);
+  const [editedArtistInfo, setEditedArtistInfo] = useState({
+    name: artistProfile?.name || '',
+    role: artistProfile?.role || '',
+    bio: artistProfile?.bio || '',
+    genres: artistProfile?.genres || [],
+    mixtape: artistProfile?.mixtape || '',
+    spotify: artistProfile?.spotify || '',
+    residentAdvisor: artistProfile?.residentAdvisor || '',
+    instagram: artistProfile?.instagram || '',
+    website: artistProfile?.website || '',
+    location: artistProfile?.location || '',
+    capacity: artistProfile?.capacity || ''
+  });
+  const [selectedGenres, setSelectedGenres] = useState(new Set(artistProfile?.genres || []));
+  const [showGenresDropdown, setShowGenresDropdown] = useState(false);
+  const [showAllGenres, setShowAllGenres] = useState(false);
   const [travelFilter, setTravelFilter] = useState({
     zone: '',
     country: '',
@@ -304,6 +323,26 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       }, 100);
     }
   }, [activeTab, revenueChartData]);
+
+  // Update edited artist info when artistProfile changes
+  useEffect(() => {
+    if (artistProfile) {
+      setEditedArtistInfo({
+        name: artistProfile.name || '',
+        role: artistProfile.role || '',
+        bio: artistProfile.bio || '',
+        genres: artistProfile.genres || [],
+        mixtape: artistProfile.mixtape || '',
+        spotify: artistProfile.spotify || '',
+        residentAdvisor: artistProfile.residentAdvisor || '',
+        instagram: artistProfile.instagram || '',
+        website: artistProfile.website || '',
+        location: artistProfile.location || '',
+        capacity: artistProfile.capacity || ''
+      });
+      setSelectedGenres(new Set(artistProfile.genres || []));
+    }
+  }, [artistProfile]);
 
   if (!artist) return null;
 
@@ -598,6 +637,62 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   const cancelDeleteSchedule = () => {
     setShowDeleteConfirmation(false);
     setScheduleToDelete(null);
+  };
+
+  // Artist info save function (full profile edit)
+  const handleSaveArtistInfo = async () => {
+    try {
+      const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+
+      if (!artistId) {
+        alert('Artist ID not found');
+        return;
+      }
+
+      // Update profile with all edited info
+      const updatedData = {
+        name: editedArtistInfo.name,
+        role: editedArtistInfo.role,
+        bio: editedArtistInfo.bio,
+        genres: Array.from(selectedGenres),
+        location: editedArtistInfo.location,
+        mixtape: editedArtistInfo.mixtape,
+        spotify: editedArtistInfo.spotify,
+        residentAdvisor: editedArtistInfo.residentAdvisor,
+        instagram: editedArtistInfo.instagram,
+        website: editedArtistInfo.website
+      };
+
+      if (editedArtistInfo.role === 'VENUE') {
+        updatedData.capacity = editedArtistInfo.capacity;
+      }
+
+      await apiService.updateProfile(artistId, updatedData);
+
+      // Update local state
+      setArtistProfile({
+        ...artistProfile,
+        ...updatedData
+      });
+
+      // Close modal
+      setShowArtistInfoModal(false);
+      alert('Artist information updated successfully!');
+    } catch (error) {
+      console.error('Failed to update artist info:', error);
+      alert('Failed to update artist information. Please try again.');
+    }
+  };
+
+  // Genre toggle handler
+  const handleGenreToggle = (genre) => {
+    const newGenres = new Set(selectedGenres);
+    if (newGenres.has(genre)) {
+      newGenres.delete(genre);
+    } else {
+      newGenres.add(genre);
+    }
+    setSelectedGenres(newGenres);
   };
 
   const getLocationDisplay = (schedule) => {
@@ -1424,32 +1519,9 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     </div>
   );
 
-  const renderArtistInfoTab = () => (
+  // Documents Tab (Press Kit, Technical Riders, Contracts)
+  const renderDocumentsTab = () => (
     <div className="artist-info-tab">
-      {/* Contact Information */}
-      <div className="dashboard-section">
-        <h3>📞 Contact Information</h3>
-        <div className="info-grid">
-          <div className="info-item">
-            <span className="info-label">Email:</span>
-            <span className="info-value">{artist.email || 'artist@example.com'}</span>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Phone:</span>
-            <span className="info-value">{artist.phone || '+44 7700 900123'}</span>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Instagram:</span>
-            <span className="info-value">{artist.instagram || '@artistname'}</span>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Spotify:</span>
-            <span className="info-value">spotify.com/artist/...</span>
-          </div>
-        </div>
-        <button className="btn btn-outline" style={{ marginTop: '12px' }}>Edit Contact Info</button>
-      </div>
-
       {/* Press Kit */}
       <div className="dashboard-section">
         <h3>🎭 Press Kit</h3>
@@ -1522,6 +1594,71 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     </div>
   );
 
+  // Artist Info Tab (Editable Profile Information)
+  const renderArtistInfoTab = () => (
+    <div className="artist-info-tab">
+      <div className="dashboard-section">
+        <h3>✏️ Artist Profile</h3>
+        <div className="info-grid">
+          <div className="info-item">
+            <span className="info-label">Name:</span>
+            <span className="info-value">{artistProfile?.name || 'Artist Name'}</span>
+          </div>
+          <div className="info-item">
+            <span className="info-label">Role:</span>
+            <span className="info-value">{artistProfile?.role || 'ARTIST'}</span>
+          </div>
+          <div className="info-item">
+            <span className="info-label">Location:</span>
+            <span className="info-value">{artistProfile?.location || 'Not set'}</span>
+          </div>
+          {artistProfile?.role === 'VENUE' && (
+            <div className="info-item">
+              <span className="info-label">Capacity:</span>
+              <span className="info-value">{artistProfile?.capacity || 'Not set'}</span>
+            </div>
+          )}
+          <div className="info-item" style={{ gridColumn: '1 / -1' }}>
+            <span className="info-label">Bio:</span>
+            <span className="info-value">{artistProfile?.bio || 'No bio'}</span>
+          </div>
+          <div className="info-item" style={{ gridColumn: '1 / -1' }}>
+            <span className="info-label">Genres:</span>
+            <span className="info-value">{artistProfile?.genres?.join(', ') || 'No genres'}</span>
+          </div>
+        </div>
+        <h3 style={{ marginTop: '24px' }}>🔗 Social Links</h3>
+        <div className="info-grid">
+          <div className="info-item">
+            <span className="info-label">SoundCloud/Mixtape:</span>
+            <span className="info-value">{artistProfile?.mixtape || 'Not set'}</span>
+          </div>
+          {artistProfile?.role === 'ARTIST' && (
+            <>
+              <div className="info-item">
+                <span className="info-label">Spotify:</span>
+                <span className="info-value">{artistProfile?.spotify || 'Not set'}</span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Resident Advisor:</span>
+                <span className="info-value">{artistProfile?.residentAdvisor || 'Not set'}</span>
+              </div>
+            </>
+          )}
+          <div className="info-item">
+            <span className="info-label">Instagram:</span>
+            <span className="info-value">{artistProfile?.instagram || 'Not set'}</span>
+          </div>
+          <div className="info-item">
+            <span className="info-label">Website:</span>
+            <span className="info-value">{artistProfile?.website || 'Not set'}</span>
+          </div>
+        </div>
+        <button className="btn btn-primary" style={{ marginTop: '12px' }} onClick={() => setShowArtistInfoModal(true)}>Edit Artist Info</button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="screen active manage-artist-screen">
       <div className="manage-artist-header">
@@ -1534,15 +1671,15 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       {/* Artist Info Bar */}
       <div className="artist-info-bar">
         <div className="artist-avatar-small">
-          {artist.avatar ? (
-            <img src={artist.avatar} alt={artist.name} />
+          {artistProfile?.avatar ? (
+            <img src={artistProfile.avatar} alt={artistProfile.name} />
           ) : (
-            getInitial(artist.name)
+            getInitial(artistProfile?.name || artist.name)
           )}
         </div>
         <div className="artist-info-text">
-          <div className="artist-name">{artist.name}</div>
-          <div className="artist-location">{artist.location}</div>
+          <div className="artist-name">{artistProfile?.name || artist.name}</div>
+          <div className="artist-location">{artistProfile?.location || artist.location}</div>
         </div>
         <button className="btn btn-outline btn-sm">Quick Contact</button>
       </div>
@@ -1567,6 +1704,12 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         >
           Artist Info
         </button>
+        <button
+          className={`tab-button ${activeTab === 'documents' ? 'active' : ''}`}
+          onClick={() => setActiveTab('documents')}
+        >
+          Documents
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -1574,6 +1717,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         {activeTab === 'dashboard' && renderDashboardTab()}
         {activeTab === 'events' && renderEventsTab()}
         {activeTab === 'info' && renderArtistInfoTab()}
+        {activeTab === 'documents' && renderDocumentsTab()}
       </div>
 
       {/* Travel Schedule Modal */}
@@ -1686,6 +1830,210 @@ const ManageArtistScreen = ({ artist, onClose }) => {
               onClick={saveTravelSchedule}
             >
               Add Schedule
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Artist Info Edit Modal */}
+      <Modal
+        isOpen={showArtistInfoModal}
+        onClose={() => setShowArtistInfoModal(false)}
+        title="Edit Artist Information"
+      >
+        <div className="contact-edit-form" style={{maxHeight: '70vh', overflowY: 'auto', padding: '0 4px'}}>
+          <div className="edit-section">
+            <h3>Basic Information</h3>
+            <div className="form-group">
+              <label>Name</label>
+            <input
+              type="text"
+              className="form-input"
+              value={editedArtistInfo.name}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, name: e.target.value})}
+              placeholder="Artist Name"
+            />
+          </div>
+          <div className="form-group">
+            <label>Role</label>
+            <select
+              className="form-input"
+              value={editedArtistInfo.role}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, role: e.target.value})}
+            >
+              <option value="ARTIST">Artist</option>
+              <option value="VENUE">Venue</option>
+              <option value="PROMOTER">Promoter</option>
+              <option value="AGENT">Agent</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Location</label>
+            <input
+              type="text"
+              className="form-input"
+              value={editedArtistInfo.location}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, location: e.target.value})}
+              placeholder="City, Country"
+            />
+          </div>
+          {editedArtistInfo.role === 'VENUE' && (
+            <div className="form-group">
+              <label>Capacity</label>
+              <input
+                type="number"
+                className="form-input"
+                value={editedArtistInfo.capacity}
+                onChange={(e) => setEditedArtistInfo({...editedArtistInfo, capacity: e.target.value})}
+                placeholder="Max capacity"
+              />
+            </div>
+          )}
+          <div className="form-group" style={{ marginBottom: '0' }}>
+            <label>Bio</label>
+            <textarea
+              className="form-input"
+              rows="4"
+              value={editedArtistInfo.bio}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, bio: e.target.value})}
+              placeholder="Tell us about the artist..."
+            />
+          </div>
+        </div>
+
+        <div className="edit-section" style={{ marginTop: '8px' }}>
+          <div className="form-group">
+            <label>Genres</label>
+            <div
+              className="genres-dropdown-trigger"
+              onClick={() => setShowGenresDropdown(!showGenresDropdown)}
+            >
+              <span className="genres-selected-text">
+                {selectedGenres.size > 0
+                  ? `${selectedGenres.size} genre${selectedGenres.size > 1 ? 's' : ''} selected`
+                  : 'Select genres'}
+              </span>
+              <span className="dropdown-arrow">{showGenresDropdown ? '▲' : '▼'}</span>
+            </div>
+
+            {showGenresDropdown && (
+              <div className="genres-dropdown-content">
+                <div className="genres-grid">
+                  {(showAllGenres ? genresList : genresList.slice(0, 12)).map(genre => (
+                    <label key={genre} className="genre-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedGenres.has(genre)}
+                        onChange={() => handleGenreToggle(genre)}
+                      />
+                      <span className={selectedGenres.has(genre) ? 'selected' : ''}>
+                        {genre}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {genresList.length > 12 && (
+                  <button
+                    className="show-more-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAllGenres(!showAllGenres);
+                    }}
+                  >
+                    {showAllGenres ? 'Show less' : `Show all ${genresList.length} genres`}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="edit-section">
+          <h3>Social Links</h3>
+          <div className="form-group">
+            <label>SoundCloud/Mixtape</label>
+            <input
+              type="url"
+              className="form-input"
+              value={editedArtistInfo.mixtape}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, mixtape: e.target.value})}
+              placeholder="https://soundcloud.com/..."
+            />
+            <p style={{
+              fontSize: '11px',
+              color: '#888',
+              marginTop: '4px',
+              lineHeight: '1.4'
+            }}>
+              💡 If using a share link: Open it in your web browser, then copy the full URL from the address bar
+            </p>
+          </div>
+          {editedArtistInfo.role === 'ARTIST' && (
+            <>
+              <div className="form-group">
+                <label>Spotify Artist</label>
+                <input
+                  type="url"
+                  className="form-input"
+                  value={editedArtistInfo.spotify}
+                  onChange={(e) => setEditedArtistInfo({...editedArtistInfo, spotify: e.target.value})}
+                  placeholder="https://open.spotify.com/artist/..."
+                />
+                <p style={{
+                  fontSize: '11px',
+                  color: '#888',
+                  marginTop: '4px',
+                  lineHeight: '1.4'
+                }}>
+                  💡 If using a share link: Open it in your web browser, then copy the full URL from the address bar
+                </p>
+              </div>
+              <div className="form-group">
+                <label>Resident Advisor</label>
+                <input
+                  type="url"
+                  className="form-input"
+                  value={editedArtistInfo.residentAdvisor}
+                  onChange={(e) => setEditedArtistInfo({...editedArtistInfo, residentAdvisor: e.target.value})}
+                  placeholder="https://ra.co/dj/..."
+                />
+              </div>
+            </>
+          )}
+          <div className="form-group">
+            <label>Instagram</label>
+            <input
+              type="text"
+              className="form-input"
+              value={editedArtistInfo.instagram}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, instagram: e.target.value})}
+              placeholder="@username"
+            />
+          </div>
+          <div className="form-group">
+            <label>Website</label>
+            <input
+              type="url"
+              className="form-input"
+              value={editedArtistInfo.website}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, website: e.target.value})}
+              placeholder="https://..."
+            />
+          </div>
+        </div>
+
+        <div className="form-actions">
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowArtistInfoModal(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleSaveArtistInfo}
+            >
+              Save Changes
             </button>
           </div>
         </div>

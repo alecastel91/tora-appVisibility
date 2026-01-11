@@ -264,6 +264,61 @@ tora-app/
 - Efficient list rendering
 - Touch event optimization for mobile
 
+## Recent Updates (January 11-12, 2026)
+
+### PM2 Process Manager Installation and Configuration
+- **Installed pm2 globally**: Professional Node.js process manager for persistent server operation
+- **Configured Auto-Start on Reboot**: Set up LaunchAgent for macOS to auto-start servers on boot
+- **Server Stability**: Both frontend and backend now survive terminal closing, computer sleep, and reboots
+- **Configuration File**: Created `ecosystem.config.js` with settings for both tora-frontend and tora-backend
+- **Benefits**:
+  - Servers keep running when terminal is closed
+  - Auto-recovery if servers crash
+  - Auto-restart on computer reboot (after running sudo startup command)
+  - Easy management with `pm2 status`, `pm2 logs`, `pm2 restart all`
+- **Location**: pm2 manages processes from `~/.pm2/` directory
+
+### ManageArtistScreen - Artist Info Tab Restructure
+- **Added 4th Tab "Documents"**: Separated documentation from artist information
+  - Moved Press Kit, Technical Riders, Contract Templates to Documents tab
+  - Clean separation of concerns between profile data and documentation
+- **Completely Rebuilt Artist Info Tab**: Now mirrors EditProfileScreen functionality
+  - Agent can edit ALL fields that artist can edit in their own profile
+  - Changes made by agent sync bidirectionally with artist's actual profile
+- **Full Profile Fields Available**:
+  - Basic Info: Name, Role, Location, Capacity (venues), Bio
+  - Genres: Multi-select with collapsible dropdown (12 visible, "Show all" expands)
+  - Social Links: SoundCloud/Mixtape, Spotify, Resident Advisor, Instagram, Website
+- **Edit Modal Improvements**:
+  - Structured with sections: "Basic Information", "Genres", "Social Links"
+  - Genres use proper dropdown UI with "X genres selected" indicator
+  - Helper text hints for SoundCloud/Spotify URLs (💡 share link instructions)
+  - Scrollable modal with proper spacing and styling matching EditProfileScreen
+- **State Management**:
+  - `editedArtistInfo` tracks all profile fields
+  - `selectedGenres` manages genre selection as Set
+  - `showGenresDropdown` and `showAllGenres` control genre UI state
+  - `useEffect` syncs edited info when artistProfile updates
+- **Header Sync Fix**: Artist Info Bar now uses `artistProfile` state instead of `artist` prop
+  - Name, location, and avatar update immediately when changes are saved
+  - Fixed issue where header showed old location after editing
+
+### Files Modified
+- `ManageArtistScreen.js`:
+  - Added 4th tab "Documents" with press kit, riders, contracts
+  - Rebuilt Artist Info tab with full profile editing capability
+  - Added comprehensive edit modal matching EditProfileScreen structure
+  - Fixed header to display updated artistProfile data
+  - Lines 1670-1683: Updated Artist Info Bar to use artistProfile state
+- `ecosystem.config.js`: NEW - pm2 configuration for both servers
+- Added imports: `genresList` from profiles data
+
+### Key Features
+- **Bidirectional Sync**: Agent edits reflect in artist's profile immediately
+- **Complete Control**: Agent can edit all profile fields artist has access to
+- **Professional UI**: Matches artist's own edit experience
+- **Persistent Servers**: pm2 ensures servers stay running indefinitely
+
 ## Recent Updates (January 9, 2026)
 
 ### Calendar Travel Schedule Fixes - ID Mismatch Resolution
