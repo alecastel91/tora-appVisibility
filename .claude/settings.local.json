@@ -64,7 +64,14 @@
       "Bash(ping:*)",
       "Bash(HOST=0.0.0.0 PORT=3001 npm start)",
       "Bash(mongod:*)",
-      "Read(//opt/homebrew/var/log/mongodb/**)"
+      "Read(//opt/homebrew/var/log/mongodb/**)",
+      "Bash(printf:*)",
+      "Bash(pm2 start:*)",
+      "Bash(pm2 save:*)",
+      "Bash(pm2 startup:*)",
+      "Bash(sudo env PATH=$PATH:/opt/homebrew/Cellar/node/24.10.0/bin /opt/homebrew/lib/node_modules/pm2/bin/pm2 startup:*)",
+      "Bash(pm2 status:*)",
+      "Bash(pm2 logs:*)"
     ],
     "deny": [],
     "ask": []

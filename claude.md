@@ -921,5 +921,29 @@ MONGODB_URI=mongodb://localhost:27017/tora
   - Currency conversion happens client-side using exchange rates API
   - Chart recalculates when currency preference changes
 
+## Recent Updates (January 14, 2026)
+
+### Artist Info Tab Redesign in ManageArtistScreen
+- **Layout Restructure**: Complete redesign of Artist Info tab to match ProfileScreen visual style
+- **Profile Info Box**: Added lean, compact profile information section with dark background
+  - Name, location, role, and genres in single box (#1a1a1a background)
+  - Left-aligned text with minimal spacing
+  - Comma-separated genres instead of pills
+  - Same styling as bio section for visual consistency
+- **Media Embeds**: Proper embedded players for artist content
+  - SoundCloud embed with helper function for URL conversion
+  - Spotify embed with artist ID extraction
+  - Resident Advisor events section with "View Upcoming Events" button
+- **Section Order**: Profile Info → Bio → Latest Mix → Spotify Artist → Events → Social Links
+- **Social Links**: Instagram and Website as equal-width side-by-side buttons
+- **Consistent Styling**:
+  - Uppercase red section headings (#ff3366, 12px, letter-spacing)
+  - 24px spacing between sections
+  - 12px spacing between headings and content
+  - Dark background boxes (#1a1a1a) for info sections
+- **Helper Functions**:
+  - `getSoundCloudEmbedUrl()` - Converts SoundCloud URLs (including mobile) to embed format
+  - `getSpotifyEmbedUrl()` - Extracts artist ID and creates Spotify embed URL
+
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.

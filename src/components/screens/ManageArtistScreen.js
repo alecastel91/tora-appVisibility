@@ -1595,69 +1595,226 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   );
 
   // Artist Info Tab (Editable Profile Information)
-  const renderArtistInfoTab = () => (
-    <div className="artist-info-tab">
-      <div className="dashboard-section">
-        <h3>✏️ Artist Profile</h3>
-        <div className="info-grid">
-          <div className="info-item">
-            <span className="info-label">Name:</span>
-            <span className="info-value">{artistProfile?.name || 'Artist Name'}</span>
+  const renderArtistInfoTab = () => {
+    // Helper to get SoundCloud embed URL
+    const getSoundCloudEmbedUrl = (url) => {
+      if (!url) return null;
+      let soundcloudUrl = url;
+      if (soundcloudUrl.includes('m.soundcloud.com')) {
+        soundcloudUrl = soundcloudUrl.replace('m.soundcloud.com', 'soundcloud.com');
+      }
+      return `https://w.soundcloud.com/player/?url=${encodeURIComponent(soundcloudUrl)}&color=%23ff3366&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`;
+    };
+
+    // Helper to get Spotify embed URL
+    const getSpotifyEmbedUrl = (url) => {
+      if (!url) return null;
+      if (url.includes('/artist/')) {
+        const artistId = url.split('/artist/')[1]?.split('?')[0];
+        return `https://open.spotify.com/embed/artist/${artistId}`;
+      }
+      return url;
+    };
+
+    return (
+      <div className="artist-info-tab">
+        {/* Profile Info Box */}
+        <div style={{
+          padding: '20px',
+          marginBottom: '20px',
+          backgroundColor: '#1a1a1a',
+          borderRadius: '8px',
+          lineHeight: '1.6'
+        }}>
+          {/* Name */}
+          <div style={{
+            fontSize: '18px',
+            fontWeight: '600',
+            marginBottom: '8px',
+            color: '#fff'
+          }}>
+            {artistProfile?.name || 'Artist Name'}
           </div>
-          <div className="info-item">
-            <span className="info-label">Role:</span>
-            <span className="info-value">{artistProfile?.role || 'ARTIST'}</span>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Location:</span>
-            <span className="info-value">{artistProfile?.location || 'Not set'}</span>
-          </div>
-          {artistProfile?.role === 'VENUE' && (
-            <div className="info-item">
-              <span className="info-label">Capacity:</span>
-              <span className="info-value">{artistProfile?.capacity || 'Not set'}</span>
+
+          {/* Location */}
+          {artistProfile?.location && (
+            <div style={{
+              fontSize: '14px',
+              color: '#888',
+              marginBottom: '6px'
+            }}>
+              {artistProfile.location}
             </div>
           )}
-          <div className="info-item" style={{ gridColumn: '1 / -1' }}>
-            <span className="info-label">Bio:</span>
-            <span className="info-value">{artistProfile?.bio || 'No bio'}</span>
-          </div>
-          <div className="info-item" style={{ gridColumn: '1 / -1' }}>
-            <span className="info-label">Genres:</span>
-            <span className="info-value">{artistProfile?.genres?.join(', ') || 'No genres'}</span>
-          </div>
-        </div>
-        <h3 style={{ marginTop: '24px' }}>🔗 Social Links</h3>
-        <div className="info-grid">
-          <div className="info-item">
-            <span className="info-label">SoundCloud/Mixtape:</span>
-            <span className="info-value">{artistProfile?.mixtape || 'Not set'}</span>
-          </div>
-          {artistProfile?.role === 'ARTIST' && (
-            <>
-              <div className="info-item">
-                <span className="info-label">Spotify:</span>
-                <span className="info-value">{artistProfile?.spotify || 'Not set'}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Resident Advisor:</span>
-                <span className="info-value">{artistProfile?.residentAdvisor || 'Not set'}</span>
-              </div>
-            </>
+
+          {/* Role */}
+          {artistProfile?.role && (
+            <div style={{
+              fontSize: '14px',
+              color: '#e0e0e0',
+              marginBottom: '10px'
+            }}>
+              {artistProfile.role}
+            </div>
           )}
-          <div className="info-item">
-            <span className="info-label">Instagram:</span>
-            <span className="info-value">{artistProfile?.instagram || 'Not set'}</span>
-          </div>
-          <div className="info-item">
-            <span className="info-label">Website:</span>
-            <span className="info-value">{artistProfile?.website || 'Not set'}</span>
-          </div>
+
+          {/* Genres */}
+          {artistProfile?.genres && artistProfile.genres.length > 0 && (
+            <div style={{
+              fontSize: '14px',
+              color: '#888'
+            }}>
+              {artistProfile.genres.join(', ')}
+            </div>
+          )}
         </div>
-        <button className="btn btn-primary" style={{ marginTop: '12px' }} onClick={() => setShowArtistInfoModal(true)}>Edit Artist Info</button>
+
+        {/* Bio Section */}
+        <div className="profile-bio" style={{
+          padding: '20px',
+          marginBottom: '20px',
+          backgroundColor: '#1a1a1a',
+          borderRadius: '8px',
+          lineHeight: '1.6'
+        }}>
+          <p style={{ margin: 0, color: '#e0e0e0' }}>
+            {artistProfile?.bio || 'No bio available'}
+          </p>
+        </div>
+
+        {/* Latest Mix */}
+        {artistProfile?.mixtape && (
+          <div className="media-section" style={{ marginBottom: '24px' }}>
+            <h3 style={{
+              color: '#ff3366',
+              fontSize: '12px',
+              fontWeight: '600',
+              letterSpacing: '1px',
+              marginBottom: '12px',
+              textTransform: 'uppercase'
+            }}>
+              LATEST MIX
+            </h3>
+            <iframe
+              src={getSoundCloudEmbedUrl(artistProfile.mixtape)}
+              className="embed-iframe soundcloud-embed"
+              title="SoundCloud Mix"
+              allow="autoplay"
+            />
+          </div>
+        )}
+
+        {/* Spotify Artist */}
+        {artistProfile?.role === 'ARTIST' && artistProfile?.spotify && (
+          <div className="media-section" style={{ marginBottom: '24px' }}>
+            <h3 style={{
+              color: '#ff3366',
+              fontSize: '12px',
+              fontWeight: '600',
+              letterSpacing: '1px',
+              marginBottom: '12px',
+              textTransform: 'uppercase'
+            }}>
+              SPOTIFY ARTIST
+            </h3>
+            <iframe
+              src={getSpotifyEmbedUrl(artistProfile.spotify)}
+              className="embed-iframe spotify-embed"
+              title="Spotify Artist Profile"
+              allow="encrypted-media"
+            />
+          </div>
+        )}
+
+        {/* Events Section - RA Link */}
+        {artistProfile?.role === 'ARTIST' && artistProfile?.residentAdvisor && (
+          <div className="media-section" style={{ marginBottom: '24px' }}>
+            <h3 style={{
+              color: '#ff3366',
+              fontSize: '12px',
+              fontWeight: '600',
+              letterSpacing: '1px',
+              marginBottom: '12px',
+              textTransform: 'uppercase'
+            }}>
+              EVENTS
+            </h3>
+            <a
+              href={artistProfile.residentAdvisor}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline"
+              style={{
+                width: '100%',
+                padding: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <span>🗓️ View Upcoming Events</span>
+            </a>
+            <a
+              href={artistProfile.residentAdvisor}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'block',
+                marginTop: '16px',
+                textAlign: 'center',
+                color: '#888',
+                fontSize: '14px',
+                textDecoration: 'none'
+              }}
+            >
+              View Full RA Profile →
+            </a>
+          </div>
+        )}
+
+        {/* Social Links */}
+        <div className="social-links-buttons" style={{
+          display: 'flex',
+          gap: '12px',
+          marginBottom: '24px',
+          flexWrap: 'wrap'
+        }}>
+          {artistProfile?.instagram && (
+            <a
+              href={`https://instagram.com/${artistProfile.instagram.replace('@', '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline"
+              style={{ flex: '1', minWidth: '140px' }}
+            >
+              <span>Instagram</span>
+            </a>
+          )}
+          {artistProfile?.website && (
+            <a
+              href={artistProfile.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline"
+              style={{ flex: '1', minWidth: '140px' }}
+            >
+              <span>Website</span>
+            </a>
+          )}
+        </div>
+
+        {/* Edit Button */}
+        <button
+          className="btn btn-primary"
+          style={{ width: '100%' }}
+          onClick={() => setShowArtistInfoModal(true)}
+        >
+          Edit Artist Info
+        </button>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="screen active manage-artist-screen">
