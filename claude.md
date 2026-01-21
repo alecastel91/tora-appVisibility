@@ -320,6 +320,51 @@ tora-app/
   - Users can message artists through other screens (profile view, search results)
   - Cleaner artist info bar with just avatar, name, and location
 
+### Document Management System Implementation
+- **Link-Based Document Management**: Implemented flexible document system for ManageArtistScreen Documents tab
+  - **Three Categories**: Press Kit, Technical Rider, Contracts
+  - **Add/Edit/Delete Functionality**: Full CRUD operations for document links
+  - **External Link Support**: Google Drive, Dropbox, WeTransfer, or any cloud storage URL
+  - **Clean UI Design**:
+    - Section headers with "+ Add Link" button
+    - Info notes explaining each category purpose
+    - Empty states with helpful CTAs
+    - Document cards showing title, clickable URL (truncated if long), and added date
+    - Edit and Delete buttons for each document
+  - **Add/Edit Modal**:
+    - Document Title field (required)
+    - Document URL field (required)
+    - Helper text explaining cloud storage options
+    - Cancel and Save/Add buttons
+  - **Delete Confirmation**: Confirmation dialog before removing documents
+  - **State Management**: Local state in ManageArtistScreen (frontend-only for now)
+
+- **Data Structure**:
+  ```javascript
+  documents: {
+    pressKit: [{ id, title, url, addedDate }, ...],
+    technicalRider: [{ id, title, url, addedDate }, ...],
+    contracts: [{ id, title, url, addedDate }, ...]
+  }
+  ```
+
+- **Why Link-Based Approach**:
+  - ✅ Simple to implement - no file storage needed
+  - ✅ Flexible - artists can organize however they want
+  - ✅ No file upload complexity or storage costs
+  - ✅ Works with existing workflows (most pros use Drive/Dropbox)
+  - ✅ Easy to share and collaborate
+  - ✅ Version control managed by artists
+  - ✅ No file size limits
+
+- **Future Enhancements** (Post-Launch):
+  - Backend API integration to persist documents
+  - PDF direct upload with cloud storage (AWS S3, Cloudinary)
+  - File viewer/preview in the app
+  - Version history tracking
+  - Per-booking contract customization
+  - Digital signature workflow integration
+
 ### Known Issues
 1. **Calendar Sync**: Changes between CalendarScreen and ManageArtistScreen may not immediately reflect without page refresh
 
