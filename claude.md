@@ -314,14 +314,14 @@ tora-app/
   - Consistent with RA Events modal messaging
 - **Removed Calendar Emoji**: Deleted calendar emoji from "View Upcoming Events" buttons
 
+### Message Button Removal
+- **Removed Message button from ManageArtistScreen**: Simplified the UI by removing the problematic Message button
+  - Button was too complex to implement with proper state management
+  - Users can message artists through other screens (profile view, search results)
+  - Cleaner artist info bar with just avatar, name, and location
+
 ### Known Issues
-1. **Message Button in ManageArtistScreen**: Message button not working to open chat with artist
-   - Button renders correctly but doesn't trigger chat opening
-   - Attempted prop drilling approach (ProfileScreen → RepresentedArtistsScreen → ManageArtistScreen)
-   - Root cause: ProfileScreen not receiving onOpenChat/onNavigateToMessages props from App.js
-   - Needs proper integration with App.js state management system
-   - Workaround: Users can message artists from their profile or search results
-2. **Calendar Sync**: Changes between CalendarScreen and ManageArtistScreen may not immediately reflect without page refresh
+1. **Calendar Sync**: Changes between CalendarScreen and ManageArtistScreen may not immediately reflect without page refresh
 
 ## Recent Updates (January 11-12, 2026)
 
