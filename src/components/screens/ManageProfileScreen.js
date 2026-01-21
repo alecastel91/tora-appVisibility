@@ -365,12 +365,7 @@ const ManageProfileScreen = ({ onClose }) => {
               <div key={doc.id} className="doc-item">
                 <div className="doc-info" style={{ flex: 1, minWidth: 0 }}>
                   <div className="doc-name">{doc.title}</div>
-                  <div className="doc-meta" style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    overflow: 'hidden'
-                  }}>
+                  <div className="doc-meta">
                     <a
                       href={doc.url}
                       target="_blank"
@@ -381,20 +376,19 @@ const ManageProfileScreen = ({ onClose }) => {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        flex: '0 1 auto',
-                        minWidth: 0
+                        display: 'block',
+                        marginBottom: '4px'
                       }}
                     >
                       {doc.url}
                     </a>
                     {doc.addedDate && (
-                      <span style={{
+                      <div style={{
                         color: '#666',
-                        flexShrink: 0,
-                        whiteSpace: 'nowrap'
+                        fontSize: '12px'
                       }}>
-                        • Added {new Date(doc.addedDate).toLocaleDateString()}
-                      </span>
+                        Added {new Date(doc.addedDate).toLocaleDateString()}
+                      </div>
                     )}
                   </div>
                 </div>

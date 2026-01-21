@@ -317,6 +317,13 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         // Update travel schedule from fresh data
         setTravelSchedule(freshProfile.travelSchedule || []);
 
+        // Update documents from fresh data
+        setDocuments({
+          pressKit: freshProfile.documents?.pressKit || [],
+          technicalRider: freshProfile.documents?.technicalRider || [],
+          contracts: freshProfile.documents?.contracts || []
+        });
+
       } catch (error) {
         console.error('[ManageArtistScreen] Error fetching artist profile:', error);
       }
@@ -324,6 +331,17 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
     fetchArtistProfile();
   }, []); // Run once on mount
+
+  // Sync documents when artistProfile updates
+  useEffect(() => {
+    if (artistProfile?.documents) {
+      setDocuments({
+        pressKit: artistProfile.documents.pressKit || [],
+        technicalRider: artistProfile.documents.technicalRider || [],
+        contracts: artistProfile.documents.contracts || []
+      });
+    }
+  }, [artistProfile]);
 
   // Scroll to top when component mounts or when switching to dashboard tab
   useEffect(() => {
@@ -1634,7 +1652,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     setShowAddDocModal(true);
   };
 
-  const handleSaveDocument = () => {
+  const handleSaveDocument = async () => {
     if (!newDoc.title || !newDoc.url) {
       alert('Please provide both title and URL');
       return;
@@ -1664,12 +1682,24 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     }
 
     setDocuments(updatedDocuments);
+
+    // Save to backend
+    try {
+      const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+      if (artistId) {
+        await apiService.updateProfile(artistId, { documents: updatedDocuments });
+        console.log('[ManageArtistScreen] Documents saved to backend');
+      }
+    } catch (error) {
+      console.error('[ManageArtistScreen] Error saving documents:', error);
+    }
+
     setShowAddDocModal(false);
     setNewDoc({ title: '', url: '' });
     setEditingDoc(null);
   };
 
-  const handleDeleteDocument = (category, docId) => {
+  const handleDeleteDocument = async (category, docId) => {
     if (!window.confirm('Are you sure you want to delete this document link?')) {
       return;
     }
@@ -1677,6 +1707,17 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     const updatedDocuments = { ...documents };
     updatedDocuments[category] = updatedDocuments[category].filter(d => d.id !== docId);
     setDocuments(updatedDocuments);
+
+    // Save to backend
+    try {
+      const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+      if (artistId) {
+        await apiService.updateProfile(artistId, { documents: updatedDocuments });
+        console.log('[ManageArtistScreen] Document deleted and saved to backend');
+      }
+    } catch (error) {
+      console.error('[ManageArtistScreen] Error deleting document:', error);
+    }
   };
 
   const getCategoryLabel = (category) => {
@@ -1735,12 +1776,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
               <div key={doc.id} className="doc-item">
                 <div className="doc-info" style={{ flex: 1, minWidth: 0 }}>
                   <div className="doc-name">{doc.title}</div>
-                  <div className="doc-meta" style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    overflow: 'hidden'
-                  }}>
+                  <div className="doc-meta">
                     <a
                       href={doc.url}
                       target="_blank"
@@ -1751,20 +1787,19 @@ const ManageArtistScreen = ({ artist, onClose }) => {
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        flex: '0 1 auto',
-                        minWidth: 0
+                        display: 'block',
+                        marginBottom: '4px'
                       }}
                     >
                       {doc.url}
                     </a>
                     {doc.addedDate && (
-                      <span style={{
+                      <div style={{
                         color: '#666',
-                        flexShrink: 0,
-                        whiteSpace: 'nowrap'
+                        fontSize: '12px'
                       }}>
-                        • Added {new Date(doc.addedDate).toLocaleDateString()}
-                      </span>
+                        Added {new Date(doc.addedDate).toLocaleDateString()}
+                      </div>
                     )}
                   </div>
                 </div>
