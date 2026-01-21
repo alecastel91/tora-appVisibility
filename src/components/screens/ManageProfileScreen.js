@@ -145,14 +145,23 @@ const ManageProfileScreen = ({ onClose }) => {
 
   // Sync documents when user changes
   useEffect(() => {
+    console.log('[ManageProfileScreen] User changed, syncing documents:', user?.documents);
     if (user?.documents) {
+      console.log('[ManageProfileScreen] Setting documents from user:', user.documents);
       setDocuments({
         pressKit: user.documents.pressKit || [],
         technicalRider: user.documents.technicalRider || [],
         contracts: user.documents.contracts || []
       });
+    } else {
+      console.log('[ManageProfileScreen] User has no documents field, initializing empty');
+      setDocuments({
+        pressKit: [],
+        technicalRider: [],
+        contracts: []
+      });
     }
-  }, [user?.documents]);
+  }, [user]);
 
   // Document handlers
   const handleAddDocument = (category) => {
@@ -196,14 +205,21 @@ const ManageProfileScreen = ({ onClose }) => {
       updatedDocuments[docCategory].push(newDocument);
     }
 
+    console.log('[ManageProfileScreen] Saving documents:', updatedDocuments);
     setDocuments(updatedDocuments);
 
     // Save to backend
     try {
-      await apiService.updateProfile(user._id, { documents: updatedDocuments });
+      console.log('[ManageProfileScreen] Calling API to save documents for user:', user._id);
+      const response = await apiService.updateProfile(user._id, { documents: updatedDocuments });
+      console.log('[ManageProfileScreen] API response:', response);
+
+      console.log('[ManageProfileScreen] Reloading profile data...');
       await reloadProfileData();
+      console.log('[ManageProfileScreen] Profile data reloaded');
     } catch (error) {
-      console.error('Error saving document:', error);
+      console.error('[ManageProfileScreen] Error saving document:', error);
+      alert('Failed to save document. Please try again.');
     }
 
     setShowAddDocModal(false);
@@ -320,7 +336,11 @@ const ManageProfileScreen = ({ onClose }) => {
 
   // Documents Tab
   const renderDocumentsTab = () => {
-    const renderDocCategory = (category, icon, title, note = null) => (
+    console.log('[ManageProfileScreen] Rendering documents tab. Current documents state:', documents);
+
+    const renderDocCategory = (category, icon, title, note = null) => {
+      console.log(`[ManageProfileScreen] Rendering ${category}, count:`, documents[category].length);
+      return (
       <div className="dashboard-section" key={category}>
         <div className="section-header">
           <h3>{icon} {title}</h3>
@@ -412,7 +432,8 @@ const ManageProfileScreen = ({ onClose }) => {
           </div>
         )}
       </div>
-    );
+      );
+    };
 
     return (
       <div className="artist-info-tab">
