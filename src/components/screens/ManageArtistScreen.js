@@ -1706,12 +1706,12 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
         {documents[category].length === 0 ? (
           <div style={{
-            padding: '40px 32px',
+            padding: '20px 24px',
             textAlign: 'center'
           }}>
             {note && (
               <div style={{
-                marginBottom: '16px',
+                marginBottom: '12px',
                 fontSize: '13px',
                 color: '#888'
               }}>
