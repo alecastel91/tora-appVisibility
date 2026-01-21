@@ -1723,15 +1723,6 @@ const ManageArtistScreen = ({ artist, onClose }) => {
             padding: '40px 32px',
             textAlign: 'center'
           }}>
-            {note && (
-              <div style={{
-                marginBottom: '20px',
-                fontSize: '14px',
-                color: '#888'
-              }}>
-                {note}
-              </div>
-            )}
             <button
               className="btn btn-primary"
               onClick={() => handleAddDocument(category)}
