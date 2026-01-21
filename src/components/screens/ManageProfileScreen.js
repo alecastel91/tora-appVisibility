@@ -237,6 +237,10 @@ const ManageProfileScreen = ({ onClose }) => {
     return labels[category] || 'Document';
   };
 
+  const getInitial = (name) => {
+    return name ? name.charAt(0).toUpperCase() : 'A';
+  };
+
   // Dashboard Tab
   const renderDashboardTab = () => (
     <div className="dashboard-tab">
@@ -426,22 +430,31 @@ const ManageProfileScreen = ({ onClose }) => {
   };
 
   return (
-    <div className="full-screen-modal">
-      <div className="full-screen-header">
-        <button className="icon-button" onClick={onClose}>
+    <div className="screen active manage-artist-screen">
+      <div className="manage-artist-header">
+        <button className="back-btn" onClick={onClose}>
           <CloseIcon />
         </button>
-        <h2>Manage {user?.name || 'Profile'}</h2>
-        <div style={{ width: '40px' }}></div>
+        <h1>Manage {user?.name || 'Profile'}</h1>
+      </div>
+
+      {/* Artist Info Bar */}
+      <div className="artist-info-bar">
+        <div className="artist-avatar-small">
+          {user?.avatar ? (
+            <img src={user.avatar} alt={user.name} />
+          ) : (
+            getInitial(user?.name)
+          )}
+        </div>
+        <div className="artist-info-text">
+          <div className="artist-name">{user?.name}</div>
+          <div className="artist-location">{user?.location}</div>
+        </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="tab-navigation" style={{
-        display: 'flex',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        padding: '0 20px',
-        gap: '24px'
-      }}>
+      <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === 'dashboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('dashboard')}
@@ -463,13 +476,9 @@ const ManageProfileScreen = ({ onClose }) => {
       </div>
 
       {/* Tab Content */}
-      <div className="full-screen-content">
+      <div className="manage-artist-content">
         {activeTab === 'dashboard' && renderDashboardTab()}
-        {activeTab === 'calendar' && (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <CalendarScreen embedded={true} />
-          </div>
-        )}
+        {activeTab === 'calendar' && <CalendarScreen embedded={true} />}
         {activeTab === 'documents' && renderDocumentsTab()}
       </div>
 
