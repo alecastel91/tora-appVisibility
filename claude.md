@@ -298,8 +298,15 @@ tora-app/
   - Made "+ Add Link" button smaller (10px/20px padding, 14px font)
   - Helper text only shows when category is empty (disappears when documents exist)
   - Each category (Press Kit, Technical Rider, Contracts) independently manages helper text visibility
+  - Date display moved to separate line below URL link
 - **Long URL Handling**: Proper ellipsis truncation with flexbox overflow handling
 - **Delete Confirmation**: Modal confirmation before deleting document links
+- **Backend Persistence**: Added `documents` field to Profile schema
+  - Structure: `{ pressKit: [], technicalRider: [], contracts: [] }`
+  - Each document: `{ id, title, url, addedDate }`
+  - Backend automatically saves and persists documents
+  - Documents survive page refresh and sync across devices
+  - Changes sync between artist ManageProfileScreen and agent ManageArtistScreen
 
 ### Network Configuration Update - IP Address Change
 - **Issue**: WiFi network change caused IP address to update from 192.168.2.103 to 192.168.2.108
