@@ -264,6 +264,65 @@ tora-app/
 - Efficient list rendering
 - Touch event optimization for mobile
 
+## Recent Updates (January 21, 2026)
+
+### Network Configuration Update - IP Address Change
+- **Issue**: WiFi network change caused IP address to update from 192.168.2.103 to 192.168.2.108
+- **Impact**: Login and API communication failure until IP addresses were updated across the app
+- **Files Updated**:
+  - `/Users/alessandrocastelbuono/Desktop/tora-app/.env` - Updated REACT_APP_API_URL
+  - `/Users/alessandrocastelbuono/Desktop/tora-app/ecosystem.config.js` - Updated PM2 environment variable
+  - `/Users/alessandrocastelbuono/Desktop/tora-backend/src/server.js` - Updated CORS allowed origins
+- **Current Network Configuration**:
+  - Frontend: http://192.168.2.108:3001
+  - Backend API: http://192.168.2.108:5001/api
+  - Database: MongoDB Atlas (cloud) at mongodb+srv://acastelbuono:Michael-23!@tora.zwmh1nr.mongodb.net/tora
+- **Login Credentials**: User password is `password123`
+- **Known Issue**: IP address needs manual update when changing WiFi networks
+
+### Artist Info Tab UI Improvements
+- **Profile Info Section**: Added lean-styled profile info box showing Name, Location, Role, and Genres
+  - Matches bio section styling with proper typography and spacing
+  - Clean, minimal design with light gray text (#888)
+- **Location Fields Restructure**: Changed from single "Location" to three cascading dropdowns
+  - Zone (Asia, Europe, Americas, Africa, Oceania)
+  - Country (filtered by selected zone)
+  - City (filtered by selected country)
+  - Hong Kong removed from China's cities array (standalone location)
+- **Edit Modal → Full-Page Screen**: Converted Edit Artist Info from modal to full-page interface
+  - Consistent with other full-page screens in the app
+  - Better usability for mobile devices
+  - Proper header with back button and centered title
+- **Button Layout**: Cancel and Save Changes buttons now side-by-side at bottom
+  - Matches EditProfileScreen layout
+  - Better touch targets for mobile
+- **Bidirectional Profile Sync**: Artist profile changes sync to agent's representingArtists array
+  - Backend automatically updates embedded artist data in agent profiles
+  - Real-time synchronization without cache invalidation
+
+### Media Embed Improvements
+- **Spotify Embed Height**: Adjusted from 152px to 166px to match SoundCloud player
+- **Border Removal**: Removed white border from both SoundCloud and Spotify embeds
+  - Added `border: none` to `.embed-iframe` CSS class
+  - Cleaner visual appearance
+
+### Coming Soon Disclaimers
+- **RA Events Modal**: Added "Coming Soon" message for Resident Advisor events feature
+  - Simplified message: "This feature is currently in development"
+  - Removed specific mention of "after launch" and "Resident Advisor API"
+- **ManageArtistScreen Events Tab**: Changed "No upcoming events" to "Coming Soon" message
+  - Consistent with RA Events modal messaging
+- **Removed Calendar Emoji**: Deleted calendar emoji from "View Upcoming Events" buttons
+
+### Known Issues
+1. **Message Button in ManageArtistScreen**: Message button not working to open chat with artist
+   - Button renders correctly but doesn't trigger chat opening
+   - Attempted prop drilling approach (ProfileScreen → RepresentedArtistsScreen → ManageArtistScreen)
+   - Root cause: ProfileScreen not receiving onOpenChat/onNavigateToMessages props from App.js
+   - Needs proper integration with App.js state management system
+   - Workaround: Users can message artists from their profile or search results
+2. **Calendar Sync**: Changes between CalendarScreen and ManageArtistScreen may not immediately reflect without page refresh
+
 ## Recent Updates (January 11-12, 2026)
 
 ### PM2 Process Manager Installation and Configuration
@@ -338,7 +397,7 @@ tora-app/
   - React only reads `.env` at startup, not during runtime
   - Solution: Explicitly passed environment variables when starting React:
     ```bash
-    REACT_APP_API_URL=http://192.168.2.103:5001/api HOST=0.0.0.0 PORT=3001 npm start
+    REACT_APP_API_URL=http://192.168.2.108:5001/api HOST=0.0.0.0 PORT=3001 npm start
     ```
 - **Login Issue**: User account password was forgotten from October 2025 account creation
   - Reset password to `password123` using bcrypt hash in MongoDB
@@ -349,10 +408,10 @@ tora-app/
 - **Three places to check for ID issues**: filter conditions, button onClick handlers, and comparison logic
 
 ### Configuration Status
-- **Frontend**: http://192.168.2.103:3001 (accessible from network)
-- **Backend**: http://192.168.2.103:5001 (responsive)
+- **Frontend**: http://192.168.2.108:3001 (accessible from network)
+- **Backend**: http://192.168.2.108:5001 (responsive)
 - **Database**: Local MongoDB at localhost:27017/tora (fast performance)
-- **CORS**: Configured to allow 192.168.2.103:3001
+- **CORS**: Configured to allow 192.168.2.108:3001
 
 ### Fixed Functionality
 - ✅ Travel schedule editing in CalendarScreen
@@ -380,7 +439,7 @@ tora-app/
 
 ### Network Configuration and Deployment Fixes
 - **IP Address Management**: Addressed WiFi network changes causing connection issues
-  - Current IP: 192.168.2.103 (updated from 192.168.2.100)
+  - Current IP: 192.168.2.108 (updated from 192.168.2.103)
   - Attempted hostname approach (`MBPdiAlessandro.local`) but `.local` resolution not working on system
   - Using direct IP address in `.env` file for now
   - **Known Limitation**: IP address needs manual update when changing WiFi networks
@@ -395,14 +454,14 @@ tora-app/
 - **React Dev Server Configuration**:
   - Removed `proxy` setting from `package.json` (was causing API request failures)
   - Removed `HOST=0.0.0.0` from npm start script (was breaking proxy functionality)
-  - Frontend now uses direct API URL from `.env`: `REACT_APP_API_URL=http://192.168.2.103:5001/api`
+  - Frontend now uses direct API URL from `.env`: `REACT_APP_API_URL=http://192.168.2.108:5001/api`
   - **Current State**: App accessible on PC at `http://localhost:3001`
   - **Limitation**: Not yet configured for simultaneous PC and phone access
 
 ### Environment Configuration
 - **Frontend (.env)**:
   ```
-  REACT_APP_API_URL=http://192.168.2.103:5001/api
+  REACT_APP_API_URL=http://192.168.2.108:5001/api
   ```
 
 - **Backend (.env)**:
