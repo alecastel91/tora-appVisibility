@@ -6,7 +6,7 @@ import { CloseIcon } from '../../utils/icons';
 import Modal from '../common/Modal';
 import apiService from '../../services/api';
 
-const CalendarScreen = ({ onClose }) => {
+const CalendarScreen = ({ onClose, embedded = false }) => {
   const { t } = useLanguage();
   const { user, updateUser } = useAppContext();
   const [selectedDates, setSelectedDates] = useState(new Set(user?.availableDates || []));
@@ -693,15 +693,17 @@ const CalendarScreen = ({ onClose }) => {
 
   return (
     <div className="screen active calendar-screen">
-      <div className="calendar-header">
-        <button className="back-btn" onClick={handleClose}>
-          <CloseIcon />
-        </button>
-        <h1>{t('calendar.title') || 'Calendar & Schedule'}</h1>
-        <div style={{ width: '40px' }}></div>
-      </div>
+      {!embedded && (
+        <div className="calendar-header">
+          <button className="back-btn" onClick={handleClose}>
+            <CloseIcon />
+          </button>
+          <h1>{t('calendar.title') || 'Calendar & Schedule'}</h1>
+          <div style={{ width: '40px' }}></div>
+        </div>
+      )}
 
-      <div className="calendar-content">
+      <div className="calendar-content" style={embedded ? { paddingTop: '0' } : {}}>
         <div className="calendar-container">
           <div className="calendar-month-header">
             <div className="calendar-nav">

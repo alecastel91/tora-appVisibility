@@ -9,6 +9,7 @@ import EditProfileScreen from './EditProfileScreen';
 import RepresentedArtistsScreen from './RepresentedArtistsScreen';
 import AddProfileScreen from './AddProfileScreen';
 import ManageArtistScreen from './ManageArtistScreen';
+import ManageProfileScreen from './ManageProfileScreen';
 import ViewProfileScreen from './ViewProfileScreen';
 import SearchAgentsModal from '../common/SearchAgentsModal';
 import ChatScreen from './ChatScreen';
@@ -19,6 +20,7 @@ const ProfileScreen = () => {
   const { t } = useLanguage();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showManageProfile, setShowManageProfile] = useState(false);
   const [showRepresentedArtists, setShowRepresentedArtists] = useState(false);
   const [showFindAgent, setShowFindAgent] = useState(false);
   const [showAgentChat, setShowAgentChat] = useState(false);
@@ -244,6 +246,11 @@ const ProfileScreen = () => {
     return <CalendarScreen onClose={() => setShowCalendar(false)} />;
   }
 
+  // Show full-screen manage profile if requested
+  if (showManageProfile) {
+    return <ManageProfileScreen onClose={() => setShowManageProfile(false)} />;
+  }
+
   // Show full-screen represented artists if requested
   if (showRepresentedArtists) {
     return (
@@ -355,9 +362,15 @@ const ProfileScreen = () => {
           <>
             <button
               className="btn btn-outline btn-full-width"
-              onClick={() => setShowCalendar(true)}
+              onClick={() => setShowManageProfile(true)}
             >
-              <CalendarIcon /> {t('profile.calendar')}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              Manage
             </button>
             {user?.role === 'ARTIST' && (
               agentProfile ? (
