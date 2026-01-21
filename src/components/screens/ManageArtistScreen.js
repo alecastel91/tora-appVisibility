@@ -1694,15 +1694,17 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       <div className="dashboard-section" key={category}>
         <div className="section-header">
           <h3>{icon} {title}</h3>
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => handleAddDocument(category)}
-          >
-            + Add Link
-          </button>
+          {documents[category].length > 0 && (
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => handleAddDocument(category)}
+            >
+              + Add Link
+            </button>
+          )}
         </div>
 
-        {note && (
+        {note && documents[category].length > 0 && (
           <div style={{
             padding: '12px 16px',
             backgroundColor: 'rgba(255, 51, 102, 0.1)',
@@ -1718,12 +1720,24 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
         {documents[category].length === 0 ? (
           <div style={{
-            padding: '32px',
-            textAlign: 'center',
-            color: '#666',
-            fontSize: '14px'
+            padding: '40px 32px',
+            textAlign: 'center'
           }}>
-            No documents added yet. Click "+ Add Link" to add one.
+            {note && (
+              <div style={{
+                marginBottom: '20px',
+                fontSize: '14px',
+                color: '#888'
+              }}>
+                {note}
+              </div>
+            )}
+            <button
+              className="btn btn-primary"
+              onClick={() => handleAddDocument(category)}
+            >
+              + Add Link
+            </button>
           </div>
         ) : (
           <div className="doc-list">
