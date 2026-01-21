@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CloseIcon, CalendarIcon, DollarIcon, TrendingUpIcon } from '../../utils/icons';
+import { CloseIcon, CalendarIcon, DollarIcon, TrendingUpIcon, HandshakeIcon } from '../../utils/icons';
 import CalendarScreen from './CalendarScreen';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
@@ -24,6 +24,15 @@ const ManageProfileScreen = ({ onClose }) => {
   const [editingDoc, setEditingDoc] = useState(null);
   const [docCategory, setDocCategory] = useState('');
   const [newDoc, setNewDoc] = useState({ title: '', url: '' });
+
+  // Fetch fresh profile data on mount
+  useEffect(() => {
+    const fetchFreshProfile = async () => {
+      console.log('[ManageProfileScreen] Component mounted, fetching fresh profile data');
+      await reloadProfileData();
+    };
+    fetchFreshProfile();
+  }, []); // Run once on mount
 
   // Currency conversion rates (mock - in production, fetch from API)
   const exchangeRates = {
@@ -59,88 +68,202 @@ const ManageProfileScreen = ({ onClose }) => {
     return `${symbol}${Math.round(amount)}`;
   };
 
-  // Fetch dashboard data
+  // Fetch dashboard data - matches ManageArtistScreen logic
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!user?._id) return;
+      if (!user?._id) {
+        console.log('[ManageProfileScreen] No user._id, skipping dashboard fetch');
+        return;
+      }
 
       try {
-        // Fetch all deals for this artist
-        const dealsData = await apiService.getDeals(user._id);
-        setDeals(dealsData.deals || []);
+        console.log('[ManageProfileScreen] Fetching deals for user:', user._id);
 
-        const now = new Date();
-        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const yearStart = new Date(today.getFullYear(), 0, 1);
 
-        // Filter completed and upcoming gigs
-        const completedGigs = dealsData.deals.filter(d =>
-          d.dealStatus?.status === 'COMPLETED' ||
-          (d.dealStatus?.status === 'ACCEPTED' && new Date(d.eventDate) < now)
-        );
+        // Fetch deals using profileId parameter
+        const response = await apiService.getDeals({ profileId: user._id });
+        console.log('[ManageProfileScreen] Deals response:', response);
 
-        const upcomingGigs = dealsData.deals.filter(d =>
-          d.dealStatus?.status === 'ACCEPTED' && new Date(d.eventDate) >= now
-        );
+        if (response && response.deals && response.deals.length > 0) {
+          setDeals(response.deals);
 
-        const thisYearCompleted = completedGigs.filter(d => new Date(d.eventDate) >= startOfYear);
-        const thisYearUpcoming = upcomingGigs.filter(d => new Date(d.eventDate) >= startOfYear);
+          // Count upcoming gigs with PENDING, NEGOTIATING, or ACCEPTED status
+          const upcoming = response.deals.filter(deal => {
+            const dealDate = new Date(deal.date);
+            const hasUpcomingDate = dealDate >= today;
+            const hasActiveStatus = ['PENDING', 'NEGOTIATING', 'ACCEPTED'].includes(deal.status);
+            return hasUpcomingDate && hasActiveStatus;
+          });
+          setUpcomingGigs(upcoming.length);
 
-        setUpcomingGigs(upcomingGigs.length);
-        setThisYearGigs(thisYearCompleted.length + thisYearUpcoming.length);
+          // Calculate This Year Gigs: only completed or past accepted deals this year
+          const thisYearDeals = response.deals.filter(deal => {
+            const dealDate = new Date(deal.date);
+            const isThisYear = dealDate >= yearStart && dealDate <= today;
+            const isCompleted = deal.status === 'COMPLETED';
+            const isAcceptedAndPast = deal.status === 'ACCEPTED' && dealDate < today;
+            return isThisYear && (isCompleted || isAcceptedAndPast);
+          });
+          setThisYearGigs(thisYearDeals.length);
 
-        // Calculate YTD revenue
-        const ytdTotal = thisYearCompleted.reduce((sum, deal) => {
-          const converted = convertCurrency(deal.fee, deal.currency, preferredCurrency);
-          return sum + converted;
-        }, 0);
-        setYtdRevenue(Math.round(ytdTotal));
+          // Calculate YTD Revenue: sum all COMPLETED or past ACCEPTED deals from current year
+          const ytdDeals = response.deals.filter(deal => {
+            const dealDate = new Date(deal.date);
+            const isThisYear = dealDate >= yearStart && dealDate <= today;
+            const isCompleted = deal.status === 'COMPLETED';
+            const isAcceptedAndPast = deal.status === 'ACCEPTED' && dealDate < today;
+            return isThisYear && (isCompleted || isAcceptedAndPast);
+          });
 
-        // Calculate expected revenue from upcoming gigs
-        const expectedTotal = thisYearUpcoming.reduce((sum, deal) => {
-          const converted = convertCurrency(deal.fee, deal.currency, preferredCurrency);
-          return sum + converted;
-        }, 0);
-        setExpectedRevenue(Math.round(expectedTotal));
+          // Fetch exchange rates to convert all deals to preferred currency
+          if (ytdDeals.length > 0) {
+            try {
+              const ratesResponse = await apiService.getCurrentRates();
+              const rates = ratesResponse.rates;
 
-        // Generate revenue chart data (from Jan 2024 to current month)
-        const chartData = [];
-        const startYear = 2024;
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              let totalRevenue = 0;
+              for (const deal of ytdDeals) {
+                const dealCurrency = deal.currency || 'USD';
+                const dealFee = parseFloat(deal.currentFee) || 0;
 
-        for (let year = startYear; year <= currentYear; year++) {
-          const endMonth = year === currentYear ? currentMonth : 11;
-          for (let month = (year === startYear ? 0 : 0); month <= endMonth; month++) {
-            const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+                let convertedFee = dealFee;
+                if (dealCurrency !== preferredCurrency) {
+                  const feeInUSD = dealCurrency === 'USD' ? dealFee : dealFee / rates[dealCurrency];
+                  convertedFee = preferredCurrency === 'USD' ? feeInUSD : feeInUSD * rates[preferredCurrency];
+                }
 
-            const monthDeals = completedGigs.filter(d => {
-              const dealDate = new Date(d.eventDate);
-              return dealDate.getFullYear() === year && dealDate.getMonth() === month;
-            });
+                totalRevenue += convertedFee;
+              }
 
-            const monthRevenue = monthDeals.reduce((sum, deal) => {
-              const converted = convertCurrency(deal.fee, deal.currency, preferredCurrency);
-              return sum + converted;
-            }, 0);
+              setYtdRevenue(Math.round(totalRevenue * 100) / 100);
+            } catch (rateError) {
+              console.error('Error fetching exchange rates:', rateError);
+              const total = ytdDeals.reduce((sum, deal) => sum + (parseFloat(deal.currentFee) || 0), 0);
+              setYtdRevenue(Math.round(total * 100) / 100);
+            }
+          } else {
+            setYtdRevenue(0);
+          }
+
+          // Calculate Expected Revenue from upcoming gigs
+          if (upcoming.length > 0) {
+            try {
+              const ratesResponse = await apiService.getCurrentRates();
+              const rates = ratesResponse.rates;
+
+              let totalExpected = 0;
+              for (const deal of upcoming) {
+                const dealCurrency = deal.currency || 'USD';
+                const dealFee = parseFloat(deal.currentFee) || 0;
+
+                let convertedFee = dealFee;
+                if (dealCurrency !== preferredCurrency) {
+                  const feeInUSD = dealCurrency === 'USD' ? dealFee : dealFee / rates[dealCurrency];
+                  convertedFee = preferredCurrency === 'USD' ? feeInUSD : feeInUSD * rates[preferredCurrency];
+                }
+
+                totalExpected += convertedFee;
+              }
+
+              setExpectedRevenue(Math.round(totalExpected * 100) / 100);
+            } catch (rateError) {
+              console.error('Error fetching exchange rates for expected revenue:', rateError);
+              const total = upcoming.reduce((sum, deal) => sum + (parseFloat(deal.currentFee) || 0), 0);
+              setExpectedRevenue(Math.round(total * 100) / 100);
+            }
+          } else {
+            setExpectedRevenue(0);
+          }
+
+          // Calculate monthly revenue data from 2024 onwards
+          const startDate = new Date('2024-01-01');
+          const historicalDeals = response.deals.filter(deal => {
+            const dealDate = new Date(deal.date);
+            const isFrom2024 = dealDate >= startDate;
+            const isCompleted = deal.status === 'COMPLETED';
+            const isAcceptedAndPast = deal.status === 'ACCEPTED' && dealDate < new Date();
+            return isFrom2024 && (isCompleted || isAcceptedAndPast);
+          });
+
+          // Group by month/year
+          const monthlyRevenue = {};
+          for (const deal of historicalDeals) {
+            const dealDate = new Date(deal.date);
+            const monthKey = `${dealDate.getFullYear()}-${String(dealDate.getMonth() + 1).padStart(2, '0')}`;
+
+            const dealCurrency = deal.currency || 'USD';
+            const dealFee = parseFloat(deal.currentFee) || 0;
+
+            let convertedFee = dealFee;
+            if (dealCurrency !== preferredCurrency) {
+              try {
+                const ratesResponse = await apiService.getCurrentRates();
+                const rates = ratesResponse.rates;
+                const feeInUSD = dealCurrency === 'USD' ? dealFee : dealFee / rates[dealCurrency];
+                convertedFee = preferredCurrency === 'USD' ? feeInUSD : feeInUSD * rates[preferredCurrency];
+              } catch (err) {
+                console.error('Error converting currency for chart:', err);
+              }
+            }
+
+            if (!monthlyRevenue[monthKey]) {
+              monthlyRevenue[monthKey] = 0;
+            }
+            monthlyRevenue[monthKey] += convertedFee;
+          }
+
+          // Generate array from 2024-01 to current month
+          const chartData = [];
+          const currentDate = new Date();
+          let iterDate = new Date('2024-01-01');
+
+          while (iterDate <= currentDate) {
+            const monthKey = `${iterDate.getFullYear()}-${String(iterDate.getMonth() + 1).padStart(2, '0')}`;
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthName = monthNames[iterDate.getMonth()];
+            const year = iterDate.getFullYear();
 
             chartData.push({
-              monthKey: monthKey,
-              month: monthNames[month],
-              year: year.toString(),
-              amount: Math.round(monthRevenue)
+              monthKey,
+              month: monthName,
+              year: year,
+              amount: Math.round(monthlyRevenue[monthKey] || 0)
             });
+
+            iterDate.setMonth(iterDate.getMonth() + 1);
           }
+
+          setRevenueChartData(chartData);
+
+          console.log('[ManageProfileScreen] Dashboard metrics set:', {
+            upcomingGigs: upcoming.length,
+            thisYearGigs: thisYearDeals.length,
+            ytdRevenue: ytdDeals.length
+          });
+        } else {
+          // No deals found
+          setUpcomingGigs(0);
+          setYtdRevenue(0);
+          setThisYearGigs(0);
+          setExpectedRevenue(0);
+          setRevenueChartData([]);
         }
 
-        setRevenueChartData(chartData);
-
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('[ManageProfileScreen] Error fetching dashboard data:', error);
+        // Set to 0 on error
+        setUpcomingGigs(0);
+        setYtdRevenue(0);
+        setThisYearGigs(0);
+        setExpectedRevenue(0);
       }
     };
 
     fetchDashboardData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?._id, preferredCurrency]);
 
   // Sync documents when user changes
@@ -251,6 +374,15 @@ const ManageProfileScreen = ({ onClose }) => {
       contracts: 'Contract'
     };
     return labels[category] || 'Document';
+  };
+
+  // Handle tab change with fresh data fetch for documents
+  const handleTabChange = async (tab) => {
+    setActiveTab(tab);
+    if (tab === 'documents') {
+      console.log('[ManageProfileScreen] Switching to documents tab, fetching fresh data');
+      await reloadProfileData();
+    }
   };
 
   const getInitial = (name) => {
@@ -468,23 +600,33 @@ const ManageProfileScreen = ({ onClose }) => {
         </div>
       </div>
 
+      {/* Represented By Badge */}
+      {user?.representedBy && (user?.representedBy.name || user?.representedBy.agentName) && (
+        <div className="represented-by-container">
+          <div className="represented-by-badge">
+            <span className="represented-icon"><HandshakeIcon /></span>
+            Represented by {user.representedBy.name || user.representedBy.agentName}
+          </div>
+        </div>
+      )}
+
       {/* Tab Navigation */}
       <div className="tab-navigation">
         <button
           className={`tab-button ${activeTab === 'dashboard' ? 'active' : ''}`}
-          onClick={() => setActiveTab('dashboard')}
+          onClick={() => handleTabChange('dashboard')}
         >
           Dashboard
         </button>
         <button
           className={`tab-button ${activeTab === 'calendar' ? 'active' : ''}`}
-          onClick={() => setActiveTab('calendar')}
+          onClick={() => handleTabChange('calendar')}
         >
           Calendar
         </button>
         <button
           className={`tab-button ${activeTab === 'documents' ? 'active' : ''}`}
-          onClick={() => setActiveTab('documents')}
+          onClick={() => handleTabChange('documents')}
         >
           Documents
         </button>

@@ -369,6 +369,16 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async cancelRepresentation(agentId) {
+    const response = await fetch(`${API_URL}/connections/cancel-representation`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ agentId })
+    });
+
+    return this.handleResponse(response);
+  }
+
   async getConnectionRequest(requestId) {
     const response = await fetch(`${API_URL}/connections/request/${requestId}`, {
       method: 'GET',

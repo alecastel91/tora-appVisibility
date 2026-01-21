@@ -127,12 +127,13 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           setUpcomingGigs(upcoming.length);
           setGigsError(false);
 
-          // Calculate This Year Gigs: all deals this year (completed + upcoming)
+          // Calculate This Year Gigs: only completed or past accepted deals this year
           const thisYearDeals = response.deals.filter(deal => {
             const dealDate = new Date(deal.date);
-            const isThisYear = dealDate >= yearStart;
-            const hasRelevantStatus = ['COMPLETED', 'ACCEPTED', 'PENDING', 'NEGOTIATING'].includes(deal.status);
-            return isThisYear && hasRelevantStatus;
+            const isThisYear = dealDate >= yearStart && dealDate <= today;
+            const isCompleted = deal.status === 'COMPLETED';
+            const isAcceptedAndPast = deal.status === 'ACCEPTED' && dealDate < today;
+            return isThisYear && (isCompleted || isAcceptedAndPast);
           });
           setThisYearGigs(thisYearDeals.length);
 
@@ -1681,17 +1682,44 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       updatedDocuments[docCategory].push(newDocument);
     }
 
+    console.log('[ManageArtistScreen] Saving documents:', updatedDocuments);
     setDocuments(updatedDocuments);
 
     // Save to backend
     try {
       const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+      console.log('[ManageArtistScreen] Artist ID for save:', artistId);
+      console.log('[ManageArtistScreen] Current user ID:', user._id);
+      console.log('[ManageArtistScreen] Are they equal?', user._id === artistId);
+      console.log('[ManageArtistScreen] artistProfile object:', artistProfile);
+
       if (artistId) {
-        await apiService.updateProfile(artistId, { documents: updatedDocuments });
-        console.log('[ManageArtistScreen] Documents saved to backend');
+        console.log('[ManageArtistScreen] Calling API to save documents...');
+        const response = await apiService.updateProfile(artistId, { documents: updatedDocuments });
+        console.log('[ManageArtistScreen] API response:', response);
+
+        // Refetch the profile to get updated data
+        console.log('[ManageArtistScreen] Refetching profile data...');
+        const freshProfile = await apiService.getProfile(artistId);
+        console.log('[ManageArtistScreen] Fresh profile received:', freshProfile);
+        setArtistProfile(freshProfile);
+        console.log('[ManageArtistScreen] Documents in fresh profile:', freshProfile.documents);
+
+        // If this is the current user's profile, reload global context
+        console.log('[ManageArtistScreen] Checking if should reload global context...');
+        console.log('[ManageArtistScreen] Comparing user._id:', user._id, 'with artistId:', artistId);
+        if (user._id === artistId || user._id === freshProfile._id) {
+          console.log('[ManageArtistScreen] ✅ This is current user, reloading global context');
+          await reloadProfileData();
+        } else {
+          console.log('[ManageArtistScreen] ❌ Not current user, skipping global context reload');
+        }
+      } else {
+        console.error('[ManageArtistScreen] No artist ID found!');
       }
     } catch (error) {
       console.error('[ManageArtistScreen] Error saving documents:', error);
+      alert('Failed to save document. Please try again.');
     }
 
     setShowAddDocModal(false);
@@ -1714,6 +1742,19 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       if (artistId) {
         await apiService.updateProfile(artistId, { documents: updatedDocuments });
         console.log('[ManageArtistScreen] Document deleted and saved to backend');
+
+        // Refetch profile
+        const freshProfile = await apiService.getProfile(artistId);
+        setArtistProfile(freshProfile);
+
+        // If this is the current user's profile, reload global context
+        console.log('[ManageArtistScreen] Delete - Comparing user._id:', user._id, 'with artistId:', artistId);
+        if (user._id === artistId || user._id === freshProfile._id) {
+          console.log('[ManageArtistScreen] ✅ This is current user, reloading global context after delete');
+          await reloadProfileData();
+        } else {
+          console.log('[ManageArtistScreen] ❌ Not current user after delete');
+        }
       }
     } catch (error) {
       console.error('[ManageArtistScreen] Error deleting document:', error);
@@ -2420,7 +2461,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
           onClick={() => setActiveTab('events')}
         >
-          Events
+          Calendar
         </button>
         <button
           className={`tab-button ${activeTab === 'info' ? 'active' : ''}`}

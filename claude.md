@@ -264,6 +264,46 @@ tora-app/
 - Efficient list rendering
 - Touch event optimization for mobile
 
+## Recent Updates (January 22, 2026)
+
+### Representation Management Enhancements
+- **Representing Agent Priority Display**: When artists click "Find Agent", their current representing agent now appears at the top of the agents list
+  - Agent list is sorted to show representing agent first
+  - Separated visually from other available agents
+  - Helps artists quickly identify their current representation relationship
+
+- **Cancel Representation Feature**: Artists can now cancel their representation relationship with agents
+  - **"Remove Representation" Button**: Red danger button appears for the representing agent (replaces "✓ Represented")
+  - **Confirmation Dialog**: Shows clear warning about what will happen:
+    - Removes artist from agent's represented roster
+    - Removes agent badge from artist's profile
+    - Maintains connection (messaging remains intact)
+  - **Backend Implementation**:
+    - New `cancelRepresentation` static method in Connection model
+    - POST endpoint `/api/connections/cancel-representation`
+    - Bidirectional cleanup: updates both agent and artist profiles
+    - Sets representation requests to `CANCELLED` status
+    - Cache invalidation for both profiles
+    - Notification sent to agent about cancellation
+  - **Frontend Implementation**:
+    - `cancelRepresentation` method added to API service
+    - `handleCancelRepresentation` function in SearchAgentsModal
+    - State updates and UI refresh after cancellation
+
+- **"Represented by" Badge in Artist Profile**: Artists now see the "Represented by [Agent Name]" badge in their own ManageProfileScreen
+  - Matches the display shown when others view their profile
+  - Uses HandshakeIcon for visual consistency
+  - Positioned between artist info bar and tab navigation
+  - Only appears when artist has active representation
+
+### Dashboard Metrics Fix
+- **"This Year Gigs" Calculation Corrected**: Fixed metric to only count completed/past gigs, not future bookings
+  - Previous behavior: Counted ALL deals from this year including future ones
+  - New behavior: Only counts COMPLETED deals or ACCEPTED deals with dates in the past
+  - Matches the logic of "This Year Revenue" for consistency
+  - Updated in both ManageArtistScreen (agent view) and ManageProfileScreen (artist view)
+  - Filter criteria: `isThisYear && dealDate <= today && (isCompleted || isAcceptedAndPast)`
+
 ## Recent Updates (January 21, 2026)
 
 ### Artist Profile Management Section

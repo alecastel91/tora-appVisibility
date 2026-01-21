@@ -23,6 +23,7 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewingRequest, setReviewingRequest] = useState(null);
   const [receivedRequestIds, setReceivedRequestIds] = useState(new Set());
+  const [representingAgent, setRepresentingAgent] = useState(null); // Current representing agent
 
   // Fetch all agents and sent requests on mount
   useEffect(() => {
@@ -92,6 +93,12 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
         acceptedReceivedAgentIds,
         allAcceptedRequestIds
       });
+
+      // Store the representing agent data (if exists)
+      if (data.profile?.representedBy) {
+        setRepresentingAgent(data.profile.representedBy);
+        console.log('[SearchAgentsModal] Representing agent:', data.profile.representedBy);
+      }
 
       setSentRequestIds(new Set(allPendingRequestIds));
       setAcceptedRequestIds(new Set(allAcceptedRequestIds));
@@ -273,6 +280,49 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
     setMessageText('');
   };
 
+  const handleCancelRepresentation = async (agent) => {
+    const agentId = agent._id || agent.id;
+
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to cancel the representation with ${agent.name}?\n\nThis will:\n• Remove you from their represented artists\n• Remove their agent badge from your profile\n• Keep your connection intact`
+    );
+
+    if (!confirmed) return;
+
+    setSending(true);
+    try {
+      console.log('[SearchAgentsModal] Cancelling representation with agent:', agentId);
+
+      // Call API to cancel representation
+      await apiService.cancelRepresentation(agentId);
+
+      console.log('[SearchAgentsModal] Representation cancelled successfully');
+
+      // Clear the representing agent from local state
+      setRepresentingAgent(null);
+
+      // Remove from acceptedRequestIds
+      setAcceptedRequestIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(agentId);
+        return newSet;
+      });
+
+      // Refetch data to update UI
+      await fetchSentRequests();
+      await fetchAgents(searchQuery);
+
+      alert('Representation cancelled successfully');
+
+    } catch (error) {
+      console.error('Error cancelling representation:', error);
+      alert('Failed to cancel representation. Please try again.');
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleReviewClick = async (agent) => {
     try {
       const agentId = agent._id || agent.id;
@@ -447,7 +497,18 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                   <div className="results-header">
                     <p>{agents.length} agent{agents.length !== 1 ? 's' : ''} found</p>
                   </div>
-                  {agents.map((agent) => {
+                  {/* Sort agents: representing agent first, then others */}
+                  {(() => {
+                    const representingAgentId = representingAgent?.agentId?._id || representingAgent?.agentId;
+                    const sortedAgents = [...agents].sort((a, b) => {
+                      const aId = a._id || a.id;
+                      const bId = b._id || b.id;
+                      if (aId === representingAgentId) return -1;
+                      if (bId === representingAgentId) return 1;
+                      return 0;
+                    });
+                    return sortedAgents;
+                  })().map((agent) => {
                     const agentId = agent._id || agent.id;
                     const hasRequested = sentRequestIds.has(agentId);
                     const hasAccepted = acceptedRequestIds.has(agentId);
@@ -456,13 +517,23 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                     const hasPendingConnection = pendingConnectionIds.has(agentId);
                     const hasReceivedRequest = receivedRequestIds.has(agentId);
 
+                    // Check if this is the current representing agent
+                    const representingAgentId = representingAgent?.agentId?._id || representingAgent?.agentId;
+                    const isRepresentingAgent = agentId === representingAgentId;
+
                     // Simplified button logic: always show Send Request (greyed out if not connected)
                     let buttonText = 'Send Request';
                     let buttonClass = 'btn-primary';
                     let buttonDisabled = false;
                     let buttonAction = () => handleRequestClick(agent);
 
-                    if (hasAccepted) {
+                    if (isRepresentingAgent) {
+                      // This is the current representing agent
+                      buttonText = 'Remove Representation';
+                      buttonClass = 'btn-danger';
+                      buttonDisabled = false;
+                      buttonAction = () => handleCancelRepresentation(agent);
+                    } else if (hasAccepted) {
                       buttonText = 'Represented';
                       buttonClass = 'btn-success';
                       buttonDisabled = true;
