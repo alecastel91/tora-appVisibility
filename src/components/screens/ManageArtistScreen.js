@@ -1711,15 +1711,11 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           }}>
             {note && (
               <div style={{
-                padding: '12px 16px',
-                backgroundColor: 'rgba(255, 51, 102, 0.1)',
-                borderLeft: '3px solid #FF3366',
-                borderRadius: '4px',
-                marginBottom: '20px',
-                fontSize: '14px',
-                color: '#ccc'
+                marginBottom: '16px',
+                fontSize: '13px',
+                color: '#888'
               }}>
-                💡 {note}
+                {note}
               </div>
             )}
             <button
