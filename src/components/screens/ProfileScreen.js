@@ -249,10 +249,6 @@ const ProfileScreen = () => {
     return (
       <RepresentedArtistsScreen
         onClose={() => setShowRepresentedArtists(false)}
-        onOpenChat={(artist) => {
-          setShowRepresentedArtists(false);
-          setShowAgentChat(artist);
-        }}
       />
     );
   }

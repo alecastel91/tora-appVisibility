@@ -7,7 +7,7 @@ import SearchArtistsModal from '../common/SearchArtistsModal';
 import { dummyProfiles } from '../../data/profiles';
 import apiService from '../../services/api';
 
-const RepresentedArtistsScreen = ({ onClose, onOpenChat }) => {
+const RepresentedArtistsScreen = ({ onClose }) => {
   const { user, reloadProfileData } = useAppContext();
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
@@ -87,7 +87,6 @@ const RepresentedArtistsScreen = ({ onClose, onOpenChat }) => {
       <ManageArtistScreen
         artist={managingArtist}
         onClose={handleCloseManage}
-        onOpenChat={onOpenChat}
       />
     );
   }

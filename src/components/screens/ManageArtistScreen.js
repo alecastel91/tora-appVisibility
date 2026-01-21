@@ -6,7 +6,7 @@ import { zones, countriesByZone, citiesByCountry, genresList } from '../../data/
 import apiService from '../../services/api';
 import { useAppContext } from '../../contexts/AppContext';
 
-const ManageArtistScreen = ({ artist, onClose, onOpenChat }) => {
+const ManageArtistScreen = ({ artist, onClose }) => {
   const { user, preferredCurrency, reloadProfileData } = useAppContext();
   const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, events, info, documents
   const [artistProfile, setArtistProfile] = useState(artist); // Store full artist profile
@@ -2255,12 +2255,6 @@ const ManageArtistScreen = ({ artist, onClose, onOpenChat }) => {
           <div className="artist-name">{artistProfile?.name || artist.name}</div>
           <div className="artist-location">{artistProfile?.location || artist.location}</div>
         </div>
-        <button
-          className="btn btn-outline btn-sm"
-          onClick={() => onOpenChat && onOpenChat(artistProfile)}
-        >
-          Message
-        </button>
       </div>
 
       {/* Tab Navigation */}
