@@ -1743,25 +1743,42 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           <div className="doc-list">
             {documents[category].map(doc => (
               <div key={doc.id} className="doc-item">
-                <div className="doc-info">
+                <div className="doc-info" style={{ flex: 1, minWidth: 0 }}>
                   <div className="doc-name">{doc.title}</div>
-                  <div className="doc-meta">
+                  <div className="doc-meta" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    overflow: 'hidden'
+                  }}>
                     <a
                       href={doc.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: '#FF3366', textDecoration: 'none' }}
+                      style={{
+                        color: '#FF3366',
+                        textDecoration: 'none',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        flex: '0 1 auto',
+                        minWidth: 0
+                      }}
                     >
-                      {doc.url.length > 50 ? doc.url.substring(0, 50) + '...' : doc.url}
+                      {doc.url}
                     </a>
                     {doc.addedDate && (
-                      <span style={{ marginLeft: '12px', color: '#666' }}>
+                      <span style={{
+                        color: '#666',
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap'
+                      }}>
                         • Added {new Date(doc.addedDate).toLocaleDateString()}
                       </span>
                     )}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <button
                     className="btn btn-outline btn-sm"
                     onClick={() => handleEditDocument(category, doc)}
