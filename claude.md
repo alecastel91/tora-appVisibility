@@ -266,6 +266,41 @@ tora-app/
 
 ## Recent Updates (January 21, 2026)
 
+### Artist Profile Management Section
+- **New Feature**: Artist profiles now have a "Manage" button (replaced "Calendar" button)
+- **ManageProfileScreen Component**: New full-screen interface with 3 tabs:
+  - **Dashboard Tab**: Shows same KPIs as agent's ManageArtistScreen
+    - Upcoming Gigs count
+    - Revenue YTD (Year-To-Date)
+    - Gigs This Year (completed + upcoming)
+    - Expected Revenue from upcoming gigs
+    - Revenue chart showing monthly revenue from 2024 onwards
+    - Upcoming gigs list with venue, date, and fee
+  - **Calendar Tab**: Embedded CalendarScreen (existing functionality)
+    - Available dates selection (green dots)
+    - Travel schedule management
+    - Same features as standalone calendar
+  - **Documents Tab**: Link-based document management (syncs with agent's view)
+    - Press Kit links
+    - Technical Rider links
+    - Contract templates
+    - Instant sync: documents added by artist appear in agent's view and vice versa
+- **Calendar Embedding**: CalendarScreen accepts `embedded` prop to hide header when shown in tabs
+- **Document Sync**: Documents saved in artist's Manage section sync to backend and reflect in agent's ManageArtistScreen
+- **Data Source**: Dashboard fetches real booking deals from backend API
+- **Currency Conversion**: Revenue displayed in user's preferred currency with proper conversion
+
+### Document Management System Implementation
+- **Documents Tab UX Refinements**:
+  - Removed pink box styling from helper text (now plain grey text)
+  - Reduced section spacing from 24px to 16px for more compact layout
+  - Reduced empty state padding from 40px to 20px vertical
+  - Made "+ Add Link" button smaller (10px/20px padding, 14px font)
+  - Helper text only shows when category is empty (disappears when documents exist)
+  - Each category (Press Kit, Technical Rider, Contracts) independently manages helper text visibility
+- **Long URL Handling**: Proper ellipsis truncation with flexbox overflow handling
+- **Delete Confirmation**: Modal confirmation before deleting document links
+
 ### Network Configuration Update - IP Address Change
 - **Issue**: WiFi network change caused IP address to update from 192.168.2.103 to 192.168.2.108
 - **Impact**: Login and API communication failure until IP addresses were updated across the app
