@@ -431,7 +431,7 @@ const ManageProfileScreen = ({ onClose }) => {
         <button className="icon-button" onClick={onClose}>
           <CloseIcon />
         </button>
-        <h2>Manage Profile</h2>
+        <h2>Manage {user?.name || 'Profile'}</h2>
         <div style={{ width: '40px' }}></div>
       </div>
 
