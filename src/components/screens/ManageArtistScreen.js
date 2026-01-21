@@ -1721,6 +1721,10 @@ const ManageArtistScreen = ({ artist, onClose }) => {
             <button
               className="btn btn-primary"
               onClick={() => handleAddDocument(category)}
+              style={{
+                padding: '10px 20px',
+                fontSize: '14px'
+              }}
             >
               + Add Link
             </button>
