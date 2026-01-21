@@ -71,6 +71,17 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   const [deals, setDeals] = useState([]); // All deals for the artist
   const [expandedDealId, setExpandedDealId] = useState(null); // Track expanded deal in events list
 
+  // Documents state
+  const [documents, setDocuments] = useState({
+    pressKit: artistProfile?.documents?.pressKit || [],
+    technicalRider: artistProfile?.documents?.technicalRider || [],
+    contracts: artistProfile?.documents?.contracts || []
+  });
+  const [showAddDocModal, setShowAddDocModal] = useState(false);
+  const [editingDoc, setEditingDoc] = useState(null);
+  const [docCategory, setDocCategory] = useState(''); // pressKit, technicalRider, contracts
+  const [newDoc, setNewDoc] = useState({ title: '', url: '' });
+
   // Fetch upcoming gigs and YTD revenue from backend
   useEffect(() => {
     if (!artist) return;
@@ -1608,80 +1619,164 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     </div>
   );
 
+  // Document Management Functions
+  const handleAddDocument = (category) => {
+    setDocCategory(category);
+    setNewDoc({ title: '', url: '' });
+    setEditingDoc(null);
+    setShowAddDocModal(true);
+  };
+
+  const handleEditDocument = (category, doc) => {
+    setDocCategory(category);
+    setNewDoc({ title: doc.title, url: doc.url });
+    setEditingDoc(doc);
+    setShowAddDocModal(true);
+  };
+
+  const handleSaveDocument = () => {
+    if (!newDoc.title || !newDoc.url) {
+      alert('Please provide both title and URL');
+      return;
+    }
+
+    const updatedDocuments = { ...documents };
+
+    if (editingDoc) {
+      // Edit existing document
+      const index = updatedDocuments[docCategory].findIndex(d => d.id === editingDoc.id);
+      if (index !== -1) {
+        updatedDocuments[docCategory][index] = {
+          ...editingDoc,
+          title: newDoc.title,
+          url: newDoc.url
+        };
+      }
+    } else {
+      // Add new document
+      const newDocument = {
+        id: Date.now().toString(),
+        title: newDoc.title,
+        url: newDoc.url,
+        addedDate: new Date().toISOString()
+      };
+      updatedDocuments[docCategory].push(newDocument);
+    }
+
+    setDocuments(updatedDocuments);
+    setShowAddDocModal(false);
+    setNewDoc({ title: '', url: '' });
+    setEditingDoc(null);
+  };
+
+  const handleDeleteDocument = (category, docId) => {
+    if (!window.confirm('Are you sure you want to delete this document link?')) {
+      return;
+    }
+
+    const updatedDocuments = { ...documents };
+    updatedDocuments[category] = updatedDocuments[category].filter(d => d.id !== docId);
+    setDocuments(updatedDocuments);
+  };
+
+  const getCategoryLabel = (category) => {
+    const labels = {
+      pressKit: 'Press Kit',
+      technicalRider: 'Technical Rider',
+      contracts: 'Contracts'
+    };
+    return labels[category] || category;
+  };
+
   // Documents Tab (Press Kit, Technical Riders, Contracts)
-  const renderDocumentsTab = () => (
-    <div className="artist-info-tab">
-      {/* Press Kit */}
-      <div className="dashboard-section">
-        <h3>🎭 Press Kit</h3>
-        <div className="doc-list">
-          <div className="doc-item">
-            <div className="doc-info">
-              <div className="doc-name">Artist Bio (Short)</div>
-              <div className="doc-meta">Last updated: Nov 15, 2024</div>
-            </div>
-            <button className="btn btn-outline btn-sm">View/Edit</button>
-          </div>
-          <div className="doc-item">
-            <div className="doc-info">
-              <div className="doc-name">Press Photos</div>
-              <div className="doc-meta">No file attached</div>
-            </div>
-            <button className="btn btn-primary btn-sm">Add Link/PDF</button>
-          </div>
-          <div className="doc-item">
-            <div className="doc-info">
-              <div className="doc-name">Latest Mix</div>
-              <div className="doc-meta">No file attached</div>
-            </div>
-            <button className="btn btn-primary btn-sm">Add Link/PDF</button>
-          </div>
+  const renderDocumentsTab = () => {
+    const renderDocCategory = (category, icon, title, note = null) => (
+      <div className="dashboard-section" key={category}>
+        <div className="section-header">
+          <h3>{icon} {title}</h3>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => handleAddDocument(category)}
+          >
+            + Add Link
+          </button>
         </div>
-      </div>
 
-      {/* Technical Riders */}
-      <div className="dashboard-section">
-        <h3>🎚️ Technical Riders</h3>
-        <div className="doc-list">
-          <div className="doc-item">
-            <div className="doc-info">
-              <div className="doc-name">Technical Rider</div>
-              <div className="doc-meta">No file attached</div>
-            </div>
-            <button className="btn btn-primary btn-sm">Add Link/PDF</button>
+        {note && (
+          <div style={{
+            padding: '12px 16px',
+            backgroundColor: 'rgba(255, 51, 102, 0.1)',
+            borderLeft: '3px solid #FF3366',
+            borderRadius: '4px',
+            marginBottom: '16px',
+            fontSize: '14px',
+            color: '#ccc'
+          }}>
+            💡 {note}
           </div>
-          <div className="doc-item">
-            <div className="doc-info">
-              <div className="doc-name">Stage Plot</div>
-              <div className="doc-meta">No file attached</div>
-            </div>
-            <button className="btn btn-primary btn-sm">Add Link/PDF</button>
-          </div>
-          <div className="doc-item">
-            <div className="doc-info">
-              <div className="doc-name">Hospitality Rider</div>
-              <div className="doc-meta">No file attached</div>
-            </div>
-            <button className="btn btn-primary btn-sm">Add Link/PDF</button>
-          </div>
-        </div>
-      </div>
+        )}
 
-      {/* Contract Templates */}
-      <div className="dashboard-section">
-        <h3>📄 Contract Templates</h3>
-        <div className="doc-list">
-          <div className="doc-item">
-            <div className="doc-info">
-              <div className="doc-name">Standard Performance Contract</div>
-              <div className="doc-meta">No file attached</div>
-            </div>
-            <button className="btn btn-primary btn-sm">Add Link/PDF</button>
+        {documents[category].length === 0 ? (
+          <div style={{
+            padding: '32px',
+            textAlign: 'center',
+            color: '#666',
+            fontSize: '14px'
+          }}>
+            No documents added yet. Click "+ Add Link" to add one.
           </div>
-        </div>
+        ) : (
+          <div className="doc-list">
+            {documents[category].map(doc => (
+              <div key={doc.id} className="doc-item">
+                <div className="doc-info">
+                  <div className="doc-name">{doc.title}</div>
+                  <div className="doc-meta">
+                    <a
+                      href={doc.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#FF3366', textDecoration: 'none' }}
+                    >
+                      {doc.url.length > 50 ? doc.url.substring(0, 50) + '...' : doc.url}
+                    </a>
+                    {doc.addedDate && (
+                      <span style={{ marginLeft: '12px', color: '#666' }}>
+                        • Added {new Date(doc.addedDate).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => handleEditDocument(category, doc)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => handleDeleteDocument(category, doc.id)}
+                    style={{ color: '#ff4444' }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+
+    return (
+      <div className="artist-info-tab">
+        {renderDocCategory('pressKit', '🎭', 'Press Kit', 'Add links to press photos, bio, EPK, or music samples')}
+        {renderDocCategory('technicalRider', '🎚️', 'Technical Rider', 'Add links to tech rider, stage plot, or hospitality requirements')}
+        {renderDocCategory('contracts', '📄', 'Contracts', 'Add contract templates. These can be customized per booking.')}
+      </div>
+    );
+  };
 
   // Artist Info Tab (Editable Profile Information)
   const renderArtistInfoTab = () => {
@@ -2716,6 +2811,83 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         artistName={artistProfile?.name}
         raUrl={artistProfile?.residentAdvisor}
       />
+
+      {/* Add/Edit Document Modal */}
+      <Modal
+        isOpen={showAddDocModal}
+        onClose={() => {
+          setShowAddDocModal(false);
+          setNewDoc({ title: '', url: '' });
+          setEditingDoc(null);
+        }}
+        title={editingDoc ? `Edit ${getCategoryLabel(docCategory)}` : `Add ${getCategoryLabel(docCategory)}`}
+      >
+        <div style={{ padding: '20px' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#fff', fontSize: '14px' }}>
+              Document Title *
+            </label>
+            <input
+              type="text"
+              value={newDoc.title}
+              onChange={(e) => setNewDoc({ ...newDoc, title: e.target.value })}
+              placeholder="e.g., Press Photos 2024, Tech Rider, Standard Contract"
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#fff', fontSize: '14px' }}>
+              Document URL *
+            </label>
+            <input
+              type="url"
+              value={newDoc.url}
+              onChange={(e) => setNewDoc({ ...newDoc, url: e.target.value })}
+              placeholder="https://drive.google.com/... or https://dropbox.com/..."
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '14px'
+              }}
+            />
+            <div style={{ marginTop: '8px', fontSize: '12px', color: '#888' }}>
+              💡 Add links to Google Drive, Dropbox, WeTransfer, or any cloud storage
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <button
+              className="btn btn-outline"
+              onClick={() => {
+                setShowAddDocModal(false);
+                setNewDoc({ title: '', url: '' });
+                setEditingDoc(null);
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleSaveDocument}
+            >
+              {editingDoc ? 'Save Changes' : 'Add Document'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
