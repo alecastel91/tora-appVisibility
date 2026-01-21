@@ -1704,25 +1704,24 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           )}
         </div>
 
-        {note && documents[category].length > 0 && (
-          <div style={{
-            padding: '12px 16px',
-            backgroundColor: 'rgba(255, 51, 102, 0.1)',
-            borderLeft: '3px solid #FF3366',
-            borderRadius: '4px',
-            marginBottom: '16px',
-            fontSize: '14px',
-            color: '#ccc'
-          }}>
-            💡 {note}
-          </div>
-        )}
-
         {documents[category].length === 0 ? (
           <div style={{
             padding: '40px 32px',
             textAlign: 'center'
           }}>
+            {note && (
+              <div style={{
+                padding: '12px 16px',
+                backgroundColor: 'rgba(255, 51, 102, 0.1)',
+                borderLeft: '3px solid #FF3366',
+                borderRadius: '4px',
+                marginBottom: '20px',
+                fontSize: '14px',
+                color: '#ccc'
+              }}>
+                💡 {note}
+              </div>
+            )}
             <button
               className="btn btn-primary"
               onClick={() => handleAddDocument(category)}
