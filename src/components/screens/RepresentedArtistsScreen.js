@@ -7,14 +7,15 @@ import SearchArtistsModal from '../common/SearchArtistsModal';
 import { dummyProfiles } from '../../data/profiles';
 import apiService from '../../services/api';
 
-const RepresentedArtistsScreen = ({ onClose }) => {
-  const { user } = useAppContext();
+const RepresentedArtistsScreen = ({ onClose, onOpenChat }) => {
+  const { user, reloadProfileData } = useAppContext();
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [fullProfileData, setFullProfileData] = useState(null);
   const [managingArtist, setManagingArtist] = useState(null);
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const representedArtists = user?.representingArtists || [];
 
@@ -72,12 +73,21 @@ const RepresentedArtistsScreen = ({ onClose }) => {
     setManagingArtist(artist);
   };
 
+  const handleCloseManage = async () => {
+    setManagingArtist(null);
+    // Reload profile data to get updated representingArtists array
+    console.log('[RepresentedArtistsScreen] Reloading profile data after closing ManageArtistScreen');
+    await reloadProfileData();
+    setRefreshKey(prev => prev + 1); // Force re-render
+  };
+
   // Show manage artist screen if selected
   if (managingArtist) {
     return (
       <ManageArtistScreen
         artist={managingArtist}
-        onClose={() => setManagingArtist(null)}
+        onClose={handleCloseManage}
+        onOpenChat={onOpenChat}
       />
     );
   }

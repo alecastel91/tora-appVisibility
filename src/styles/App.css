@@ -2469,12 +2469,13 @@
 .embed-iframe {
   width: 100%;
   height: 200px;
+  border: none;
   border-radius: var(--radius-sm);
   background: var(--bg-black);
 }
 
 .spotify-embed {
-  height: 152px;
+  height: 166px;
 }
 
 .soundcloud-embed {

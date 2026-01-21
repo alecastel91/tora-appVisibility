@@ -22,7 +22,7 @@ module.exports = {
       script: 'npm',
       args: 'start',
       env: {
-        REACT_APP_API_URL: 'http://192.168.2.103:5001/api',
+        REACT_APP_API_URL: 'http://192.168.2.108:5001/api',
         HOST: '0.0.0.0',
         PORT: '3001',
         NODE_ENV: 'development'

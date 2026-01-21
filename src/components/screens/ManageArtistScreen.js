@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { CloseIcon, CalendarIcon, DollarIcon, AlertIcon, FileIcon, MailIcon, TrendingUpIcon, BriefcaseIcon, PlaneIcon, ListIcon, EditIcon, TrashIcon } from '../../utils/icons';
 import Modal from '../common/Modal';
+import RAEventsModal from '../common/RAEventsModal';
 import { zones, countriesByZone, citiesByCountry, genresList } from '../../data/profiles';
 import apiService from '../../services/api';
 import { useAppContext } from '../../contexts/AppContext';
 
-const ManageArtistScreen = ({ artist, onClose }) => {
-  const { user, preferredCurrency } = useAppContext();
+const ManageArtistScreen = ({ artist, onClose, onOpenChat }) => {
+  const { user, preferredCurrency, reloadProfileData } = useAppContext();
   const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, events, info, documents
   const [artistProfile, setArtistProfile] = useState(artist); // Store full artist profile
   const [selectedDates, setSelectedDates] = useState(new Set(artist?.availableDates || []));
@@ -24,20 +25,28 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState(null);
 
+  // RA Events modal state
+  const [showRAEvents, setShowRAEvents] = useState(false);
+
   // Artist info editing state (full profile edit)
   const [showArtistInfoModal, setShowArtistInfoModal] = useState(false);
+  const [isEditingArtistInfo, setIsEditingArtistInfo] = useState(false);
+  const [modalKey, setModalKey] = useState(0);
   const [editedArtistInfo, setEditedArtistInfo] = useState({
-    name: artistProfile?.name || '',
-    role: artistProfile?.role || '',
-    bio: artistProfile?.bio || '',
-    genres: artistProfile?.genres || [],
-    mixtape: artistProfile?.mixtape || '',
-    spotify: artistProfile?.spotify || '',
-    residentAdvisor: artistProfile?.residentAdvisor || '',
-    instagram: artistProfile?.instagram || '',
-    website: artistProfile?.website || '',
-    location: artistProfile?.location || '',
-    capacity: artistProfile?.capacity || ''
+    name: '',
+    role: '',
+    bio: '',
+    genres: [],
+    mixtape: '',
+    spotify: '',
+    residentAdvisor: '',
+    instagram: '',
+    website: '',
+    location: '',
+    capacity: '',
+    zone: '',
+    country: '',
+    city: ''
   });
   const [selectedGenres, setSelectedGenres] = useState(new Set(artistProfile?.genres || []));
   const [showGenresDropdown, setShowGenresDropdown] = useState(false);
@@ -338,11 +347,17 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         instagram: artistProfile.instagram || '',
         website: artistProfile.website || '',
         location: artistProfile.location || '',
-        capacity: artistProfile.capacity || ''
+        capacity: artistProfile.capacity || '',
+        zone: artistProfile.zone || '',
+        country: artistProfile.country || '',
+        city: artistProfile.city || ''
       });
       setSelectedGenres(new Set(artistProfile.genres || []));
     }
   }, [artistProfile]);
+
+  // Note: Form data is now initialized in the onClick handler of Edit button
+  // to ensure we always use the latest artistProfile data
 
   if (!artist) return null;
 
@@ -425,6 +440,62 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       zone,
       country,
       city
+    });
+  };
+
+  // Artist info location handlers (for edit modal)
+  const handleArtistZoneChange = (zone) => {
+    setEditedArtistInfo({
+      ...editedArtistInfo,
+      zone,
+      country: '',
+      city: '',
+      location: zone // Update location to just zone when zone changes
+    });
+  };
+
+  const handleArtistCountryChange = (country) => {
+    const zone = Object.entries(countriesByZone).find(([_, countries]) =>
+      countries.includes(country)
+    )?.[0] || '';
+
+    setEditedArtistInfo({
+      ...editedArtistInfo,
+      zone,
+      country,
+      city: '',
+      location: `${country}${zone ? `, ${zone}` : ''}` // Update location
+    });
+  };
+
+  const handleArtistCityChange = (city) => {
+    if (!city) {
+      setEditedArtistInfo({
+        ...editedArtistInfo,
+        city: '',
+        location: editedArtistInfo.country ?
+          `${editedArtistInfo.country}${editedArtistInfo.zone ? `, ${editedArtistInfo.zone}` : ''}` :
+          editedArtistInfo.zone
+      });
+      return;
+    }
+
+    // Find country for this city
+    const country = Object.entries(citiesByCountry).find(([_, cities]) =>
+      cities.includes(city)
+    )?.[0] || '';
+
+    // Find zone for this country
+    const zone = Object.entries(countriesByZone).find(([_, countries]) =>
+      countries.includes(country)
+    )?.[0] || '';
+
+    setEditedArtistInfo({
+      ...editedArtistInfo,
+      zone,
+      country,
+      city,
+      location: `${city}, ${country}` // Update location as "City, Country"
     });
   };
 
@@ -656,6 +727,9 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         bio: editedArtistInfo.bio,
         genres: Array.from(selectedGenres),
         location: editedArtistInfo.location,
+        zone: editedArtistInfo.zone,
+        country: editedArtistInfo.country,
+        city: editedArtistInfo.city,
         mixtape: editedArtistInfo.mixtape,
         spotify: editedArtistInfo.spotify,
         residentAdvisor: editedArtistInfo.residentAdvisor,
@@ -669,14 +743,26 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
       await apiService.updateProfile(artistId, updatedData);
 
-      // Update local state
-      setArtistProfile({
-        ...artistProfile,
-        ...updatedData
-      });
+      // Fetch fresh profile data from backend to ensure sync
+      const freshProfile = await apiService.getProfile(artistId);
 
-      // Close modal
-      setShowArtistInfoModal(false);
+      // Update local state with fresh data
+      setArtistProfile(freshProfile);
+
+      // Update selected genres to match fresh data
+      setSelectedGenres(new Set(freshProfile.genres || []));
+
+      // Always reload profile data to ensure sync across all views
+      // This will update:
+      // - Artist's own profile if they're viewing it
+      // - Agent's profile with updated representingArtists array
+      console.log('[ManageArtistScreen] Reloading AppContext profile data to sync changes');
+      await reloadProfileData();
+
+      console.log('[ManageArtistScreen] Artist info updated, profile refreshed with latest data');
+
+      // Close edit screen
+      setIsEditingArtistInfo(false);
       alert('Artist information updated successfully!');
     } catch (error) {
       console.error('Failed to update artist info:', error);
@@ -1323,7 +1409,10 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     if (upcomingDeals.length === 0) {
       return (
         <div className="no-events-message">
-          <p>No upcoming events</p>
+          <p>Coming Soon</p>
+          <p style={{ fontSize: '12px', color: '#888', marginTop: '8px' }}>
+            This feature is currently in development
+          </p>
         </div>
       );
     }
@@ -1624,13 +1713,13 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           marginBottom: '20px',
           backgroundColor: '#1a1a1a',
           borderRadius: '8px',
-          lineHeight: '1.6'
+          lineHeight: '1.4'
         }}>
           {/* Name */}
           <div style={{
-            fontSize: '18px',
-            fontWeight: '600',
-            marginBottom: '8px',
+            fontSize: '14px',
+            fontWeight: '400',
+            marginBottom: '4px',
             color: '#fff'
           }}>
             {artistProfile?.name || 'Artist Name'}
@@ -1640,8 +1729,9 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           {artistProfile?.location && (
             <div style={{
               fontSize: '14px',
+              fontWeight: '400',
               color: '#888',
-              marginBottom: '6px'
+              marginBottom: '4px'
             }}>
               {artistProfile.location}
             </div>
@@ -1651,8 +1741,9 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           {artistProfile?.role && (
             <div style={{
               fontSize: '14px',
+              fontWeight: '400',
               color: '#e0e0e0',
-              marginBottom: '10px'
+              marginBottom: '4px'
             }}>
               {artistProfile.role}
             </div>
@@ -1662,6 +1753,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           {artistProfile?.genres && artistProfile.genres.length > 0 && (
             <div style={{
               fontSize: '14px',
+              fontWeight: '400',
               color: '#888'
             }}>
               {artistProfile.genres.join(', ')}
@@ -1739,11 +1831,9 @@ const ManageArtistScreen = ({ artist, onClose }) => {
             }}>
               EVENTS
             </h3>
-            <a
-              href={artistProfile.residentAdvisor}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
               className="btn btn-outline"
+              onClick={() => setShowRAEvents(true)}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -1753,8 +1843,8 @@ const ManageArtistScreen = ({ artist, onClose }) => {
                 gap: '8px'
               }}
             >
-              <span>🗓️ View Upcoming Events</span>
-            </a>
+              <span>View Upcoming Events</span>
+            </button>
             <a
               href={artistProfile.residentAdvisor}
               target="_blank"
@@ -1808,13 +1898,340 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         <button
           className="btn btn-primary"
           style={{ width: '100%' }}
-          onClick={() => setShowArtistInfoModal(true)}
+          onClick={async () => {
+            try {
+              // Fetch absolutely fresh data from backend before opening modal
+              const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id || artist._id;
+              console.log('[ManageArtistScreen] Fetching fresh profile before edit, artistId:', artistId);
+
+              const freshProfile = await apiService.getProfile(artistId);
+              console.log('[ManageArtistScreen] Fresh profile fetched:', freshProfile);
+
+              // Update artistProfile state
+              setArtistProfile(freshProfile);
+
+              // Set form data with absolutely fresh data
+              const freshData = {
+                name: freshProfile?.name || '',
+                role: freshProfile?.role || '',
+                bio: freshProfile?.bio || '',
+                genres: freshProfile?.genres || [],
+                mixtape: freshProfile?.mixtape || '',
+                spotify: freshProfile?.spotify || '',
+                residentAdvisor: freshProfile?.residentAdvisor || '',
+                instagram: freshProfile?.instagram || '',
+                website: freshProfile?.website || '',
+                location: freshProfile?.location || '',
+                capacity: freshProfile?.capacity || '',
+                zone: freshProfile?.zone || '',
+                country: freshProfile?.country || '',
+                city: freshProfile?.city || ''
+              };
+
+              console.log('[ManageArtistScreen] Setting editedArtistInfo to:', freshData);
+
+              setEditedArtistInfo(freshData);
+              setSelectedGenres(new Set(freshProfile?.genres || []));
+              setIsEditingArtistInfo(true);
+            } catch (error) {
+              console.error('[ManageArtistScreen] Error fetching fresh profile:', error);
+              alert('Failed to load artist data. Please try again.');
+            }
+          }}
         >
           Edit Artist Info
         </button>
       </div>
     );
   };
+
+  // Render edit artist info form (full page)
+  const renderEditArtistInfoForm = () => {
+    return (
+      <>
+        <div className="edit-section">
+          <div className="form-group">
+            <label>Name</label>
+            <input
+              type="text"
+              className="form-input"
+              value={editedArtistInfo.name}
+              disabled
+              placeholder="Artist Name"
+              style={{
+                backgroundColor: '#0d0d0d',
+                cursor: 'not-allowed',
+                opacity: 0.6
+              }}
+            />
+            <p style={{
+              fontSize: '11px',
+              color: '#666',
+              marginTop: '4px',
+              fontStyle: 'italic'
+            }}>
+              Name cannot be changed by agents
+            </p>
+          </div>
+          <div className="form-group">
+            <label>Role</label>
+            <select
+              className="form-input"
+              value={editedArtistInfo.role}
+              disabled
+              style={{
+                backgroundColor: '#0d0d0d',
+                cursor: 'not-allowed',
+                opacity: 0.6
+              }}
+            >
+              <option value="ARTIST">Artist</option>
+              <option value="VENUE">Venue</option>
+              <option value="PROMOTER">Promoter</option>
+              <option value="AGENT">Agent</option>
+            </select>
+            <p style={{
+              fontSize: '11px',
+              color: '#666',
+              marginTop: '4px',
+              fontStyle: 'italic'
+            }}>
+              Role cannot be changed by agents
+            </p>
+          </div>
+          <div className="form-group">
+            <label>Zone</label>
+            <select
+              className="form-input"
+              value={editedArtistInfo.zone}
+              onChange={(e) => handleArtistZoneChange(e.target.value)}
+            >
+              <option value="">Select Zone</option>
+              {zones.map(zone => (
+                <option key={zone} value={zone}>{zone}</option>
+              ))}
+            </select>
+          </div>
+          {editedArtistInfo.zone && (
+            <div className="form-group">
+              <label>Country</label>
+              <select
+                className="form-input"
+                value={editedArtistInfo.country}
+                onChange={(e) => handleArtistCountryChange(e.target.value)}
+              >
+                <option value="">Select Country</option>
+                {countriesByZone[editedArtistInfo.zone]?.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {editedArtistInfo.country && (
+            <div className="form-group">
+              <label>City</label>
+              <select
+                className="form-input"
+                value={editedArtistInfo.city}
+                onChange={(e) => handleArtistCityChange(e.target.value)}
+              >
+                <option value="">Select City</option>
+                {citiesByCountry[editedArtistInfo.country]?.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {editedArtistInfo.role === 'VENUE' && (
+            <div className="form-group">
+              <label>Capacity</label>
+              <input
+                type="number"
+                className="form-input"
+                value={editedArtistInfo.capacity}
+                onChange={(e) => setEditedArtistInfo({...editedArtistInfo, capacity: e.target.value})}
+                placeholder="Max capacity"
+              />
+            </div>
+          )}
+          <div className="form-group" style={{ marginBottom: '0' }}>
+            <label>Bio</label>
+            <textarea
+              className="form-input"
+              rows="4"
+              value={editedArtistInfo.bio}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, bio: e.target.value})}
+              placeholder="Tell us about the artist..."
+            />
+          </div>
+        </div>
+
+        <div className="edit-section" style={{ marginTop: '8px' }}>
+          <div className="form-group">
+            <label>Genres</label>
+            <div
+              className="genres-dropdown-trigger"
+              onClick={() => setShowGenresDropdown(!showGenresDropdown)}
+            >
+              <span className="genres-selected-text">
+                {selectedGenres.size > 0
+                  ? `${selectedGenres.size} genre${selectedGenres.size > 1 ? 's' : ''} selected`
+                  : 'Select genres'}
+              </span>
+              <span className="dropdown-arrow">{showGenresDropdown ? '▲' : '▼'}</span>
+            </div>
+
+            {showGenresDropdown && (
+              <div className="genres-dropdown-content">
+                <div className="genres-grid">
+                  {(showAllGenres ? genresList : genresList.slice(0, 12)).map(genre => (
+                    <label key={genre} className="genre-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedGenres.has(genre)}
+                        onChange={() => handleGenreToggle(genre)}
+                      />
+                      <span className={selectedGenres.has(genre) ? 'selected' : ''}>
+                        {genre}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {genresList.length > 12 && (
+                  <button
+                    className="show-more-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAllGenres(!showAllGenres);
+                    }}
+                  >
+                    {showAllGenres ? 'Show less' : `Show all ${genresList.length} genres`}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="edit-section">
+          <h3>Social Links</h3>
+          <div className="form-group">
+            <label>SoundCloud/Mixtape</label>
+            <input
+              type="url"
+              className="form-input"
+              value={editedArtistInfo.mixtape}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, mixtape: e.target.value})}
+              placeholder="https://soundcloud.com/..."
+            />
+            <p style={{
+              fontSize: '11px',
+              color: '#888',
+              marginTop: '4px',
+              lineHeight: '1.4'
+            }}>
+              💡 If using a share link: Open it in your web browser, then copy the full URL from the address bar
+            </p>
+          </div>
+          {editedArtistInfo.role === 'ARTIST' && (
+            <>
+              <div className="form-group">
+                <label>Spotify Artist</label>
+                <input
+                  type="url"
+                  className="form-input"
+                  value={editedArtistInfo.spotify}
+                  onChange={(e) => setEditedArtistInfo({...editedArtistInfo, spotify: e.target.value})}
+                  placeholder="https://open.spotify.com/artist/..."
+                />
+                <p style={{
+                  fontSize: '11px',
+                  color: '#888',
+                  marginTop: '4px',
+                  lineHeight: '1.4'
+                }}>
+                  💡 If using a share link: Open it in your web browser, then copy the full URL from the address bar
+                </p>
+              </div>
+              <div className="form-group">
+                <label>Resident Advisor</label>
+                <input
+                  type="url"
+                  className="form-input"
+                  value={editedArtistInfo.residentAdvisor}
+                  onChange={(e) => setEditedArtistInfo({...editedArtistInfo, residentAdvisor: e.target.value})}
+                  placeholder="https://ra.co/dj/..."
+                />
+              </div>
+            </>
+          )}
+          <div className="form-group">
+            <label>Instagram</label>
+            <input
+              type="text"
+              className="form-input"
+              value={editedArtistInfo.instagram}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, instagram: e.target.value})}
+              placeholder="@username"
+            />
+          </div>
+          <div className="form-group">
+            <label>Website</label>
+            <input
+              type="url"
+              className="form-input"
+              value={editedArtistInfo.website}
+              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, website: e.target.value})}
+              placeholder="https://..."
+            />
+          </div>
+        </div>
+
+        <div className="form-actions" style={{
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '10px',
+          justifyContent: 'flex-end',
+          padding: '16px 20px',
+          borderTop: '1px solid #2a2a2a',
+          marginTop: '20px'
+        }}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setIsEditingArtistInfo(false)}
+            style={{ flex: 'none', minWidth: '120px' }}
+          >
+            Cancel
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={handleSaveArtistInfo}
+            style={{ flex: 'none', minWidth: '140px' }}
+          >
+            Save Changes
+          </button>
+        </div>
+      </>
+    );
+  };
+
+  // If editing artist info, show full-page edit screen
+  if (isEditingArtistInfo) {
+    return (
+      <div className="screen active edit-profile-screen">
+        <div className="edit-profile-header">
+          <button className="back-btn" onClick={() => setIsEditingArtistInfo(false)}>
+            <CloseIcon />
+          </button>
+          <h1>Edit Artist Info</h1>
+          <div style={{ width: '24px' }}></div>
+        </div>
+        <div className="edit-profile-content">
+          {renderEditArtistInfoForm()}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="screen active manage-artist-screen">
@@ -1838,7 +2255,12 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           <div className="artist-name">{artistProfile?.name || artist.name}</div>
           <div className="artist-location">{artistProfile?.location || artist.location}</div>
         </div>
-        <button className="btn btn-outline btn-sm">Quick Contact</button>
+        <button
+          className="btn btn-outline btn-sm"
+          onClick={() => onOpenChat && onOpenChat(artistProfile)}
+        >
+          Message
+        </button>
       </div>
 
       {/* Tab Navigation */}
@@ -1994,6 +2416,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
       {/* Artist Info Edit Modal */}
       <Modal
+        key={modalKey}
         isOpen={showArtistInfoModal}
         onClose={() => setShowArtistInfoModal(false)}
         title="Edit Artist Information"
@@ -2007,33 +2430,95 @@ const ManageArtistScreen = ({ artist, onClose }) => {
               type="text"
               className="form-input"
               value={editedArtistInfo.name}
-              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, name: e.target.value})}
+              disabled
               placeholder="Artist Name"
+              style={{
+                backgroundColor: '#0d0d0d',
+                cursor: 'not-allowed',
+                opacity: 0.6
+              }}
             />
+            <p style={{
+              fontSize: '11px',
+              color: '#666',
+              marginTop: '4px',
+              fontStyle: 'italic'
+            }}>
+              Name cannot be changed by agents
+            </p>
           </div>
           <div className="form-group">
             <label>Role</label>
             <select
               className="form-input"
               value={editedArtistInfo.role}
-              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, role: e.target.value})}
+              disabled
+              style={{
+                backgroundColor: '#0d0d0d',
+                cursor: 'not-allowed',
+                opacity: 0.6
+              }}
             >
               <option value="ARTIST">Artist</option>
               <option value="VENUE">Venue</option>
               <option value="PROMOTER">Promoter</option>
               <option value="AGENT">Agent</option>
             </select>
+            <p style={{
+              fontSize: '11px',
+              color: '#666',
+              marginTop: '4px',
+              fontStyle: 'italic'
+            }}>
+              Role cannot be changed by agents
+            </p>
           </div>
           <div className="form-group">
-            <label>Location</label>
-            <input
-              type="text"
+            <label>Zone</label>
+            <select
               className="form-input"
-              value={editedArtistInfo.location}
-              onChange={(e) => setEditedArtistInfo({...editedArtistInfo, location: e.target.value})}
-              placeholder="City, Country"
-            />
+              value={editedArtistInfo.zone}
+              onChange={(e) => handleArtistZoneChange(e.target.value)}
+            >
+              <option value="">Select Zone</option>
+              {zones.map(zone => (
+                <option key={zone} value={zone}>{zone}</option>
+              ))}
+            </select>
+            {console.log('[FORM RENDER] editedArtistInfo.zone:', editedArtistInfo.zone)}
+            {console.log('[FORM RENDER] editedArtistInfo.country:', editedArtistInfo.country)}
+            {console.log('[FORM RENDER] editedArtistInfo.city:', editedArtistInfo.city)}
           </div>
+          {editedArtistInfo.zone && (
+            <div className="form-group">
+              <label>Country</label>
+              <select
+                className="form-input"
+                value={editedArtistInfo.country}
+                onChange={(e) => handleArtistCountryChange(e.target.value)}
+              >
+                <option value="">Select Country</option>
+                {countriesByZone[editedArtistInfo.zone]?.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          {editedArtistInfo.country && (
+            <div className="form-group">
+              <label>City</label>
+              <select
+                className="form-input"
+                value={editedArtistInfo.city}
+                onChange={(e) => handleArtistCityChange(e.target.value)}
+              >
+                <option value="">Select City</option>
+                {citiesByCountry[editedArtistInfo.country]?.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
+          )}
           {editedArtistInfo.role === 'VENUE' && (
             <div className="form-group">
               <label>Capacity</label>
@@ -2178,21 +2663,30 @@ const ManageArtistScreen = ({ artist, onClose }) => {
             />
           </div>
         </div>
+        </div>
 
-        <div className="form-actions">
-            <button
-              className="btn btn-secondary"
-              onClick={() => setShowArtistInfoModal(false)}
-            >
-              Cancel
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={handleSaveArtistInfo}
-            >
-              Save Changes
-            </button>
-          </div>
+        <div className="form-actions" style={{
+          display: 'flex',
+          gap: '10px',
+          justifyContent: 'flex-end',
+          padding: '16px 20px',
+          borderTop: '1px solid #2a2a2a',
+          marginTop: '20px'
+        }}>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowArtistInfoModal(false)}
+            style={{ flex: 'none', minWidth: '120px' }}
+          >
+            Cancel
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={handleSaveArtistInfo}
+            style={{ flex: 'none', minWidth: '140px' }}
+          >
+            Save Changes
+          </button>
         </div>
       </Modal>
 
@@ -2220,6 +2714,14 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           </div>
         </div>
       </Modal>
+
+      {/* RA Events Modal */}
+      <RAEventsModal
+        isOpen={showRAEvents}
+        onClose={() => setShowRAEvents(false)}
+        artistName={artistProfile?.name}
+        raUrl={artistProfile?.residentAdvisor}
+      />
     </div>
   );
 };

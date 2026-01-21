@@ -246,7 +246,15 @@ const ProfileScreen = () => {
 
   // Show full-screen represented artists if requested
   if (showRepresentedArtists) {
-    return <RepresentedArtistsScreen onClose={() => setShowRepresentedArtists(false)} />;
+    return (
+      <RepresentedArtistsScreen
+        onClose={() => setShowRepresentedArtists(false)}
+        onOpenChat={(artist) => {
+          setShowRepresentedArtists(false);
+          setShowAgentChat(artist);
+        }}
+      />
+    );
   }
 
   // Show full-screen edit profile if requested
@@ -501,11 +509,10 @@ const ProfileScreen = () => {
         {user?.residentAdvisor && (
           <div className="embed-card ra-card">
             <h4>Events</h4>
-            <button 
+            <button
               className="ra-events-button"
               onClick={() => setShowRAEvents(true)}
             >
-              <span className="ra-icon">📅</span>
               <span>View Upcoming Events</span>
             </button>
             <a 

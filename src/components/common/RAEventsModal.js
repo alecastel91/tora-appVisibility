@@ -59,8 +59,31 @@ const RAEventsModal = ({ isOpen, onClose, artistName }) => {
       className="ra-events-modal"
     >
       <div className="ra-events-container">
-        {/* Tabs */}
-        <div className="ra-events-tabs">
+        {/* Coming Soon Disclaimer */}
+        <div style={{
+          textAlign: 'center',
+          padding: '40px 20px',
+          color: '#888'
+        }}>
+          <h3 style={{
+            fontSize: '18px',
+            color: '#fff',
+            marginBottom: '12px'
+          }}>
+            Coming Soon
+          </h3>
+          <p style={{
+            fontSize: '14px',
+            lineHeight: '1.6',
+            maxWidth: '400px',
+            margin: '0 auto'
+          }}>
+            This feature is currently in development.
+          </p>
+        </div>
+
+        {/* Tabs - Hidden for now */}
+        <div className="ra-events-tabs" style={{ display: 'none' }}>
           <button
             className={`ra-tab ${activeTab === 'upcoming' ? 'active' : ''}`}
             onClick={() => setActiveTab('upcoming')}
@@ -75,9 +98,9 @@ const RAEventsModal = ({ isOpen, onClose, artistName }) => {
           </button>
         </div>
 
-        <div className="ra-events-header">
+        <div className="ra-events-header" style={{ display: 'none' }}>
           <p className="ra-events-subtitle">{t('ra.sourceRA')}</p>
-          <a 
+          <a
             href={`https://ra.co/dj/${artistSlug}${activeTab === 'past' ? '/pastevents' : ''}`}
             target="_blank"
             rel="noopener noreferrer"
@@ -87,7 +110,7 @@ const RAEventsModal = ({ isOpen, onClose, artistName }) => {
           </a>
         </div>
 
-        <div className="ra-events-list">
+        <div className="ra-events-list" style={{ display: 'none' }}>
           {loading ? (
             <div className="loading-events">
               <p>{t('common.loading')}</p>
@@ -157,7 +180,7 @@ const RAEventsModal = ({ isOpen, onClose, artistName }) => {
           )}
         </div>
 
-        <div className="ra-events-footer">
+        <div className="ra-events-footer" style={{ display: 'none' }}>
           <p className="ra-disclaimer">{t('ra.disclaimer')}</p>
         </div>
       </div>

@@ -159,7 +159,7 @@ export const citiesByCountry = {
 
   // Asia
   'Japan': ['Fukuoka', 'Hiroshima', 'Kobe', 'Kyoto', 'Nagoya', 'Osaka', 'Sapporo', 'Tokyo', 'Yokohama', 'Other'],
-  'China': ['Beijing', 'Chengdu', 'Guangzhou', 'Hong Kong', 'Shanghai', 'Shenzhen', 'Other'],
+  'China': ['Beijing', 'Chengdu', 'Guangzhou', 'Shanghai', 'Shenzhen', 'Other'],
   'South Korea': ['Busan', 'Daegu', 'Incheon', 'Seoul', 'Other'],
   'Thailand': ['Bangkok', 'Chiang Mai', 'Koh Samui', 'Pattaya', 'Phuket', 'Other'],
   'Indonesia': ['Bali', 'Bandung', 'Jakarta', 'Surabaya', 'Other'],
