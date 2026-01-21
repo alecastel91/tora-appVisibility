@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CloseIcon, CalendarIcon } from '../../utils/icons';
+import { CloseIcon, CalendarIcon, DollarIcon, TrendingUpIcon } from '../../utils/icons';
 import CalendarScreen from './CalendarScreen';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
@@ -51,6 +51,14 @@ const ManageProfileScreen = ({ onClose }) => {
     return Math.round(amount).toString();
   };
 
+  const formatCurrencyWithSymbol = (amount, currency) => {
+    const symbol = getCurrencySymbol(currency);
+    if (amount >= 1000) {
+      return `${symbol}${Math.round(amount / 1000)}K`;
+    }
+    return `${symbol}${Math.round(amount)}`;
+  };
+
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -99,6 +107,7 @@ const ManageProfileScreen = ({ onClose }) => {
         const startYear = 2024;
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth();
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         for (let year = startYear; year <= currentYear; year++) {
           const endMonth = year === currentYear ? currentMonth : 11;
@@ -116,8 +125,10 @@ const ManageProfileScreen = ({ onClose }) => {
             }, 0);
 
             chartData.push({
-              month: monthKey,
-              revenue: Math.round(monthRevenue)
+              monthKey: monthKey,
+              month: monthNames[month],
+              year: year.toString(),
+              amount: Math.round(monthRevenue)
             });
           }
         }
@@ -227,117 +238,81 @@ const ManageProfileScreen = ({ onClose }) => {
   };
 
   // Dashboard Tab
-  const renderDashboardTab = () => {
-    const maxRevenue = Math.max(...revenueChartData.map(d => d.revenue), 1);
-
-    return (
-      <div className="artist-info-tab" style={{ paddingBottom: '100px' }}>
-        {/* KPI Overview */}
-        <div className="dashboard-section">
-          <div className="section-header">
-            <h3>📊 Overview</h3>
+  const renderDashboardTab = () => (
+    <div className="dashboard-tab">
+      {/* Hero Metrics - 2x2 Grid */}
+      <div className="hero-metrics hero-metrics-four">
+        {/* Top Row */}
+        <div className="metric-card">
+          <div className="metric-icon"><CalendarIcon /></div>
+          <div className="metric-value">
+            {thisYearGigs === null ? '...' : thisYearGigs}
           </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-            gap: '12px',
-            marginBottom: '24px'
-          }}>
-            <div className="kpi-card">
-              <div className="kpi-value">{upcomingGigs !== null ? upcomingGigs : '...'}</div>
-              <div className="kpi-label">Upcoming Gigs</div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-value">
-                {ytdRevenue !== null ? `${getCurrencySymbol(preferredCurrency)}${formatCurrency(ytdRevenue)}` : '...'}
-              </div>
-              <div className="kpi-label">Revenue YTD</div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-value">{thisYearGigs !== null ? thisYearGigs : '...'}</div>
-              <div className="kpi-label">Gigs This Year</div>
-            </div>
-            <div className="kpi-card">
-              <div className="kpi-value">
-                {expectedRevenue !== null ? `${getCurrencySymbol(preferredCurrency)}${formatCurrency(expectedRevenue)}` : '...'}
-              </div>
-              <div className="kpi-label">Expected Revenue</div>
-            </div>
-          </div>
+          <div className="metric-label">This Year Gigs</div>
         </div>
-
-        {/* Revenue Chart */}
-        <div className="dashboard-section">
-          <div className="section-header">
-            <h3>💰 Revenue Overview</h3>
+        <div className="metric-card">
+          <div className="metric-icon"><DollarIcon /></div>
+          <div className="metric-value">
+            {ytdRevenue === null ? '...' : formatCurrencyWithSymbol(ytdRevenue, preferredCurrency)}
           </div>
-          <div className="revenue-chart-scroll" style={{
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch',
-            marginBottom: '16px'
-          }}>
-            <div className="revenue-chart" style={{ minWidth: 'max-content' }}>
-              {revenueChartData.map((item) => {
-                const [year, month] = item.month.split('-');
-                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const monthName = monthNames[parseInt(month) - 1];
-                const height = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
-
-                return (
-                  <div key={item.month} className="revenue-bar-container">
-                    <div className="revenue-bar" style={{ height: `${height}%` }}>
-                      <span className="revenue-amount">
-                        {item.revenue > 0 ? `${getCurrencySymbol(preferredCurrency)}${formatCurrency(item.revenue)}` : ''}
-                      </span>
-                    </div>
-                    <div className="revenue-month">{monthName}</div>
-                    <div className="revenue-year">{year}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <div className="metric-label">This Year Revenue</div>
         </div>
-
-        {/* Upcoming Gigs */}
-        <div className="dashboard-section">
-          <div className="section-header">
-            <h3>📅 Upcoming Gigs</h3>
+        {/* Bottom Row */}
+        <div className="metric-card">
+          <div className="metric-icon"><CalendarIcon /></div>
+          <div className="metric-value">
+            {upcomingGigs === null ? '...' : upcomingGigs}
           </div>
-          {deals.filter(d => d.dealStatus?.status === 'ACCEPTED' && new Date(d.eventDate) >= new Date()).length === 0 ? (
-            <div style={{ padding: '40px 20px', textAlign: 'center', color: '#888' }}>
-              No upcoming gigs scheduled
-            </div>
-          ) : (
-            <div className="gigs-list">
-              {deals
-                .filter(d => d.dealStatus?.status === 'ACCEPTED' && new Date(d.eventDate) >= new Date())
-                .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
-                .slice(0, 5)
-                .map(deal => (
-                  <div key={deal._id} className="gig-item">
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: '600', marginBottom: '4px' }}>{deal.eventName}</div>
-                      <div style={{ fontSize: '13px', color: '#888' }}>
-                        {deal.venueName} • {new Date(deal.eventDate).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: '600', color: '#FF3366' }}>
-                        {getCurrencySymbol(deal.currency)}{deal.fee}
-                      </div>
-                      <div style={{ fontSize: '11px', color: '#28a745', marginTop: '4px' }}>
-                        Confirmed
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
+          <div className="metric-label">Upcoming Gigs</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-icon"><DollarIcon /></div>
+          <div className="metric-value">
+            {expectedRevenue === null ? '...' : formatCurrencyWithSymbol(expectedRevenue, preferredCurrency)}
+          </div>
+          <div className="metric-label">Expected Revenue</div>
         </div>
       </div>
-    );
-  };
+
+      {/* Revenue Chart */}
+      <div className="dashboard-section revenue-overview-section">
+        <h3><TrendingUpIcon /> Revenue Overview</h3>
+        <div className="revenue-chart-scroll">
+          <div className="revenue-chart" style={{ minHeight: '200px' }}>
+            {revenueChartData.length > 0 ? (
+              (() => {
+                // Calculate maxRevenue once outside the loop
+                const maxRevenue = Math.max(...revenueChartData.map(d => d.amount), 1);
+                const currencySymbol = getCurrencySymbol(preferredCurrency);
+
+                return revenueChartData.map((item) => {
+                  const height = maxRevenue > 0 ? (item.amount / maxRevenue) * 100 : 0;
+
+                  return (
+                    <div key={item.monthKey} className="chart-bar-container">
+                      <div className="chart-bar" style={{ height: `${Math.max(height, 2)}%` }}>
+                        {item.amount > 0 && (
+                          <div className="chart-value">
+                            {currencySymbol}{item.amount >= 1000 ? Math.round(item.amount / 1000) + 'K' : Math.round(item.amount)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="chart-label">
+                        {item.month}
+                        <div className="chart-year">{item.year}</div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()
+            ) : (
+              <div className="no-revenue-data">Loading revenue data...</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   // Documents Tab
   const renderDocumentsTab = () => {
