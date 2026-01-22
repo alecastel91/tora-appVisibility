@@ -246,6 +246,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     const messageText = msg.text;
     const lines = messageText.split('\n');
     const parsed = {
+      dealId: msg.dealId,  // Extract dealId from the message object
       fee: '',
       currency: '',
       extras: {},
@@ -421,37 +422,39 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       return;
     }
 
-    try {
-      // Build extras text
-      let extrasText = '';
-      if (reviewData.extras && Object.keys(reviewData.extras).length > 0) {
-        const extrasArray = Object.entries(reviewData.extras)
-          .filter(([key, value]) => value)
-          .map(([key, value]) => {
-            const label = key.replace(/([A-Z])/g, ' $1').trim();
-            const capitalizedLabel = label.charAt(0).toUpperCase() + label.slice(1);
-            return typeof value === 'string' ? `${capitalizedLabel}: ${value}` : capitalizedLabel;
-          });
-        if (extrasArray.length > 0) {
-          extrasText = '\nExtras:\n' + extrasArray.map(e => `  • ${e}`).join('\n');
-        }
-      }
+    if (!selectedOffer._id) {
+      alert('Deal information not found');
+      return;
+    }
 
-      // For now, we'll send a message about the counter-offer
+    try {
       // Round fee to 2 decimal places to avoid floating point precision errors
       const feeValue = Math.round(parseFloat(reviewData.fee) * 100) / 100;
-      const counterMessage = `Counter-Offer:\nFee: ${feeValue.toLocaleString()} ${reviewData.currency}${extrasText}${reviewData.notes ? `\n\nNotes: ${reviewData.notes}` : ''}`;
 
-      await apiService.sendMessage(
-        currentUser._id,
-        user._id,
-        counterMessage,
-        null
-      );
+      // Build extras object for API
+      const extras = {};
+      if (reviewData.extras && Object.keys(reviewData.extras).length > 0) {
+        Object.entries(reviewData.extras).forEach(([key, value]) => {
+          if (value) {
+            extras[key] = value;
+          }
+        });
+      }
+
+      // Call the counter-offer API endpoint (this updates the deal and creates a system message)
+      await apiService.counterDeal(selectedOffer._id, {
+        profileId: currentUser._id,
+        fee: feeValue,
+        currency: reviewData.currency,
+        additionalTerms: Object.keys(extras).length > 0 ? JSON.stringify(extras) : null,
+        notes: reviewData.notes || null
+      });
 
       setShowReviewModal(false);
       setShowOfferDetails(false);
       setReviewData({ fee: '', currency: 'USD', extras: {}, notes: '' });
+
+      // Refresh messages to show the counter-offer
       fetchMessages();
     } catch (error) {
       console.error('Error submitting counter-offer:', error);
