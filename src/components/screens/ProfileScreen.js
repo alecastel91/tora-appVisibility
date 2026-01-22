@@ -3,7 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import Modal from '../common/Modal';
 import RAEventsModal from '../common/RAEventsModal';
-import { CalendarIcon, UploadIcon, SwitchIcon, AddIcon, TrashIcon } from '../../utils/icons';
+import { CalendarIcon, UploadIcon, SwitchIcon, AddIcon, TrashIcon, HandshakeIcon } from '../../utils/icons';
 import CalendarScreen from './CalendarScreen';
 import EditProfileScreen from './EditProfileScreen';
 import RepresentedArtistsScreen from './RepresentedArtistsScreen';
@@ -317,13 +317,23 @@ const ProfileScreen = () => {
               ))}
             </div>
             {user.genres.length > 6 && (
-              <button 
+              <button
                 className="see-more-btn"
                 onClick={() => setShowAllGenres(!showAllGenres)}
               >
                 {showAllGenres ? t('profile.seeLess') : t('profile.seeMore')}
               </button>
             )}
+          </div>
+        )}
+
+        {/* Represented By Badge */}
+        {user?.representedBy && (user?.representedBy.name || user?.representedBy.agentName) && (
+          <div className="represented-by-container">
+            <div className="represented-by-badge">
+              <span className="represented-icon"><HandshakeIcon /></span>
+              Represented by {user.representedBy.name || user.representedBy.agentName}
+            </div>
           </div>
         )}
       </div>

@@ -600,16 +600,6 @@ const ManageProfileScreen = ({ onClose }) => {
         </div>
       </div>
 
-      {/* Represented By Badge */}
-      {user?.representedBy && (user?.representedBy.name || user?.representedBy.agentName) && (
-        <div className="represented-by-container">
-          <div className="represented-by-badge">
-            <span className="represented-icon"><HandshakeIcon /></span>
-            Represented by {user.representedBy.name || user.representedBy.agentName}
-          </div>
-        </div>
-      )}
-
       {/* Tab Navigation */}
       <div className="tab-navigation">
         <button
