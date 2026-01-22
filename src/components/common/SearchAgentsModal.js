@@ -450,22 +450,22 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
         <div className="modal-body">
           {/* Representing Agent Section (shown at top) */}
           {representingAgent && (
-            <div className="representing-agent-section" style={{
-              marginBottom: '24px',
-              padding: '16px',
+            <div style={{
+              marginBottom: '16px',
+              padding: '10px 12px',
               backgroundColor: 'rgba(255, 51, 102, 0.05)',
               border: '1px solid rgba(255, 51, 102, 0.2)',
-              borderRadius: '12px'
+              borderRadius: '8px'
             }}>
               <div style={{
-                fontSize: '12px',
+                fontSize: '10px',
                 fontWeight: '600',
                 color: '#FF3366',
-                marginBottom: '12px',
+                marginBottom: '8px',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
               }}>
-                Your Agent
+                Current Agent
               </div>
               <div className="artist-item" style={{ marginBottom: '0' }}>
                 <div
