@@ -326,16 +326,6 @@ const ProfileScreen = () => {
             )}
           </div>
         )}
-
-        {/* Represented By Badge */}
-        {user?.representedBy && (user?.representedBy.name || user?.representedBy.agentName) && (
-          <div className="represented-by-container">
-            <div className="represented-by-badge">
-              <span className="represented-icon"><HandshakeIcon /></span>
-              Represented by {user.representedBy.name || user.representedBy.agentName}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="profile-stats">
@@ -549,16 +539,16 @@ const ProfileScreen = () => {
       {/* Social CTAs */}
       <div className="profile-social-ctas">
         {user?.instagram && (
-          <a 
-            href={`https://instagram.com/${user.instagram.replace('@', '')}`} 
-            target="_blank" 
+          <a
+            href={`https://instagram.com/${user.instagram.replace('@', '')}`}
+            target="_blank"
             rel="noopener noreferrer"
             className="btn btn-outline btn-social"
           >
             <span>Instagram</span>
           </a>
         )}
-        <button 
+        <button
           className={`btn btn-outline btn-social ${!user?.website ? 'disabled' : ''}`}
           onClick={() => user?.website && window.open(user.website, '_blank')}
           disabled={!user?.website}
@@ -566,6 +556,16 @@ const ProfileScreen = () => {
           <span>Website</span>
         </button>
       </div>
+
+      {/* Represented By Badge */}
+      {user?.representedBy && (user?.representedBy.name || user?.representedBy.agentName) && (
+        <div className="represented-by-container">
+          <div className="represented-by-badge">
+            <span className="represented-icon"><HandshakeIcon /></span>
+            Represented by {user.representedBy.name || user.representedBy.agentName}
+          </div>
+        </div>
+      )}
 
       {/* Likes List Modal */}
       <Modal
