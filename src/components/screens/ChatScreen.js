@@ -35,8 +35,26 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   });
   const [showDocumentPicker, setShowDocumentPicker] = useState(false);
   const [selectedArtistForDocs, setSelectedArtistForDocs] = useState(null);
+  const [loadingArtistDocs, setLoadingArtistDocs] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Fetch full artist profile when agent selects an artist
+  const handleSelectArtist = async (artist) => {
+    setLoadingArtistDocs(true);
+    try {
+      // Fetch full profile data with documents
+      const artistProfileId = artist.profileId || artist.id || artist._id;
+      const fullProfile = await apiService.getProfileById(artistProfileId);
+      setSelectedArtistForDocs(fullProfile);
+    } catch (error) {
+      console.error('Error fetching artist profile:', error);
+      // Fallback to basic artist data if fetch fails
+      setSelectedArtistForDocs(artist);
+    } finally {
+      setLoadingArtistDocs(false);
+    }
+  };
 
   // Function to fetch messages (can be called externally)
   const fetchMessages = async () => {
@@ -1581,7 +1599,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
             </div>
             <div className="modal-body">
               {/* Agent: Show Artist Selector First */}
-              {currentUser.role === 'AGENT' && !selectedArtistForDocs && (
+              {currentUser.role === 'AGENT' && !selectedArtistForDocs && !loadingArtistDocs && (
                 <div>
                   <p style={{ fontSize: '14px', marginBottom: '16px', color: '#999' }}>
                     Select an artist to send their documents:
@@ -1592,7 +1610,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                         <div
                           key={artist.profileId || artist.id}
                           className="artist-selector-item"
-                          onClick={() => setSelectedArtistForDocs(artist)}
+                          onClick={() => handleSelectArtist(artist)}
                           style={{
                             padding: '14px',
                             backgroundColor: 'rgba(255, 255, 255, 0.03)',
@@ -1646,6 +1664,22 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       <p style={{ fontSize: '14px', color: '#999' }}>No represented artists</p>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Loading state while fetching artist documents */}
+              {currentUser.role === 'AGENT' && loadingArtistDocs && (
+                <div className="empty-state" style={{ textAlign: 'center', padding: '40px 20px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '3px solid rgba(255, 51, 102, 0.2)',
+                    borderTop: '3px solid #FF3366',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    margin: '0 auto 16px'
+                  }}></div>
+                  <p style={{ fontSize: '14px', color: '#999' }}>Loading documents...</p>
                 </div>
               )}
 
