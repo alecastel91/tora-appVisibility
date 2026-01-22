@@ -448,6 +448,63 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
         </div>
 
         <div className="modal-body">
+          {/* Representing Agent Section (shown at top) */}
+          {representingAgent && (
+            <div className="representing-agent-section" style={{
+              marginBottom: '24px',
+              padding: '16px',
+              backgroundColor: 'rgba(255, 51, 102, 0.05)',
+              border: '1px solid rgba(255, 51, 102, 0.2)',
+              borderRadius: '12px'
+            }}>
+              <div style={{
+                fontSize: '12px',
+                fontWeight: '600',
+                color: '#FF3366',
+                marginBottom: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Your Agent
+              </div>
+              <div className="artist-item" style={{ marginBottom: '0' }}>
+                <div
+                  className="artist-info clickable"
+                  onClick={() => {
+                    const agentData = representingAgent.agentId;
+                    if (agentData) {
+                      handleCardClick(agentData);
+                    }
+                  }}
+                >
+                  <div className="artist-avatar">
+                    {representingAgent.agentId?.avatar ? (
+                      <img src={representingAgent.agentId.avatar} alt={representingAgent.agentId.name || representingAgent.name} />
+                    ) : (
+                      getInitial(representingAgent.agentId?.name || representingAgent.name || 'A')
+                    )}
+                  </div>
+                  <div className="artist-details">
+                    <h4>{representingAgent.agentId?.name || representingAgent.name}</h4>
+                    <p className="artist-location">{representingAgent.agentId?.location || representingAgent.location}</p>
+                  </div>
+                </div>
+                <button
+                  className="btn btn-sm btn-danger"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const agentData = representingAgent.agentId;
+                    if (agentData) {
+                      handleCancelRepresentation(agentData);
+                    }
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="search-form">
             <input
@@ -497,17 +554,14 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                   <div className="results-header">
                     <p>{agents.length} agent{agents.length !== 1 ? 's' : ''} found</p>
                   </div>
-                  {/* Sort agents: representing agent first, then others */}
+                  {/* Filter out representing agent from search results (shown at top) */}
                   {(() => {
                     const representingAgentId = representingAgent?.agentId?._id || representingAgent?.agentId;
-                    const sortedAgents = [...agents].sort((a, b) => {
-                      const aId = a._id || a.id;
-                      const bId = b._id || b.id;
-                      if (aId === representingAgentId) return -1;
-                      if (bId === representingAgentId) return 1;
-                      return 0;
+                    const filteredAgents = agents.filter(agent => {
+                      const agentId = agent._id || agent.id;
+                      return agentId !== representingAgentId;
                     });
-                    return sortedAgents;
+                    return filteredAgents;
                   })().map((agent) => {
                     const agentId = agent._id || agent.id;
                     const hasRequested = sentRequestIds.has(agentId);
@@ -517,23 +571,13 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                     const hasPendingConnection = pendingConnectionIds.has(agentId);
                     const hasReceivedRequest = receivedRequestIds.has(agentId);
 
-                    // Check if this is the current representing agent
-                    const representingAgentId = representingAgent?.agentId?._id || representingAgent?.agentId;
-                    const isRepresentingAgent = agentId === representingAgentId;
-
                     // Simplified button logic: always show Send Request (greyed out if not connected)
                     let buttonText = 'Send Request';
                     let buttonClass = 'btn-primary';
                     let buttonDisabled = false;
                     let buttonAction = () => handleRequestClick(agent);
 
-                    if (isRepresentingAgent) {
-                      // This is the current representing agent
-                      buttonText = 'Remove Representation';
-                      buttonClass = 'btn-danger';
-                      buttonDisabled = false;
-                      buttonAction = () => handleCancelRepresentation(agent);
-                    } else if (hasAccepted) {
+                    if (hasAccepted) {
                       buttonText = 'Represented';
                       buttonClass = 'btn-success';
                       buttonDisabled = true;
