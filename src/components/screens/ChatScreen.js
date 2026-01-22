@@ -34,6 +34,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     notes: ''
   });
   const [showDocumentPicker, setShowDocumentPicker] = useState(false);
+  const [selectedArtistForDocs, setSelectedArtistForDocs] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -1562,25 +1563,156 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
       {/* Document Picker Modal */}
       {showDocumentPicker && (
-        <div className="modal-overlay" onClick={() => setShowDocumentPicker(false)}>
+        <div className="modal-overlay" onClick={() => {
+          setShowDocumentPicker(false);
+          setSelectedArtistForDocs(null);
+        }}>
           <div className="modal-content offer-details-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Send Document</h3>
-              <button className="modal-close" onClick={() => setShowDocumentPicker(false)}>
+              <button className="modal-close" onClick={() => {
+                setShowDocumentPicker(false);
+                setSelectedArtistForDocs(null);
+              }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12"/>
                 </svg>
               </button>
             </div>
             <div className="modal-body">
+              {/* Agent: Show Artist Selector First */}
+              {currentUser.role === 'AGENT' && !selectedArtistForDocs && (
+                <div>
+                  <p style={{ fontSize: '14px', marginBottom: '16px', color: '#999' }}>
+                    Select an artist to send their documents:
+                  </p>
+                  {currentUser.representingArtists && currentUser.representingArtists.length > 0 ? (
+                    <div className="artist-selector-list">
+                      {currentUser.representingArtists.map((artist) => (
+                        <div
+                          key={artist.profileId || artist.id}
+                          className="artist-selector-item"
+                          onClick={() => setSelectedArtistForDocs(artist)}
+                          style={{
+                            padding: '14px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '8px',
+                            marginBottom: '10px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 51, 102, 0.1)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 51, 102, 0.3)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
+                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                          }}
+                        >
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            backgroundColor: '#2a2a2a',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px',
+                            fontWeight: '600'
+                          }}>
+                            {artist.avatar ? (
+                              <img src={artist.avatar} alt={artist.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                            ) : (
+                              artist.name.charAt(0).toUpperCase()
+                            )}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '2px' }}>{artist.name}</div>
+                            <div style={{ fontSize: '12px', color: '#888' }}>{artist.location}</div>
+                          </div>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                          </svg>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="empty-state" style={{ textAlign: 'center', padding: '40px 20px' }}>
+                      <p style={{ fontSize: '14px', color: '#999' }}>No represented artists</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Show Documents (for Artists OR Agents after selecting artist) */}
+              {(currentUser.role !== 'AGENT' || selectedArtistForDocs) && (() => {
+                // Determine which documents to show
+                const docsSource = currentUser.role === 'AGENT' ? selectedArtistForDocs : currentUser;
+
+                return (
+                  <>
+                    {/* Back button for agents */}
+                    {currentUser.role === 'AGENT' && selectedArtistForDocs && (
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setSelectedArtistForDocs(null)}
+                        style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        Back to Artists
+                      </button>
+                    )}
+
+                    {/* Artist name header for agents */}
+                    {currentUser.role === 'AGENT' && selectedArtistForDocs && (
+                      <div style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(255, 51, 102, 0.05)',
+                        border: '1px solid rgba(255, 51, 102, 0.2)',
+                        borderRadius: '8px',
+                        marginBottom: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      }}>
+                        <div style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          backgroundColor: '#2a2a2a',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '14px',
+                          fontWeight: '600'
+                        }}>
+                          {selectedArtistForDocs.avatar ? (
+                            <img src={selectedArtistForDocs.avatar} alt={selectedArtistForDocs.name} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                          ) : (
+                            selectedArtistForDocs.name.charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: '600' }}>{selectedArtistForDocs.name}'s Documents</div>
+                          <div style={{ fontSize: '11px', color: '#888' }}>{selectedArtistForDocs.location}</div>
+                        </div>
+                      </div>
+                    )}
               {/* Press Kit Documents */}
-              {currentUser.documents?.pressKit && currentUser.documents.pressKit.length > 0 && (
+              {docsSource.documents?.pressKit && docsSource.documents.pressKit.length > 0 && (
                 <div className="document-category-section">
                   <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: '#FF3366' }}>
                     Press Kit
                   </h4>
                   <div className="document-list">
-                    {currentUser.documents.pressKit.map((doc) => (
+                    {docsSource.documents.pressKit.map((doc) => (
                       <div key={doc.id} className="document-item" style={{
                         padding: '12px',
                         backgroundColor: 'rgba(255, 255, 255, 0.03)',
@@ -1611,13 +1743,13 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               )}
 
               {/* Technical Rider Documents */}
-              {currentUser.documents?.technicalRider && currentUser.documents.technicalRider.length > 0 && (
+              {docsSource.documents?.technicalRider && docsSource.documents.technicalRider.length > 0 && (
                 <div className="document-category-section" style={{ marginTop: '20px' }}>
                   <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: '#FF3366' }}>
                     Technical Rider
                   </h4>
                   <div className="document-list">
-                    {currentUser.documents.technicalRider.map((doc) => (
+                    {docsSource.documents.technicalRider.map((doc) => (
                       <div key={doc.id} className="document-item" style={{
                         padding: '12px',
                         backgroundColor: 'rgba(255, 255, 255, 0.03)',
@@ -1648,13 +1780,13 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               )}
 
               {/* Contract Documents */}
-              {currentUser.documents?.contracts && currentUser.documents.contracts.length > 0 && (
+              {docsSource.documents?.contracts && docsSource.documents.contracts.length > 0 && (
                 <div className="document-category-section" style={{ marginTop: '20px' }}>
                   <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: '#FF3366' }}>
                     Contracts
                   </h4>
                   <div className="document-list">
-                    {currentUser.documents.contracts.map((doc) => (
+                    {docsSource.documents.contracts.map((doc) => (
                       <div key={doc.id} className="document-item" style={{
                         padding: '12px',
                         backgroundColor: 'rgba(255, 255, 255, 0.03)',
@@ -1685,18 +1817,26 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               )}
 
               {/* No Documents Message */}
-              {(!currentUser.documents?.pressKit || currentUser.documents.pressKit.length === 0) &&
-               (!currentUser.documents?.technicalRider || currentUser.documents.technicalRider.length === 0) &&
-               (!currentUser.documents?.contracts || currentUser.documents.contracts.length === 0) && (
+              {(!docsSource.documents?.pressKit || docsSource.documents.pressKit.length === 0) &&
+               (!docsSource.documents?.technicalRider || docsSource.documents.technicalRider.length === 0) &&
+               (!docsSource.documents?.contracts || docsSource.documents.contracts.length === 0) && (
                 <div className="empty-state" style={{ textAlign: 'center', padding: '40px 20px' }}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ margin: '0 auto 16px', opacity: 0.3 }}>
                     <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
                     <polyline points="13 2 13 9 20 9"></polyline>
                   </svg>
                   <p style={{ fontSize: '14px', color: '#999' }}>No documents available</p>
-                  <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>Add documents to your profile to share them in chat</p>
+                  <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+                    {currentUser.role === 'AGENT' ?
+                      'This artist has no documents added to their profile' :
+                      'Add documents to your profile to share them in chat'
+                    }
+                  </p>
                 </div>
               )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
