@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CloseIcon, CalendarIcon, DollarIcon, AlertIcon, FileIcon, MailIcon, TrendingUpIcon, BriefcaseIcon, PlaneIcon, ListIcon, EditIcon, TrashIcon } from '../../utils/icons';
+import { CloseIcon, CalendarIcon, DollarIcon, AlertIcon, FileIcon, MailIcon, TrendingUpIcon, BriefcaseIcon, PlaneIcon, ListIcon, EditIcon, TrashIcon, ImageIcon, SlidersIcon, FileTextIcon } from '../../utils/icons';
 import Modal from '../common/Modal';
 import RAEventsModal from '../common/RAEventsModal';
 import { zones, countriesByZone, citiesByCountry, genresList } from '../../data/profiles';
@@ -1868,9 +1868,9 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
     return (
       <div className="artist-info-tab">
-        {renderDocCategory('pressKit', '🎭', 'Press Kit', 'Add links to press photos, bio, EPK, or music samples')}
-        {renderDocCategory('technicalRider', '🎚️', 'Technical Rider', 'Add links to tech rider, stage plot, or hospitality requirements')}
-        {renderDocCategory('contracts', '📄', 'Contracts', 'Add contract templates. These can be customized per booking.')}
+        {renderDocCategory('pressKit', <ImageIcon />, 'Press Kit', 'Add links to press photos, bio, EPK, or music samples')}
+        {renderDocCategory('technicalRider', <SlidersIcon />, 'Technical Rider', 'Add links to tech rider, stage plot, or hospitality requirements')}
+        {renderDocCategory('contracts', <FileTextIcon />, 'Contracts', 'Add contract templates. These can be customized per booking.')}
       </div>
     );
   };
