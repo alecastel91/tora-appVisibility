@@ -451,23 +451,23 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
           {/* Representing Agent Section (shown at top) */}
           {representingAgent && (
             <div style={{
-              marginBottom: '16px',
-              padding: '10px 12px',
+              marginBottom: '12px',
+              padding: '8px 10px',
               backgroundColor: 'rgba(255, 51, 102, 0.05)',
               border: '1px solid rgba(255, 51, 102, 0.2)',
-              borderRadius: '8px'
+              borderRadius: '6px'
             }}>
               <div style={{
-                fontSize: '10px',
+                fontSize: '9px',
                 fontWeight: '600',
                 color: '#FF3366',
-                marginBottom: '8px',
+                marginBottom: '6px',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
               }}>
                 Current Agent
               </div>
-              <div className="artist-item" style={{ marginBottom: '0' }}>
+              <div className="artist-item" style={{ marginBottom: '0', gap: '10px' }}>
                 <div
                   className="artist-info clickable"
                   onClick={() => {
