@@ -242,6 +242,14 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   };
 
   const handleViewCounterOffer = (msg) => {
+    console.log('[ChatScreen] handleViewCounterOffer - message:', msg);
+    console.log('[ChatScreen] dealId from message:', msg.dealId);
+
+    if (!msg.dealId) {
+      alert('This counter-offer was created with an old version and cannot be accepted/declined. Please send a new counter-offer.');
+      return;
+    }
+
     // Parse the counter-offer message
     const messageText = msg.text;
     const lines = messageText.split('\n');
