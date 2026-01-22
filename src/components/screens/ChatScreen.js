@@ -33,6 +33,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     extras: {},
     notes: ''
   });
+  const [showDocumentPicker, setShowDocumentPicker] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -54,7 +55,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         isMe: msg.from._id === currentUser._id,
         isSystem: msg.isSystemMessage || false,
         dealId: msg.dealId || null,
-        connectionRequestId: msg.connectionRequest ? (msg.connectionRequest._id || msg.connectionRequest) : null
+        connectionRequestId: msg.connectionRequest ? (msg.connectionRequest._id || msg.connectionRequest) : null,
+        documentAttachment: msg.documentAttachment || null
       }));
 
       setUserMessages(transformedMessages);
@@ -147,6 +149,33 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  const handleSendDocument = async (document, category) => {
+    try {
+      // Send document as a special message
+      const documentMessage = {
+        from: currentUser._id,
+        to: user._id,
+        text: `📎 ${document.title}`,
+        isSystemMessage: false,
+        documentAttachment: {
+          id: document.id,
+          title: document.title,
+          url: document.url,
+          category: category
+        }
+      };
+
+      await apiService.sendDocumentMessage(documentMessage);
+
+      // Close modal and refresh messages
+      setShowDocumentPicker(false);
+      await fetchMessages();
+    } catch (error) {
+      console.error('Error sending document:', error);
+      alert('Failed to send document. Please try again.');
     }
   };
 
@@ -745,6 +774,64 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               <div className="message-system">
                 <p>{msg.text}</p>
               </div>
+            ) : msg.documentAttachment ? (
+              <div className={`message ${msg.isMe ? 'message-sent' : 'message-received'}`}>
+                {(!msg.isMe && index === 0) || (index > 0 && userMessages[index - 1].isMe !== msg.isMe) ? (
+                  <div className="message-group">
+                    <div className="message-bubble document-message">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                          <polyline points="13 2 13 9 20 9"></polyline>
+                        </svg>
+                        <div>
+                          <p style={{ fontWeight: '600', marginBottom: '2px' }}>{msg.documentAttachment.title}</p>
+                          <p style={{ fontSize: '11px', opacity: 0.7, textTransform: 'capitalize' }}>
+                            {msg.documentAttachment.category === 'pressKit' ? 'Press Kit' :
+                             msg.documentAttachment.category === 'technicalRider' ? 'Technical Rider' : 'Contract'}
+                          </p>
+                        </div>
+                      </div>
+                      <a
+                        href={msg.documentAttachment.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline btn-sm"
+                        style={{ width: '100%', marginTop: '8px' }}
+                      >
+                        Open Document
+                      </a>
+                      <span className="message-time">{formatMessageTime(msg.timestamp)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="message-bubble document-message">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                      </svg>
+                      <div>
+                        <p style={{ fontWeight: '600', marginBottom: '2px' }}>{msg.documentAttachment.title}</p>
+                        <p style={{ fontSize: '11px', opacity: 0.7, textTransform: 'capitalize' }}>
+                          {msg.documentAttachment.category === 'pressKit' ? 'Press Kit' :
+                           msg.documentAttachment.category === 'technicalRider' ? 'Technical Rider' : 'Contract'}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={msg.documentAttachment.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-outline btn-sm"
+                      style={{ width: '100%', marginTop: '8px' }}
+                    >
+                      Open Document
+                    </a>
+                    <span className="message-time">{formatMessageTime(msg.timestamp)}</span>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className={`message ${msg.isMe ? 'message-sent' : 'message-received'}`}>
                 {(!msg.isMe && index === 0) || (index > 0 && userMessages[index - 1].isMe !== msg.isMe) ? (
@@ -805,6 +892,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               )}
               <div className="chat-input-container">
                 <div className="chat-input-wrapper">
+                  <button
+                    className="attachment-btn"
+                    onClick={() => setShowDocumentPicker(true)}
+                    title="Attach document"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                    </svg>
+                  </button>
                   <input
                     ref={inputRef}
                     type="text"
@@ -1457,6 +1553,148 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     <line x1="9" y1="9" x2="15" y2="15"></line>
                   </svg>
                   <span>This request has been declined</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Picker Modal */}
+      {showDocumentPicker && (
+        <div className="modal-overlay" onClick={() => setShowDocumentPicker(false)}>
+          <div className="modal-content offer-details-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Send Document</h3>
+              <button className="modal-close" onClick={() => setShowDocumentPicker(false)}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+            <div className="modal-body">
+              {/* Press Kit Documents */}
+              {currentUser.documents?.pressKit && currentUser.documents.pressKit.length > 0 && (
+                <div className="document-category-section">
+                  <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: '#FF3366' }}>
+                    Press Kit
+                  </h4>
+                  <div className="document-list">
+                    {currentUser.documents.pressKit.map((doc) => (
+                      <div key={doc.id} className="document-item" style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        marginBottom: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13 2 13 9 20 9"></polyline>
+                          </svg>
+                          <span style={{ fontSize: '14px' }}>{doc.title}</span>
+                        </div>
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleSendDocument(doc, 'pressKit')}
+                        >
+                          Send
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Technical Rider Documents */}
+              {currentUser.documents?.technicalRider && currentUser.documents.technicalRider.length > 0 && (
+                <div className="document-category-section" style={{ marginTop: '20px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: '#FF3366' }}>
+                    Technical Rider
+                  </h4>
+                  <div className="document-list">
+                    {currentUser.documents.technicalRider.map((doc) => (
+                      <div key={doc.id} className="document-item" style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        marginBottom: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13 2 13 9 20 9"></polyline>
+                          </svg>
+                          <span style={{ fontSize: '14px' }}>{doc.title}</span>
+                        </div>
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleSendDocument(doc, 'technicalRider')}
+                        >
+                          Send
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Contract Documents */}
+              {currentUser.documents?.contracts && currentUser.documents.contracts.length > 0 && (
+                <div className="document-category-section" style={{ marginTop: '20px' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: '#FF3366' }}>
+                    Contracts
+                  </h4>
+                  <div className="document-list">
+                    {currentUser.documents.contracts.map((doc) => (
+                      <div key={doc.id} className="document-item" style={{
+                        padding: '12px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        marginBottom: '8px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                            <polyline points="13 2 13 9 20 9"></polyline>
+                          </svg>
+                          <span style={{ fontSize: '14px' }}>{doc.title}</span>
+                        </div>
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleSendDocument(doc, 'contracts')}
+                        >
+                          Send
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* No Documents Message */}
+              {(!currentUser.documents?.pressKit || currentUser.documents.pressKit.length === 0) &&
+               (!currentUser.documents?.technicalRider || currentUser.documents.technicalRider.length === 0) &&
+               (!currentUser.documents?.contracts || currentUser.documents.contracts.length === 0) && (
+                <div className="empty-state" style={{ textAlign: 'center', padding: '40px 20px' }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ margin: '0 auto 16px', opacity: 0.3 }}>
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                    <polyline points="13 2 13 9 20 9"></polyline>
+                  </svg>
+                  <p style={{ fontSize: '14px', color: '#999' }}>No documents available</p>
+                  <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>Add documents to your profile to share them in chat</p>
                 </div>
               )}
             </div>

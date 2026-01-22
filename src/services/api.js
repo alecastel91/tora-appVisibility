@@ -417,6 +417,16 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async sendDocumentMessage(messageData) {
+    const response = await fetch(`${API_URL}/messages/send-document`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(messageData)
+    });
+
+    return this.handleResponse(response);
+  }
+
   // Resolve short URLs to full URLs
   async resolveUrl(url) {
     const response = await fetch(`${API_URL}/resolve-url`, {
