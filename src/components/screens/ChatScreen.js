@@ -295,10 +295,18 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   };
 
   const handleAcceptCounterOffer = async () => {
+    if (!counterOfferData?.dealId) {
+      alert('Deal information not found');
+      return;
+    }
+
     try {
-      const acceptMessage = `I've accepted the counter-offer! ✅`;
-      await apiService.sendMessage(currentUser._id, user._id, acceptMessage, null);
+      // Accept the deal in the backend (this updates status to ACCEPTED and creates system message)
+      await apiService.acceptDeal(counterOfferData.dealId, currentUser._id);
+
       setShowCounterOfferDetails(false);
+
+      // Refresh messages to show the acceptance system message
       fetchMessages();
     } catch (error) {
       console.error('Error accepting counter-offer:', error);
@@ -312,12 +320,20 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       return;
     }
 
+    if (!counterOfferData?.dealId) {
+      alert('Deal information not found');
+      return;
+    }
+
     try {
-      const declineMessage = `I've declined the counter-offer.\n\nReason: ${declineComment}`;
-      await apiService.sendMessage(currentUser._id, user._id, declineMessage, null);
+      // Decline the deal in the backend (this updates status to DECLINED and creates system message)
+      await apiService.declineDeal(counterOfferData.dealId, currentUser._id, declineComment);
+
       setShowCounterOfferDetails(false);
       setShowDeclineComment(false);
       setDeclineComment('');
+
+      // Refresh messages to show the decline system message
       fetchMessages();
     } catch (error) {
       console.error('Error declining counter-offer:', error);
