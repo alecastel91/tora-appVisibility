@@ -819,8 +819,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                         href={msg.documentAttachment.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn btn-outline btn-sm"
-                        style={{ width: '100%', marginTop: '8px' }}
+                        className="btn btn-sm"
+                        style={{
+                          width: '100%',
+                          marginTop: '8px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                          color: 'white',
+                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          fontWeight: '600'
+                        }}
                       >
                         Open Document
                       </a>
@@ -846,8 +853,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       href={msg.documentAttachment.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn btn-outline btn-sm"
-                      style={{ width: '100%', marginTop: '8px' }}
+                      className="btn btn-sm"
+                      style={{
+                        width: '100%',
+                        marginTop: '8px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        color: 'white',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        fontWeight: '600'
+                      }}
                     >
                       Open Document
                     </a>
