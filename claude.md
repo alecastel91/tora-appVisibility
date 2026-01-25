@@ -1131,5 +1131,82 @@ MONGODB_URI=mongodb://localhost:27017/tora
   - `getSoundCloudEmbedUrl()` - Converts SoundCloud URLs (including mobile) to embed format
   - `getSpotifyEmbedUrl()` - Extracts artist ID and creates Spotify embed URL
 
+## Recent Updates (January 25, 2026)
+
+### Document Attachment System in Chat
+- **Feature**: Send profile documents (Press Kit, Technical Rider, Contracts) directly in chat
+- **Artist Flow**: Click paperclip → See own documents → Send
+- **Agent Flow**: Click paperclip → Select represented artist → See artist's documents → Send
+- **Implementation**:
+  - Frontend: Paperclip button in chat input, document picker modal
+  - Backend: `POST /api/messages/send-document` endpoint
+  - Message Model: Added `documentAttachment` field (id, title, url, category)
+  - Document messages display with file icon, title, category badge, and "Open Document" button
+- **Agent Support**: Agents can select which artist's documents to send
+  - Fetches full artist profile with documents using `apiService.getProfile()`
+  - Loading state while fetching profile data
+  - Shows artist selector → document list with back button
+- **UI Styling**:
+  - Attachment button: 32px circular, transparent with pink hover
+  - Document messages: Wider bubble (320px max), distinct styling
+  - "Open Document" button: Semi-transparent white background for visibility on pink bubbles
+
+### UI Refinements
+- **Search Agent Modal**: Representing agent shown at top with "Remove" button (compact)
+  - Reduced padding: 8px 10px (from 10px 12px)
+  - Smaller label font: 9px (from 10px)
+  - Tighter border radius: 6px (from 8px)
+- **Profile Badge**: "Represented by" moved below Instagram/Website CTAs
+- **Message Bubbles**: More compact padding (10px 12px instead of 12px 16px)
+
+## Upcoming Development - Booking Workflow Enhancement (MVP Phase)
+
+### Planned Features (Next 4-5 weeks)
+
+#### Sprint 1: Contract Management (1-2 weeks)
+- Add contract status tracking to Deal model
+- Contract states: NOT_SENT → SENT → ARTIST_SIGNED → VENUE_SIGNED → FULLY_SIGNED
+- "Send Contract" button after booking acceptance
+- Select contract from profile documents or upload new
+- Digital signature flow (checkbox confirmation)
+- Contract status badges in booking cards
+- Chat system messages for contract events
+
+#### Sprint 2: Document Sharing Integration (1 week)
+- Add documents tracking to Deal model (pressKit, technicalRider)
+- "Share Documents" section in booking details
+- Integration with existing document attachment system
+- Document received confirmations
+- Document status badges in booking cards
+
+#### Sprint 3: Payment Tracking (1 week)
+- Add payment status to Deal model
+- Payment states: PENDING → DEPOSIT_PAID → FULLY_PAID
+- "Mark as Paid" button for venue
+- "Confirm Payment Received" for artist/agent
+- Payment method dropdown and notes
+- Auto-complete deal when payment confirmed
+
+#### Sprint 4: Workflow Integration & Polish (1 week)
+- Unified booking status timeline UI
+- Progress indicator showing all steps
+- Reminder notifications for pending actions
+- Booking completion celebration screen
+- Archive completed bookings
+
+### Post-MVP Features (Future)
+- Advanced payment processing (Stripe/escrow integration)
+- E-signature integration (DocuSign, HelloSign)
+- Event day management checklist
+- Advanced analytics & insights
+- Insurance & liability integration
+
+### Design Principles
+- Use existing SVG icon system (stroke-based, matching app style)
+- Dark theme with pink accents (#FF3366)
+- Compact, professional UI
+- Clear status progression
+- Mobile-first responsive design
+
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.
