@@ -10839,3 +10839,39 @@ select.form-input {
     font-size: 11px;
   }
 }
+
+/* ============================================
+   WORKFLOW ACTION BUTTONS
+   ============================================ */
+
+.workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 16px;
+}
+
+.workflow-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 10px 16px;
+}
+
+.workflow-actions .btn svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .workflow-actions {
+    flex-direction: column;
+  }
+
+  .workflow-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

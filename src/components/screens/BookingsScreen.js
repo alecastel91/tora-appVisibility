@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
+import WorkflowTimeline from '../common/WorkflowTimeline';
 
 const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const { user: currentUser } = useAppContext();
@@ -12,6 +13,13 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const [expandedDealId, setExpandedDealId] = useState(null);
   const [dealToDecline, setDealToDecline] = useState(null);
   const [declineReason, setDeclineReason] = useState('');
+
+  // Workflow state
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedDealForWorkflow, setSelectedDealForWorkflow] = useState(null);
+  const [documentTypeToShare, setDocumentTypeToShare] = useState(null);
 
   useEffect(() => {
     fetchDeals();
@@ -352,6 +360,107 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               )}
             </div>
 
+            {/* Workflow Timeline for ACCEPTED deals */}
+            {deal.status === 'ACCEPTED' && (
+              <WorkflowTimeline deal={deal} />
+            )}
+
+            {/* Workflow Action Buttons for ACCEPTED deals */}
+            {deal.status === 'ACCEPTED' && (
+              <div className="workflow-actions">
+                {/* Contract Actions */}
+                {(!deal.contract || deal.contract.status === 'NOT_SENT') && (
+                  <button
+                    className="btn btn-outline"
+                    onClick={() => {
+                      setSelectedDealForWorkflow(deal);
+                      setShowContractModal(true);
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                      <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Send Contract
+                  </button>
+                )}
+                {deal.contract && deal.contract.status !== 'NOT_SENT' && deal.contract.status !== 'FULLY_SIGNED' && (
+                  <button
+                    className="btn btn-primary"
+                    onClick={async () => {
+                      try {
+                        await apiService.signContract(deal._id, currentUser._id);
+                        fetchDeals();
+                      } catch (err) {
+                        alert(err.message || 'Failed to sign contract');
+                      }
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 17l6 6 13-13"></path>
+                    </svg>
+                    Sign Contract
+                  </button>
+                )}
+
+                {/* Document Sharing Actions */}
+                {deal.contract && deal.contract.status === 'FULLY_SIGNED' && (
+                  <>
+                    {(!deal.sharedDocuments?.pressKit?.shared) && (
+                      <button
+                        className="btn btn-outline"
+                        onClick={() => {
+                          setSelectedDealForWorkflow(deal);
+                          setDocumentTypeToShare('pressKit');
+                          setShowDocumentModal(true);
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                        </svg>
+                        Share Press Kit
+                      </button>
+                    )}
+                    {(!deal.sharedDocuments?.technicalRider?.shared) && (
+                      <button
+                        className="btn btn-outline"
+                        onClick={() => {
+                          setSelectedDealForWorkflow(deal);
+                          setDocumentTypeToShare('technicalRider');
+                          setShowDocumentModal(true);
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                        </svg>
+                        Share Technical Rider
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {/* Payment Actions (only for venue/promoter) */}
+                {deal.venue._id === currentUser._id && deal.payment && deal.payment.status !== 'FULLY_PAID' && (
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setSelectedDealForWorkflow(deal);
+                      setShowPaymentModal(true);
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="1" x2="12" y2="23"></line>
+                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    Update Payment
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Action buttons for incoming offers - hide for artist viewing via agent */}
             {!isOutgoing && !isViaAgent && (deal.status === 'PENDING' || deal.status === 'NEGOTIATING') && (
               <div className="booking-actions">
@@ -573,6 +682,250 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 onClick={handleDeclineDeal}
               >
                 Decline Offer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send Contract Modal */}
+      {showContractModal && selectedDealForWorkflow && (
+        <div className="delete-modal-overlay" onClick={() => {
+          setShowContractModal(false);
+          setSelectedDealForWorkflow(null);
+        }}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-header">
+              <h3>Send Contract</h3>
+            </div>
+            <div className="delete-modal-content">
+              <p style={{ marginBottom: '16px' }}>Select a contract from your documents:</p>
+              <div className="document-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {currentUser.documents && currentUser.documents.filter(d => d.category === 'contracts').length > 0 ? (
+                  currentUser.documents
+                    .filter(d => d.category === 'contracts')
+                    .map(doc => (
+                      <div
+                        key={doc.id}
+                        className="document-item"
+                        style={{
+                          padding: '12px',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          borderRadius: '8px',
+                          marginBottom: '8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onClick={async () => {
+                          try {
+                            await apiService.sendContract(
+                              selectedDealForWorkflow._id,
+                              currentUser._id,
+                              doc
+                            );
+                            setShowContractModal(false);
+                            setSelectedDealForWorkflow(null);
+                            fetchDeals();
+                          } catch (err) {
+                            alert(err.message || 'Failed to send contract');
+                          }
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(255, 51, 102, 0.1)';
+                          e.currentTarget.style.borderColor = 'var(--primary-pink)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                        }}
+                      >
+                        <div style={{ fontWeight: '600', marginBottom: '4px' }}>{doc.title}</div>
+                        <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>
+                          {new Date(doc.uploadedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))
+                ) : (
+                  <p style={{ color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', padding: '20px' }}>
+                    No contracts available. Please add contracts to your profile first.
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="delete-modal-actions">
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  setShowContractModal(false);
+                  setSelectedDealForWorkflow(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Document Modal */}
+      {showDocumentModal && selectedDealForWorkflow && documentTypeToShare && (
+        <div className="delete-modal-overlay" onClick={() => {
+          setShowDocumentModal(false);
+          setSelectedDealForWorkflow(null);
+          setDocumentTypeToShare(null);
+        }}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-header">
+              <h3>Share {documentTypeToShare === 'pressKit' ? 'Press Kit' : 'Technical Rider'}</h3>
+            </div>
+            <div className="delete-modal-content">
+              <p style={{ marginBottom: '16px' }}>Select a document to share:</p>
+              <div className="document-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {currentUser.documents && currentUser.documents.filter(d => d.category === documentTypeToShare).length > 0 ? (
+                  currentUser.documents
+                    .filter(d => d.category === documentTypeToShare)
+                    .map(doc => (
+                      <div
+                        key={doc.id}
+                        className="document-item"
+                        style={{
+                          padding: '12px',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          borderRadius: '8px',
+                          marginBottom: '8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onClick={async () => {
+                          try {
+                            await apiService.shareDocument(
+                              selectedDealForWorkflow._id,
+                              currentUser._id,
+                              documentTypeToShare,
+                              doc
+                            );
+                            setShowDocumentModal(false);
+                            setSelectedDealForWorkflow(null);
+                            setDocumentTypeToShare(null);
+                            fetchDeals();
+                          } catch (err) {
+                            alert(err.message || 'Failed to share document');
+                          }
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(255, 51, 102, 0.1)';
+                          e.currentTarget.style.borderColor = 'var(--primary-pink)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                        }}
+                      >
+                        <div style={{ fontWeight: '600', marginBottom: '4px' }}>{doc.title}</div>
+                        <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>
+                          {new Date(doc.uploadedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))
+                ) : (
+                  <p style={{ color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', padding: '20px' }}>
+                    No {documentTypeToShare === 'pressKit' ? 'press kits' : 'technical riders'} available.
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="delete-modal-actions">
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  setShowDocumentModal(false);
+                  setSelectedDealForWorkflow(null);
+                  setDocumentTypeToShare(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Payment Modal */}
+      {showPaymentModal && selectedDealForWorkflow && (
+        <div className="delete-modal-overlay" onClick={() => {
+          setShowPaymentModal(false);
+          setSelectedDealForWorkflow(null);
+        }}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-header">
+              <h3>Update Payment Status</h3>
+            </div>
+            <div className="delete-modal-content">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <button
+                  className="btn btn-outline"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                  onClick={async () => {
+                    try {
+                      await apiService.updatePayment(
+                        selectedDealForWorkflow._id,
+                        currentUser._id,
+                        {
+                          depositAmount: selectedDealForWorkflow.currentFee / 2,
+                          paymentMethod: 'Bank Transfer'
+                        }
+                      );
+                      setShowPaymentModal(false);
+                      setSelectedDealForWorkflow(null);
+                      fetchDeals();
+                    } catch (err) {
+                      alert(err.message || 'Failed to update payment');
+                    }
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  </svg>
+                  Mark Deposit Paid (50%)
+                </button>
+                <button
+                  className="btn btn-primary"
+                  style={{ width: '100%', justifyContent: 'center' }}
+                  onClick={async () => {
+                    try {
+                      await apiService.updatePayment(
+                        selectedDealForWorkflow._id,
+                        currentUser._id,
+                        {
+                          fullPayment: true,
+                          paymentMethod: 'Bank Transfer'
+                        }
+                      );
+                      setShowPaymentModal(false);
+                      setSelectedDealForWorkflow(null);
+                      fetchDeals();
+                    } catch (err) {
+                      alert(err.message || 'Failed to update payment');
+                    }
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 17l6 6 13-13"></path>
+                  </svg>
+                  Mark Full Payment Complete
+                </button>
+              </div>
+            </div>
+            <div className="delete-modal-actions">
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setSelectedDealForWorkflow(null);
+                }}
+              >
+                Cancel
               </button>
             </div>
           </div>
