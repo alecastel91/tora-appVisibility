@@ -41,14 +41,18 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
   // Fetch full artist profile when agent selects an artist
   const handleSelectArtist = async (artist) => {
+    console.log('[ChatScreen] handleSelectArtist called with artist:', artist);
     setLoadingArtistDocs(true);
     try {
       // Fetch full profile data with documents
       const artistProfileId = artist.profileId || artist.id || artist._id;
-      const fullProfile = await apiService.getProfileById(artistProfileId);
+      console.log('[ChatScreen] Fetching profile for artistProfileId:', artistProfileId);
+      const fullProfile = await apiService.getProfile(artistProfileId);
+      console.log('[ChatScreen] Fetched full profile:', fullProfile);
+      console.log('[ChatScreen] Profile documents:', fullProfile.documents);
       setSelectedArtistForDocs(fullProfile);
     } catch (error) {
-      console.error('Error fetching artist profile:', error);
+      console.error('[ChatScreen] Error fetching artist profile:', error);
       // Fallback to basic artist data if fetch fails
       setSelectedArtistForDocs(artist);
     } finally {
