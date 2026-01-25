@@ -20,6 +20,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedDealForWorkflow, setSelectedDealForWorkflow] = useState(null);
   const [documentTypeToShare, setDocumentTypeToShare] = useState(null);
+  const [artistProfile, setArtistProfile] = useState(null); // For agent bookings
 
   useEffect(() => {
     fetchDeals();
@@ -33,6 +34,25 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showContractModal, showDocumentModal]);
+
+  // Fetch artist profile when contract modal opens for agent bookings
+  useEffect(() => {
+    const fetchArtistProfile = async () => {
+      if (showContractModal && selectedDealForWorkflow && selectedDealForWorkflow.artistId) {
+        try {
+          const profile = await apiService.getProfile(selectedDealForWorkflow.artistId);
+          setArtistProfile(profile);
+        } catch (err) {
+          console.error('Failed to fetch artist profile:', err);
+          setArtistProfile(null);
+        }
+      } else {
+        setArtistProfile(null);
+      }
+    };
+    fetchArtistProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showContractModal, selectedDealForWorkflow]);
 
   const fetchDeals = async () => {
     if (!currentUser || !currentUser._id) {
@@ -707,10 +727,17 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               <h3>Send Contract</h3>
             </div>
             <div className="delete-modal-content">
-              <p style={{ marginBottom: '16px' }}>Select a contract from your documents:</p>
+              <p style={{ marginBottom: '16px' }}>
+                {artistProfile ? `Select a contract from ${artistProfile.name}'s documents:` : 'Select a contract from your documents:'}
+              </p>
               <div className="document-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {currentUser.documents?.contracts && Array.isArray(currentUser.documents.contracts) && currentUser.documents.contracts.length > 0 ? (
-                  currentUser.documents.contracts.map(doc => (
+                {(() => {
+                  // Use artist's documents if available (agent booking), otherwise use current user's
+                  const documentsSource = artistProfile || currentUser;
+                  const contracts = documentsSource.documents?.contracts;
+
+                  return contracts && Array.isArray(contracts) && contracts.length > 0 ? (
+                    contracts.map(doc => (
                       <div
                         key={doc.id}
                         className="document-item"
@@ -751,11 +778,12 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                         </div>
                       </div>
                     ))
-                ) : (
-                  <p style={{ color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', padding: '20px' }}>
-                    No contracts available. Please add contracts to your profile first.
-                  </p>
-                )}
+                  ) : (
+                    <p style={{ color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', padding: '20px' }}>
+                      No contracts available. Please add contracts to {artistProfile ? `${artistProfile.name}'s` : 'your'} profile first.
+                    </p>
+                  );
+                })()}
               </div>
             </div>
             <div className="delete-modal-actions">
