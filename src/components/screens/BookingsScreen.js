@@ -4,7 +4,7 @@ import apiService from '../../services/api';
 import WorkflowTimeline from '../common/WorkflowTimeline';
 
 const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
-  const { user: currentUser } = useAppContext();
+  const { user: currentUser, reloadProfileData } = useAppContext();
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming', 'past', or 'declined'
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +25,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     fetchDeals();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
+
+  // Reload profile data when contract or document modal opens to get latest documents
+  useEffect(() => {
+    if (showContractModal || showDocumentModal) {
+      reloadProfileData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showContractModal, showDocumentModal]);
 
   const fetchDeals = async () => {
     if (!currentUser || !currentUser._id) {
