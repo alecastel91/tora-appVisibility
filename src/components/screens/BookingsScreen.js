@@ -701,7 +701,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
             <div className="delete-modal-content">
               <p style={{ marginBottom: '16px' }}>Select a contract from your documents:</p>
               <div className="document-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {currentUser.documents && currentUser.documents.filter(d => d.category === 'contracts').length > 0 ? (
+                {currentUser.documents && Array.isArray(currentUser.documents) && currentUser.documents.filter(d => d.category === 'contracts').length > 0 ? (
                   currentUser.documents
                     .filter(d => d.category === 'contracts')
                     .map(doc => (
@@ -781,7 +781,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
             <div className="delete-modal-content">
               <p style={{ marginBottom: '16px' }}>Select a document to share:</p>
               <div className="document-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {currentUser.documents && currentUser.documents.filter(d => d.category === documentTypeToShare).length > 0 ? (
+                {currentUser.documents && Array.isArray(currentUser.documents) && currentUser.documents.filter(d => d.category === documentTypeToShare).length > 0 ? (
                   currentUser.documents
                     .filter(d => d.category === documentTypeToShare)
                     .map(doc => (
