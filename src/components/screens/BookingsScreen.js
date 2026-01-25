@@ -697,18 +697,6 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
       )}
 
       {/* Send Contract Modal */}
-      {showContractModal && selectedDealForWorkflow && (() => {
-        console.log('[BookingsScreen] Send Contract Modal - currentUser:', currentUser);
-        console.log('[BookingsScreen] currentUser.documents:', currentUser.documents);
-        console.log('[BookingsScreen] Is documents array?', Array.isArray(currentUser.documents));
-        if (currentUser.documents && Array.isArray(currentUser.documents)) {
-          console.log('[BookingsScreen] Documents count:', currentUser.documents.length);
-          console.log('[BookingsScreen] All documents:', currentUser.documents);
-          const contracts = currentUser.documents.filter(d => d.category === 'contracts');
-          console.log('[BookingsScreen] Contract documents:', contracts);
-        }
-        return null;
-      })()}
       {showContractModal && selectedDealForWorkflow && (
         <div className="delete-modal-overlay" onClick={() => {
           setShowContractModal(false);
