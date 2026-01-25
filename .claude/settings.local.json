@@ -72,7 +72,8 @@
       "Bash(sudo env PATH=$PATH:/opt/homebrew/Cellar/node/24.10.0/bin /opt/homebrew/lib/node_modules/pm2/bin/pm2 startup:*)",
       "Bash(pm2 status:*)",
       "Bash(pm2 logs:*)",
-      "Bash(open \"http://192.168.2.108:3001\")"
+      "Bash(open \"http://192.168.2.108:3001\")",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

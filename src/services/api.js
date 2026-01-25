@@ -524,6 +524,61 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // BOOKING WORKFLOW ENDPOINTS
+  async sendContract(dealId, profileId, documentData) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/send-contract`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({
+        profileId,
+        documentId: documentData.id,
+        documentUrl: documentData.url,
+        documentTitle: documentData.title
+      })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async signContract(dealId, profileId) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/sign-contract`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async shareDocument(dealId, profileId, documentType, documentData) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/share-document`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({
+        profileId,
+        documentType,
+        documentId: documentData.id,
+        documentUrl: documentData.url,
+        documentTitle: documentData.title
+      })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async updatePayment(dealId, profileId, paymentData) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/update-payment`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({
+        profileId,
+        ...paymentData
+      })
+    });
+
+    return this.handleResponse(response);
+  }
+
   async convertCurrency(amount, fromCurrency, toCurrency) {
     const response = await fetch(`${API_URL}/currency/convert`, {
       method: 'POST',
