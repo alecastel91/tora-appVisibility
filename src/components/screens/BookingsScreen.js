@@ -697,6 +697,18 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
       )}
 
       {/* Send Contract Modal */}
+      {showContractModal && selectedDealForWorkflow && (() => {
+        console.log('[BookingsScreen] Send Contract Modal - currentUser:', currentUser);
+        console.log('[BookingsScreen] currentUser.documents:', currentUser.documents);
+        console.log('[BookingsScreen] Is documents array?', Array.isArray(currentUser.documents));
+        if (currentUser.documents && Array.isArray(currentUser.documents)) {
+          console.log('[BookingsScreen] Documents count:', currentUser.documents.length);
+          console.log('[BookingsScreen] All documents:', currentUser.documents);
+          const contracts = currentUser.documents.filter(d => d.category === 'contracts');
+          console.log('[BookingsScreen] Contract documents:', contracts);
+        }
+        return null;
+      })()}
       {showContractModal && selectedDealForWorkflow && (
         <div className="delete-modal-overlay" onClick={() => {
           setShowContractModal(false);
@@ -709,10 +721,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
             <div className="delete-modal-content">
               <p style={{ marginBottom: '16px' }}>Select a contract from your documents:</p>
               <div className="document-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {currentUser.documents && Array.isArray(currentUser.documents) && currentUser.documents.filter(d => d.category === 'contracts').length > 0 ? (
-                  currentUser.documents
-                    .filter(d => d.category === 'contracts')
-                    .map(doc => (
+                {currentUser.documents?.contracts && Array.isArray(currentUser.documents.contracts) && currentUser.documents.contracts.length > 0 ? (
+                  currentUser.documents.contracts.map(doc => (
                       <div
                         key={doc.id}
                         className="document-item"
@@ -789,10 +799,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
             <div className="delete-modal-content">
               <p style={{ marginBottom: '16px' }}>Select a document to share:</p>
               <div className="document-list" style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {currentUser.documents && Array.isArray(currentUser.documents) && currentUser.documents.filter(d => d.category === documentTypeToShare).length > 0 ? (
-                  currentUser.documents
-                    .filter(d => d.category === documentTypeToShare)
-                    .map(doc => (
+                {currentUser.documents?.[documentTypeToShare] && Array.isArray(currentUser.documents[documentTypeToShare]) && currentUser.documents[documentTypeToShare].length > 0 ? (
+                  currentUser.documents[documentTypeToShare].map(doc => (
                       <div
                         key={doc.id}
                         className="document-item"
