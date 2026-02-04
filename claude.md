@@ -264,6 +264,41 @@ tora-app/
 - Efficient list rendering
 - Touch event optimization for mobile
 
+## Recent Updates (February 4, 2026)
+
+### Contract Sending - Select Existing Contracts Feature
+- **AddContractModal Enhancement**: Added third tab to select existing contracts from user's Documents
+  - **"Select Existing" Tab**: New tab appears first when user has saved contracts in their documents
+  - **Contract Selection UI**:
+    - Scrollable list of all contracts from `user.documents.contracts`
+    - Each contract shows checkbox, title, URL, and document icon
+    - Hover effects and selection highlighting (pink background when selected)
+    - Clean, intuitive interface for quick selection
+  - **Automatic Tab Priority**: Modal defaults to "Select Existing" if contracts exist, otherwise "Upload PDF"
+  - **Submit Button Update**: Changes to "Send Contract" when using existing contracts
+  - **Validation**: Ensures a contract is selected before sending
+
+- **ChatScreen Integration**:
+  - Updated AddContractModal to receive `existingContracts` prop from `currentUser.documents.contracts`
+  - Contract modal in chat now shows all saved contracts for easy selection
+  - Available when sending contracts after accepting offers
+
+- **BookingsScreen Integration**:
+  - Updated AddContractModal to receive `existingContracts` prop from `currentUser.documents.contracts`
+  - Contract modal in bookings now shows all saved contracts for easy selection
+  - Available when sending contracts for accepted deals
+
+- **Benefits**:
+  - **Reusability**: No need to re-upload standard contracts for each booking
+  - **Consistency**: Ensures same contract template used across bookings
+  - **Efficiency**: Faster workflow - select and send instead of uploading each time
+  - **Centralized Management**: All contracts managed in Profile → Manage → Documents tab
+
+- **Files Modified**:
+  - [AddContractModal.js](src/components/common/AddContractModal.js): Added third tab with contract selection UI
+  - [ChatScreen.js:2369](src/components/screens/ChatScreen.js#L2369): Added existingContracts prop
+  - [BookingsScreen.js:996](src/components/screens/BookingsScreen.js#L996): Added existingContracts prop
+
 ## Recent Updates (January 22, 2026)
 
 ### Representation Management Enhancements

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CloseIcon, CalendarIcon, DollarIcon, TrendingUpIcon, HandshakeIcon, ImageIcon, SlidersIcon, FileTextIcon } from '../../utils/icons';
 import CalendarScreen from './CalendarScreen';
+import AddContractModal from '../common/AddContractModal';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
 
@@ -481,7 +482,7 @@ const ManageProfileScreen = ({ onClose }) => {
               className="btn btn-primary btn-sm"
               onClick={() => handleAddDocument(category)}
             >
-              + Add Link
+              + Add
             </button>
           )}
         </div>
@@ -508,7 +509,7 @@ const ManageProfileScreen = ({ onClose }) => {
                 fontSize: '14px'
               }}
             >
-              + Add Link
+              + Add
             </button>
           </div>
         ) : (
@@ -539,7 +540,7 @@ const ManageProfileScreen = ({ onClose }) => {
                         color: '#666',
                         fontSize: '12px'
                       }}>
-                        Added {new Date(doc.addedDate).toLocaleDateString()}
+                        + Added {new Date(doc.addedDate).toLocaleDateString()}
                       </div>
                     )}
                   </div>
@@ -569,8 +570,8 @@ const ManageProfileScreen = ({ onClose }) => {
 
     return (
       <div className="artist-info-tab">
-        {renderDocCategory('pressKit', <ImageIcon />, 'Press Kit', 'Add links to press photos, bio, EPK, or music samples')}
-        {renderDocCategory('technicalRider', <SlidersIcon />, 'Technical Rider', 'Add links to tech rider, stage plot, or hospitality requirements')}
+        {renderDocCategory('pressKit', <ImageIcon />, 'Press Kit', 'Add press photos, bio, EPK, or music samples')}
+        {renderDocCategory('technicalRider', <SlidersIcon />, 'Technical Rider', 'Add tech rider, stage plot, or hospitality requirements')}
         {renderDocCategory('contracts', <FileTextIcon />, 'Contracts', 'Add contract templates. These can be customized per booking.')}
       </div>
     );
@@ -630,82 +631,67 @@ const ManageProfileScreen = ({ onClose }) => {
       </div>
 
       {/* Add/Edit Document Modal */}
-      {showAddDocModal && (
-        <div className="modal-overlay" onClick={() => setShowAddDocModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-            <div style={{ padding: '20px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <h3 style={{ margin: 0 }}>
-                {editingDoc ? `Edit ${getCategoryLabel(docCategory)}` : `Add ${getCategoryLabel(docCategory)}`}
-              </h3>
-            </div>
-            <div style={{ padding: '20px' }}>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#fff', fontSize: '14px' }}>
-                  Document Title *
-                </label>
-                <input
-                  type="text"
-                  value={newDoc.title}
-                  onChange={(e) => setNewDoc({ ...newDoc, title: e.target.value })}
-                  placeholder="e.g., Press Photos 2024, Tech Rider, Standard Contract"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
+      <AddContractModal
+        isOpen={showAddDocModal}
+        category={docCategory}
+        categoryLabel={getCategoryLabel(docCategory)}
+        initialTitle={editingDoc?.title || ''}
+        initialUrl={editingDoc?.url || ''}
+        initialType={editingDoc?.type || 'upload'}
+        existingFileName={editingDoc?.file?.name || editingDoc?.title || ''}
+        onClose={() => {
+          setShowAddDocModal(false);
+          setNewDoc({ title: '', url: '' });
+          setEditingDoc(null);
+        }}
+        onSave={async (documentData) => {
+          console.log('[ManageProfileScreen] Document data:', documentData);
 
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', color: '#fff', fontSize: '14px' }}>
-                  Document URL *
-                </label>
-                <input
-                  type="url"
-                  value={newDoc.url}
-                  onChange={(e) => setNewDoc({ ...newDoc, url: e.target.value })}
-                  placeholder="https://drive.google.com/... or https://dropbox.com/..."
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '14px'
-                  }}
-                />
-                <div style={{ marginTop: '8px', fontSize: '12px', color: '#888' }}>
-                  Add links to Google Drive, Dropbox, WeTransfer, or any cloud storage
-                </div>
-              </div>
+          const updatedDocuments = { ...documents };
 
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button
-                  className="btn btn-outline"
-                  onClick={() => {
-                    setShowAddDocModal(false);
-                    setNewDoc({ title: '', url: '' });
-                    setEditingDoc(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={handleSaveDocument}
-                >
-                  {editingDoc ? 'Save Changes' : 'Add Document'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+          if (editingDoc) {
+            // Edit existing document
+            const index = updatedDocuments[docCategory].findIndex(d => d.id === editingDoc.id);
+            if (index !== -1) {
+              updatedDocuments[docCategory][index] = {
+                ...editingDoc,
+                title: documentData.title,
+                url: documentData.type === 'link' ? documentData.url : null,
+                file: documentData.type === 'upload' ? (documentData.keepExistingFile ? editingDoc.file : documentData.file) : null,
+                type: documentData.type // 'upload' or 'link'
+              };
+            }
+          } else {
+            // Add new document
+            const newDocument = {
+              id: Date.now().toString(),
+              title: documentData.title,
+              url: documentData.type === 'link' ? documentData.url : null,
+              file: documentData.type === 'upload' ? documentData.file : null,
+              type: documentData.type, // 'upload' or 'link'
+              addedDate: new Date().toISOString()
+            };
+            updatedDocuments[docCategory].push(newDocument);
+          }
+
+          console.log('[ManageProfileScreen] Updated documents:', updatedDocuments);
+          setDocuments(updatedDocuments);
+
+          // Save to backend
+          try {
+            await apiService.updateProfile(user._id, { documents: updatedDocuments });
+            await reloadProfileData();
+            alert('Document added successfully!');
+          } catch (error) {
+            console.error('[ManageProfileScreen] Error saving document:', error);
+            alert('Failed to save document. Please try again.');
+          }
+
+          setShowAddDocModal(false);
+          setNewDoc({ title: '', url: '' });
+          setEditingDoc(null);
+        }}
+      />
     </div>
   );
 };

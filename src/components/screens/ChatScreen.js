@@ -2,7 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import apiService from '../../services/api';
+import contractService from '../../services/contractService';
 import MakeOfferModal from '../common/MakeOfferModal';
+import SignContractModal from '../common/SignContractModal';
+import ContractViewer from '../common/ContractViewer';
+import AddContractModal from '../common/AddContractModal';
 
 const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   const { user: currentUser, sendMessage, connectedUsers, reloadProfileData } = useAppContext();
@@ -36,6 +40,10 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   const [showDocumentPicker, setShowDocumentPicker] = useState(false);
   const [selectedArtistForDocs, setSelectedArtistForDocs] = useState(null);
   const [loadingArtistDocs, setLoadingArtistDocs] = useState(false);
+  const [showSignContractModal, setShowSignContractModal] = useState(false);
+  const [showContractViewer, setShowContractViewer] = useState(false);
+  const [selectedContractData, setSelectedContractData] = useState(null);
+  const [showAddContractModal, setShowAddContractModal] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -589,6 +597,69 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     return false;
   };
 
+  // Filter messages to show workflow stages instead of all messages
+  // For each dealId, only show the latest stage (contract > acceptance > offer)
+  const getFilteredMessages = () => {
+    // Group messages by dealId
+    const dealMessages = {};
+    const nonDealMessages = [];
+
+    console.log('🔍 ChatScreen: Filtering messages, total:', userMessages.length);
+
+    userMessages.forEach(msg => {
+      if (msg.dealId) {
+        if (!dealMessages[msg.dealId]) {
+          dealMessages[msg.dealId] = [];
+        }
+        dealMessages[msg.dealId].push(msg);
+        console.log('  Deal message:', {
+          dealId: msg.dealId,
+          text: msg.text?.substring(0, 50),
+          hasDoc: !!msg.documentAttachment,
+          docCategory: msg.documentAttachment?.category
+        });
+      } else {
+        nonDealMessages.push(msg);
+      }
+    });
+
+    // For each deal, determine which message to show
+    const filteredDealMessages = [];
+    Object.keys(dealMessages).forEach(dealId => {
+      const messages = dealMessages[dealId];
+      console.log(`  📋 Deal ${dealId}: ${messages.length} messages`);
+
+      // Priority: contract > acceptance > offer
+      const contractMsg = messages.find(m => m.documentAttachment && m.documentAttachment.category === 'contracts');
+      const acceptanceMsg = messages.find(m => m.text && m.text.includes('Booking Confirmed!'));
+      const offerMsg = messages.find(m => m.text && m.text.includes('New Booking Offer'));
+
+      console.log(`    Contract: ${!!contractMsg}, Acceptance: ${!!acceptanceMsg}, Offer: ${!!offerMsg}`);
+
+      // Show the highest priority message
+      if (contractMsg) {
+        console.log('    ✅ Showing CONTRACT message');
+        filteredDealMessages.push(contractMsg);
+      } else if (acceptanceMsg) {
+        console.log('    ✅ Showing ACCEPTANCE message');
+        filteredDealMessages.push(acceptanceMsg);
+      } else if (offerMsg) {
+        console.log('    ✅ Showing OFFER message');
+        filteredDealMessages.push(offerMsg);
+      }
+    });
+
+    // Combine and sort by timestamp
+    const allMessages = [...nonDealMessages, ...filteredDealMessages];
+    allMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    console.log('🔍 Final filtered messages:', allMessages.length);
+
+    return allMessages;
+  };
+
+  const filteredMessages = getFilteredMessages();
+
   return (
     <div className="chat-screen active">
       <div className="chat-header">
@@ -629,15 +700,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       )}
 
       <div className="chat-messages">
-        {userMessages.length === 0 && (
+        {filteredMessages.length === 0 && (
           <div className="chat-empty">
             <p>{t('messages.startConversationWith')} {user.name}</p>
             <span>{t('messages.sendMessageToBegin')}</span>
           </div>
         )}
-        {userMessages.map((msg, index) => (
+        {filteredMessages.map((msg, index) => (
           <React.Fragment key={index}>
-            {shouldShowDateSeparator(msg, userMessages[index - 1]) && (
+            {shouldShowDateSeparator(msg, filteredMessages[index - 1]) && (
               <div className="date-separator">
                 <span>{formatDateSeparator(msg.timestamp)}</span>
               </div>
@@ -728,6 +799,125 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   </div>
                 );
               })()
+            ) : msg.documentAttachment && msg.documentAttachment.category === 'contracts' && msg.dealId ? (
+              // Contract workflow card
+              <div className="message-with-timestamp">
+                <div className="offer-card-message">
+                  <div className="offer-card-content" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '6px', gap: '12px' }}>
+                      <div className="offer-card-icon" style={{ backgroundColor: 'rgba(138, 43, 226, 0.15)' }}>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                          <polyline points="14 2 14 8 20 8"></polyline>
+                          <line x1="16" y1="13" x2="8" y2="13"></line>
+                          <line x1="16" y1="17" x2="8" y2="17"></line>
+                          <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                      </div>
+                      <div className="offer-card-text">
+                        <p className="offer-card-name">{msg.isMe ? 'You' : user.name}</p>
+                        <p className="offer-card-action">sent a contract</p>
+                      </div>
+                    </div>
+                    {!msg.isMe && (
+                      <div style={{ display: 'flex', gap: '6px', width: '100%' }}>
+                        <a
+                          href={msg.documentAttachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-outline"
+                          style={{
+                            flex: 1,
+                            fontWeight: '600',
+                            fontSize: '11px',
+                            padding: '8px 10px',
+                            textDecoration: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          Open
+                        </a>
+                        <button
+                          className="btn btn-primary"
+                          style={{
+                            flex: 1,
+                            fontWeight: '600',
+                            fontSize: '11px',
+                            padding: '8px 10px'
+                          }}
+                          onClick={() => {
+                            setSelectedContractData({
+                              dealId: msg.dealId,
+                              contractUrl: msg.documentAttachment.url,
+                              senderName: user.name
+                            });
+                            setShowSignContractModal(true);
+                          }}
+                        >
+                          ✓ Sign
+                        </button>
+                        <button
+                          className="btn btn-outline"
+                          style={{
+                            flex: 1,
+                            fontWeight: '600',
+                            fontSize: '11px',
+                            padding: '8px 10px',
+                            borderColor: 'rgba(255, 165, 0, 0.5)',
+                            color: 'rgba(255, 165, 0, 1)'
+                          }}
+                          onClick={() => {
+                            const comment = prompt('Please provide details about the modifications you need:');
+                            if (comment && comment.trim()) {
+                              alert('Modification request sent: ' + comment);
+                            }
+                          }}
+                        >
+                          ✎ Edit
+                        </button>
+                        <button
+                          className="btn btn-outline"
+                          style={{
+                            flex: 1,
+                            fontWeight: '600',
+                            fontSize: '11px',
+                            padding: '8px 10px',
+                            borderColor: 'rgba(255, 51, 51, 0.5)',
+                            color: 'rgba(255, 51, 51, 1)'
+                          }}
+                          onClick={async () => {
+                            if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+                              try {
+                                await apiService.cancelDeal(msg.dealId, currentUser._id);
+                                alert('Booking cancelled');
+                                await fetchMessages();
+                              } catch (err) {
+                                alert(err.message || 'Failed to cancel booking');
+                              }
+                            }
+                          }}
+                        >
+                          × Cancel
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  {msg.isMe && (
+                    <a
+                      href={msg.documentAttachment.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-outline btn-view-offer"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      View Contract
+                    </a>
+                  )}
+                </div>
+                <span className="message-timestamp">{formatMessageTime(msg.timestamp)}</span>
+              </div>
             ) : msg.isSystem && msg.dealId ? (
               (() => {
                 const dealStatus = dealStatuses[msg.dealId];
@@ -831,6 +1021,93 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       >
                         Open Document
                       </a>
+                      {!msg.isMe && msg.documentAttachment.category === 'contracts' && msg.dealId && (
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexDirection: 'column' }}>
+                          <button
+                            className="btn btn-primary"
+                            style={{
+                              width: '100%',
+                              fontWeight: '600',
+                              fontSize: '13px'
+                            }}
+                            onClick={async () => {
+                              try {
+                                await apiService.signContract(msg.dealId, currentUser._id);
+                                alert('Contract signed successfully!');
+                                // Refresh messages
+                                const response = await apiService.getMessageThread(currentUser._id, user._id);
+                                const transformedMessages = (response.messages || []).map(m => ({
+                                  text: m.text,
+                                  timestamp: m.createdAt,
+                                  isMe: m.from._id === currentUser._id,
+                                  isSystem: m.isSystemMessage || false,
+                                  dealId: m.dealId || null,
+                                  connectionRequestId: m.connectionRequest ? (m.connectionRequest._id || m.connectionRequest) : null,
+                                  documentAttachment: m.documentAttachment || null
+                                }));
+                                setUserMessages(transformedMessages);
+                              } catch (err) {
+                                alert(err.message || 'Failed to sign contract');
+                              }
+                            }}
+                          >
+                            ✓ Sign Contract
+                          </button>
+                          <button
+                            className="btn btn-outline"
+                            style={{
+                              width: '100%',
+                              fontWeight: '600',
+                              fontSize: '13px',
+                              borderColor: 'rgba(255, 165, 0, 0.5)',
+                              color: 'rgba(255, 165, 0, 1)'
+                            }}
+                            onClick={() => {
+                              const comment = prompt('Please provide details about the modifications you need:');
+                              if (comment && comment.trim()) {
+                                // TODO: Send modification request to backend
+                                alert('Modification request sent: ' + comment);
+                              }
+                            }}
+                          >
+                            ✎ Request Modification
+                          </button>
+                          <button
+                            className="btn btn-outline"
+                            style={{
+                              width: '100%',
+                              fontWeight: '600',
+                              fontSize: '13px',
+                              borderColor: 'rgba(255, 51, 51, 0.5)',
+                              color: 'rgba(255, 51, 51, 1)'
+                            }}
+                            onClick={async () => {
+                              if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+                                try {
+                                  await apiService.cancelDeal(msg.dealId, currentUser._id);
+                                  alert('Booking cancelled');
+                                  // Refresh messages
+                                  const response = await apiService.getMessageThread(currentUser._id, user._id);
+                                  const transformedMessages = (response.messages || []).map(m => ({
+                                    text: m.text,
+                                    timestamp: m.createdAt,
+                                    isMe: m.from._id === currentUser._id,
+                                    isSystem: m.isSystemMessage || false,
+                                    dealId: m.dealId || null,
+                                    connectionRequestId: m.connectionRequest ? (m.connectionRequest._id || m.connectionRequest) : null,
+                                    documentAttachment: m.documentAttachment || null
+                                  }));
+                                  setUserMessages(transformedMessages);
+                                } catch (err) {
+                                  alert(err.message || 'Failed to cancel booking');
+                                }
+                              }
+                            }}
+                          >
+                            × Cancel Booking
+                          </button>
+                        </div>
+                      )}
                       <span className="message-time">{formatMessageTime(msg.timestamp)}</span>
                     </div>
                   </div>
@@ -865,6 +1142,93 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     >
                       Open Document
                     </a>
+                    {!msg.isMe && msg.documentAttachment.category === 'contracts' && msg.dealId && (
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexDirection: 'column' }}>
+                        <button
+                          className="btn btn-primary"
+                          style={{
+                            width: '100%',
+                            fontWeight: '600',
+                            fontSize: '13px'
+                          }}
+                          onClick={async () => {
+                            try {
+                              await apiService.signContract(msg.dealId, currentUser._id);
+                              alert('Contract signed successfully!');
+                              // Refresh messages
+                              const response = await apiService.getMessageThread(currentUser._id, user._id);
+                              const transformedMessages = (response.messages || []).map(m => ({
+                                text: m.text,
+                                timestamp: m.createdAt,
+                                isMe: m.from._id === currentUser._id,
+                                isSystem: m.isSystemMessage || false,
+                                dealId: m.dealId || null,
+                                connectionRequestId: m.connectionRequest ? (m.connectionRequest._id || m.connectionRequest) : null,
+                                documentAttachment: m.documentAttachment || null
+                              }));
+                              setUserMessages(transformedMessages);
+                            } catch (err) {
+                              alert(err.message || 'Failed to sign contract');
+                            }
+                          }}
+                        >
+                          ✓ Sign Contract
+                        </button>
+                        <button
+                          className="btn btn-outline"
+                          style={{
+                            width: '100%',
+                            fontWeight: '600',
+                            fontSize: '13px',
+                            borderColor: 'rgba(255, 165, 0, 0.5)',
+                            color: 'rgba(255, 165, 0, 1)'
+                          }}
+                          onClick={() => {
+                            const comment = prompt('Please provide details about the modifications you need:');
+                            if (comment && comment.trim()) {
+                              // TODO: Send modification request to backend
+                              alert('Modification request sent: ' + comment);
+                            }
+                          }}
+                        >
+                          ✎ Request Modification
+                        </button>
+                        <button
+                          className="btn btn-outline"
+                          style={{
+                            width: '100%',
+                            fontWeight: '600',
+                            fontSize: '13px',
+                            borderColor: 'rgba(255, 51, 51, 0.5)',
+                            color: 'rgba(255, 51, 51, 1)'
+                          }}
+                          onClick={async () => {
+                            if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+                              try {
+                                await apiService.cancelDeal(msg.dealId, currentUser._id);
+                                alert('Booking cancelled');
+                                // Refresh messages
+                                const response = await apiService.getMessageThread(currentUser._id, user._id);
+                                const transformedMessages = (response.messages || []).map(m => ({
+                                  text: m.text,
+                                  timestamp: m.createdAt,
+                                  isMe: m.from._id === currentUser._id,
+                                  isSystem: m.isSystemMessage || false,
+                                  dealId: m.dealId || null,
+                                  connectionRequestId: m.connectionRequest ? (m.connectionRequest._id || m.connectionRequest) : null,
+                                  documentAttachment: m.documentAttachment || null
+                                }));
+                                setUserMessages(transformedMessages);
+                              } catch (err) {
+                                alert(err.message || 'Failed to cancel booking');
+                              }
+                            }
+                          }}
+                        >
+                          × Cancel Booking
+                        </button>
+                      </div>
+                    )}
                     <span className="message-time">{formatMessageTime(msg.timestamp)}</span>
                   </div>
                 )}
@@ -1161,8 +1525,27 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     </button>
                   </>
                 )
+              ) : selectedOffer && selectedOffer.status === 'ACCEPTED' ? (
+                // Show Send Contract and Close for accepted offers
+                <>
+                  <button
+                    className="btn btn-outline"
+                    onClick={() => setShowOfferDetails(false)}
+                  >
+                    Close
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => {
+                      setShowAddContractModal(true);
+                      setShowOfferDetails(false);
+                    }}
+                  >
+                    Send Contract
+                  </button>
+                </>
               ) : (
-                // Show Close for sent offers or already accepted/declined
+                // Show Close for sent offers or declined
                 <button
                   className="btn btn-outline"
                   onClick={() => setShowOfferDetails(false)}
@@ -1832,12 +2215,16 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               )}
 
               {/* Contract Documents */}
-              {docsSource.documents?.contracts && docsSource.documents.contracts.length > 0 && (
-                <div className="document-category-section" style={{ marginTop: '20px' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', color: '#FF3366' }}>
-                    Contracts
-                  </h4>
-                  <div className="document-list">
+              <div className="document-category-section" style={{ marginTop: '20px' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#FF3366' }}>
+                  Contracts
+                </h4>
+                <p style={{ fontSize: '12px', color: '#999', marginBottom: '12px', lineHeight: '1.5' }}>
+                  Upload PDF contracts to be signed within TORA, or paste links to external signing platforms (DocuSign, HelloSign, Adobe Sign, etc.)
+                </p>
+
+                {docsSource.documents?.contracts && docsSource.documents.contracts.length > 0 && (
+                  <div className="document-list" style={{ marginBottom: '12px' }}>
                     {docsSource.documents.contracts.map((doc) => (
                       <div key={doc.id} className="document-item" style={{
                         padding: '12px',
@@ -1865,8 +2252,31 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+
+                {/* Add New Contract Button */}
+                <button
+                  className="btn btn-outline"
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    fontSize: '13px',
+                    padding: '10px'
+                  }}
+                  onClick={() => setShowAddContractModal(true)}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="12" y1="11" x2="12" y2="17"></line>
+                    <line x1="9" y1="14" x2="15" y2="14"></line>
+                  </svg>
+                  Add Contract (PDF or Link)
+                </button>
+              </div>
 
               {/* No Documents Message */}
               {(!docsSource.documents?.pressKit || docsSource.documents.pressKit.length === 0) &&
@@ -1892,6 +2302,78 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Sign Contract Modal */}
+      {showSignContractModal && selectedContractData && (
+        <SignContractModal
+          isOpen={showSignContractModal}
+          onClose={() => {
+            setShowSignContractModal(false);
+            setSelectedContractData(null);
+          }}
+          onSign={async (signatureData) => {
+            try {
+              const token = localStorage.getItem('token');
+              await contractService.signContract(
+                selectedContractData.dealId,
+                currentUser._id,
+                signatureData,
+                token
+              );
+              alert('Contract signed successfully!');
+              await fetchMessages();
+              setShowSignContractModal(false);
+              setSelectedContractData(null);
+            } catch (err) {
+              throw new Error(err.message || 'Failed to sign contract');
+            }
+          }}
+          contractUrl={selectedContractData.contractUrl}
+          dealId={selectedContractData.dealId}
+          senderName={selectedContractData.senderName}
+        />
+      )}
+
+      {/* Contract Viewer Modal */}
+      {showContractViewer && selectedContractData && (
+        <ContractViewer
+          isOpen={showContractViewer}
+          onClose={() => {
+            setShowContractViewer(false);
+            setSelectedContractData(null);
+          }}
+          contractUrl={selectedContractData.contractUrl}
+          dealId={selectedContractData.dealId}
+          onTrackView={async (viewDuration) => {
+            try {
+              const token = localStorage.getItem('token');
+              await contractService.trackContractView(
+                selectedContractData.dealId,
+                currentUser._id,
+                viewDuration,
+                token
+              );
+            } catch (err) {
+              console.error('Failed to track contract view:', err);
+            }
+          }}
+        />
+      )}
+
+      {/* Add Contract Modal */}
+      {showAddContractModal && (
+        <AddContractModal
+          isOpen={showAddContractModal}
+          onClose={() => setShowAddContractModal(false)}
+          existingContracts={currentUser?.documents?.contracts || []}
+          onSave={async (contractData) => {
+            // TODO: Implement contract save to profile
+            console.log('Contract data:', contractData);
+            alert(`Contract "${contractData.title}" added! (Backend integration pending)`);
+            // This will be implemented to save to profile's documents.contracts array
+          }}
+        />
       )}
     </div>
   );

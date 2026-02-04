@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CloseIcon, CalendarIcon, DollarIcon, AlertIcon, FileIcon, MailIcon, TrendingUpIcon, BriefcaseIcon, PlaneIcon, ListIcon, EditIcon, TrashIcon, ImageIcon, SlidersIcon, FileTextIcon } from '../../utils/icons';
 import Modal from '../common/Modal';
 import RAEventsModal from '../common/RAEventsModal';
+import AddContractModal from '../common/AddContractModal';
 import { zones, countriesByZone, citiesByCountry, genresList } from '../../data/profiles';
 import apiService from '../../services/api';
 import { useAppContext } from '../../contexts/AppContext';
@@ -1765,7 +1766,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     const labels = {
       pressKit: 'Press Kit',
       technicalRider: 'Technical Rider',
-      contracts: 'Contracts'
+      contracts: 'Contract'
     };
     return labels[category] || category;
   };
@@ -1781,7 +1782,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
               className="btn btn-primary btn-sm"
               onClick={() => handleAddDocument(category)}
             >
-              + Add Link
+              + Add
             </button>
           )}
         </div>
@@ -1808,7 +1809,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
                 fontSize: '14px'
               }}
             >
-              + Add Link
+              + Add
             </button>
           </div>
         ) : (
@@ -1839,7 +1840,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
                         color: '#666',
                         fontSize: '12px'
                       }}>
-                        Added {new Date(doc.addedDate).toLocaleDateString()}
+                        + Added {new Date(doc.addedDate).toLocaleDateString()}
                       </div>
                     )}
                   </div>
@@ -1868,8 +1869,8 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
     return (
       <div className="artist-info-tab">
-        {renderDocCategory('pressKit', <ImageIcon />, 'Press Kit', 'Add links to press photos, bio, EPK, or music samples')}
-        {renderDocCategory('technicalRider', <SlidersIcon />, 'Technical Rider', 'Add links to tech rider, stage plot, or hospitality requirements')}
+        {renderDocCategory('pressKit', <ImageIcon />, 'Press Kit', 'Add press photos, bio, EPK, or music samples')}
+        {renderDocCategory('technicalRider', <SlidersIcon />, 'Technical Rider', 'Add tech rider, stage plot, or hospitality requirements')}
         {renderDocCategory('contracts', <FileTextIcon />, 'Contracts', 'Add contract templates. These can be customized per booking.')}
       </div>
     );
@@ -2467,7 +2468,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           className={`tab-button ${activeTab === 'info' ? 'active' : ''}`}
           onClick={() => setActiveTab('info')}
         >
-          Artist Info
+          Info
         </button>
         <button
           className={`tab-button ${activeTab === 'documents' ? 'active' : ''}`}
@@ -2594,7 +2595,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
               className="btn btn-primary"
               onClick={saveTravelSchedule}
             >
-              Add Schedule
+              + Add Schedule
             </button>
           </div>
         </div>
@@ -2910,81 +2911,71 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       />
 
       {/* Add/Edit Document Modal */}
-      <Modal
+      <AddContractModal
         isOpen={showAddDocModal}
+        category={docCategory}
+        categoryLabel={getCategoryLabel(docCategory)}
+        initialTitle={editingDoc?.title || ''}
+        initialUrl={editingDoc?.url || ''}
+        initialType={editingDoc?.type || 'upload'}
+        existingFileName={editingDoc?.file?.name || editingDoc?.title || ''}
         onClose={() => {
           setShowAddDocModal(false);
           setNewDoc({ title: '', url: '' });
           setEditingDoc(null);
         }}
-        title={editingDoc ? `Edit ${getCategoryLabel(docCategory)}` : `Add ${getCategoryLabel(docCategory)}`}
-      >
-        <div style={{ padding: '20px' }}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#fff', fontSize: '14px' }}>
-              Document Title *
-            </label>
-            <input
-              type="text"
-              value={newDoc.title}
-              onChange={(e) => setNewDoc({ ...newDoc, title: e.target.value })}
-              placeholder="e.g., Press Photos 2024, Tech Rider, Standard Contract"
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '8px',
-                color: '#fff',
-                fontSize: '14px'
-              }}
-            />
-          </div>
+        onSave={async (documentData) => {
+          console.log('[ManageArtistScreen] Document data:', documentData);
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#fff', fontSize: '14px' }}>
-              Document URL *
-            </label>
-            <input
-              type="url"
-              value={newDoc.url}
-              onChange={(e) => setNewDoc({ ...newDoc, url: e.target.value })}
-              placeholder="https://drive.google.com/... or https://dropbox.com/..."
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '8px',
-                color: '#fff',
-                fontSize: '14px'
-              }}
-            />
-            <div style={{ marginTop: '8px', fontSize: '12px', color: '#888' }}>
-              💡 Add links to Google Drive, Dropbox, WeTransfer, or any cloud storage
-            </div>
-          </div>
+          const updatedDocuments = { ...documents };
 
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-            <button
-              className="btn btn-outline"
-              onClick={() => {
-                setShowAddDocModal(false);
-                setNewDoc({ title: '', url: '' });
-                setEditingDoc(null);
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              className="btn btn-primary"
-              onClick={handleSaveDocument}
-            >
-              {editingDoc ? 'Save Changes' : 'Add Document'}
-            </button>
-          </div>
-        </div>
-      </Modal>
+          if (editingDoc) {
+            // Edit existing document
+            const index = updatedDocuments[docCategory].findIndex(d => d.id === editingDoc.id);
+            if (index !== -1) {
+              updatedDocuments[docCategory][index] = {
+                ...editingDoc,
+                title: documentData.title,
+                url: documentData.type === 'link' ? documentData.url : null,
+                file: documentData.type === 'upload' ? (documentData.keepExistingFile ? editingDoc.file : documentData.file) : null,
+                type: documentData.type // 'upload' or 'link'
+              };
+            }
+          } else {
+            // Add new document
+            const newDocument = {
+              id: Date.now().toString(),
+              title: documentData.title,
+              url: documentData.type === 'link' ? documentData.url : null,
+              file: documentData.type === 'upload' ? documentData.file : null,
+              type: documentData.type, // 'upload' or 'link'
+              addedDate: new Date().toISOString()
+            };
+            updatedDocuments[docCategory].push(newDocument);
+          }
+
+          console.log('[ManageArtistScreen] Updated documents:', updatedDocuments);
+          setDocuments(updatedDocuments);
+
+          // Save to backend
+          try {
+            const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+            if (artistId) {
+              await apiService.updateProfile(artistId, { documents: updatedDocuments });
+              const freshProfile = await apiService.getProfile(artistId);
+              setArtistProfile(freshProfile);
+              alert('Document added successfully!');
+            }
+          } catch (error) {
+            console.error('[ManageArtistScreen] Error saving document:', error);
+            alert('Failed to save document. Please try again.');
+          }
+
+          setShowAddDocModal(false);
+          setNewDoc({ title: '', url: '' });
+          setEditingDoc(null);
+        }}
+      />
     </div>
   );
 };

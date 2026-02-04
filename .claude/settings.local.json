@@ -73,7 +73,8 @@
       "Bash(pm2 status:*)",
       "Bash(pm2 logs:*)",
       "Bash(open \"http://192.168.2.108:3001\")",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(REACT_APP_API_URL=http://192.168.2.116:5001/api HOST=0.0.0.0 PORT=3001 npm start:*)"
     ],
     "deny": [],
     "ask": []

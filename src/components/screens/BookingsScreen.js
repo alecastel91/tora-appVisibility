@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
 import WorkflowTimeline from '../common/WorkflowTimeline';
+import AddContractModal from '../common/AddContractModal';
 
 const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const { user: currentUser, reloadProfileData } = useAppContext();
@@ -16,6 +17,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
   // Workflow state
   const [showContractModal, setShowContractModal] = useState(false);
+  const [showAddContractModal, setShowAddContractModal] = useState(false);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedDealForWorkflow, setSelectedDealForWorkflow] = useState(null);
@@ -398,22 +400,43 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               <div className="workflow-actions">
                 {/* Contract Actions */}
                 {(!deal.contract || deal.contract.status === 'NOT_SENT') && (
-                  <button
-                    className="btn btn-outline"
-                    onClick={() => {
-                      setSelectedDealForWorkflow(deal);
-                      setShowContractModal(true);
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                      <polyline points="14 2 14 8 20 8"></polyline>
-                      <line x1="16" y1="13" x2="8" y2="13"></line>
-                      <line x1="16" y1="17" x2="8" y2="17"></line>
-                      <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    Send Contract
-                  </button>
+                  <>
+                    <button
+                      className="btn btn-outline"
+                      onClick={() => {
+                        setSelectedDealForWorkflow(deal);
+                        setShowAddContractModal(true);
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                      </svg>
+                      Send Contract
+                    </button>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={async () => {
+                        if (window.confirm('Skip contract stage? You can still share documents and proceed with the booking.')) {
+                          try {
+                            await apiService.skipContract(deal._id, currentUser._id);
+                            fetchDeals();
+                          } catch (err) {
+                            alert(err.message || 'Failed to skip contract');
+                          }
+                        }
+                      }}
+                      style={{
+                        marginLeft: '8px',
+                        opacity: 0.7
+                      }}
+                    >
+                      Skip Contract
+                    </button>
+                  </>
                 )}
                 {deal.contract && deal.contract.status !== 'NOT_SENT' && deal.contract.status !== 'FULLY_SIGNED' && (
                   <button
@@ -774,13 +797,13 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                       >
                         <div style={{ fontWeight: '600', marginBottom: '4px' }}>{doc.title}</div>
                         <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>
-                          {new Date(doc.uploadedAt).toLocaleDateString()}
+                          {doc.addedDate ? new Date(doc.addedDate).toLocaleDateString() : 'No date'}
                         </div>
                       </div>
                     ))
                   ) : (
                     <p style={{ color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', padding: '20px' }}>
-                      No contracts available. Please add contracts to {artistProfile ? `${artistProfile.name}'s` : 'your'} profile first.
+                      No contracts available. Please add contracts to {artistProfile ? artistProfile.name + "'s" : 'your'} profile first.
                     </p>
                   );
                 })()}
@@ -855,7 +878,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                       >
                         <div style={{ fontWeight: '600', marginBottom: '4px' }}>{doc.title}</div>
                         <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>
-                          {new Date(doc.uploadedAt).toLocaleDateString()}
+                          {doc.addedDate ? new Date(doc.addedDate).toLocaleDateString() : 'No date'}
                         </div>
                       </div>
                     ))
@@ -962,6 +985,41 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Add Contract Modal */}
+      {showAddContractModal && selectedDealForWorkflow && (
+        <AddContractModal
+          isOpen={showAddContractModal}
+          category="contracts"
+          categoryLabel="Contract"
+          existingContracts={currentUser?.documents?.contracts || []}
+          onClose={() => {
+            setShowAddContractModal(false);
+            setSelectedDealForWorkflow(null);
+          }}
+          onSave={async (contractData) => {
+            try {
+              // Send the contract with the deal
+              await apiService.sendContract(
+                selectedDealForWorkflow._id,
+                currentUser._id,
+                {
+                  title: contractData.title,
+                  url: contractData.url,
+                  file: contractData.file,
+                  type: contractData.type
+                }
+              );
+              setShowAddContractModal(false);
+              setSelectedDealForWorkflow(null);
+              fetchDeals();
+              alert('Contract sent successfully!');
+            } catch (err) {
+              alert(err.message || 'Failed to send contract');
+            }
+          }}
+        />
       )}
     </div>
   );
