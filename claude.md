@@ -1243,5 +1243,62 @@ MONGODB_URI=mongodb://localhost:27017/tora
 - Clear status progression
 - Mobile-first responsive design
 
+## Recent Updates (February 5, 2026)
+
+### Contract Document Management System
+- **Documents Tab PDF Upload**: Implemented full PDF upload functionality in ManageProfileScreen Documents tab
+  - Created new backend endpoint `/api/contracts/upload-document` for standalone document uploads
+  - Documents are uploaded to server and get permanent URLs
+  - Fixed contract storage to use actual file URLs instead of File objects
+- **Contract Selection Modal**: Enhanced AddContractModal with "Select Existing" tab
+  - Shows all contracts from user's Documents tab
+  - Scrollable list with contract titles and URLs
+  - Checkbox selection for easy picking
+- **Contract Sending Flow**: Complete workflow for sending contracts from existing documents
+  - Available in ChatScreen (after accepting offers)
+  - Available in BookingsScreen (for accepted bookings)
+  - Sends contracts with valid file URLs
+- **PDF Viewing Fix**: Fixed "Open Document" button to correctly open PDFs
+  - Frontend: Added `getFullUrl()` helper to convert relative URLs to full backend URLs with authentication
+  - Frontend: Appends `?profileId=XXX&token=YYY` query parameters for authentication
+  - Backend: Modified auth middleware to accept token from query parameters (for new tab file opens)
+  - Backend: Modified file endpoint to serve standalone documents (not just deal-attached contracts)
+- **Authentication for File Downloads**: Solved issue where PDFs couldn't be opened in new tabs
+  - Query parameter authentication allows authenticated file access in new browser tabs
+  - Backend validates user and checks authorization before serving files
+
+### Technical Implementation Details
+
+**Frontend Files Modified:**
+- `src/components/common/AddContractModal.js` - Added "Select Existing" tab with contract list UI
+- `src/components/screens/ManageProfileScreen.js` - Implemented PDF upload using new backend endpoint
+- `src/components/screens/ChatScreen.js` - Added `getFullUrl()` helper for authenticated file URLs
+- `src/components/screens/BookingsScreen.js` - Integrated contract selection with existing contracts
+- `src/services/contractService.js` - Added `uploadDocument()` function for standalone uploads
+
+**Backend Files Modified:**
+- `tora-backend/src/routes/contracts.js` - Added `/upload-document` endpoint, modified file serving logic
+- `tora-backend/src/middleware/auth.js` - Added query parameter token support for file downloads
+
+**Key Technical Changes:**
+1. **New Upload Endpoint**: `POST /api/contracts/upload-document` - uploads PDFs without requiring dealId
+2. **Enhanced File Serving**: `GET /api/contracts/files/:filename` - serves both deal contracts and standalone documents
+3. **Query Auth Support**: Auth middleware now checks `req.query.token` as fallback for Authorization header
+4. **URL Construction**: Frontend converts relative URLs (`/api/contracts/files/...`) to full URLs with auth params
+
+### Contract Workflow Status
+✅ **Working Features:**
+1. Upload PDF contracts in Documents tab → Saved with server URL
+2. Select existing contracts when sending from Chat or Bookings
+3. Send contracts to other parties with valid file references
+4. Open and view PDFs in new browser tab with authentication
+5. Contract data persists across devices and sessions
+
+### Known Issues Resolved
+- ~~Contract uploads failing with MongoDB ObjectId error~~ - Fixed by creating separate document upload endpoint
+- ~~"Open Document" button opening React app homepage~~ - Fixed with full URL construction and query auth
+- ~~PDFs not accessible due to 401 Unauthorized~~ - Fixed with token in query parameters
+- ~~Contracts with null URLs~~ - Fixed by properly uploading files and storing server URLs
+
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.

@@ -1005,6 +1005,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 selectedDealForWorkflow._id,
                 currentUser._id,
                 {
+                  id: contractData.existingContract?.id || Date.now().toString(),
                   title: contractData.title,
                   url: contractData.url,
                   file: contractData.file,

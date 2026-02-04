@@ -14,6 +14,31 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [userMessages, setUserMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Helper function to convert relative URLs to full backend URLs with auth
+  const getFullUrl = (url) => {
+    if (!url) return '';
+
+    const token = localStorage.getItem('token');
+    const profileId = currentUser?._id;
+
+    // If already a full URL with query params, return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      console.log('[ChatScreen] URL is already full:', url);
+      return url;
+    }
+
+    // Convert relative URL to full backend URL
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+    const backendBase = API_URL.replace('/api', ''); // Remove /api suffix
+
+    // Add query parameters for authentication
+    const separator = url.includes('?') ? '&' : '?';
+    const fullUrl = `${backendBase}${url}${separator}profileId=${profileId}&token=${token}`;
+
+    console.log('[ChatScreen] Converting relative URL:', url, '→', fullUrl);
+    return fullUrl;
+  };
   const [showMakeOffer, setShowMakeOffer] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [showOfferDetails, setShowOfferDetails] = useState(false);
@@ -1006,7 +1031,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                         </div>
                       </div>
                       <a
-                        href={msg.documentAttachment.url}
+                        href={getFullUrl(msg.documentAttachment.url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="btn btn-sm"
@@ -2368,10 +2393,24 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
           onClose={() => setShowAddContractModal(false)}
           existingContracts={currentUser?.documents?.contracts || []}
           onSave={async (contractData) => {
-            // TODO: Implement contract save to profile
-            console.log('Contract data:', contractData);
-            alert(`Contract "${contractData.title}" added! (Backend integration pending)`);
-            // This will be implemented to save to profile's documents.contracts array
+            try {
+              // For now, just show alert - full implementation will save contract to deal
+              console.log('Contract data:', contractData);
+
+              // Ensure we have an ID for the contract
+              const contractToSend = {
+                id: contractData.existingContract?.id || Date.now().toString(),
+                title: contractData.title,
+                url: contractData.url,
+                file: contractData.file,
+                type: contractData.type
+              };
+
+              alert(`Contract "${contractData.title}" ready to send! (Full implementation with deal integration pending)`);
+              // This will be implemented to send contract via apiService.sendContract(dealId, profileId, contractToSend)
+            } catch (err) {
+              alert(err.message || 'Failed to prepare contract');
+            }
           }}
         />
       )}

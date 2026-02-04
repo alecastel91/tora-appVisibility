@@ -526,15 +526,30 @@ class ApiService {
 
   // BOOKING WORKFLOW ENDPOINTS
   async sendContract(dealId, profileId, documentData) {
+    console.log('[API Service] sendContract called with:', {
+      dealId,
+      profileId,
+      documentData
+    });
+
+    const payload = {
+      profileId,
+      documentId: documentData.id,
+      documentUrl: documentData.url,
+      documentTitle: documentData.title
+    };
+
+    console.log('[API Service] Sending payload:', payload);
+    console.log('[API Service] Validation check:', {
+      hasId: !!payload.documentId,
+      hasUrl: !!payload.documentUrl,
+      hasTitle: !!payload.documentTitle
+    });
+
     const response = await fetch(`${API_URL}/deals/${dealId}/send-contract`, {
       method: 'PUT',
       headers: this.getHeaders(),
-      body: JSON.stringify({
-        profileId,
-        documentId: documentData.id,
-        documentUrl: documentData.url,
-        documentTitle: documentData.title
-      })
+      body: JSON.stringify(payload)
     });
 
     return this.handleResponse(response);

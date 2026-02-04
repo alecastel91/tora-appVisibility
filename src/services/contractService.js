@@ -6,6 +6,34 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
  */
 
 /**
+ * Upload a document PDF (not tied to a deal)
+ * @param {File} file - The PDF file to upload
+ * @param {string} profileId - The profile ID uploading the document
+ * @param {string} token - Authentication token
+ * @returns {Promise<Object>} Upload response with document metadata
+ */
+export const uploadDocument = async (file, profileId, token) => {
+  const formData = new FormData();
+  formData.append('contract', file);
+  formData.append('profileId', profileId);
+
+  const response = await fetch(`${API_URL}/contracts/upload-document`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to upload document');
+  }
+
+  return response.json();
+};
+
+/**
  * Upload a contract PDF for a deal
  * @param {File} file - The PDF file to upload
  * @param {string} dealId - The deal ID
@@ -118,6 +146,7 @@ export const downloadSignedContract = (filename, profileId, token) => {
 };
 
 export default {
+  uploadDocument,
   uploadContract,
   getContractFileUrl,
   signContract,
