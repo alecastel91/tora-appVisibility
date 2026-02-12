@@ -47,7 +47,7 @@ export const countriesByZone = {
   'Europe': ['Albania', 'Armenia', 'Austria', 'Azerbaijan', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France', 'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Montenegro', 'Netherlands', 'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania', 'Russia', 'Scotland', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine', 'United Kingdom'],
   'Middle East': ['Afghanistan', 'Bahrain', 'Iran', 'Iraq', 'Israel', 'Jordan', 'Kuwait', 'Lebanon', 'Oman', 'Palestine', 'Qatar', 'Saudi Arabia', 'Syria', 'Turkey', 'UAE', 'Yemen'],
   'Africa': ['Algeria', 'Angola', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon', 'Congo', 'DR Congo', 'Egypt', 'Ethiopia', 'Ghana', 'Ivory Coast', 'Kenya', 'Libya', 'Mali', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda', 'Senegal', 'South Africa', 'Sudan', 'Tanzania', 'Tunisia', 'Uganda', 'Zimbabwe'],
-  'Asia': ['Bangladesh', 'Bhutan', 'Brunei', 'Cambodia', 'China', 'Hong Kong', 'India', 'Indonesia', 'Japan', 'Kazakhstan', 'Kyrgyzstan', 'Laos', 'Macao', 'Malaysia', 'Mongolia', 'Myanmar', 'Nepal', 'Pakistan', 'Philippines', 'Singapore', 'South Korea', 'Sri Lanka', 'Taiwan', 'Tajikistan', 'Thailand', 'Turkmenistan', 'Uzbekistan', 'Vietnam'],
+  'Asia': ['Bangladesh', 'Bhutan', 'Brunei', 'Cambodia', 'China', 'India', 'Indonesia', 'Japan', 'Kazakhstan', 'Kyrgyzstan', 'Laos', 'Macao', 'Malaysia', 'Mongolia', 'Myanmar', 'Nepal', 'Pakistan', 'Philippines', 'Singapore', 'South Korea', 'Sri Lanka', 'Taiwan', 'Tajikistan', 'Thailand', 'Turkmenistan', 'Uzbekistan', 'Vietnam'],
   'Oceania': ['Australia', 'Cook Islands', 'Fiji', 'French Polynesia', 'Guam', 'New Zealand', 'Papua New Guinea', 'Samoa', 'Tonga']
 };
 
@@ -159,7 +159,7 @@ export const citiesByCountry = {
 
   // Asia
   'Japan': ['Fukuoka', 'Hiroshima', 'Kobe', 'Kyoto', 'Nagoya', 'Osaka', 'Sapporo', 'Tokyo', 'Yokohama', 'Other'],
-  'China': ['Beijing', 'Chengdu', 'Guangzhou', 'Shanghai', 'Shenzhen', 'Other'],
+  'China': ['Beijing', 'Chengdu', 'Guangzhou', 'Hong Kong', 'Shanghai', 'Shenzhen', 'Other'],
   'South Korea': ['Busan', 'Daegu', 'Incheon', 'Seoul', 'Other'],
   'Thailand': ['Bangkok', 'Chiang Mai', 'Koh Samui', 'Pattaya', 'Phuket', 'Other'],
   'Indonesia': ['Bali', 'Bandung', 'Jakarta', 'Surabaya', 'Other'],
@@ -168,7 +168,6 @@ export const citiesByCountry = {
   'Malaysia': ['Johor Bahru', 'Kuala Lumpur', 'Penang', 'Other'],
   'Vietnam': ['Da Nang', 'Hanoi', 'Ho Chi Minh City', 'Other'],
   'Philippines': ['Cebu', 'Davao', 'Manila', 'Other'],
-  'Hong Kong': ['Hong Kong', 'Other'],
   'Taiwan': ['Kaohsiung', 'Taichung', 'Taipei', 'Other'],
   'Bangladesh': ['Chittagong', 'Dhaka', 'Other'],
   'Pakistan': ['Islamabad', 'Karachi', 'Lahore', 'Other'],

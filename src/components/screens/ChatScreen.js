@@ -180,6 +180,25 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     inputRef.current?.focus();
   }, [userMessages]);
 
+  // Fetch artist profile for contract modal when agent opens it
+  useEffect(() => {
+    const fetchArtistForContract = async () => {
+      if (showAddContractModal && currentUser.role === 'AGENT' && selectedOffer?.artist) {
+        try {
+          const artistId = selectedOffer.artist._id || selectedOffer.artist.id;
+          console.log('[ChatScreen] Fetching artist profile for contract:', artistId);
+          const artistProfile = await apiService.getProfile(artistId);
+          console.log('[ChatScreen] Fetched artist profile:', artistProfile);
+          setSelectedArtistForDocs(artistProfile);
+        } catch (error) {
+          console.error('[ChatScreen] Error fetching artist profile for contract:', error);
+        }
+      }
+    };
+
+    fetchArtistForContract();
+  }, [showAddContractModal, currentUser.role, selectedOffer]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -654,15 +673,22 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       const messages = dealMessages[dealId];
       console.log(`  📋 Deal ${dealId}: ${messages.length} messages`);
 
-      // Priority: contract > acceptance > offer
-      const contractMsg = messages.find(m => m.documentAttachment && m.documentAttachment.category === 'contracts');
+      // Priority: withdrawal > contract > acceptance > offer
+      const withdrawalMsg = messages.find(m => m.text && m.text.includes('withdrawn the contract'));
+      const contractMsg = messages.find(m =>
+        (m.documentAttachment && m.documentAttachment.category === 'contracts') ||
+        (m.text && m.text.includes('Contract sent'))
+      );
       const acceptanceMsg = messages.find(m => m.text && m.text.includes('Booking Confirmed!'));
       const offerMsg = messages.find(m => m.text && m.text.includes('New Booking Offer'));
 
-      console.log(`    Contract: ${!!contractMsg}, Acceptance: ${!!acceptanceMsg}, Offer: ${!!offerMsg}`);
+      console.log(`    Withdrawal: ${!!withdrawalMsg}, Contract: ${!!contractMsg}, Acceptance: ${!!acceptanceMsg}, Offer: ${!!offerMsg}`);
 
       // Show the highest priority message
-      if (contractMsg) {
+      if (withdrawalMsg) {
+        console.log('    ✅ Showing WITHDRAWAL message');
+        filteredDealMessages.push(withdrawalMsg);
+      } else if (contractMsg) {
         console.log('    ✅ Showing CONTRACT message');
         filteredDealMessages.push(contractMsg);
       } else if (acceptanceMsg) {
@@ -893,10 +919,18 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                             borderColor: 'rgba(255, 165, 0, 0.5)',
                             color: 'rgba(255, 165, 0, 1)'
                           }}
-                          onClick={() => {
+                          onClick={async () => {
                             const comment = prompt('Please provide details about the modifications you need:');
                             if (comment && comment.trim()) {
-                              alert('Modification request sent: ' + comment);
+                              try {
+                                // Send modification request as a chat message
+                                await sendMessage(user._id, `Contract Modification Request: ${comment}`);
+                                alert('Modification request sent to ' + user.name);
+                                // Refresh messages to show the new request
+                                await fetchMessages();
+                              } catch (err) {
+                                alert(err.message || 'Failed to send modification request');
+                              }
                             }
                           }}
                         >
@@ -915,7 +949,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                           onClick={async () => {
                             if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
                               try {
-                                await apiService.cancelDeal(msg.dealId, currentUser._id);
+                                await apiService.deleteDeal(msg.dealId, currentUser._id);
                                 alert('Booking cancelled');
                                 await fetchMessages();
                               } catch (err) {
@@ -1561,9 +1595,29 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   </button>
                   <button
                     className="btn btn-primary"
-                    onClick={() => {
-                      setShowAddContractModal(true);
-                      setShowOfferDetails(false);
+                    onClick={async () => {
+                      console.log('[ChatScreen Send Contract] selectedOffer:', selectedOffer);
+                      console.log('[ChatScreen Send Contract] artistId:', selectedOffer?.artistId);
+
+                      // If this is an agent booking (has artistId), fetch artist profile FIRST
+                      if (selectedOffer?.artistId) {
+                        try {
+                          console.log('[ChatScreen] Fetching artist profile BEFORE opening modal:', selectedOffer.artistId);
+                          const profile = await apiService.getProfile(selectedOffer.artistId);
+                          console.log('[ChatScreen] Artist profile fetched:', profile.name, 'Contracts:', profile.documents?.contracts?.length);
+                          setSelectedArtistForDocs(profile);
+                          // NOW open the modal after profile is loaded
+                          setShowAddContractModal(true);
+                          setShowOfferDetails(false);
+                        } catch (err) {
+                          console.error('Failed to fetch artist profile:', err);
+                          alert('Failed to load artist profile. Please try again.');
+                        }
+                      } else {
+                        // Not an agent booking, open modal directly
+                        setShowAddContractModal(true);
+                        setShowOfferDetails(false);
+                      }
                     }}
                   >
                     Send Contract
@@ -2390,8 +2444,18 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       {showAddContractModal && (
         <AddContractModal
           isOpen={showAddContractModal}
-          onClose={() => setShowAddContractModal(false)}
-          existingContracts={currentUser?.documents?.contracts || []}
+          onClose={() => {
+            setShowAddContractModal(false);
+            // Clear artist profile when closing modal
+            if (currentUser.role === 'AGENT') {
+              setSelectedArtistForDocs(null);
+            }
+          }}
+          existingContracts={
+            selectedOffer?.artistId && selectedArtistForDocs
+              ? selectedArtistForDocs?.documents?.contracts || []
+              : currentUser?.documents?.contracts || []
+          }
           onSave={async (contractData) => {
             try {
               // For now, just show alert - full implementation will save contract to deal

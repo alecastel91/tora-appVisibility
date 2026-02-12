@@ -264,6 +264,71 @@ tora-app/
 - Efficient list rendering
 - Touch event optimization for mobile
 
+## Recent Updates (February 12, 2026)
+
+### Agent Contract Sending - Artist Document Selection Fix
+- **Issue Fixed**: When agents sent contracts for their represented artists, the modal was showing empty contracts list instead of the artist's documents
+- **Root Cause**: Timing issue - modal was opening before artist profile finished loading
+- **Solution**: Fetch artist profile BEFORE opening the contract modal
+
+**Files Modified:**
+- **BookingsScreen.js (lines 470-496)**: Updated "Send Contract" button onClick handler
+  - Changed from synchronous to async function
+  - Added artist profile fetch when `deal.artistId` exists
+  - Modal only opens after artist profile and contracts are fully loaded
+  - Added console logging for debugging
+
+- **ChatScreen.js (lines 1596-1624)**: Same fix for offer acceptance flow
+  - "Send Contract" button in offer details popup now fetches artist profile first
+  - Added async handling to wait for profile data before opening modal
+  - Fixed `existingContracts` prop to check `selectedOffer?.artistId && selectedArtistForDocs`
+
+- **ChatScreen.js (lines 2454-2458)**: Fixed existingContracts prop logic
+  - Changed from checking `selectedOffer?.artist` to `selectedOffer?.artistId && selectedArtistForDocs`
+  - Now correctly uses artist's contracts when agent is sending contract
+
+**How It Works:**
+- **Before**: Modal opened immediately with empty contracts → Artist profile fetched too late
+- **After**: Click "Send Contract" → Fetch artist profile → Load contracts → THEN open modal
+
+**Affected Workflows:**
+1. **Bookings Screen**: When agent clicks "Send Contract" on accepted booking
+2. **Chat Screen**: When agent clicks "Send Contract" after accepting an offer
+3. Both now show artist's contracts in "Select Existing" tab
+
+### Hong Kong Location Data Update
+- **Location Display**: Changed Hong Kong location format
+- **Country**: Now shows as "Hong Kong, China" → "China" as the country
+- **City**: Hong Kong is now a city within China
+- **Files Modified**:
+  - `src/data/profiles.js`: Removed 'Hong Kong, China' from countries, added 'Hong Kong' as city under China
+  - `src/models/Profile.js` (backend): Matched country list to frontend
+
+### Contract Upload System Simplification
+- **Removed**: PDF upload functionality from AddContractModal
+- **Kept**: Only external link support (Google Drive, Dropbox, DocuSign, etc.)
+- **Reason**: Simplified Phase 1 implementation - focus on external URLs
+- **Files Modified**:
+  - `AddContractModal.js`: Removed "Upload PDF" tab, kept "Select Existing" and "Add External Link" tabs
+  - `ManageProfileScreen.js`: Removed PDF upload logic, simplified to URL-only handling
+
+### Contract Withdrawal Notification Routing Fix
+- **Issue Fixed**: Withdrawal notifications were appearing in sender's own chat instead of counterpart's
+- **Root Cause**: After `.populate()`, comparing objects with `.toString()` returned `[object Object]`
+- **Solution**: Extract IDs properly using `deal.artist._id.toString()` before comparison
+- **File Modified**: `src/routes/deals.js` (backend, lines 860-885)
+
+### Chat Message Display Fix
+- **Issue Fixed**: Contract and withdrawal messages visible in conversation preview but not in actual chat
+- **Root Cause**: Message filtering only showed ONE message per deal, missed some message types
+- **Solution**: Added detection for withdrawal and "Contract sent" messages, prioritized correctly
+- **File Modified**: `ChatScreen.js` (lines 676-697)
+
+### Test Scripts Created
+- `test-artistid.js`: Tests if artistId field is returned in API JSON
+- `test-artist-contracts.js`: Checks if artist profile has contracts in documents
+- `test-api-response.js`: Simulates API endpoint response for artistId field
+
 ## Recent Updates (February 4, 2026)
 
 ### Contract Sending - Select Existing Contracts Feature

@@ -6,6 +6,30 @@ import AddContractModal from '../common/AddContractModal';
 
 const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const { user: currentUser, reloadProfileData } = useAppContext();
+
+  // Helper function to convert relative URLs to full backend URLs with auth
+  const getFullUrl = (url) => {
+    if (!url) return '';
+
+    const token = localStorage.getItem('token');
+    const profileId = currentUser?._id;
+
+    // If already a full URL with query params, return as is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    // Convert relative URL to full backend URL
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+    const backendBase = API_URL.replace('/api', ''); // Remove /api suffix
+
+    // Add query parameters for authentication
+    const separator = url.includes('?') ? '&' : '?';
+    const fullUrl = `${backendBase}${url}${separator}profileId=${profileId}&token=${token}`;
+
+    return fullUrl;
+  };
+
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming', 'past', or 'declined'
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +47,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const [selectedDealForWorkflow, setSelectedDealForWorkflow] = useState(null);
   const [documentTypeToShare, setDocumentTypeToShare] = useState(null);
   const [artistProfile, setArtistProfile] = useState(null); // For agent bookings
+  const [showWithdrawConfirmation, setShowWithdrawConfirmation] = useState(false);
+  const [dealToWithdraw, setDealToWithdraw] = useState(null);
 
   useEffect(() => {
     fetchDeals();
@@ -40,21 +66,32 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   // Fetch artist profile when contract modal opens for agent bookings
   useEffect(() => {
     const fetchArtistProfile = async () => {
-      if (showContractModal && selectedDealForWorkflow && selectedDealForWorkflow.artistId) {
+      console.log('[BookingsScreen] fetchArtistProfile triggered:', {
+        showContractModal,
+        showAddContractModal,
+        hasDeal: !!selectedDealForWorkflow,
+        artistId: selectedDealForWorkflow?.artistId,
+        dealEvent: selectedDealForWorkflow?.eventName
+      });
+
+      if ((showContractModal || showAddContractModal) && selectedDealForWorkflow && selectedDealForWorkflow.artistId) {
         try {
+          console.log('[BookingsScreen] Fetching artist profile:', selectedDealForWorkflow.artistId);
           const profile = await apiService.getProfile(selectedDealForWorkflow.artistId);
+          console.log('[BookingsScreen] Artist profile fetched:', profile.name, 'Contracts:', profile.documents?.contracts?.length);
           setArtistProfile(profile);
         } catch (err) {
           console.error('Failed to fetch artist profile:', err);
           setArtistProfile(null);
         }
       } else {
+        console.log('[BookingsScreen] No artistId or modal not open, clearing artistProfile');
         setArtistProfile(null);
       }
     };
     fetchArtistProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showContractModal, selectedDealForWorkflow]);
+  }, [showContractModal, showAddContractModal, selectedDealForWorkflow]);
 
   const fetchDeals = async () => {
     if (!currentUser || !currentUser._id) {
@@ -68,6 +105,13 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     try {
       // Fetch all deals for this user (both sent and received)
       const response = await apiService.getDeals({ profileId: currentUser._id });
+
+      // DEBUG: Log deal artistId fields
+      console.log('[fetchDeals] Fetched', response.deals?.length, 'deals');
+      response.deals?.forEach((deal, idx) => {
+        console.log(`[fetchDeals] Deal ${idx}:`, deal.eventName, 'artistId:', deal.artistId || 'NOT SET');
+      });
+
       setDeals(response.deals || []);
     } catch (err) {
       console.error('Error fetching deals:', err);
@@ -122,6 +166,28 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
       console.error('Error deleting deal:', err);
       alert(err.message || 'Failed to delete offer');
       setDealToDelete(null);
+    }
+  };
+
+  const handleWithdrawContract = async () => {
+    if (!dealToWithdraw) return;
+
+    try {
+      // Call API to withdraw contract - resets contract status to NOT_SENT
+      await apiService.withdrawContract(dealToWithdraw._id, currentUser._id);
+
+      setDealToWithdraw(null);
+      setShowWithdrawConfirmation(false);
+
+      // Refresh deals after withdrawing
+      fetchDeals();
+
+      alert('Contract withdrawn successfully. You can now send a new contract.');
+    } catch (err) {
+      console.error('Error withdrawing contract:', err);
+      alert(err.message || 'Failed to withdraw contract');
+      setDealToWithdraw(null);
+      setShowWithdrawConfirmation(false);
     }
   };
 
@@ -403,9 +469,30 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                   <>
                     <button
                       className="btn btn-outline"
-                      onClick={() => {
+                      onClick={async () => {
+                        console.log('[Send Contract Button] Clicked for deal:', deal.eventName);
+                        console.log('[Send Contract Button] Deal artistId:', deal.artistId || 'NOT SET');
+                        console.log('[Send Contract Button] Deal artist._id:', deal.artist?._id);
+
                         setSelectedDealForWorkflow(deal);
-                        setShowAddContractModal(true);
+
+                        // If this is an agent booking (has artistId), fetch artist profile FIRST
+                        if (deal.artistId) {
+                          try {
+                            console.log('[Send Contract Button] Fetching artist profile BEFORE opening modal:', deal.artistId);
+                            const profile = await apiService.getProfile(deal.artistId);
+                            console.log('[Send Contract Button] Artist profile fetched:', profile.name, 'Contracts:', profile.documents?.contracts?.length);
+                            setArtistProfile(profile);
+                            // NOW open the modal after profile is loaded
+                            setShowAddContractModal(true);
+                          } catch (err) {
+                            console.error('Failed to fetch artist profile:', err);
+                            alert('Failed to load artist profile. Please try again.');
+                          }
+                        } else {
+                          // Not an agent booking, open modal directly
+                          setShowAddContractModal(true);
+                        }
                       }}
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -438,24 +525,100 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                     </button>
                   </>
                 )}
-                {deal.contract && deal.contract.status !== 'NOT_SENT' && deal.contract.status !== 'FULLY_SIGNED' && (
-                  <button
-                    className="btn btn-primary"
-                    onClick={async () => {
-                      try {
-                        await apiService.signContract(deal._id, currentUser._id);
-                        fetchDeals();
-                      } catch (err) {
-                        alert(err.message || 'Failed to sign contract');
-                      }
-                    }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 17l6 6 13-13"></path>
-                    </svg>
-                    Sign Contract
-                  </button>
-                )}
+                {deal.contract && deal.contract.status !== 'NOT_SENT' && deal.contract.status !== 'FULLY_SIGNED' && (() => {
+                  console.log('[BookingsScreen] Contract button debug:', {
+                    dealId: deal._id,
+                    eventName: deal.eventName,
+                    contractStatus: deal.contract.status,
+                    sentBy: deal.contract.sentBy,
+                    sentById: deal.contract.sentBy?._id,
+                    currentUserId: currentUser._id,
+                    currentUserName: currentUser.name,
+                    match: deal.contract.sentBy?._id === currentUser._id
+                  });
+                  const isSender = deal.contract.sentBy && deal.contract.sentBy._id === currentUser._id;
+
+                  if (isSender) {
+                    // Sender sees: View Contract and Withdraw Contract
+                    return (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <a
+                          href={(() => {
+                            // Construct the contract view URL from documentId
+                            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+                            const backendBase = API_URL.replace('/api', '');
+                            const token = localStorage.getItem('token');
+                            const profileId = currentUser?._id;
+
+                            // First try documentUrl if it exists and looks valid
+                            if (deal.contract.documentUrl && deal.contract.documentUrl !== 'N/A') {
+                              return getFullUrl(deal.contract.documentUrl);
+                            }
+
+                            // Otherwise construct URL from documentId
+                            const documentId = deal.contract.documentId;
+                            if (documentId) {
+                              return `${backendBase}/api/contracts/view/${documentId}?profileId=${profileId}&token=${token}`;
+                            }
+
+                            // Fallback
+                            return '#';
+                          })()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-outline"
+                          style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                          </svg>
+                          View Contract
+                        </a>
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => {
+                            setDealToWithdraw(deal);
+                            setShowWithdrawConfirmation(true);
+                          }}
+                          style={{
+                            borderColor: 'rgba(255, 165, 0, 0.5)',
+                            color: 'rgba(255, 165, 0, 1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                          </svg>
+                          Withdraw Contract
+                        </button>
+                      </div>
+                    );
+                  } else {
+                    // Receiver sees: Sign Contract
+                    return (
+                      <button
+                        className="btn btn-primary"
+                        onClick={async () => {
+                          try {
+                            await apiService.signContract(deal._id, currentUser._id);
+                            fetchDeals();
+                          } catch (err) {
+                            alert(err.message || 'Failed to sign contract');
+                          }
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 17l6 6 13-13"></path>
+                        </svg>
+                        Sign Contract
+                      </button>
+                    );
+                  }
+                })()}
 
                 {/* Document Sharing Actions */}
                 {deal.contract && deal.contract.status === 'FULLY_SIGNED' && (
@@ -993,7 +1156,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
           isOpen={showAddContractModal}
           category="contracts"
           categoryLabel="Contract"
-          existingContracts={currentUser?.documents?.contracts || []}
+          existingContracts={artistProfile?.documents?.contracts || currentUser?.documents?.contracts || []}
           onClose={() => {
             setShowAddContractModal(false);
             setSelectedDealForWorkflow(null);
@@ -1021,6 +1184,60 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
             }
           }}
         />
+      )}
+
+      {/* Withdraw Contract Confirmation Modal */}
+      {showWithdrawConfirmation && dealToWithdraw && (
+        <div className="delete-modal-overlay" onClick={() => {
+          setShowWithdrawConfirmation(false);
+          setDealToWithdraw(null);
+        }}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-header">
+              <h3>Withdraw Contract</h3>
+            </div>
+            <div className="delete-modal-content">
+              <div style={{
+                padding: '12px',
+                backgroundColor: 'rgba(255, 165, 0, 0.1)',
+                borderRadius: '6px',
+                border: '1px solid rgba(255, 165, 0, 0.3)',
+                marginBottom: '16px'
+              }}>
+                <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.5' }}>
+                  ⚠️ This will remove the contract from the booking. The other party will be notified.
+                </p>
+              </div>
+              <p style={{ marginBottom: '16px', fontSize: '14px', color: '#ccc' }}>
+                Are you sure you want to withdraw the contract for <strong>{dealToWithdraw.eventName || 'this event'}</strong>?
+              </p>
+              <p style={{ fontSize: '13px', color: '#999', marginBottom: 0 }}>
+                After withdrawal, you can send a corrected contract. The deal status will revert to ACCEPTED.
+              </p>
+            </div>
+            <div className="delete-modal-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowWithdrawConfirmation(false);
+                  setDealToWithdraw(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={handleWithdrawContract}
+                style={{
+                  backgroundColor: 'rgba(255, 165, 0, 0.8)',
+                  borderColor: 'rgba(255, 165, 0, 1)'
+                }}
+              >
+                Withdraw Contract
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

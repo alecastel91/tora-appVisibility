@@ -12,11 +12,11 @@ const AddContractModal = ({
   categoryLabel = 'Contract',
   initialTitle = '',
   initialUrl = '',
-  initialType = 'upload', // 'upload' or 'link' or 'existing'
+  initialType = 'link', // 'link' or 'existing'
   existingFileName = '', // For showing existing uploaded PDF
   existingContracts = [] // Array of existing contracts from user.documents.contracts
 }) => {
-  const [activeTab, setActiveTab] = useState(initialType); // 'upload', 'link', or 'existing'
+  const [activeTab, setActiveTab] = useState(initialType); // 'link' or 'existing'
   const [title, setTitle] = useState(initialTitle);
   const [selectedFile, setSelectedFile] = useState(null);
   const [externalUrl, setExternalUrl] = useState(initialUrl);
@@ -29,10 +29,14 @@ const AddContractModal = ({
   // Update form when initial values change (for edit mode)
   useEffect(() => {
     if (isOpen) {
+      console.log('[AddContractModal] Modal opened');
+      console.log('[AddContractModal] existingContracts received:', existingContracts);
+      console.log('[AddContractModal] existingContracts.length:', existingContracts.length);
+
       setTitle(initialTitle);
       setExternalUrl(initialUrl);
-      // Default to 'existing' tab if there are existing contracts, otherwise 'upload'
-      setActiveTab(existingContracts.length > 0 ? 'existing' : (initialType || 'upload'));
+      // Default to 'existing' tab if there are existing contracts, otherwise 'link'
+      setActiveTab(existingContracts.length > 0 ? 'existing' : (initialType || 'link'));
       setSelectedFile(null); // Reset file selection when opening
       setSelectedExistingContract(null); // Reset existing contract selection
       setKeepExistingFile(!!existingFileName); // Keep existing if there is one
@@ -95,31 +99,24 @@ const AddContractModal = ({
         return;
       }
     }
-    // Validation for 'upload' and 'link' tabs
+    // Validation for 'link' tab
     else {
       if (!title.trim()) {
         setError(`Please enter a ${categoryLabel.toLowerCase()} title`);
         return;
       }
 
-      if (activeTab === 'upload') {
-        if (!selectedFile && !keepExistingFile) {
-          setError('Please select a PDF file');
-          return;
-        }
-      } else if (activeTab === 'link') {
-        if (!externalUrl.trim()) {
-          setError(`Please enter a ${categoryLabel.toLowerCase()} URL`);
-          return;
-        }
+      if (!externalUrl.trim()) {
+        setError(`Please enter a ${categoryLabel.toLowerCase()} URL`);
+        return;
+      }
 
-        // Basic URL validation
-        try {
-          new URL(externalUrl);
-        } catch (err) {
-          setError('Please enter a valid URL');
-          return;
-        }
+      // Basic URL validation
+      try {
+        new URL(externalUrl);
+      } catch (err) {
+        setError('Please enter a valid URL');
+        return;
       }
     }
 
@@ -127,12 +124,10 @@ const AddContractModal = ({
 
     try {
       await onSave({
-        type: activeTab, // 'upload', 'link', or 'existing'
+        type: activeTab, // 'link' or 'existing'
         title: activeTab === 'existing' ? selectedExistingContract.title : title.trim(),
-        file: activeTab === 'upload' ? selectedFile : null,
-        url: activeTab === 'existing' ? selectedExistingContract.url : (activeTab === 'link' ? externalUrl.trim() : null),
-        existingContract: activeTab === 'existing' ? selectedExistingContract : null,
-        keepExistingFile: keepExistingFile && !selectedFile // Keep existing if no new file selected
+        url: activeTab === 'existing' ? selectedExistingContract.url : externalUrl.trim(),
+        existingContract: activeTab === 'existing' ? selectedExistingContract : null
       });
 
       // Reset form
@@ -140,7 +135,7 @@ const AddContractModal = ({
       setSelectedFile(null);
       setExternalUrl('');
       setSelectedExistingContract(null);
-      setActiveTab('upload');
+      setActiveTab('link');
       onClose();
     } catch (err) {
       setError(err.message || 'Failed to add contract');
@@ -196,27 +191,6 @@ const AddContractModal = ({
               </button>
             )}
             <button
-              onClick={() => setActiveTab('upload')}
-              style={{
-                flex: 1,
-                padding: '10px',
-                backgroundColor: activeTab === 'upload' ? '#FF3366' : 'transparent',
-                border: 'none',
-                borderRadius: '6px',
-                color: '#fff',
-                fontSize: '13px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px', verticalAlign: 'middle' }}>
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-              </svg>
-              Upload PDF
-            </button>
-            <button
               onClick={() => setActiveTab('link')}
               style={{
                 flex: 1,
@@ -235,7 +209,7 @@ const AddContractModal = ({
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
               </svg>
-              External Link
+              Add External Link
             </button>
           </div>
 

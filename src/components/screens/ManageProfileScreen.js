@@ -638,7 +638,7 @@ const ManageProfileScreen = ({ onClose }) => {
         categoryLabel={getCategoryLabel(docCategory)}
         initialTitle={editingDoc?.title || ''}
         initialUrl={editingDoc?.url || ''}
-        initialType={editingDoc?.type || 'upload'}
+        initialType={editingDoc?.type || 'link'}
         existingFileName={editingDoc?.file?.name || editingDoc?.title || ''}
         onClose={() => {
           setShowAddDocModal(false);
@@ -649,42 +649,16 @@ const ManageProfileScreen = ({ onClose }) => {
           console.log('[ManageProfileScreen] Document data:', documentData);
 
           const updatedDocuments = { ...documents };
-          let documentUrl = null;
-
-          // If uploading a PDF file, upload it first to get the URL
-          if (documentData.type === 'upload' && documentData.file) {
-            try {
-              console.log('[ManageProfileScreen] Uploading PDF file to backend...');
-              const uploadResponse = await uploadDocument(
-                documentData.file,
-                user._id,
-                localStorage.getItem('token')
-              );
-              documentUrl = uploadResponse.fileUrl;
-              console.log('[ManageProfileScreen] PDF uploaded successfully, URL:', documentUrl);
-            } catch (uploadError) {
-              console.error('[ManageProfileScreen] Error uploading PDF:', uploadError);
-              alert('Failed to upload PDF file. Please try again.');
-              return;
-            }
-          } else if (documentData.type === 'link') {
-            documentUrl = documentData.url;
-          }
 
           if (editingDoc) {
             // Edit existing document
             const index = updatedDocuments[docCategory].findIndex(d => d.id === editingDoc.id);
             if (index !== -1) {
-              // If keeping existing file, preserve the existing URL
-              const finalUrl = (documentData.type === 'upload' && documentData.keepExistingFile)
-                ? editingDoc.url
-                : documentUrl;
-
               updatedDocuments[docCategory][index] = {
                 ...editingDoc,
                 title: documentData.title,
-                url: finalUrl,
-                type: documentData.type // 'upload' or 'link'
+                url: documentData.url,
+                type: documentData.type // 'link' or 'existing'
               };
             }
           } else {
@@ -692,8 +666,8 @@ const ManageProfileScreen = ({ onClose }) => {
             const newDocument = {
               id: Date.now().toString(),
               title: documentData.title,
-              url: documentUrl,
-              type: documentData.type, // 'upload' or 'link'
+              url: documentData.url,
+              type: documentData.type, // 'link' or 'existing'
               addedDate: new Date().toISOString()
             };
             updatedDocuments[docCategory].push(newDocument);

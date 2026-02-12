@@ -74,7 +74,11 @@
       "Bash(pm2 logs:*)",
       "Bash(open \"http://192.168.2.108:3001\")",
       "Bash(git log:*)",
-      "Bash(REACT_APP_API_URL=http://192.168.2.116:5001/api HOST=0.0.0.0 PORT=3001 npm start:*)"
+      "Bash(REACT_APP_API_URL=http://192.168.2.116:5001/api HOST=0.0.0.0 PORT=3001 npm start:*)",
+      "Bash(sudo tailscale up:*)",
+      "Bash(tailscale ip:*)",
+      "Bash(REACT_APP_API_URL=http://100.107.149.82:5001/api HOST=0.0.0.0 PORT=3001 npm start:*)",
+      "Bash(xargs ls:*)"
     ],
     "deny": [],
     "ask": []
