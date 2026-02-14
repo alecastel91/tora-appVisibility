@@ -840,9 +840,15 @@ const ManageProfileScreen = ({ onClose }) => {
           setEditingDoc(null);
         }}
         onSave={async (documentData) => {
+          console.log('=== DOCUMENT SAVE DEBUG START ===');
           console.log('[ManageProfileScreen] Document data:', documentData);
-          console.log('[ManageProfileScreen] Current role:', user?.role);
+          console.log('[ManageProfileScreen] Current user:', {
+            _id: user?._id,
+            name: user?.name,
+            role: user?.role
+          });
           console.log('[ManageProfileScreen] isPromoterOrVenue:', isPromoterOrVenue);
+          console.log('[ManageProfileScreen] Current documents state:', documents);
 
           let updatedDocuments;
 
@@ -869,6 +875,7 @@ const ManageProfileScreen = ({ onClose }) => {
                 type: documentData.type,
                 addedDate: new Date().toISOString()
               };
+              console.log('[ManageProfileScreen] Creating new document:', newDocument);
               updatedDocuments = [...documents, newDocument];
             }
           } else {
@@ -899,25 +906,35 @@ const ManageProfileScreen = ({ onClose }) => {
             }
           }
 
-          console.log('[ManageProfileScreen] Updated documents:', updatedDocuments);
+          console.log('[ManageProfileScreen] Updated documents array/object:', updatedDocuments);
 
           // Save to backend
           try {
             const documentsToSave = isPromoterOrVenue
               ? { general: updatedDocuments }
               : updatedDocuments;
-            console.log('[ManageProfileScreen] Saving to backend:', documentsToSave);
-            await apiService.updateProfile(user._id, { documents: documentsToSave });
+            console.log('[ManageProfileScreen] Documents payload to save:', JSON.stringify(documentsToSave, null, 2));
+            console.log('[ManageProfileScreen] Calling apiService.updateProfile with profileId:', user._id);
+
+            const result = await apiService.updateProfile(user._id, { documents: documentsToSave });
+            console.log('[ManageProfileScreen] Backend response:', result);
 
             // Update local state AFTER successful save
             setDocuments(updatedDocuments);
+            console.log('[ManageProfileScreen] Local state updated');
 
             // Reload profile data to get fresh data
+            console.log('[ManageProfileScreen] Reloading profile data...');
             await reloadProfileData();
+            console.log('[ManageProfileScreen] Profile data reloaded');
 
+            console.log('=== DOCUMENT SAVE DEBUG END (SUCCESS) ===');
             alert('Document added successfully!');
           } catch (error) {
-            console.error('[ManageProfileScreen] Error saving document:', error);
+            console.error('=== DOCUMENT SAVE DEBUG END (ERROR) ===');
+            console.error('[ManageProfileScreen] Error type:', error.name);
+            console.error('[ManageProfileScreen] Error message:', error.message);
+            console.error('[ManageProfileScreen] Full error:', error);
             alert('Failed to save document. Please try again.');
           }
 

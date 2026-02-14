@@ -1505,5 +1505,106 @@ MONGODB_URI=mongodb://localhost:27017/tora
   - "Travel Schedules" section with add/edit/delete functionality
   - Same calendar availability features as before
 
+## Recent Updates (February 15, 2026)
+
+### Document Persistence Debugging & Network Configuration Fixes
+
+#### Issues Identified
+1. **Network IP Address Instability**: WiFi network IP keeps changing (192.168.2.101 → 192.168.2.103 → 192.168.2.101)
+   - Frontend .env was pointing to outdated IP addresses
+   - API calls failing with ERR_CONNECTION_REFUSED
+   - Login and all backend communication broken
+
+2. **Multiple Server Processes**: Duplicate frontend and backend processes running simultaneously
+   - Multiple processes on port 3001 (frontend)
+   - Multiple processes on port 5001 (backend)
+   - Caused inconsistent behavior and connection issues
+
+3. **Document Save Investigation**: Documents added through UI but not persisting to database
+   - Root cause: API calls not reaching backend due to IP mismatch
+   - Backend logs showed no `[Profile Update]` messages when documents were saved
+
+#### Fixes Applied
+
+**1. Localhost Configuration for Stability**
+- Updated frontend `.env` to use `http://localhost:5001/api` instead of network IP
+- Benefits:
+  - Works regardless of WiFi network changes
+  - Stable connection for same-machine development
+  - No need to update .env when network IP changes
+- **Limitation**: Only accessible from the development machine (PC)
+
+**2. Process Cleanup**
+- Killed all duplicate frontend and backend processes
+- Restarted cleanly with pm2 (backend) and npm start (frontend)
+- Single process per service ensures consistent behavior
+
+**3. Enhanced Debug Logging**
+- Added comprehensive logging to [ManageProfileScreen.js](src/components/screens/ManageProfileScreen.js:843-944)
+- Logs include:
+  - Document data being saved
+  - User information (_id, name, role)
+  - Role detection (isPromoterOrVenue)
+  - Current documents state
+  - API call payload (formatted JSON)
+  - Backend response
+  - Error details (type, message, full stack)
+- Format: `=== DOCUMENT SAVE DEBUG START ===` ... `=== DOCUMENT SAVE DEBUG END ===`
+
+**4. Backend Logging Enhancements**
+- Added detailed logging to backend profile update route
+- Logs profile ID, role, documents in request, and documents after save
+- Format: `[Profile Update]` prefix for easy filtering
+
+#### Current Configuration
+
+**Frontend:**
+- Running on: `http://localhost:3001`
+- API URL: `http://localhost:5001/api`
+- Environment variable: `REACT_APP_API_URL=http://localhost:5001/api`
+
+**Backend:**
+- Running on: `http://localhost:5001`
+- MongoDB: `mongodb://localhost:27017/tora` (local)
+- Managed by: pm2 (process name: tora-backend)
+
+**Database:**
+- Local MongoDB instance
+- Fast performance compared to Atlas
+- Connection: localhost:27017/tora
+
+#### Network Access Considerations
+
+**Current Setup (Localhost):**
+- ✅ Works on development PC
+- ✅ Stable across WiFi network changes
+- ❌ Not accessible from phone or other devices
+
+**For Cross-Device Access:**
+To access from phone/tablet on same WiFi network:
+1. Get current network IP: `ipconfig getifaddr en0`
+2. Update frontend .env: `REACT_APP_API_URL=http://[CURRENT_IP]:5001/api`
+3. Start frontend with: `REACT_APP_API_URL=http://[CURRENT_IP]:5001/api HOST=0.0.0.0 PORT=3001 npm start`
+4. Access from phone: `http://[CURRENT_IP]:3001`
+5. **Note**: Must update .env when WiFi network changes
+
+#### Files Modified
+- [.env](/Users/alessandrocastelbuono/Desktop/tora-app/.env) - Updated API URL to localhost
+- [ManageProfileScreen.js](src/components/screens/ManageProfileScreen.js) - Added comprehensive debug logging (lines 843-944)
+- Backend [profiles.js](/Users/alessandrocastelbuono/Desktop/tora-backend/src/routes/profiles.js) - Enhanced update logging (lines 192-207)
+
+#### Testing Status
+- ✅ Backend health check working: `http://localhost:5001/api/health`
+- ✅ Frontend compiled successfully
+- ✅ Login authentication ready
+- ⏳ Document persistence fix pending user testing
+
+#### Next Steps
+1. User login at `http://localhost:3001`
+2. Test document add functionality with MOVE (Promoter) profile
+3. Verify browser console shows debug logs
+4. Confirm backend pm2 logs show API calls
+5. Test document persistence after page reload
+
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.
