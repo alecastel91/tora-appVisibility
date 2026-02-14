@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CloseIcon, CalendarIcon, DollarIcon, TrendingUpIcon, HandshakeIcon, ImageIcon, SlidersIcon, FileTextIcon } from '../../utils/icons';
+import { CloseIcon, CalendarIcon, DollarIcon, TrendingUpIcon, HandshakeIcon, ImageIcon, SlidersIcon, FileTextIcon, FileIcon, AlertIcon } from '../../utils/icons';
 import CalendarScreen from './CalendarScreen';
 import AddContractModal from '../common/AddContractModal';
 import { useAppContext } from '../../contexts/AppContext';
@@ -16,12 +16,22 @@ const ManageProfileScreen = ({ onClose }) => {
   const [expectedRevenue, setExpectedRevenue] = useState(null);
   const [deals, setDeals] = useState([]);
 
-  // Documents state
-  const [documents, setDocuments] = useState({
-    pressKit: user?.documents?.pressKit || [],
-    technicalRider: user?.documents?.technicalRider || [],
-    contracts: user?.documents?.contracts || []
-  });
+  // Documents state - different for different roles
+  const isPromoterOrVenue = user?.role === 'PROMOTER' || user?.role === 'VENUE';
+
+  // Initialize documents based on role
+  const getInitialDocuments = () => {
+    if (isPromoterOrVenue) {
+      return user?.documents?.general || [];
+    }
+    return {
+      pressKit: user?.documents?.pressKit || [],
+      technicalRider: user?.documents?.technicalRider || [],
+      contracts: user?.documents?.contracts || []
+    };
+  };
+
+  const [documents, setDocuments] = useState(getInitialDocuments());
   const [showAddDocModal, setShowAddDocModal] = useState(false);
   const [editingDoc, setEditingDoc] = useState(null);
   const [docCategory, setDocCategory] = useState('');
@@ -268,39 +278,59 @@ const ManageProfileScreen = ({ onClose }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?._id, preferredCurrency]);
 
-  // Sync documents when user changes
+  // Sync documents when user changes - different structure based on role
+  // Only sync on initial mount or when user._id changes (not on every user update)
   useEffect(() => {
-    console.log('[ManageProfileScreen] User changed, syncing documents:', user?.documents);
-    if (user?.documents) {
-      console.log('[ManageProfileScreen] Setting documents from user:', user.documents);
-      setDocuments({
-        pressKit: user.documents.pressKit || [],
-        technicalRider: user.documents.technicalRider || [],
-        contracts: user.documents.contracts || []
-      });
-    } else {
-      console.log('[ManageProfileScreen] User has no documents field, initializing empty');
-      setDocuments({
-        pressKit: [],
-        technicalRider: [],
-        contracts: []
-      });
-    }
-  }, [user]);
+    console.log('[ManageProfileScreen] User._id changed, syncing documents. Role:', user?.role);
+    console.log('[ManageProfileScreen] User documents:', user?.documents);
 
-  // Document handlers
+    if (isPromoterOrVenue) {
+      // Promoter/Venue: flat array
+      const generalDocs = user?.documents?.general || [];
+      console.log('[ManageProfileScreen] Setting Promoter/Venue documents (array):', generalDocs);
+      setDocuments(generalDocs);
+    } else {
+      // Artist: categorized object
+      const categorizedDocs = {
+        pressKit: user?.documents?.pressKit || [],
+        technicalRider: user?.documents?.technicalRider || [],
+        contracts: user?.documents?.contracts || []
+      };
+      console.log('[ManageProfileScreen] Setting Artist documents (object):', categorizedDocs);
+      setDocuments(categorizedDocs);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?._id]); // Only re-sync when user ID changes, not on every user update
+
+  // Document handlers - different logic for Promoter/Venue vs Artist
   const handleAddDocument = (category) => {
-    setDocCategory(category);
-    setNewDoc({ title: '', url: '' });
-    setEditingDoc(null);
-    setShowAddDocModal(true);
+    if (isPromoterOrVenue) {
+      // Promoter/Venue: no category needed
+      setNewDoc({ title: '', url: '' });
+      setEditingDoc(null);
+      setShowAddDocModal(true);
+    } else {
+      // Artist: category-based
+      setDocCategory(category);
+      setNewDoc({ title: '', url: '' });
+      setEditingDoc(null);
+      setShowAddDocModal(true);
+    }
   };
 
   const handleEditDocument = (category, doc) => {
-    setDocCategory(category);
-    setNewDoc({ title: doc.title, url: doc.url });
-    setEditingDoc(doc);
-    setShowAddDocModal(true);
+    if (isPromoterOrVenue) {
+      // Promoter/Venue: doc is the first param (no category)
+      setNewDoc({ title: category.title, url: category.url });
+      setEditingDoc(category);
+      setShowAddDocModal(true);
+    } else {
+      // Artist: category-based
+      setDocCategory(category);
+      setNewDoc({ title: doc.title, url: doc.url });
+      setEditingDoc(doc);
+      setShowAddDocModal(true);
+    }
   };
 
   const handleSaveDocument = async () => {
@@ -309,25 +339,46 @@ const ManageProfileScreen = ({ onClose }) => {
       return;
     }
 
-    const updatedDocuments = { ...documents };
+    let updatedDocuments;
 
-    if (editingDoc) {
-      const index = updatedDocuments[docCategory].findIndex(d => d.id === editingDoc.id);
-      if (index !== -1) {
-        updatedDocuments[docCategory][index] = {
-          ...editingDoc,
+    if (isPromoterOrVenue) {
+      // Promoter/Venue: flat array
+      if (editingDoc) {
+        updatedDocuments = documents.map(d =>
+          d.id === editingDoc.id
+            ? { ...editingDoc, title: newDoc.title, url: newDoc.url }
+            : d
+        );
+      } else {
+        const newDocument = {
+          id: Date.now().toString(),
           title: newDoc.title,
-          url: newDoc.url
+          url: newDoc.url,
+          addedDate: new Date().toISOString()
         };
+        updatedDocuments = [...documents, newDocument];
       }
     } else {
-      const newDocument = {
-        id: Date.now().toString(),
-        title: newDoc.title,
-        url: newDoc.url,
-        addedDate: new Date().toISOString()
-      };
-      updatedDocuments[docCategory].push(newDocument);
+      // Artist: categorized object
+      updatedDocuments = { ...documents };
+      if (editingDoc) {
+        const index = updatedDocuments[docCategory].findIndex(d => d.id === editingDoc.id);
+        if (index !== -1) {
+          updatedDocuments[docCategory][index] = {
+            ...editingDoc,
+            title: newDoc.title,
+            url: newDoc.url
+          };
+        }
+      } else {
+        const newDocument = {
+          id: Date.now().toString(),
+          title: newDoc.title,
+          url: newDoc.url,
+          addedDate: new Date().toISOString()
+        };
+        updatedDocuments[docCategory].push(newDocument);
+      }
     }
 
     console.log('[ManageProfileScreen] Saving documents:', updatedDocuments);
@@ -336,7 +387,9 @@ const ManageProfileScreen = ({ onClose }) => {
     // Save to backend
     try {
       console.log('[ManageProfileScreen] Calling API to save documents for user:', user._id);
-      const response = await apiService.updateProfile(user._id, { documents: updatedDocuments });
+      const response = await apiService.updateProfile(user._id, {
+        documents: isPromoterOrVenue ? { general: updatedDocuments } : updatedDocuments
+      });
       console.log('[ManageProfileScreen] API response:', response);
 
       console.log('[ManageProfileScreen] Reloading profile data...');
@@ -356,13 +409,25 @@ const ManageProfileScreen = ({ onClose }) => {
     if (!window.confirm('Are you sure you want to delete this document link?')) {
       return;
     }
-    const updatedDocuments = { ...documents };
-    updatedDocuments[category] = updatedDocuments[category].filter(d => d.id !== docId);
+
+    let updatedDocuments;
+
+    if (isPromoterOrVenue) {
+      // Promoter/Venue: category is actually docId (flat array)
+      updatedDocuments = documents.filter(d => d.id !== category);
+    } else {
+      // Artist: categorized object
+      updatedDocuments = { ...documents };
+      updatedDocuments[category] = updatedDocuments[category].filter(d => d.id !== docId);
+    }
+
     setDocuments(updatedDocuments);
 
     // Save to backend
     try {
-      await apiService.updateProfile(user._id, { documents: updatedDocuments });
+      await apiService.updateProfile(user._id, {
+        documents: isPromoterOrVenue ? { general: updatedDocuments } : updatedDocuments
+      });
       await reloadProfileData();
     } catch (error) {
       console.error('Error deleting document:', error);
@@ -392,7 +457,11 @@ const ManageProfileScreen = ({ onClose }) => {
   };
 
   // Dashboard Tab
-  const renderDashboardTab = () => (
+  const renderDashboardTab = () => {
+    const isPromoterOrVenue = user?.role === 'PROMOTER' || user?.role === 'VENUE';
+    const revenueLabel = isPromoterOrVenue ? 'Costs' : 'Revenue';
+
+    return (
     <div className="dashboard-tab">
       {/* Hero Metrics - 2x2 Grid */}
       <div className="hero-metrics hero-metrics-four">
@@ -402,14 +471,14 @@ const ManageProfileScreen = ({ onClose }) => {
           <div className="metric-value">
             {thisYearGigs === null ? '...' : thisYearGigs}
           </div>
-          <div className="metric-label">This Year Gigs</div>
+          <div className="metric-label">This Year Bookings</div>
         </div>
         <div className="metric-card">
           <div className="metric-icon"><DollarIcon /></div>
           <div className="metric-value">
             {ytdRevenue === null ? '...' : formatCurrencyWithSymbol(ytdRevenue, preferredCurrency)}
           </div>
-          <div className="metric-label">This Year Revenue</div>
+          <div className="metric-label">{`This Year ${revenueLabel}`}</div>
         </div>
         {/* Bottom Row */}
         <div className="metric-card">
@@ -417,20 +486,51 @@ const ManageProfileScreen = ({ onClose }) => {
           <div className="metric-value">
             {upcomingGigs === null ? '...' : upcomingGigs}
           </div>
-          <div className="metric-label">Upcoming Gigs</div>
+          <div className="metric-label">Upcoming Bookings</div>
         </div>
         <div className="metric-card">
           <div className="metric-icon"><DollarIcon /></div>
           <div className="metric-value">
             {expectedRevenue === null ? '...' : formatCurrencyWithSymbol(expectedRevenue, preferredCurrency)}
           </div>
-          <div className="metric-label">Expected Revenue</div>
+          <div className="metric-label">{`Expected ${revenueLabel}`}</div>
         </div>
       </div>
 
-      {/* Revenue Chart */}
+      {/* Actions Required Section */}
+      <div className="dashboard-section actions-required-section">
+        <h3><AlertIcon /> Actions Required</h3>
+        <div className="action-items">
+          <div className="action-item">
+            <div className="action-icon"><FileIcon /></div>
+            <div className="action-content">
+              <div className="action-title">Contract Review Needed</div>
+              <div className="action-subtitle">Artist Booking - John Doe</div>
+            </div>
+            <button className="btn btn-sm btn-primary">Review</button>
+          </div>
+          <div className="action-item">
+            <div className="action-icon"><DollarIcon /></div>
+            <div className="action-content">
+              <div className="action-title">Payment Due</div>
+              <div className="action-subtitle">Event on Dec 15, 2026</div>
+            </div>
+            <button className="btn btn-sm btn-primary">Pay</button>
+          </div>
+          <div className="action-item">
+            <div className="action-icon"><CalendarIcon /></div>
+            <div className="action-content">
+              <div className="action-title">Confirm Event Details</div>
+              <div className="action-subtitle">New Year's Eve Show</div>
+            </div>
+            <button className="btn btn-sm btn-primary">Confirm</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Revenue/Costs Chart */}
       <div className="dashboard-section revenue-overview-section">
-        <h3><TrendingUpIcon /> Revenue Overview</h3>
+        <h3><TrendingUpIcon /> {revenueLabel} Overview</h3>
         <div className="revenue-chart-scroll">
           <div className="revenue-chart" style={{ minHeight: '200px' }}>
             {revenueChartData.length > 0 ? (
@@ -466,12 +566,106 @@ const ManageProfileScreen = ({ onClose }) => {
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
   // Documents Tab
   const renderDocumentsTab = () => {
     console.log('[ManageProfileScreen] Rendering documents tab. Current documents state:', documents);
 
+    // Promoter/Venue: Simple flat list
+    if (isPromoterOrVenue) {
+      return (
+        <div className="artist-info-tab">
+          <div className="dashboard-section">
+            <div className="section-header">
+              <div>
+                <h3><FileIcon /> Documents</h3>
+                <p style={{ color: '#888', fontSize: '13px', margin: '4px 0 0 0' }}>
+                  Add important documents like contracts, licenses, permits, insurance, financial records, technical specs, etc.
+                </p>
+              </div>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => handleAddDocument()}
+              >
+                + Add
+              </button>
+            </div>
+
+            {documents.length === 0 ? (
+              <div style={{
+                padding: '40px 24px',
+                textAlign: 'center',
+                color: '#888'
+              }}>
+                <FileIcon style={{ width: '48px', height: '48px', margin: '0 auto 16px', opacity: 0.5 }} />
+                <p style={{ marginBottom: '16px' }}>No documents added yet</p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => handleAddDocument()}
+                >
+                  + Add Your First Document
+                </button>
+              </div>
+            ) : (
+              <div className="doc-list">
+                {documents.map(doc => (
+                  <div key={doc.id} className="doc-item">
+                    <div className="doc-info" style={{ flex: 1, minWidth: 0 }}>
+                      <div className="doc-name">{doc.title}</div>
+                      <div className="doc-meta">
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: '#FF3366',
+                            textDecoration: 'none',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                            marginBottom: '4px'
+                          }}
+                        >
+                          {doc.url}
+                        </a>
+                        {doc.addedDate && (
+                          <div style={{
+                            color: '#666',
+                            fontSize: '12px'
+                          }}>
+                            Added {new Date(doc.addedDate).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => handleEditDocument(doc)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => handleDeleteDocument(doc.id)}
+                        style={{ color: '#ff4444' }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Artist: Categorized rendering (original code)
     const renderDocCategory = (category, icon, title, note = null) => {
       console.log(`[ManageProfileScreen] Rendering ${category}, count:`, documents[category].length);
       return (
@@ -647,39 +841,80 @@ const ManageProfileScreen = ({ onClose }) => {
         }}
         onSave={async (documentData) => {
           console.log('[ManageProfileScreen] Document data:', documentData);
+          console.log('[ManageProfileScreen] Current role:', user?.role);
+          console.log('[ManageProfileScreen] isPromoterOrVenue:', isPromoterOrVenue);
 
-          const updatedDocuments = { ...documents };
+          let updatedDocuments;
 
-          if (editingDoc) {
-            // Edit existing document
-            const index = updatedDocuments[docCategory].findIndex(d => d.id === editingDoc.id);
-            if (index !== -1) {
-              updatedDocuments[docCategory][index] = {
-                ...editingDoc,
+          if (isPromoterOrVenue) {
+            // Promoter/Venue: flat array
+            if (editingDoc) {
+              // Edit existing document
+              updatedDocuments = documents.map(d =>
+                d.id === editingDoc.id
+                  ? {
+                      ...editingDoc,
+                      title: documentData.title,
+                      url: documentData.url,
+                      type: documentData.type
+                    }
+                  : d
+              );
+            } else {
+              // Add new document
+              const newDocument = {
+                id: Date.now().toString(),
                 title: documentData.title,
                 url: documentData.url,
-                type: documentData.type // 'link' or 'existing'
+                type: documentData.type,
+                addedDate: new Date().toISOString()
               };
+              updatedDocuments = [...documents, newDocument];
             }
           } else {
-            // Add new document
-            const newDocument = {
-              id: Date.now().toString(),
-              title: documentData.title,
-              url: documentData.url,
-              type: documentData.type, // 'link' or 'existing'
-              addedDate: new Date().toISOString()
-            };
-            updatedDocuments[docCategory].push(newDocument);
+            // Artist: categorized object
+            updatedDocuments = { ...documents };
+
+            if (editingDoc) {
+              // Edit existing document
+              const index = updatedDocuments[docCategory].findIndex(d => d.id === editingDoc.id);
+              if (index !== -1) {
+                updatedDocuments[docCategory][index] = {
+                  ...editingDoc,
+                  title: documentData.title,
+                  url: documentData.url,
+                  type: documentData.type
+                };
+              }
+            } else {
+              // Add new document
+              const newDocument = {
+                id: Date.now().toString(),
+                title: documentData.title,
+                url: documentData.url,
+                type: documentData.type,
+                addedDate: new Date().toISOString()
+              };
+              updatedDocuments[docCategory].push(newDocument);
+            }
           }
 
           console.log('[ManageProfileScreen] Updated documents:', updatedDocuments);
-          setDocuments(updatedDocuments);
 
           // Save to backend
           try {
-            await apiService.updateProfile(user._id, { documents: updatedDocuments });
+            const documentsToSave = isPromoterOrVenue
+              ? { general: updatedDocuments }
+              : updatedDocuments;
+            console.log('[ManageProfileScreen] Saving to backend:', documentsToSave);
+            await apiService.updateProfile(user._id, { documents: documentsToSave });
+
+            // Update local state AFTER successful save
+            setDocuments(updatedDocuments);
+
+            // Reload profile data to get fresh data
             await reloadProfileData();
+
             alert('Document added successfully!');
           } catch (error) {
             console.error('[ManageProfileScreen] Error saving document:', error);

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAppContext } from '../../contexts/AppContext';
 import { zones, countriesByZone, citiesByCountry } from '../../data/profiles';
-import { CloseIcon } from '../../utils/icons';
+import { CloseIcon, CalendarIcon, ListIcon } from '../../utils/icons';
 import Modal from '../common/Modal';
 import apiService from '../../services/api';
 
@@ -17,6 +17,11 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
   // Delete confirmation state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState(null);
+
+  // Upcoming events state for Promoters/Venues
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [expandedDealId, setExpandedDealId] = useState(null);
+  const isPromoterOrVenue = user?.role === 'PROMOTER' || user?.role === 'VENUE';
 
   // Drag selection state
   const [isDragging, setIsDragging] = useState(false);
@@ -62,6 +67,41 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
       setSchedules(user.travelSchedule);
     }
   }, [user?.travelSchedule]);
+
+  // Fetch upcoming events for Promoters/Venues
+  useEffect(() => {
+    const fetchUpcomingEvents = async () => {
+      if (!isPromoterOrVenue || !user?._id) return;
+
+      try {
+        console.log('[CalendarScreen] Fetching upcoming events for Promoter/Venue...');
+        const response = await apiService.getDeals({ profileId: user._id });
+
+        if (response && response.deals) {
+          // Filter for upcoming events (future dates with active statuses)
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          const upcoming = response.deals
+            .filter(deal => {
+              const dealDate = new Date(deal.date);
+              const hasUpcomingDate = dealDate >= today;
+              const hasActiveStatus = ['PENDING', 'NEGOTIATING', 'ACCEPTED'].includes(deal.status);
+              return hasUpcomingDate && hasActiveStatus;
+            })
+            .sort((a, b) => new Date(a.date) - new Date(b.date)) // Sort by date ascending
+            .slice(0, 10); // Limit to 10 events
+
+          setUpcomingEvents(upcoming);
+          console.log('[CalendarScreen] Found upcoming events:', upcoming.length);
+        }
+      } catch (error) {
+        console.error('[CalendarScreen] Error fetching upcoming events:', error);
+      }
+    };
+
+    fetchUpcomingEvents();
+  }, [user?._id, isPromoterOrVenue]);
 
   // NOTE: We refresh both availableDates and travelSchedule from backend on mount
   // This ensures we have the latest data when switching between CalendarScreen and ManageArtistScreen
@@ -604,6 +644,25 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
     return '';
   };
 
+  // Helper functions for upcoming events
+  const toggleDealExpanded = (dealId) => {
+    setExpandedDealId(expandedDealId === dealId ? null : dealId);
+  };
+
+  const getStatusBadgeClass = (status) => {
+    const statusLower = status?.toLowerCase() || '';
+    return `status-badge status-${statusLower}`;
+  };
+
+  const formatEventDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   const renderCalendarDays = () => {
     const days = [];
     const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -703,89 +762,261 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
         </div>
       )}
 
-      <div className="calendar-content" style={embedded ? { paddingTop: '0' } : {}}>
-        <div className="calendar-container">
-          <div className="calendar-month-header">
-            <div className="calendar-nav">
-              <button className="calendar-nav-btn" onClick={goToPreviousMonth} title="Previous month">
-                ‹
-              </button>
-              <h3 className="calendar-month-title">{monthNames[currentMonth]} {currentYear}</h3>
-              <button className="calendar-nav-btn" onClick={goToNextMonth} title="Next month">
-                ›
-              </button>
-            </div>
-            <p className="calendar-instructions">
-              Tap dates to mark availability. Drag to select multiple dates.
-            </p>
-          </div>
-          
-          <div className="calendar-grid">
-            {renderCalendarDays()}
-          </div>
-          
-          <div className="calendar-legend">
-            <div className="legend-item">
-              <span className="legend-dot available"></span>
-              <span>Available</span>
-            </div>
-            <div className="legend-item">
-              <span className="legend-dot has-location"></span>
-              <span>Scheduled</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Schedules Display */}
-        <div className="schedules-section">
-          <div className="schedules-header">
-            <h3>Travel Schedules</h3>
-            <button 
-              className="btn btn-primary btn-small"
-              onClick={openNewScheduleModal}
-            >
-              Add Schedule
-            </button>
-          </div>
-
-          {schedules.length === 0 ? (
-            <div className="no-schedules">
-              <p>No schedules added yet</p>
-              <button 
-                className="add-travel-schedule-btn"
-                onClick={openNewScheduleModal}
-              >
-                + ADD TRAVEL SCHEDULE
-              </button>
-            </div>
-          ) : (
-            <div className="travel-schedules-list">
-              {schedules.map((schedule) => (
-                <div key={schedule.id} className="travel-schedule-item">
-                  <div className="schedule-location">
-                    {getLocationLabel(schedule)}
+      <div className="calendar-content" style={embedded ? { padding: '0' } : {}}>
+        {/* Schedules Display - Conditional based on role */}
+        {isPromoterOrVenue ? (
+          /* Promoter/Venue Layout - matches agent's dashboard */
+          <>
+            {/* Calendar View Section */}
+            <div className="dashboard-section">
+              <h3><CalendarIcon /> Calendar View</h3>
+              <div className="calendar-inline-wrapper">
+                <div className="calendar-header-inline">
+                  <button className="calendar-nav-btn" onClick={goToPreviousMonth}>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M12 16L6 10L12 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <div className="calendar-month-info">
+                    <h4>{monthNames[currentMonth]} {currentYear}</h4>
+                    <p className="calendar-instructions">
+                      Tap dates to mark availability. Drag to select multiple dates.
+                    </p>
                   </div>
-                  <div className="schedule-bottom-row">
-                    {formatDate(schedule.startDate)} - {formatDate(schedule.endDate)}
-                    <button className="icon-btn-edit" onClick={() => handleEditSchedule(schedule)} title="Edit schedule">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                    </button>
-                    <button className="icon-btn-delete" onClick={() => handleRemoveSchedule(schedule._id || schedule.id)} title="Delete schedule">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M3 6h18"/>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
-                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                      </svg>
-                    </button>
+                  <button className="calendar-nav-btn" onClick={goToNextMonth}>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M4 10L10 16L16 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" transform="rotate(-90 10 10)"/>
+                    </svg>
+                  </button>
+                </div>
+                <div className="calendar-grid-inline">
+                  {renderCalendarDays()}
+                </div>
+                <div className="calendar-legend">
+                  <div className="legend-item">
+                    <span className="legend-dot available"></span>
+                    <span>Available</span>
+                  </div>
+                  <div className="legend-item">
+                    <span className="legend-dot has-location"></span>
+                    <span>Scheduled</span>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* Upcoming Events Section */}
+            <div className="dashboard-section">
+              <div className="section-header">
+                <h3><ListIcon /> Upcoming Events</h3>
+              </div>
+              {upcomingEvents.length === 0 ? (
+                <div className="no-events-message">
+                  <p>No upcoming events</p>
+                </div>
+              ) : (
+                <div className="bookings-list">
+                {upcomingEvents.map((event) => {
+                  const dealDate = new Date(event.date);
+                  const dayNumber = dealDate.getDate();
+                  const otherParty = event.artist || {};
+                  const isExpanded = expandedDealId === event._id;
+
+                  return (
+                    <div key={event._id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
+                      <div className="booking-date-badge">
+                        {dayNumber}
+                      </div>
+                      <div className="booking-compact-view">
+                        <div
+                          className="party-avatar"
+                          onClick={() => toggleDealExpanded(event._id)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          {otherParty.avatar ? (
+                            <img src={otherParty.avatar} alt={otherParty.name} />
+                          ) : (
+                            otherParty.name?.charAt(0).toUpperCase() || '?'
+                          )}
+                        </div>
+
+                        <div
+                          className="party-info"
+                          onClick={() => toggleDealExpanded(event._id)}
+                          style={{ cursor: 'pointer', flex: 1 }}
+                        >
+                          <div className="party-name-role">
+                            <h3>{otherParty.name || 'Unknown'}</h3>
+                            {otherParty.role && (
+                              <span className={`role-badge ${otherParty.role.toLowerCase()}`}>
+                                {otherParty.role}
+                              </span>
+                            )}
+                          </div>
+                          <p className="party-location">{otherParty.location || 'Location TBD'}</p>
+                          <div className="party-status-row">
+                            <span className={getStatusBadgeClass(event.status)}>
+                              {event.status}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          className="btn-expand-arrow"
+                          onClick={() => toggleDealExpanded(event._id)}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
+                            <path d="M6 9l6 6 6-6"/>
+                          </svg>
+                        </button>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="booking-details">
+                          {event.eventName && (
+                            <div className="booking-detail-row">
+                              <span className="detail-label">Event:</span>
+                              <span className="detail-value">{event.eventName}</span>
+                            </div>
+                          )}
+                          <div className="booking-detail-row">
+                            <span className="detail-label">Artist:</span>
+                            <span className="detail-value">
+                              <div>{otherParty.name || 'Unknown'}</div>
+                              {otherParty.location && (
+                                <div className="detail-subtext">({otherParty.location})</div>
+                              )}
+                            </span>
+                          </div>
+                          <div className="booking-detail-row">
+                            <span className="detail-label">Date:</span>
+                            <span className="detail-value">{formatEventDate(event.date)}</span>
+                          </div>
+                          {event.startTime && event.endTime && (
+                            <div className="booking-detail-row">
+                              <span className="detail-label">Event Time:</span>
+                              <span className="detail-value">
+                                {event.startTime} - {event.endTime}
+                              </span>
+                            </div>
+                          )}
+                          {event.performanceType && (
+                            <div className="booking-detail-row">
+                              <span className="detail-label">Type:</span>
+                              <span className="detail-value">{event.performanceType}</span>
+                            </div>
+                          )}
+                          {event.currentFee && event.currency && (
+                            <div className="booking-detail-row">
+                              <span className="detail-label">Fee:</span>
+                              <span className="detail-value">
+                                {event.currency === 'USD' && '$'}
+                                {event.currency === 'EUR' && '€'}
+                                {event.currency === 'GBP' && '£'}
+                                {event.currency === 'JPY' && '¥'}
+                                {event.currentFee}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          /* Artist/Agent Layout - Old calendar structure for non-embedded */
+          <>
+            {/* Calendar View Section */}
+            <div className="dashboard-section">
+              <h3><CalendarIcon /> Calendar View</h3>
+              <div className="calendar-inline-wrapper">
+                <div className="calendar-header-inline">
+                  <button className="calendar-nav-btn" onClick={goToPreviousMonth}>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M12 16L6 10L12 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <div className="calendar-month-info">
+                    <h4>{monthNames[currentMonth]} {currentYear}</h4>
+                    <p className="calendar-instructions">
+                      Tap dates to mark availability. Drag to select multiple dates.
+                    </p>
+                  </div>
+                  <button className="calendar-nav-btn" onClick={goToNextMonth}>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M4 10L10 16L16 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" transform="rotate(-90 10 10)"/>
+                    </svg>
+                  </button>
+                </div>
+                <div className="calendar-grid-inline">
+                  {renderCalendarDays()}
+                </div>
+                <div className="calendar-legend">
+                  <div className="legend-item">
+                    <span className="legend-dot available"></span>
+                    <span>Available</span>
+                  </div>
+                  <div className="legend-item">
+                    <span className="legend-dot has-location"></span>
+                    <span>Scheduled</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Travel Schedules inside Calendar View section */}
+              <div className="travel-schedules-section">
+                <div className="travel-schedules-header">
+                  <h3>Travel Schedules</h3>
+                  <button className="btn btn-primary btn-sm" onClick={openNewScheduleModal}>
+                    Add Schedule
+                  </button>
+                </div>
+
+                {schedules.length === 0 ? (
+              <div className="no-schedules">
+                <p>No schedules added yet</p>
+                <button
+                  className="add-travel-schedule-btn"
+                  onClick={openNewScheduleModal}
+                >
+                  + ADD TRAVEL SCHEDULE
+                </button>
+              </div>
+            ) : (
+              <div className="travel-schedules-list">
+                {schedules.map((schedule) => (
+                  <div key={schedule.id} className="travel-schedule-item">
+                    <div className="schedule-location">
+                      {getLocationLabel(schedule)}
+                    </div>
+                    <div className="schedule-bottom-row">
+                      {formatDate(schedule.startDate)} - {formatDate(schedule.endDate)}
+                      <button className="icon-btn-edit" onClick={() => handleEditSchedule(schedule)} title="Edit schedule">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      <button className="icon-btn-delete" onClick={() => handleRemoveSchedule(schedule._id || schedule.id)} title="Delete schedule">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                </div>
+              )}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Schedule Form Modal */}

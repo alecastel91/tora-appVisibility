@@ -4,7 +4,7 @@ import Header from './components/common/Header';
 import TabBar from './components/common/TabBar';
 import ProfileScreen from './components/screens/ProfileScreen';
 import SearchScreen from './components/screens/SearchScreen';
-import MatchesScreen from './components/screens/MatchesScreen';
+import TourScreen from './components/screens/TourScreen';
 import ExploreScreen from './components/screens/ExploreScreen';
 import BookingsScreen from './components/screens/BookingsScreen';
 import MessagesScreen from './components/screens/MessagesScreen';
@@ -225,8 +225,8 @@ function App() {
         return <ProfileScreen />;
       case 'search':
         return <SearchScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onOpenPremium={() => setShowPremium(true)} />;
-      case 'matches':
-        return <MatchesScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
+      case 'tour':
+        return <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
       case 'bookings':
         return <BookingsScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
       case 'messages':

@@ -1012,7 +1012,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           <div className="metric-value">
             {thisYearGigs === null ? '...' : thisYearGigs}
           </div>
-          <div className="metric-label">This Year Gigs</div>
+          <div className="metric-label">This Year Bookings</div>
         </div>
         <div className="metric-card">
           <div className="metric-icon"><DollarIcon /></div>
@@ -1028,7 +1028,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
             {upcomingGigs === null ? '...' : upcomingGigs}
             {gigsError && <span style={{ fontSize: '12px', color: '#999' }}>*</span>}
           </div>
-          <div className="metric-label">Upcoming Gigs</div>
+          <div className="metric-label">Upcoming Bookings</div>
         </div>
         <div className="metric-card">
           <div className="metric-icon"><DollarIcon /></div>
@@ -1036,6 +1036,26 @@ const ManageArtistScreen = ({ artist, onClose }) => {
             {expectedRevenue === null ? '...' : formatCurrencyWithSymbol(expectedRevenue, preferredCurrency)}
           </div>
           <div className="metric-label">Expected Revenue</div>
+        </div>
+      </div>
+
+      {/* Action Items */}
+      <div className="dashboard-section">
+        <div className="section-header">
+          <h3><AlertIcon /> Actions Required</h3>
+          <span className="badge">{mockData.actionItems.length}</span>
+        </div>
+        <div className="action-items">
+          {mockData.actionItems.map(item => (
+            <div key={item.id} className="action-item">
+              <div className="action-icon">{getActionIcon(item.type)}</div>
+              <div className="action-content">
+                <div className="action-title">{item.title}</div>
+                <div className="action-description">{item.description}</div>
+              </div>
+              <button className="btn btn-outline btn-sm">{item.action}</button>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -1074,26 +1094,6 @@ const ManageArtistScreen = ({ artist, onClose }) => {
               <div className="no-revenue-data">Loading revenue data...</div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Action Items */}
-      <div className="dashboard-section">
-        <div className="section-header">
-          <h3><AlertIcon /> Action Required</h3>
-          <span className="badge">{mockData.actionItems.length}</span>
-        </div>
-        <div className="action-items">
-          {mockData.actionItems.map(item => (
-            <div key={item.id} className="action-item">
-              <div className="action-icon">{getActionIcon(item.type)}</div>
-              <div className="action-content">
-                <div className="action-title">{item.title}</div>
-                <div className="action-description">{item.description}</div>
-              </div>
-              <button className="btn btn-outline btn-sm">{item.action}</button>
-            </div>
-          ))}
         </div>
       </div>
     </div>

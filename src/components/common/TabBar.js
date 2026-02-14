@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProfileIcon, SearchIcon, BookingsIcon, MessageIcon, MatchesIcon } from '../../utils/icons';
+import { ProfileIcon, SearchIcon, BookingsIcon, MessageIcon, PlaneIcon } from '../../utils/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0 }) => {
@@ -8,7 +8,7 @@ const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0 }) => {
   const tabs = [
     { id: 'profile', icon: ProfileIcon, label: t('nav.profile') },
     { id: 'search', icon: SearchIcon, label: t('nav.search') },
-    { id: 'matches', icon: MatchesIcon, label: t('nav.matches') },
+    { id: 'tour', icon: PlaneIcon, label: 'Tour' },
     { id: 'bookings', icon: BookingsIcon, label: t('nav.bookings') },
     { id: 'messages', icon: MessageIcon, label: t('nav.messages') }
   ];

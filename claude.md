@@ -71,7 +71,7 @@ tora-app/
 - **Premium Features**: Calendar visibility controls for premium users
 - **Media Embeds**: SoundCloud player, Spotify artist profile, RA events modal
 
-### 2. Calendar with Travel Scheduling
+### 2. Calendar with Travel Scheduling (Role-Based Display)
 - Full-page calendar interface (not modal)
 - Month navigation with previous/next buttons
 - **Available Dates**:
@@ -82,7 +82,7 @@ tora-app/
   - Persists across page refreshes and devices
   - Touch-friendly with mobile support
   - Syncs between CalendarScreen (profile) and ManageArtistScreen (agent view)
-- **Travel Schedule Management**:
+- **Travel Schedule Management (Artists & Agents)**:
   - Schedule form with Zone/Country/City cascading selects
   - "ADD TRAVEL SCHEDULE" button when no schedules exist
   - Schedules displayed with location labels and formatted dates (YYYY-MM-DD)
@@ -91,6 +91,15 @@ tora-app/
   - Instant save to backend with error handling
   - Cross-device synchronization (PC and phone)
   - Auto-refresh when switching between screens
+- **Upcoming Events (Promoters & Venues)**:
+  - Replaces Travel Schedule section for Promoter/Venue roles
+  - Shows upcoming bookings with PENDING, NEGOTIATING, or ACCEPTED status
+  - Displays event name, date, artist name, and status badge
+  - Sorted by date (earliest first)
+  - Limited to 10 upcoming events
+  - Color-coded status badges (yellow=pending, blue=negotiating, green=accepted)
+  - Calendar icon with pink accent
+  - Fetched from backend deals API
 - **Agent Role**: Replaced with Represented Artists management interface
   - Full calendar integration in Manage section
   - Same available dates and travel schedule functionality
@@ -263,6 +272,36 @@ tora-app/
 - Optimized re-renders with proper state management
 - Efficient list rendering
 - Touch event optimization for mobile
+
+## Recent Updates (February 14, 2026)
+
+### Calendar Tab Role-Based Display for Promoters/Venues
+- **Feature**: Calendar tab now shows different content based on user role
+- **Promoters & Venues**: Travel Schedule section replaced with "Upcoming Events" list
+  - **Identical to agent's dashboard**: Uses exact same booking card design for consistency
+  - **Expandable cards**: Click anywhere on card (avatar or info) to expand/collapse details
+  - **Compact view**: Shows artist avatar, name, role badge, location, and status badge row
+  - **Expanded view**: Displays full booking details (event name, artist, date, time, performance type, fee)
+  - **Date badge**: Day number in top-right corner (e.g., "15")
+  - **Expand arrow**: Rotates 180° when card is expanded
+  - **Status badges**: Color-coded pills below location (yellow=pending, blue=negotiating, green=accepted)
+  - **Data**: Limited to 10 upcoming events, sorted by date (earliest first), fetched from backend deals API
+- **Artists & Agents**: Continue to see Travel Schedule section (unchanged)
+  - Can add, edit, and delete travel schedules
+  - Travel schedule labels appear on calendar dates
+- **Layout Fix**: Removed all padding when embedded in dashboard tabs to prevent double padding
+  - Changed from `paddingTop: '0'` to `padding: '0'` for embedded calendar
+  - Matches dashboard and documents tab spacing exactly
+- **Files Modified**:
+  - [CalendarScreen.js](src/components/screens/CalendarScreen.js): Added expandable card functionality, helper functions, state management
+  - [App.css](src/styles/App.css): No new styles - reuses existing booking card classes
+- **Implementation Details**:
+  - Added `expandedDealId` state to track which card is expanded
+  - Added `toggleDealExpanded()` function for expand/collapse
+  - Added `getStatusBadgeClass()` and `formatEventDate()` helpers
+  - Clickable areas: avatar and party-info with cursor pointer
+  - Conditional rendering based on `isExpanded` state
+  - Booking details section shows event name, artist info, date, times, type, and fee
 
 ## Recent Updates (February 12, 2026)
 
@@ -1364,6 +1403,107 @@ MONGODB_URI=mongodb://localhost:27017/tora
 - ~~"Open Document" button opening React app homepage~~ - Fixed with full URL construction and query auth
 - ~~PDFs not accessible due to 401 Unauthorized~~ - Fixed with token in query parameters
 - ~~Contracts with null URLs~~ - Fixed by properly uploading files and storing server URLs
+
+## Recent Updates (February 15, 2026)
+
+### UI/UX Improvements
+- **Calendar Spacing**: Added consistent 32px margin-top before "Travel Schedule" and "Upcoming Events" sections across all roles
+  - Updated `.dashboard-section`, `.schedules-header`, and `.travel-schedules-section` CSS classes
+  - Fixed inconsistency where Travel Schedules had 24px margin while Upcoming Events had 32px
+  - All sections now have uniform spacing for better visual hierarchy
+
+- **Calendar Available Dates Styling**: Changed agent dashboard calendar from solid green to transparent green
+  - Updated `.calendar-day.available` CSS to use `rgba(76, 175, 80, 0.2)` instead of solid `#00c853`
+  - Matches styling across all roles (Artists, Promoters, Venues, Agents)
+  - Consistent transparent green for available dates throughout the app
+
+- **Agent Dashboard Section Order**: Swapped "Actions Required" and "Revenue Overview" sections
+  - "Actions Required" now appears first (more urgent items)
+  - "Revenue Overview" appears second
+  - Fixed typo: "Action Required" → "Actions Required"
+
+### Promoter/Venue Document Management System
+- **Simplified Documents Tab**: Implemented streamlined document management for Promoters and Venues
+  - **Artists/Agents**: Keep categorized system (Press Kit, Technical Rider, Contracts)
+  - **Promoters/Venues**: Use simplified flat list with general description
+  - Description: "Add important documents like contracts, licenses, permits, insurance, financial records, technical specs, etc."
+  - Button text: "+ Add" (simplified from "+ Add Document")
+
+- **Backend Support**: Updated Profile model to support both document structures
+  - `pressKit`, `technicalRider`, `contracts` arrays for Artists/Agents
+  - `general` array for Promoters/Venues
+  - Schema supports all roles with appropriate fields
+
+- **State Management**: Fixed complex role-based document handling
+  - Conditional initialization based on `isPromoterOrVenue` flag
+  - Separate handlers for flat array (Promoters/Venues) vs categorized object (Artists/Agents)
+  - `useEffect` syncs documents only on user ID change (not every data update)
+  - Prevents document state from being overwritten after successful saves
+
+- **Bug Fixes**:
+  - Fixed `documents.map is not a function` error for Promoters/Venues
+  - Fixed `Cannot read properties of undefined (reading 'push')` error in AddContractModal
+  - Fixed documents not appearing in list after adding (state sync issue)
+  - Updated `AddContractModal` onSave handler to support both array and object structures
+
+### Calendar Screen Updates
+- **Role-Based Calendar Display**: Implemented different calendar views for Promoters/Venues
+  - **Promoters/Venues**: See "Upcoming Events" list instead of "Travel Schedules"
+  - **Artists/Agents**: Keep original "Travel Schedules" functionality
+  - Both roles see same embedded calendar with green available dates
+  - Upcoming events show expandable cards with booking details
+
+- **Files Modified**:
+  - `CalendarScreen.js` - Added role detection and conditional rendering
+  - `ManageProfileScreen.js` - Implemented role-based document management
+  - `ManageArtistScreen.js` - Swapped section order, fixed title typo
+  - `App.css` - Updated spacing, calendar styling, section margins
+  - `Profile.js` (backend) - Added `general` documents array for Promoters/Venues
+
+### Technical Implementation
+- **State Management**: Smart initialization based on user role
+  ```javascript
+  const getInitialDocuments = () => {
+    if (isPromoterOrVenue) {
+      return user?.documents?.general || [];
+    }
+    return {
+      pressKit: user?.documents?.pressKit || [],
+      technicalRider: user?.documents?.technicalRider || [],
+      contracts: user?.documents?.contracts || []
+    };
+  };
+  ```
+
+- **Conditional Handlers**: Separate logic paths for different roles
+  - `handleAddDocument`, `handleEditDocument`, `handleSaveDocument`, `handleDeleteDocument`
+  - Each checks `isPromoterOrVenue` and executes appropriate code path
+  - Backend saves correctly: `{ general: [...] }` vs `{ pressKit: [...], ... }`
+
+- **useEffect Optimization**: Prevent state overwrites
+  ```javascript
+  useEffect(() => {
+    // Sync documents based on role
+    if (isPromoterOrVenue) {
+      setDocuments(user?.documents?.general || []);
+    } else {
+      setDocuments({ pressKit: [...], technicalRider: [...], contracts: [...] });
+    }
+  }, [user?._id]); // Only trigger on user ID change, not every update
+  ```
+
+### Calendar Tab Role-Based Features
+- **Promoters/Venues**:
+  - "Calendar View" section with embedded calendar (same as Artists)
+  - "Upcoming Events" section with expandable booking cards
+  - Shows deals with PENDING, NEGOTIATING, or ACCEPTED status
+  - Sorted by date, limited to next 10 upcoming events
+  - Expandable cards show full event details (artist, date, time, type, fee)
+
+- **Artists/Agents**:
+  - "Calendar View" section with embedded calendar
+  - "Travel Schedules" section with add/edit/delete functionality
+  - Same calendar availability features as before
 
 ## Contact
 This project was developed for the TORA platform, a networking application for electronic music industry professionals.
