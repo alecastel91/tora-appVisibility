@@ -79,7 +79,9 @@
       "Bash(tailscale ip:*)",
       "Bash(REACT_APP_API_URL=http://100.107.149.82:5001/api HOST=0.0.0.0 PORT=3001 npm start:*)",
       "Bash(xargs ls:*)",
-      "Bash(REACT_APP_API_URL=http://localhost:5001/api PORT=3001 npm start:*)"
+      "Bash(REACT_APP_API_URL=http://localhost:5001/api PORT=3001 npm start:*)",
+      "Bash(pm2 restart:*)",
+      "Bash(REACT_APP_API_URL=http://192.168.2.101:5001/api HOST=0.0.0.0 PORT=3001 npm start)"
     ],
     "deny": [],
     "ask": []

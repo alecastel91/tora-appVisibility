@@ -163,7 +163,8 @@ class ApiService {
   // PROFILE ENDPOINTS (we'll add these to backend next)
   async searchProfiles(filters = {}) {
     const queryParams = new URLSearchParams(filters).toString();
-    const response = await fetch(`${API_URL}/profiles?${queryParams}`, {
+    // Use the authenticated search endpoint that enforces location-based restrictions
+    const response = await fetch(`${API_URL}/profiles/search?${queryParams}`, {
       method: 'GET',
       headers: this.getHeaders()
     });

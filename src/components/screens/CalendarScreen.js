@@ -751,7 +751,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
   };
 
   return (
-    <div className="screen active calendar-screen">
+    <div className={`screen active calendar-screen ${embedded ? 'calendar-embedded' : ''}`}>
       {!embedded && (
         <div className="calendar-header">
           <button className="back-btn" onClick={handleClose}>

@@ -964,6 +964,56 @@ npm run build
 - Contract management and booking workflow systems
 - Multi-category media and press kit management
 
+## Recent Updates (February 25, 2026)
+
+### Edit Profile Screen Scrolling Fix
+- **Issue**: Edit Profile screen could scroll with keyboard arrows but not with mouse wheel
+- **Root Cause**: CSS specificity conflict - `.screen.active` display: block was overriding `.edit-profile-screen` display: flex
+- **Solution**: Changed to fixed positioning with proper overflow handling
+  - [App.css:2231-2244](src/styles/App.css#L2231-L2244): Added `position: fixed` with full viewport coverage
+  - [App.css:2273-2282](src/styles/App.css#L2273-L2282): Changed `overflow-y: auto` to `overflow-y: scroll` for proper mouse wheel capture
+  - Added `max-height: calc(100vh - 60px)` for proper scroll calculation
+- **Result**: Edit Profile now scrolls with both mouse and keyboard, showing all sections (genres, social links, buttons)
+
+### Tour Screen (Calendar Match) Scrolling Fix
+- **Issue**: Calendar Match tab couldn't scroll on any device - content appeared cut off
+- **Root Cause Analysis**:
+  - Element had classes: `screen active matches-screen tour-screen`
+  - `.screen.active` (specificity 020) set `display: block`
+  - `.tour-screen` (specificity 010) set `display: flex`
+  - Higher specificity `.screen.active` won, breaking flex layout and child scrolling
+- **Solution**: Increased CSS specificity and added proper constraints
+  - [App.css:11040-11047](src/styles/App.css#L11040-L11047): Changed selector to `.tour-screen.screen.active` (specificity 030)
+  - Added `display: flex !important` to override block display
+  - Added `min-height: 0 !important` to remove height constraint from `.screen` class
+  - [App.css:11049-11054](src/styles/App.css#L11049-L11054): Changed `.tour-tab-content` overflow-y from `auto` to `scroll`
+- **Result**: Calendar Match tab now scrolls properly on both PC (mouse) and mobile (touch)
+
+### Calendar Match Date Display Fix
+- **Issue**: Match cards showing "undefined NaN, NaN" for dates and locations
+- **Root Cause**:
+  - Dates stored as `'2026-1-28'` (single-digit month) instead of `'2026-01-28'`
+  - JavaScript Date constructor doesn't parse single-digit format correctly
+  - `match.location` was undefined (should be `match.profile.location`)
+- **Solution**:
+  - [TourScreen.js:134-140](src/components/screens/TourScreen.js#L134-L140): Added `normalizeDate()` function to pad single-digit months/days
+  - [TourScreen.js:147](src/components/screens/TourScreen.js#L147): Apply normalization before sorting dates
+  - [TourScreen.js:373](src/components/screens/TourScreen.js#L373): Changed `match.location` to `match.profile.location`
+- **Result**: Match cards now display proper dates (e.g., "Feb 22-28, 2026") and locations (e.g., "Tokyo, Japan")
+
+### Tour Screen UI Improvements
+- **Tab Label**: Changed "Calendar Matches" to "Calendar Match" (singular)
+  - [TourScreen.js:516](src/components/screens/TourScreen.js#L516): Updated tab label text
+- **Tab Height Increase**: Made tabs taller to match previous two-line height
+  - [App.css:11008, 11021](src/styles/App.css#L11008): Increased padding from `12px` to `20px` and added `min-height: 56px`
+  - Maintains consistent height with single-line text
+
+### Technical Details
+- **CSS Specificity**: Used proper selector specificity to override base screen classes
+- **Overflow Behavior**: Changed from `auto` to `scroll` forces scrollbar and captures mouse events properly
+- **Date Normalization**: Converts `YYYY-M-D` to `YYYY-MM-DD` format for reliable Date parsing
+- **Fixed Positioning**: Full-screen overlays use fixed positioning for reliable cross-device behavior
+
 ## Recent Updates (November 10, 2025)
 
 ### Booking System Improvements

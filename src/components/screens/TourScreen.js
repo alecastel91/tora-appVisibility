@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ViewProfileScreen from './ViewProfileScreen';
 import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon } from '../../utils/icons';
+import apiService from '../../services/api';
 
 const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const { user, getCalendarMatches, sentRequests, sendConnectionRequest, connectedUsers } = useAppContext();
@@ -18,6 +19,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const [message, setMessage] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
+  const [calendarMatches, setCalendarMatches] = useState([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
 
   // Generate month/year options starting from current month for next 12 months
   const generateMonthOptions = () => {
@@ -41,16 +44,162 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   };
 
   const monthOptions = generateMonthOptions();
-  const allMatches = getCalendarMatches();
+
+  // Fetch calendar matches when user is premium and has available dates
+  useEffect(() => {
+    const fetchCalendarMatches = async () => {
+      if (!user || !user.isPremium || !user.availableDates || user.availableDates.length === 0) {
+        setCalendarMatches([]);
+        return;
+      }
+
+      setLoadingMatches(true);
+      try {
+        // Fetch all profiles from backend (no filters = get all)
+        const response = await apiService.searchProfiles({});
+        const allProfiles = response.profiles || [];
+
+        // Find matches
+        const userAvailableDates = new Set(user.availableDates);
+        const matches = [];
+
+        for (const profile of allProfiles) {
+          // Skip self
+          if (profile._id === user._id) continue;
+
+          // Check role compatibility
+          if (!isValidRoleMatch(user.role, profile.role)) continue;
+
+          // Check genre matching - must have at least one genre in common
+          const userGenres = user.genres || [];
+          const profileGenres = profile.genres || [];
+
+          // Skip if either has no genres, or if they have no common genres
+          if (userGenres.length === 0 || profileGenres.length === 0) {
+            continue;
+          }
+
+          const hasCommonGenre = userGenres.some(genre => profileGenres.includes(genre));
+          if (!hasCommonGenre) {
+            continue;
+          }
+
+          // Check for overlapping available dates
+          const profileAvailableDates = profile.availableDates || [];
+          const overlappingDates = profileAvailableDates.filter(date => userAvailableDates.has(date));
+
+          if (overlappingDates.length > 0) {
+            // Format dates for display
+            const datesFormatted = formatMatchDates(overlappingDates);
+
+            matches.push({
+              profile,
+              dates: datesFormatted,
+              matchCount: overlappingDates.length,
+              rawDates: overlappingDates
+            });
+          }
+        }
+
+        // Sort by number of matching dates (most matches first)
+        matches.sort((a, b) => b.matchCount - a.matchCount);
+
+        setCalendarMatches(matches);
+      } catch (error) {
+        console.error('Error fetching calendar matches:', error);
+        setCalendarMatches([]);
+      } finally {
+        setLoadingMatches(false);
+      }
+    };
+
+    fetchCalendarMatches();
+  }, [user?._id, user?.isPremium, user?.availableDates?.length, activeTab]);
+
+  // Helper function to check role compatibility
+  const isValidRoleMatch = (role1, role2) => {
+    const validPairs = [
+      ['ARTIST', 'VENUE'],
+      ['ARTIST', 'PROMOTER'],
+      ['PROMOTER', 'VENUE'],
+      ['AGENT', 'VENUE'],
+      ['AGENT', 'PROMOTER']
+    ];
+
+    return validPairs.some(([r1, r2]) =>
+      (role1 === r1 && role2 === r2) || (role1 === r2 && role2 === r1)
+    );
+  };
+
+  // Helper function to normalize date format (YYYY-M-D to YYYY-MM-DD)
+  const normalizeDate = (dateStr) => {
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const [year, month, day] = parts;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  };
+
+  // Helper function to format overlapping dates for display
+  const formatMatchDates = (dates) => {
+    if (dates.length === 0) return '';
+
+    // Normalize and sort dates
+    const sortedDates = [...dates].map(normalizeDate).sort();
+
+    // Group consecutive dates
+    const groups = [];
+    let currentGroup = [sortedDates[0]];
+
+    for (let i = 1; i < sortedDates.length; i++) {
+      const prevDate = new Date(sortedDates[i - 1]);
+      const currDate = new Date(sortedDates[i]);
+      const dayDiff = (currDate - prevDate) / (1000 * 60 * 60 * 24);
+
+      if (dayDiff === 1) {
+        // Consecutive date
+        currentGroup.push(sortedDates[i]);
+      } else {
+        // Gap - start new group
+        groups.push(currentGroup);
+        currentGroup = [sortedDates[i]];
+      }
+    }
+    groups.push(currentGroup);
+
+    // Format each group
+    const formattedGroups = groups.slice(0, 3).map(group => {
+      const startDate = new Date(group[0]);
+      const endDate = new Date(group[group.length - 1]);
+
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = monthNames[startDate.getMonth()];
+      const year = startDate.getFullYear();
+
+      if (group.length === 1) {
+        return `${month} ${startDate.getDate()}, ${year}`;
+      } else {
+        return `${month} ${startDate.getDate()}-${endDate.getDate()}, ${year}`;
+      }
+    });
+
+    return formattedGroups.join('; ');
+  };
+
+  const allMatches = calendarMatches;
 
   // Filter matches based on selected filters
   const filteredMatches = allMatches.filter(match => {
     // Genre matching - must have at least one genre in common
     const userGenres = user?.genres || [];
     const matchGenres = match.profile.genres || [];
-    const hasCommonGenre = userGenres.some(genre => matchGenres.includes(genre));
 
-    if (!hasCommonGenre && userGenres.length > 0 && matchGenres.length > 0) {
+    // Skip if either has no genres, or if they have no common genres
+    if (userGenres.length === 0 || matchGenres.length === 0) {
+      return false;
+    }
+
+    const hasCommonGenre = userGenres.some(genre => matchGenres.includes(genre));
+    if (!hasCommonGenre) {
       return false;
     }
 
@@ -166,11 +315,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     return (
       <div className="tour-kickstart-content">
         <div className="coming-soon-placeholder">
-          <div className="coming-soon-icon">
-            <CalendarIcon />
-          </div>
-          <h2>Calendar Matches</h2>
-          <p>Find professionals with matching travel schedules and availability</p>
+          <p style={{ marginBottom: '24px', marginTop: 0 }}>Find professionals with matching travel schedules and availability</p>
 
           <div className="feature-preview">
             {/* Filters Section */}
@@ -225,20 +370,21 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 </p>
 
                 {matches.map((match, index) => {
-                  const isRequested = sentRequests.has(match.profile.id);
-                  const isConnected = connectedUsers.has(match.profile.id);
+                  const profileId = match.profile._id || match.profile.id;
+                  const isRequested = sentRequests.has(profileId);
+                  const isConnected = connectedUsers.has(profileId);
 
                   return (
-                    <div key={`${match.profile.id}-${index}`} className="match-card-simple">
+                    <div key={`${profileId}-${index}`} className="match-card-simple">
                       <div className="match-date-location">
                         <span><CalendarIcon /> {match.dates}</span>
-                        <span><LocationIcon /> {match.location}</span>
+                        <span><LocationIcon /> {match.profile.location}</span>
                       </div>
 
                       <div className="match-profile-content">
                         <div
                           className={`match-avatar avatar-${match.profile.role.toLowerCase()} clickable`}
-                          onClick={() => handleProfileClick(match.profile.id)}
+                          onClick={() => handleProfileClick(profileId)}
                         >
                           {match.profile.avatar ? (
                             <img src={match.profile.avatar} alt={match.profile.name} />
@@ -250,7 +396,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
                         <div
                           className="match-info clickable"
-                          onClick={() => handleProfileClick(match.profile.id)}
+                          onClick={() => handleProfileClick(profileId)}
                         >
                           <div className="match-name-role">
                             <h3>{match.profile.name}</h3>
@@ -367,7 +513,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
           onClick={() => setActiveTab('calendar')}
         >
           <CalendarIcon />
-          <span>Calendar Matches</span>
+          <span>Calendar Match</span>
         </button>
         <button
           className={`tour-tab ${activeTab === 'kickstart' ? 'active' : ''}`}

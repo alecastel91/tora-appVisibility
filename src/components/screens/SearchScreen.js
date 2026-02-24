@@ -51,10 +51,14 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
     setLoading(true);
     try {
       const apiStartTime = performance.now();
-      // Use the public endpoint for now
-      const profiles = await apiService.searchProfiles();
+      // Use the authenticated search endpoint with location restrictions
+      const response = await apiService.searchProfiles();
       const apiEndTime = performance.now();
+
+      // Handle both response formats (old: array, new: object with profiles array)
+      const profiles = response.profiles || response;
       console.log(`✅ [SearchScreen] API call completed in ${(apiEndTime - apiStartTime).toFixed(0)}ms, got ${profiles?.length || 0} profiles`);
+      console.log(`📍 [SearchScreen] User location restriction: ${response.userCity || 'N/A'}, isPremium: ${response.isPremium || user?.isPremium}`);
 
       // Filter out current user's profile
       const filteredProfiles = (profiles || []).filter(profile => {
@@ -84,6 +88,26 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   }, [profilesLoaded]);
 
   const handleSearch = async () => {
+    // Check if non-premium user is trying to use location filters
+    if (!user.isPremium) {
+      const hasLocationFilters = filters.zones.length > 0 || filters.countries.length > 0 || filters.cities.length > 0;
+
+      if (hasLocationFilters) {
+        // Show alert and clear location filters
+        alert(`Location filters are only available for Premium users.\n\nYour search is restricted to ${user.city} only.\n\nUpgrade to Premium to search worldwide!`);
+
+        // Clear location filters but keep other filters
+        setFilters({
+          ...filters,
+          zones: [],
+          countries: [],
+          cities: []
+        });
+
+        return; // Don't proceed with search
+      }
+    }
+
     setHasSearched(true);
     setLoading(true);
     try {
@@ -97,7 +121,9 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
       if (filters.cities.length > 0) params.cities = filters.cities.join(',');
       if (filters.genres.length > 0) params.genres = filters.genres.join(',');
 
-      const profiles = await apiService.searchProfiles(params);
+      const response = await apiService.searchProfiles(params);
+      // Handle both response formats (old: array, new: object with profiles array)
+      const profiles = response.profiles || response;
       // Filter out current user's profile
       const filteredProfiles = (profiles || []).filter(profile => {
         const profileId = profile._id || profile.id;

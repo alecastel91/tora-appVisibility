@@ -225,9 +225,117 @@ export const AppProvider = ({ children }) => {
 
   // Calendar matching functionality
   const getCalendarMatches = () => {
-    // TODO: Implement real calendar matching with backend data
-    // For now, return empty array until we have real profiles with calendars
-    return [];
+    if (!user || !user.isPremium) {
+      return [];
+    }
+
+    // Get user's available dates
+    const userAvailableDates = user.availableDates || [];
+    if (userAvailableDates.length === 0) {
+      return [];
+    }
+
+    // Convert user's available dates to Set for faster lookup
+    const userDatesSet = new Set(userAvailableDates);
+
+    const matches = [];
+
+    // Search through all profiles (we'll need to fetch from backend in real implementation)
+    // For now, we'll use the connected users and liked profiles we already have loaded
+    const allProfilesToCheck = [
+      ...connectedUsersData,
+      ...likedProfilesData,
+      ...likerProfilesData
+    ];
+
+    // Remove duplicates by ID
+    const uniqueProfiles = Array.from(
+      new Map(allProfilesToCheck.map(p => [p._id || p.id, p])).values()
+    );
+
+    for (const profile of uniqueProfiles) {
+      // Skip self
+      if ((profile._id || profile.id) === user._id) continue;
+
+      // Check role compatibility
+      if (!isValidMatch(user.role, profile.role)) continue;
+
+      // Check genre matching - must have at least one genre in common
+      const userGenres = user.genres || [];
+      const profileGenres = profile.genres || [];
+      const hasCommonGenre = userGenres.some(genre => profileGenres.includes(genre));
+
+      if (!hasCommonGenre && userGenres.length > 0 && profileGenres.length > 0) {
+        continue;
+      }
+
+      // Check for overlapping available dates
+      const profileAvailableDates = profile.availableDates || [];
+      const overlappingDates = profileAvailableDates.filter(date => userDatesSet.has(date));
+
+      if (overlappingDates.length > 0) {
+        // Format dates for display
+        const datesFormatted = formatMatchDates(overlappingDates);
+
+        matches.push({
+          profile,
+          dates: datesFormatted,
+          matchCount: overlappingDates.length,
+          rawDates: overlappingDates
+        });
+      }
+    }
+
+    // Sort by number of matching dates (most matches first)
+    matches.sort((a, b) => b.matchCount - a.matchCount);
+
+    return matches;
+  };
+
+  // Helper function to format overlapping dates for display
+  const formatMatchDates = (dates) => {
+    if (dates.length === 0) return '';
+
+    // Sort dates
+    const sortedDates = [...dates].sort();
+
+    // Group consecutive dates
+    const groups = [];
+    let currentGroup = [sortedDates[0]];
+
+    for (let i = 1; i < sortedDates.length; i++) {
+      const prevDate = new Date(sortedDates[i - 1]);
+      const currDate = new Date(sortedDates[i]);
+      const dayDiff = (currDate - prevDate) / (1000 * 60 * 60 * 24);
+
+      if (dayDiff === 1) {
+        // Consecutive date
+        currentGroup.push(sortedDates[i]);
+      } else {
+        // Gap - start new group
+        groups.push(currentGroup);
+        currentGroup = [sortedDates[i]];
+      }
+    }
+    groups.push(currentGroup);
+
+    // Format each group
+    const formattedGroups = groups.slice(0, 3).map(group => {
+      const startDate = new Date(group[0]);
+      const endDate = new Date(group[group.length - 1]);
+
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = monthNames[startDate.getMonth()];
+      const year = startDate.getFullYear();
+
+      if (group.length === 1) {
+        return `${month} ${startDate.getDate()}, ${year}`;
+      } else {
+        return `${month} ${startDate.getDate()}-${endDate.getDate()}, ${year}`;
+      }
+    });
+
+    return formattedGroups.join('; ');
   };
 
   // Helper function to determine valid matches based on roles
