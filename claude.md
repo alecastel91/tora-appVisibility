@@ -1002,11 +1002,28 @@ npm run build
 - **Result**: Match cards now display proper dates (e.g., "Feb 22-28, 2026") and locations (e.g., "Tokyo, Japan")
 
 ### Tour Screen UI Improvements
-- **Tab Label**: Changed "Calendar Matches" to "Calendar Match" (singular)
-  - [TourScreen.js:516](src/components/screens/TourScreen.js#L516): Updated tab label text
-- **Tab Height Increase**: Made tabs taller to match previous two-line height
+- **Tab Label**: "Calendar Matches" (plural) - final version
+  - [TourScreen.js:529](src/components/screens/TourScreen.js#L529): Tab label text
+- **Tab Height Increase**: Made tabs taller to accommodate two-line text wrapping
   - [App.css:11008, 11021](src/styles/App.css#L11008): Increased padding from `12px` to `20px` and added `min-height: 56px`
-  - Maintains consistent height with single-line text
+  - Maintains consistent tall height even when text wraps
+- **Clickable Match Cards**: Added visual feedback for profile viewing
+  - [App.css:5109-5116, 5224-5231](src/styles/App.css#L5109-L5116): Added hover styles for `.match-avatar.clickable` and `.match-info.clickable`
+  - Cursor pointer and opacity change on hover
+
+### Calendar Matches Profile Viewing
+- **Issue**: Clicking match cards showed black screen
+- **Root Cause**: TourScreen was passing `profileId` string, but ViewProfileScreen expects full `profile` object
+- **Solution**:
+  - [TourScreen.js:264-285](src/components/screens/TourScreen.js#L264-L285): Added logic to find and pass full profile object from calendarMatches
+  - Added console logging for debugging
+  - ViewProfileScreen now receives complete profile data
+- **Result**: Clicking on match card avatar or info section opens full profile with all details
+
+### Calendar Matches Disclaimer Update
+- **Updated Text**: Changed disclaimer to mention genre matching
+  - [TourScreen.js:331](src/components/screens/TourScreen.js#L331): "Find professionals with matching travel schedules, availability, and music genres"
+  - Makes it clear that matches require common music genres
 
 ### Technical Details
 - **CSS Specificity**: Used proper selector specificity to override base screen classes

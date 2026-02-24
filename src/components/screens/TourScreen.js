@@ -256,14 +256,27 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   };
 
   const handleProfileClick = (profileId) => {
+    console.log('[TourScreen] Opening profile:', profileId);
     setViewingProfile(profileId);
   };
 
   // Show viewing profile if selected
   if (viewingProfile) {
+    // Find the profile object from the matches
+    const profileToView = calendarMatches.find(m => {
+      const id = m.profile._id || m.profile.id;
+      return id === viewingProfile;
+    })?.profile;
+
+    if (!profileToView) {
+      // If profile not found, close the view
+      setViewingProfile(null);
+      return null;
+    }
+
     return (
       <ViewProfileScreen
-        profileId={viewingProfile}
+        profile={profileToView}
         onClose={() => setViewingProfile(null)}
         onOpenChat={onOpenChat}
         onNavigateToMessages={onNavigateToMessages}
@@ -315,7 +328,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     return (
       <div className="tour-kickstart-content">
         <div className="coming-soon-placeholder">
-          <p style={{ marginBottom: '24px', marginTop: 0 }}>Find professionals with matching travel schedules and availability</p>
+          <p style={{ marginBottom: '24px', marginTop: 0 }}>Find professionals with matching travel schedules, availability, and music genres</p>
 
           <div className="feature-preview">
             {/* Filters Section */}
@@ -513,7 +526,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
           onClick={() => setActiveTab('calendar')}
         >
           <CalendarIcon />
-          <span>Calendar Match</span>
+          <span>Calendar Matches</span>
         </button>
         <button
           className={`tour-tab ${activeTab === 'kickstart' ? 'active' : ''}`}
