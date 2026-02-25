@@ -634,6 +634,40 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // TOUR ENDPOINTS
+  async createTour(tourData) {
+    const response = await fetch(`${API_URL}/tours/create`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(tourData)
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getTours(filters = {}) {
+    const queryParams = new URLSearchParams();
+    if (filters.zone) queryParams.append('zone', filters.zone);
+    if (filters.genre) queryParams.append('genre', filters.genre);
+    if (filters.role) queryParams.append('role', filters.role);
+
+    const response = await fetch(`${API_URL}/tours?${queryParams}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getMyTours() {
+    const response = await fetch(`${API_URL}/tours/my-tours`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   // Check if user is logged in
   isAuthenticated() {
     return !!this.token;

@@ -11426,9 +11426,27 @@ select.form-input {
   margin-bottom: 4px;
 }
 
+.tour-artist-name {
+  font-size: 13px;
+  color: var(--primary-pink);
+  font-weight: 500;
+  margin: 2px 0 4px 0;
+}
+
 .tour-dates {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
+}
+
+.tour-genres {
+  margin-top: 12px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tour-genres .genres-label {
+  color: rgba(255, 255, 255, 0.5);
+  margin-right: 6px;
 }
 
 .tour-status-badge {

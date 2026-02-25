@@ -27,6 +27,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   // Tour Kickstart state
   const [showCreateTourModal, setShowCreateTourModal] = useState(false);
   const [myTours, setMyTours] = useState([]);
+  const [allTours, setAllTours] = useState([]); // For promoters/venues
+  const [tourZoneFilter, setTourZoneFilter] = useState('all');
+  const [tourGenreFilter, setTourGenreFilter] = useState('all');
   const [tourForm, setTourForm] = useState({
     zone: '',
     startDate: '',
@@ -132,6 +135,32 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
     fetchCalendarMatches();
   }, [user?._id, user?.isPremium, user?.availableDates?.length, activeTab]);
+
+  // Fetch tours when Kickstart tab is active
+  useEffect(() => {
+    const fetchTours = async () => {
+      if (!user || activeTab !== 'kickstart') return;
+
+      try {
+        const isArtist = user.role === 'ARTIST';
+        const isPromoterOrVenue = user.role === 'PROMOTER' || user.role === 'VENUE';
+
+        if (isArtist) {
+          // Fetch artist's own tours
+          const response = await apiService.getMyTours();
+          setMyTours(response.tours || []);
+        } else if (isPromoterOrVenue) {
+          // Fetch all tours for promoters/venues
+          const response = await apiService.getTours({ role: user.role });
+          setAllTours(response.tours || []);
+        }
+      } catch (error) {
+        console.error('Error fetching tours:', error);
+      }
+    };
+
+    fetchTours();
+  }, [user?._id, user?.role, activeTab]);
 
   // Helper function to check role compatibility
   const isValidRoleMatch = (role1, role2) => {
@@ -520,10 +549,18 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   };
 
   // Handle Create Tour form submission
-  const handleCreateTour = () => {
+  const handleCreateTour = async () => {
     // Validation
     if (!tourForm.zone || !tourForm.startDate || !tourForm.endDate || !tourForm.minGigs || !tourForm.targetCities[0]) {
       alert('Please fill in all required fields (including at least one target city)');
+      return;
+    }
+
+    // Date validation - end date must be after start date
+    const startDate = new Date(tourForm.startDate);
+    const endDate = new Date(tourForm.endDate);
+    if (endDate <= startDate) {
+      alert('End date must be after start date');
       return;
     }
 
@@ -532,42 +569,44 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
       ? `${tourForm.feeCurrency} ${tourForm.feeMin}-${tourForm.feeMax}`
       : '';
 
-    // Create tour object
-    const newTour = {
-      id: Date.now().toString(),
-      artist: {
-        name: user.name,
-        location: user.location,
-        avatar: user.avatar
-      },
-      zone: tourForm.zone,
-      startDate: tourForm.startDate,
-      endDate: tourForm.endDate,
-      minGigs: parseInt(tourForm.minGigs),
-      targetCities: tourForm.targetCities.filter(c => c),
-      feeExpectation: feeExpectation,
-      additionalNotes: tourForm.additionalNotes,
-      status: 'ACTIVE',
-      proposalsCount: 0,
-      createdAt: new Date().toISOString()
-    };
+    try {
+      // Save to backend
+      const tourData = {
+        zone: tourForm.zone,
+        startDate: tourForm.startDate,
+        endDate: tourForm.endDate,
+        minGigs: parseInt(tourForm.minGigs),
+        targetCities: tourForm.targetCities.filter(c => c), // Remove empty strings
+        feeExpectation: feeExpectation,
+        additionalNotes: tourForm.additionalNotes
+      };
 
-    // Add to tours list
-    setMyTours([newTour, ...myTours]);
+      const response = await apiService.createTour(tourData);
 
-    // Reset form and close modal
-    setTourForm({
-      zone: '',
-      startDate: '',
-      endDate: '',
-      minGigs: '3',
-      targetCities: ['', '', ''],
-      feeCurrency: 'EUR',
-      feeMin: '',
-      feeMax: '',
-      additionalNotes: ''
-    });
-    setShowCreateTourModal(false);
+      if (response.tour) {
+        // Add to local list
+        setMyTours([response.tour, ...myTours]);
+
+        // Reset form and close modal
+        setTourForm({
+          zone: '',
+          startDate: '',
+          endDate: '',
+          minGigs: '3',
+          targetCities: ['', '', ''],
+          feeCurrency: 'EUR',
+          feeMin: '',
+          feeMax: '',
+          additionalNotes: ''
+        });
+        setShowCreateTourModal(false);
+
+        alert('Tour created successfully!');
+      }
+    } catch (error) {
+      console.error('Error creating tour:', error);
+      alert(error.message || 'Failed to create tour. Please try again.');
+    }
   };
 
   // Render Create Tour Modal
@@ -635,31 +674,27 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
             {/* Dynamic city fields based on minimum gigs */}
             {tourForm.targetCities.map((city, index) => {
-              // Get cities for selected zone
+              // Get cities for selected zone and sort alphabetically
               const countries = tourForm.zone ? countriesByZone[tourForm.zone] || [] : [];
               const allCities = countries.flatMap(country => citiesByCountry[country] || []);
+              const sortedCities = [...new Set(allCities)].sort(); // Remove duplicates and sort
 
               return (
                 <div key={index} className="form-group">
                   <label>Target City {index + 1} {index === 0 ? '*' : '(Optional)'}</label>
-                  <input
-                    type="text"
-                    list={`cities-datalist-${index}`}
+                  <select
                     value={city}
                     onChange={(e) => handleCityChange(index, e.target.value)}
-                    placeholder={tourForm.zone ? "Select city or type 'Other'" : "Select zone first"}
                     className="form-input"
                     disabled={!tourForm.zone}
-                  />
-                  {tourForm.zone && (
-                    <datalist id={`cities-datalist-${index}`}>
-                      <option value="Other">Other</option>
-                      {allCities.map((cityOption, i) => (
-                        <option key={i} value={cityOption}>{cityOption}</option>
-                      ))}
-                    </datalist>
-                  )}
-                  {index === 0 && <small className="form-hint">At least one target city is required</small>}
+                  >
+                    <option value="">Select city</option>
+                    {sortedCities.map((cityOption, i) => (
+                      <option key={i} value={cityOption}>{cityOption}</option>
+                    ))}
+                    <option value="Other">Other</option>
+                  </select>
+                  {index === 0 && <small className="form-hint">Select a city from the list. Choose "Other" if your city is not listed.</small>}
                 </div>
               );
             })}
@@ -856,6 +891,14 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
     // PROMOTERS/VENUES: Browse and contribute to tours
     if (isPromoterOrVenue) {
+      // Filter tours by selected zone and genre
+      const filteredTours = allTours.filter(tour => {
+        const zoneMatch = tourZoneFilter === 'all' || tour.zone === tourZoneFilter;
+        const genreMatch = tourGenreFilter === 'all' ||
+          (tour.artist && tour.artist.genres && tour.artist.genres.some(g => g.toLowerCase() === tourGenreFilter));
+        return zoneMatch && genreMatch;
+      });
+
       return (
         <div className="tour-kickstart-content">
           <div className="tour-kickstart-section">
@@ -866,27 +909,94 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
             {/* Filters */}
             <div className="tour-filters">
-              <select className="filter-select">
+              <select
+                className="filter-select"
+                value={tourZoneFilter}
+                onChange={(e) => setTourZoneFilter(e.target.value)}
+              >
                 <option value="all">All Zones</option>
-                <option value="europe">Europe</option>
-                <option value="asia">Asia</option>
-                <option value="americas">Americas</option>
-                <option value="oceania">Oceania</option>
+                <option value="Europe">Europe</option>
+                <option value="Asia">Asia</option>
+                <option value="Americas">Americas</option>
+                <option value="Africa">Africa</option>
+                <option value="Oceania">Oceania</option>
               </select>
-              <select className="filter-select">
+              <select
+                className="filter-select"
+                value={tourGenreFilter}
+                onChange={(e) => setTourGenreFilter(e.target.value)}
+              >
                 <option value="all">All Genres</option>
                 <option value="house">House</option>
                 <option value="techno">Techno</option>
-                <option value="dnb">Drum & Bass</option>
+                <option value="deep house">Deep House</option>
+                <option value="tech house">Tech House</option>
+                <option value="minimal">Minimal</option>
+                <option value="drum & bass">Drum & Bass</option>
+                <option value="dubstep">Dubstep</option>
               </select>
             </div>
 
-            {/* Empty state for now */}
-            <div className="tour-empty-state">
-              <PlaneIcon />
-              <p>No active tours in your region</p>
-              <p className="tour-empty-hint">Check back soon for tour opportunities</p>
-            </div>
+            {/* Tour cards or empty state */}
+            {filteredTours.length === 0 ? (
+              <div className="tour-empty-state">
+                <PlaneIcon />
+                <p>No active tours found</p>
+                <p className="tour-empty-hint">Try adjusting your filters or check back later</p>
+              </div>
+            ) : (
+              <div className="tour-cards-list">
+                {filteredTours.map(tour => (
+                  <div key={tour._id} className="tour-card">
+                    <div className="tour-card-header">
+                      <div className="tour-info">
+                        <h4>{tour.zone} Tour</h4>
+                        <p className="tour-artist-name">{tour.artist?.name || 'Unknown Artist'}</p>
+                        <p className="tour-dates">
+                          {new Date(tour.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(tour.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
+                      <span className={`tour-status-badge status-${tour.status.toLowerCase()}`}>
+                        {tour.status}
+                      </span>
+                    </div>
+                    <div className="tour-card-body">
+                      <div className="tour-stat">
+                        <span className="tour-stat-label">Min Gigs:</span>
+                        <span className="tour-stat-value">{tour.minGigs}</span>
+                      </div>
+                      {tour.feeExpectation && (
+                        <div className="tour-stat">
+                          <span className="tour-stat-label">Fee Range:</span>
+                          <span className="tour-stat-value">{tour.feeExpectation}</span>
+                        </div>
+                      )}
+                      {tour.targetCities && tour.targetCities.length > 0 && (
+                        <div className="tour-cities">
+                          <LocationIcon />
+                          <span>{tour.targetCities.join(', ')}</span>
+                        </div>
+                      )}
+                      {tour.artist?.genres && tour.artist.genres.length > 0 && (
+                        <div className="tour-genres">
+                          <span className="genres-label">Genres:</span>
+                          <span>{tour.artist.genres.slice(0, 3).join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="tour-card-footer">
+                      <button className="btn btn-primary btn-small">Send Proposal</button>
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={() => setViewingProfile(tour.artist)}
+                      >
+                        View Artist
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       );
