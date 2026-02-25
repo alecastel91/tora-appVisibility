@@ -11231,7 +11231,25 @@ select.form-input {
   max-width: 700px;
   width: 90%;
   max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.create-tour-modal .modal-header {
+  flex-shrink: 0;
+}
+
+.create-tour-modal .modal-body {
+  flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+}
+
+.create-tour-modal .modal-footer {
+  flex-shrink: 0;
 }
 
 .form-row {
