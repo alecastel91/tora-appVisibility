@@ -11254,6 +11254,7 @@ select.form-input {
 
 .create-tour-modal .modal-header {
   flex-shrink: 0;
+  padding-bottom: 24px;
 }
 
 .create-tour-modal .modal-body {
@@ -11262,6 +11263,7 @@ select.form-input {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   min-height: 0;
+  padding-top: 24px;
 }
 
 .create-tour-modal .modal-footer {
