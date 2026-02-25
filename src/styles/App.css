@@ -11267,6 +11267,12 @@ select.form-input {
   .create-tour-modal {
     max-width: 95%;
     width: 95%;
+    max-height: calc(100vh - 120px);
+    margin-bottom: 60px;
+  }
+
+  .create-tour-modal .modal-footer {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
   }
 }
 
