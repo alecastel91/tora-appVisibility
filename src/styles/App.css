@@ -11227,6 +11227,20 @@ select.form-input {
 }
 
 /* Create Tour Modal */
+.create-tour-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
 .create-tour-modal {
   max-width: 700px;
   width: 90%;
@@ -11234,6 +11248,8 @@ select.form-input {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--bg-card);
+  border-radius: 16px;
 }
 
 .create-tour-modal .modal-header {
@@ -11271,6 +11287,14 @@ select.form-input {
     max-height: calc(100dvh - 40px);
     border-radius: 0;
     margin: 20px 0;
+  }
+
+  .create-tour-modal-overlay {
+    padding: 0;
+    align-items: flex-start;
+    overflow-y: auto;
+    padding-top: env(safe-area-inset-top, 20px);
+    padding-bottom: env(safe-area-inset-bottom, 20px);
   }
 }
 

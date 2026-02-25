@@ -546,7 +546,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     if (!showCreateTourModal) return null;
 
     return (
-      <div className="modal-overlay" onClick={() => setShowCreateTourModal(false)}>
+      <div className="create-tour-modal-overlay" onClick={() => setShowCreateTourModal(false)}>
         <div className="modal-content create-tour-modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <h2>Create Tour</h2>
