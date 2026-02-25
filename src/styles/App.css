@@ -8127,6 +8127,7 @@
   padding: 20px;
   border-top: 1px solid var(--border-dark);
   background: var(--bg-secondary);
+  flex-shrink: 0;
 }
 
 .make-offer-actions .btn {
@@ -8141,10 +8142,22 @@ select.form-input {
 @media (max-width: 768px) {
   .make-offer-modal {
     max-width: 100%;
-    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-    max-height: calc(100dvh - 40px);
+    max-height: calc(100vh - 180px);
     border-radius: 0;
-    margin: 20px 0;
+    margin-top: 70px;
+    margin-bottom: 80px;
+  }
+
+  .make-offer-header {
+    flex-shrink: 0;
+  }
+
+  .make-offer-recipient {
+    flex-shrink: 0;
+  }
+
+  .make-offer-actions {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
   }
 
   .form-row {
@@ -8153,10 +8166,10 @@ select.form-input {
 
   .make-offer-modal-overlay {
     padding: 0;
+    padding-top: 70px;
+    padding-bottom: 80px;
     align-items: flex-start;
     overflow-y: auto;
-    padding-top: env(safe-area-inset-top, 20px);
-    padding-bottom: env(safe-area-inset-bottom, 20px);
   }
 }
 
