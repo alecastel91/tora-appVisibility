@@ -665,7 +665,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
             })}
 
             <div className="form-group">
-              <label>Fee Expectation (Optional)</label>
+              <label>Fee Expectation Per Show (Optional)</label>
               <div className="fee-input-container">
                 <div className="fee-currency-selector">
                   <select
