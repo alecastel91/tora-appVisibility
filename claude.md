@@ -1089,14 +1089,16 @@ npm run build
   - **First City Required**: At least one target city is required (marked with *)
   - **Zone-Dependent**: City fields disabled until zone is selected
   - [TourScreen.js:622-665](src/components/screens/TourScreen.js#L622-L665): Dynamic city field rendering
-- **Split Fee Structure**: Fee Expectation replaced with Currency + Min/Max dropdown selectors
+- **Split Fee Structure**: Fee Expectation replaced with Currency + Min/Max number inputs
+  - **Currency-Aware Layout**: Two-row design with currency selector on top, min-max inputs below
   - **Currency Dropdown**: EUR (€), USD ($), GBP (£), JPY (¥)
-  - **Min Fee Dropdown**: Select from predefined amounts (100-20,000)
-  - **Max Fee Dropdown**: Select from predefined amounts (100-20,000)
-  - **Predefined Increments**: 100-900 (by 100), 1K-5K (by 500), 5K-20K (larger increments)
-  - **Three-Column Layout**: Currency selector + Min + Max side-by-side
-  - **Mobile-Friendly**: Native select dropdowns with touch-friendly scrolling
-  - [TourScreen.js:667-742](src/components/screens/TourScreen.js#L667-L742): Fee expectation form row with dropdowns
+  - **Currency Symbols**: Inline symbols (€, $, £, ¥) displayed inside input fields
+  - **Min/Max Inputs**: Number inputs with currency-appropriate step values
+  - **Smart Stepping**: JPY uses step="1000", other currencies use step="50"
+  - **Visual Separator**: Dash (-) between min and max fields
+  - **Flexible Input**: No restrictions - users can enter any amount suitable for their currency
+  - [TourScreen.js:667-719](src/components/screens/TourScreen.js#L667-L719): Fee expectation form
+  - [App.css:11286-11329](src/styles/App.css#L11286-L11329): Fee input styling with inline currency symbols
 - **Form State Structure**:
   ```javascript
   tourForm: {

@@ -11283,6 +11283,51 @@ select.form-input {
   gap: 20px;
 }
 
+/* Fee Input Styling */
+.fee-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fee-currency-selector {
+  width: 100%;
+}
+
+.fee-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fee-input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.fee-currency-symbol {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  font-size: 16px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fee-number-input {
+  padding-left: 32px !important;
+}
+
+.fee-separator {
+  color: #888;
+  font-size: 18px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr 1fr;
