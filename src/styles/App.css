@@ -11243,11 +11243,20 @@ select.form-input {
 @media (max-width: 768px) {
   .form-row {
     grid-template-columns: 1fr;
-    gap: 0;
+    gap: 16px;
   }
 
   .create-tour-modal {
     max-width: 95%;
+    width: 95%;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .modal-body {
+    padding: 20px 16px;
   }
 }
 
