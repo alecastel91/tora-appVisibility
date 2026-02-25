@@ -1057,6 +1057,29 @@ npm run build
 - **Premium Gate**: Non-premium users see upgrade prompt with feature benefits
 - **Terminology**: Uses "Zone" instead of "Region" to match other filters throughout the app (Europe, Asia, Americas, Africa, Oceania)
 
+### Create Tour Modal - Mobile Visibility Fixes
+- **Issue**: Modal header and footer were covered by app header and bottom tab bar on mobile
+- **Root Cause**: Modal rendered inside TourScreen div, creating stacking context that prevented z-index from working
+- **Solution**: Used React Portal to render modal at document.body level
+  - [TourScreen.js:2](src/components/screens/TourScreen.js#L2): Added ReactDOM import
+  - [TourScreen.js:654](src/components/screens/TourScreen.js#L654): Used `ReactDOM.createPortal(modalContent, document.body)`
+  - Created dedicated `.create-tour-modal-overlay` class with z-index: 2000
+  - Added mobile-specific padding with `env(safe-area-inset)` for notched devices
+  - [App.css:11230-11242](src/styles/App.css#L11230-L11242): Modal overlay styling
+  - [App.css:11292-11298](src/styles/App.css#L11292-L11298): Mobile responsive overlay styles
+- **Date Input Spacing**: Improved spacing between Start Date and End Date fields
+  - Desktop: 20px gap between inputs, modal 700px wide
+  - Mobile: 12px gap, inputs stay side-by-side, modal uses 95% width
+  - [App.css:11273-11275](src/styles/App.css#L11273-L11275): Form row grid with proper gap
+- **Modal Structure**: Flexbox layout matching Make Offer modal exactly
+  - Fixed header at top (always visible)
+  - Scrollable body in middle (flex: 1, overflow-y: auto)
+  - Fixed footer at bottom (always visible)
+  - Added 24px padding-bottom to header for spacing below title
+  - Added 24px padding-top to body for spacing above first field
+  - [App.css:11255-11271](src/styles/App.css#L11255-L11271): Modal sections styling
+- **Result**: Modal works perfectly on all devices, header and footer always visible, matches Make Offer modal behavior
+
 ### No Matches Tips Enhancement
 - **Genre Matching Tip**: Added tip to ensure all relevant music genres are flagged in profile
   - [TourScreen.js:465-468](src/components/screens/TourScreen.js#L465-L468): Added SlidersIcon with genre tip
