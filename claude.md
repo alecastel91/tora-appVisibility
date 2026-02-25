@@ -1089,12 +1089,14 @@ npm run build
   - **First City Required**: At least one target city is required (marked with *)
   - **Zone-Dependent**: City fields disabled until zone is selected
   - [TourScreen.js:622-665](src/components/screens/TourScreen.js#L622-L665): Dynamic city field rendering
-- **Split Fee Structure**: Fee Expectation replaced with Currency + Min/Max range
+- **Split Fee Structure**: Fee Expectation replaced with Currency + Min/Max dropdown selectors
   - **Currency Dropdown**: EUR (€), USD ($), GBP (£), JPY (¥)
-  - **Min Fee Input**: Minimum expected fee per show (integer only)
-  - **Max Fee Input**: Maximum expected fee per show (integer only)
+  - **Min Fee Dropdown**: Select from predefined amounts (100-20,000)
+  - **Max Fee Dropdown**: Select from predefined amounts (100-20,000)
+  - **Predefined Increments**: 100-900 (by 100), 1K-5K (by 500), 5K-20K (larger increments)
   - **Three-Column Layout**: Currency selector + Min + Max side-by-side
-  - [TourScreen.js:667-706](src/components/screens/TourScreen.js#L667-L706): Fee expectation form row
+  - **Mobile-Friendly**: Native select dropdowns with touch-friendly scrolling
+  - [TourScreen.js:667-742](src/components/screens/TourScreen.js#L667-L742): Fee expectation form row with dropdowns
 - **Form State Structure**:
   ```javascript
   tourForm: {
