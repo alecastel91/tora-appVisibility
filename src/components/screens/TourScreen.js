@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ViewProfileScreen from './ViewProfileScreen';
@@ -545,7 +546,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const renderCreateTourModal = () => {
     if (!showCreateTourModal) return null;
 
-    return (
+    const modalContent = (
       <div className="create-tour-modal-overlay" onClick={() => setShowCreateTourModal(false)}>
         <div className="modal-content create-tour-modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
@@ -648,6 +649,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
         </div>
       </div>
     );
+
+    // Render modal using portal to escape the TourScreen stacking context
+    return ReactDOM.createPortal(modalContent, document.body);
   };
 
   // Tour Kickstart Tab Content
