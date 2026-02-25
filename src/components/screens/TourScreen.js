@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ViewProfileScreen from './ViewProfileScreen';
-import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon } from '../../utils/icons';
+import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon } from '../../utils/icons';
 import apiService from '../../services/api';
 
 const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
@@ -21,6 +21,19 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const [monthFilter, setMonthFilter] = useState('all');
   const [calendarMatches, setCalendarMatches] = useState([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
+
+  // Tour Kickstart state
+  const [showCreateTourModal, setShowCreateTourModal] = useState(false);
+  const [myTours, setMyTours] = useState([]);
+  const [tourForm, setTourForm] = useState({
+    region: '',
+    startDate: '',
+    endDate: '',
+    minGigs: '',
+    targetCities: '',
+    feeExpectation: '',
+    additionalNotes: ''
+  });
 
   // Generate month/year options starting from current month for next 12 months
   const generateMonthOptions = () => {
@@ -463,6 +476,10 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
                       <span>Add travel dates to your calendar</span>
                     </li>
                     <li>
+                      <span className="feature-icon"><SlidersIcon /></span>
+                      <span>Add all relevant music genres to your profile</span>
+                    </li>
+                    <li>
                       <span className="feature-icon"><EyeIcon /></span>
                       <span>Make sure your calendar is visible</span>
                     </li>
@@ -480,8 +497,306 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     );
   };
 
-  // Tour Kickstart Tab Content (placeholder for now)
+  // Handle Create Tour form submission
+  const handleCreateTour = () => {
+    // Validation
+    if (!tourForm.region || !tourForm.startDate || !tourForm.endDate || !tourForm.minGigs) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    // Create tour object
+    const newTour = {
+      id: Date.now().toString(),
+      artist: {
+        name: user.name,
+        location: user.location,
+        avatar: user.avatar
+      },
+      region: tourForm.region,
+      startDate: tourForm.startDate,
+      endDate: tourForm.endDate,
+      minGigs: parseInt(tourForm.minGigs),
+      targetCities: tourForm.targetCities.split(',').map(c => c.trim()).filter(c => c),
+      feeExpectation: tourForm.feeExpectation,
+      additionalNotes: tourForm.additionalNotes,
+      status: 'ACTIVE',
+      proposalsCount: 0,
+      createdAt: new Date().toISOString()
+    };
+
+    // Add to tours list
+    setMyTours([newTour, ...myTours]);
+
+    // Reset form and close modal
+    setTourForm({
+      region: '',
+      startDate: '',
+      endDate: '',
+      minGigs: '',
+      targetCities: '',
+      feeExpectation: '',
+      additionalNotes: ''
+    });
+    setShowCreateTourModal(false);
+  };
+
+  // Render Create Tour Modal
+  const renderCreateTourModal = () => {
+    if (!showCreateTourModal) return null;
+
+    return (
+      <div className="modal-overlay" onClick={() => setShowCreateTourModal(false)}>
+        <div className="modal-content create-tour-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Create Tour</h2>
+            <button className="modal-close" onClick={() => setShowCreateTourModal(false)}>×</button>
+          </div>
+          <div className="modal-body">
+            <div className="form-group">
+              <label>Region *</label>
+              <select
+                value={tourForm.region}
+                onChange={(e) => setTourForm({ ...tourForm, region: e.target.value })}
+                className="form-input"
+              >
+                <option value="">Select Region</option>
+                <option value="Europe">Europe</option>
+                <option value="Asia">Asia</option>
+                <option value="Americas">Americas</option>
+                <option value="Africa">Africa</option>
+                <option value="Oceania">Oceania</option>
+              </select>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Start Date *</label>
+                <input
+                  type="date"
+                  value={tourForm.startDate}
+                  onChange={(e) => setTourForm({ ...tourForm, startDate: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+              <div className="form-group">
+                <label>End Date *</label>
+                <input
+                  type="date"
+                  value={tourForm.endDate}
+                  onChange={(e) => setTourForm({ ...tourForm, endDate: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Minimum Gigs Needed *</label>
+              <input
+                type="number"
+                value={tourForm.minGigs}
+                onChange={(e) => setTourForm({ ...tourForm, minGigs: e.target.value })}
+                placeholder="e.g., 5"
+                min="1"
+                className="form-input"
+              />
+              <small className="form-hint">How many confirmed gigs do you need to make this tour viable?</small>
+            </div>
+
+            <div className="form-group">
+              <label>Target Cities (Optional)</label>
+              <input
+                type="text"
+                value={tourForm.targetCities}
+                onChange={(e) => setTourForm({ ...tourForm, targetCities: e.target.value })}
+                placeholder="e.g., Berlin, Amsterdam, Paris"
+                className="form-input"
+              />
+              <small className="form-hint">Comma-separated list of cities you'd like to play</small>
+            </div>
+
+            <div className="form-group">
+              <label>Fee Expectation (Optional)</label>
+              <input
+                type="text"
+                value={tourForm.feeExpectation}
+                onChange={(e) => setTourForm({ ...tourForm, feeExpectation: e.target.value })}
+                placeholder="e.g., €500-800 per show"
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Additional Notes (Optional)</label>
+              <textarea
+                value={tourForm.additionalNotes}
+                onChange={(e) => setTourForm({ ...tourForm, additionalNotes: e.target.value })}
+                placeholder="Any additional details promoters should know..."
+                className="form-input"
+                rows="3"
+              />
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button className="btn btn-secondary" onClick={() => setShowCreateTourModal(false)}>
+              Cancel
+            </button>
+            <button className="btn btn-primary" onClick={handleCreateTour}>
+              Create Tour
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Tour Kickstart Tab Content
   const renderTourKickstart = () => {
+    // Show upgrade prompt for basic users
+    if (!user?.isPremium) {
+      return (
+        <div className="tour-kickstart-content">
+          <div className="coming-soon-placeholder">
+            <div className="coming-soon-icon">
+              <StarIcon />
+            </div>
+            <h2>Unlock Tour Kickstart</h2>
+            <p>Build multi-city tours by connecting with promoters across a region</p>
+            <div className="feature-preview">
+              <h4>Premium features:</h4>
+              <ul className="feature-list">
+                <li>
+                  <span className="feature-icon"><LocationIcon /></span>
+                  <span>Set tour goals (region, dates, minimum gigs)</span>
+                </li>
+                <li>
+                  <span className="feature-icon"><HandshakeIcon /></span>
+                  <span>Collaborate with promoters to build viable tours</span>
+                </li>
+                <li>
+                  <span className="feature-icon"><DollarIcon /></span>
+                  <span>Share costs and maximize touring opportunities</span>
+                </li>
+                <li>
+                  <span className="feature-icon"><TargetIcon /></span>
+                  <span>Make regional tours viable for emerging artists</span>
+                </li>
+              </ul>
+            </div>
+            <button className="btn coming-soon-badge" style={{ cursor: 'pointer', border: 'none' }}>
+              Upgrade to Premium
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Check user role
+    const isArtist = user?.role === 'ARTIST';
+    const isPromoterOrVenue = user?.role === 'PROMOTER' || user?.role === 'VENUE';
+
+    // ARTISTS: Create and manage tours
+    if (isArtist) {
+      return (
+        <div className="tour-kickstart-content">
+          <div className="tour-kickstart-section">
+            <div className="section-header">
+              <h3>My Tours</h3>
+              <button className="btn btn-primary btn-small" onClick={() => setShowCreateTourModal(true)}>
+                <span>+ Create Tour</span>
+              </button>
+            </div>
+
+            {/* Tour cards or empty state */}
+            {myTours.length === 0 ? (
+              <div className="tour-empty-state">
+                <PlaneIcon />
+                <p>You haven't created any tours yet</p>
+                <p className="tour-empty-hint">Create a tour to connect with promoters across a region</p>
+              </div>
+            ) : (
+              <div className="tour-cards-list">
+                {myTours.map(tour => (
+                  <div key={tour.id} className="tour-card">
+                    <div className="tour-card-header">
+                      <div className="tour-info">
+                        <h4>{tour.region} Tour</h4>
+                        <p className="tour-dates">
+                          {new Date(tour.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(tour.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
+                      <span className={`tour-status-badge status-${tour.status.toLowerCase()}`}>
+                        {tour.status}
+                      </span>
+                    </div>
+                    <div className="tour-card-body">
+                      <div className="tour-stat">
+                        <span className="tour-stat-label">Min Gigs:</span>
+                        <span className="tour-stat-value">{tour.minGigs}</span>
+                      </div>
+                      <div className="tour-stat">
+                        <span className="tour-stat-label">Proposals:</span>
+                        <span className="tour-stat-value">{tour.proposalsCount}</span>
+                      </div>
+                      {tour.targetCities.length > 0 && (
+                        <div className="tour-cities">
+                          <LocationIcon />
+                          <span>{tour.targetCities.join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="tour-card-footer">
+                      <button className="btn btn-secondary btn-small">View Proposals</button>
+                      <button className="btn btn-outline btn-small">Edit</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // PROMOTERS/VENUES: Browse and contribute to tours
+    if (isPromoterOrVenue) {
+      return (
+        <div className="tour-kickstart-content">
+          <div className="tour-kickstart-section">
+            <div className="section-header">
+              <h3>Tour Opportunities</h3>
+            </div>
+            <p className="section-description">Browse tours looking for venues in your region</p>
+
+            {/* Filters */}
+            <div className="tour-filters">
+              <select className="filter-select">
+                <option value="all">All Regions</option>
+                <option value="europe">Europe</option>
+                <option value="asia">Asia</option>
+                <option value="americas">Americas</option>
+                <option value="oceania">Oceania</option>
+              </select>
+              <select className="filter-select">
+                <option value="all">All Genres</option>
+                <option value="house">House</option>
+                <option value="techno">Techno</option>
+                <option value="dnb">Drum & Bass</option>
+              </select>
+            </div>
+
+            {/* Empty state for now */}
+            <div className="tour-empty-state">
+              <PlaneIcon />
+              <p>No active tours in your region</p>
+              <p className="tour-empty-hint">Check back soon for tour opportunities</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // AGENTS: Not applicable
     return (
       <div className="tour-kickstart-content">
         <div className="coming-soon-placeholder">
@@ -489,29 +804,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
             <PlaneIcon />
           </div>
           <h2>Tour Kickstart</h2>
-          <p>Connect with promoters across a region to build a tour together</p>
-          <div className="feature-preview">
-            <h4>How it works:</h4>
-            <ul className="feature-list">
-              <li>
-                <span className="feature-icon"><LocationIcon /></span>
-                <span>Artists set tour goals (region, dates, minimum gigs)</span>
-              </li>
-              <li>
-                <span className="feature-icon"><HandshakeIcon /></span>
-                <span>Promoters contribute gigs to complete the tour</span>
-              </li>
-              <li>
-                <span className="feature-icon"><DollarIcon /></span>
-                <span>Share costs and maximize touring opportunities</span>
-              </li>
-              <li>
-                <span className="feature-icon"><TargetIcon /></span>
-                <span>Make regional tours viable for emerging artists</span>
-              </li>
-            </ul>
-          </div>
-          <div className="coming-soon-badge">Coming Soon</div>
+          <p>This feature is available for Artists, Promoters, and Venues</p>
         </div>
       </div>
     );
@@ -579,6 +872,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
           </div>
         </div>
       )}
+
+      {/* Create Tour Modal */}
+      {renderCreateTourModal()}
     </div>
   );
 };
