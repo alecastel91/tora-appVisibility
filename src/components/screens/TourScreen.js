@@ -26,7 +26,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const [showCreateTourModal, setShowCreateTourModal] = useState(false);
   const [myTours, setMyTours] = useState([]);
   const [tourForm, setTourForm] = useState({
-    region: '',
+    zone: '',
     startDate: '',
     endDate: '',
     minGigs: '',
@@ -500,7 +500,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   // Handle Create Tour form submission
   const handleCreateTour = () => {
     // Validation
-    if (!tourForm.region || !tourForm.startDate || !tourForm.endDate || !tourForm.minGigs) {
+    if (!tourForm.zone || !tourForm.startDate || !tourForm.endDate || !tourForm.minGigs) {
       alert('Please fill in all required fields');
       return;
     }
@@ -513,7 +513,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
         location: user.location,
         avatar: user.avatar
       },
-      region: tourForm.region,
+      zone: tourForm.zone,
       startDate: tourForm.startDate,
       endDate: tourForm.endDate,
       minGigs: parseInt(tourForm.minGigs),
@@ -530,7 +530,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
     // Reset form and close modal
     setTourForm({
-      region: '',
+      zone: '',
       startDate: '',
       endDate: '',
       minGigs: '',
@@ -554,13 +554,13 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
           </div>
           <div className="modal-body">
             <div className="form-group">
-              <label>Region *</label>
+              <label>Zone *</label>
               <select
-                value={tourForm.region}
-                onChange={(e) => setTourForm({ ...tourForm, region: e.target.value })}
+                value={tourForm.zone}
+                onChange={(e) => setTourForm({ ...tourForm, zone: e.target.value })}
                 className="form-input"
               >
-                <option value="">Select Region</option>
+                <option value="">Select Zone</option>
                 <option value="Europe">Europe</option>
                 <option value="Asia">Asia</option>
                 <option value="Americas">Americas</option>
@@ -667,7 +667,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
               <ul className="feature-list">
                 <li>
                   <span className="feature-icon"><LocationIcon /></span>
-                  <span>Set tour goals (region, dates, minimum gigs)</span>
+                  <span>Set tour goals (zone, dates, minimum gigs)</span>
                 </li>
                 <li>
                   <span className="feature-icon"><HandshakeIcon /></span>
@@ -720,7 +720,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
                   <div key={tour.id} className="tour-card">
                     <div className="tour-card-header">
                       <div className="tour-info">
-                        <h4>{tour.region} Tour</h4>
+                        <h4>{tour.zone} Tour</h4>
                         <p className="tour-dates">
                           {new Date(tour.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(tour.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
@@ -771,7 +771,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
             {/* Filters */}
             <div className="tour-filters">
               <select className="filter-select">
-                <option value="all">All Regions</option>
+                <option value="all">All Zones</option>
                 <option value="europe">Europe</option>
                 <option value="asia">Asia</option>
                 <option value="americas">Americas</option>

@@ -1029,14 +1029,14 @@ npm run build
 - **Premium Feature**: Tour Kickstart is only available for Premium users
 - **Role-Based Views**: Different interfaces based on user role (Artist, Promoter/Venue, Agent)
 - **Artist View**: "My Tours" section with Create Tour functionality
-  - Create Tour modal with comprehensive form (region, dates, min gigs, target cities, fee expectations, notes)
-  - Tour cards displaying region, dates, status badges, proposals count, target cities
+  - Create Tour modal with comprehensive form (zone, dates, min gigs, target cities, fee expectations, notes)
+  - Tour cards displaying zone, dates, status badges, proposals count, target cities
   - Empty state when no tours created
   - [TourScreen.js:25-36](src/components/screens/TourScreen.js#L25-L36): Added Tour Kickstart state management
   - [TourScreen.js:500-651](src/components/screens/TourScreen.js#L500-L651): Create Tour modal implementation
   - [TourScreen.js:698-759](src/components/screens/TourScreen.js#L698-L759): Artist view with tour cards rendering
 - **Promoter/Venue View**: "Tour Opportunities" section with filters
-  - Filter by region (Europe, Asia, Americas, Africa, Oceania)
+  - Filter by zone (Europe, Asia, Americas, Africa, Oceania)
   - Filter by genre (House, Techno, Drum & Bass)
   - Empty state showing "No active tours in your region"
   - [TourScreen.js:762-797](src/components/screens/TourScreen.js#L762-L797): Promoter/Venue view implementation
@@ -1049,12 +1049,13 @@ npm run build
   - Hover effects and visual feedback
   - Status badges with color coding (green for ACTIVE)
 - **Tour Data Structure**:
-  - id, artist (name, location, avatar), region, startDate, endDate
+  - id, artist (name, location, avatar), zone, startDate, endDate
   - minGigs, targetCities[], feeExpectation, additionalNotes
   - status, proposalsCount, createdAt
 - **Form Validation**: Required fields must be filled before submission
 - **State Management**: Local state with useState, ready for backend integration
 - **Premium Gate**: Non-premium users see upgrade prompt with feature benefits
+- **Terminology**: Uses "Zone" instead of "Region" to match other filters throughout the app (Europe, Asia, Americas, Africa, Oceania)
 
 ### No Matches Tips Enhancement
 - **Genre Matching Tip**: Added tip to ensure all relevant music genres are flagged in profile
