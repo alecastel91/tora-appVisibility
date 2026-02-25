@@ -11258,16 +11258,23 @@ select.form-input {
 }
 
 .create-tour-modal .modal-body {
-  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  min-height: 0;
   padding-top: 24px;
+  padding-bottom: 24px;
 }
 
 .create-tour-modal .modal-footer {
-  flex-shrink: 0;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  gap: 12px;
+}
+
+.create-tour-modal .modal-footer .btn {
+  flex: 1;
 }
 
 .form-row {

@@ -637,14 +637,15 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 rows="3"
               />
             </div>
-          </div>
-          <div className="modal-footer">
-            <button className="btn btn-secondary" onClick={() => setShowCreateTourModal(false)}>
-              Cancel
-            </button>
-            <button className="btn btn-primary" onClick={handleCreateTour}>
-              Create Tour
-            </button>
+
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowCreateTourModal(false)}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleCreateTour}>
+                Create Tour
+              </button>
+            </div>
           </div>
         </div>
       </div>
