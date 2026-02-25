@@ -1071,14 +1071,54 @@ npm run build
   - Desktop: 20px gap between inputs, modal 700px wide
   - Mobile: 12px gap, inputs stay side-by-side, modal uses 95% width
   - [App.css:11273-11275](src/styles/App.css#L11273-L11275): Form row grid with proper gap
-- **Modal Structure**: Flexbox layout matching Make Offer modal exactly
+- **Modal Structure**: Scrollable layout with buttons at bottom
   - Fixed header at top (always visible)
-  - Scrollable body in middle (flex: 1, overflow-y: auto)
-  - Fixed footer at bottom (always visible)
+  - Scrollable body containing all form fields AND buttons
+  - Footer moved inside modal-body for natural scrolling
   - Added 24px padding-bottom to header for spacing below title
   - Added 24px padding-top to body for spacing above first field
   - [App.css:11255-11271](src/styles/App.css#L11255-L11271): Modal sections styling
-- **Result**: Modal works perfectly on all devices, header and footer always visible, matches Make Offer modal behavior
+- **Result**: Modal works perfectly on all devices, header and footer always visible, buttons scroll with content
+
+### Create Tour Form - Advanced Features (February 25, 2026)
+- **Dynamic City Fields**: Target Cities section now expands based on Minimum Gigs selection
+  - **Minimum Gigs Dropdown**: Changed from number input to dropdown (1-20 gigs)
+  - **City Fields Array**: One input field per gig (e.g., 5 gigs = 5 city fields)
+  - **City Autocomplete**: HTML5 datalist with all cities from selected zone
+  - **"Other" Option**: Users can select "Other" or type custom city names
+  - **First City Required**: At least one target city is required (marked with *)
+  - **Zone-Dependent**: City fields disabled until zone is selected
+  - [TourScreen.js:622-665](src/components/screens/TourScreen.js#L622-L665): Dynamic city field rendering
+- **Split Fee Structure**: Fee Expectation replaced with Currency + Min/Max range
+  - **Currency Dropdown**: EUR (€), USD ($), GBP (£), JPY (¥)
+  - **Min Fee Input**: Minimum expected fee per show (integer only)
+  - **Max Fee Input**: Maximum expected fee per show (integer only)
+  - **Three-Column Layout**: Currency selector + Min + Max side-by-side
+  - [TourScreen.js:667-706](src/components/screens/TourScreen.js#L667-L706): Fee expectation form row
+- **Form State Structure**:
+  ```javascript
+  tourForm: {
+    zone: '',
+    startDate: '',
+    endDate: '',
+    minGigs: '3',              // Default 3 gigs
+    targetCities: ['', '', ''], // Array of city strings
+    feeCurrency: 'EUR',
+    feeMin: '',
+    feeMax: '',
+    additionalNotes: ''
+  }
+  ```
+- **Handler Functions**:
+  - `handleMinGigsChange()`: Dynamically adjusts targetCities array length
+  - `handleCityChange()`: Updates individual city field
+  - Preserves existing city values when increasing gigs
+  - [TourScreen.js:503-520](src/components/screens/TourScreen.js#L503-L520): Dynamic field handlers
+- **Validation**: Updated to require at least first city field
+  - [TourScreen.js:525](src/components/screens/TourScreen.js#L525): Validation includes targetCities[0]
+- **Data Integration**: Uses existing `citiesByCountry` and `countriesByZone` data
+  - [TourScreen.js:8](src/components/screens/TourScreen.js#L8): Import statement
+  - [TourScreen.js:638-640](src/components/screens/TourScreen.js#L638-L640): City list generation from zone
 
 ### No Matches Tips Enhancement
 - **Genre Matching Tip**: Added tip to ensure all relevant music genres are flagged in profile

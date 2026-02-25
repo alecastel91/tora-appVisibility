@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import ViewProfileScreen from './ViewProfileScreen';
 import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon } from '../../utils/icons';
 import apiService from '../../services/api';
+import { citiesByCountry, countriesByZone } from '../../data/profiles';
 
 const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const { user, getCalendarMatches, sentRequests, sendConnectionRequest, connectedUsers } = useAppContext();
@@ -30,9 +31,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     zone: '',
     startDate: '',
     endDate: '',
-    minGigs: '',
-    targetCities: '',
-    feeExpectation: '',
+    minGigs: '3',
+    targetCities: ['', '', ''], // Array of city strings
+    feeCurrency: 'EUR',
+    feeMin: '',
+    feeMax: '',
     additionalNotes: ''
   });
 
@@ -498,13 +501,36 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     );
   };
 
+  // Handle minGigs change to adjust city fields
+  const handleMinGigsChange = (newMinGigs) => {
+    const numGigs = parseInt(newMinGigs) || 0;
+    const newCities = Array(numGigs).fill('').map((_, i) => tourForm.targetCities[i] || '');
+    setTourForm({
+      ...tourForm,
+      minGigs: newMinGigs,
+      targetCities: newCities
+    });
+  };
+
+  // Handle city field change
+  const handleCityChange = (index, value) => {
+    const newCities = [...tourForm.targetCities];
+    newCities[index] = value;
+    setTourForm({ ...tourForm, targetCities: newCities });
+  };
+
   // Handle Create Tour form submission
   const handleCreateTour = () => {
     // Validation
-    if (!tourForm.zone || !tourForm.startDate || !tourForm.endDate || !tourForm.minGigs) {
-      alert('Please fill in all required fields');
+    if (!tourForm.zone || !tourForm.startDate || !tourForm.endDate || !tourForm.minGigs || !tourForm.targetCities[0]) {
+      alert('Please fill in all required fields (including at least one target city)');
       return;
     }
+
+    // Build fee expectation string
+    const feeExpectation = tourForm.feeMin && tourForm.feeMax
+      ? `${tourForm.feeCurrency} ${tourForm.feeMin}-${tourForm.feeMax}`
+      : '';
 
     // Create tour object
     const newTour = {
@@ -518,8 +544,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
       startDate: tourForm.startDate,
       endDate: tourForm.endDate,
       minGigs: parseInt(tourForm.minGigs),
-      targetCities: tourForm.targetCities.split(',').map(c => c.trim()).filter(c => c),
-      feeExpectation: tourForm.feeExpectation,
+      targetCities: tourForm.targetCities.filter(c => c),
+      feeExpectation: feeExpectation,
       additionalNotes: tourForm.additionalNotes,
       status: 'ACTIVE',
       proposalsCount: 0,
@@ -534,9 +560,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
       zone: '',
       startDate: '',
       endDate: '',
-      minGigs: '',
-      targetCities: '',
-      feeExpectation: '',
+      minGigs: '3',
+      targetCities: ['', '', ''],
+      feeCurrency: 'EUR',
+      feeMin: '',
+      feeMax: '',
       additionalNotes: ''
     });
     setShowCreateTourModal(false);
@@ -593,38 +621,88 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
             <div className="form-group">
               <label>Minimum Gigs Needed *</label>
-              <input
-                type="number"
+              <select
                 value={tourForm.minGigs}
-                onChange={(e) => setTourForm({ ...tourForm, minGigs: e.target.value })}
-                placeholder="e.g., 5"
-                min="1"
+                onChange={(e) => handleMinGigsChange(e.target.value)}
                 className="form-input"
-              />
+              >
+                {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
+                  <option key={num} value={num}>{num} {num === 1 ? 'gig' : 'gigs'}</option>
+                ))}
+              </select>
               <small className="form-hint">How many confirmed gigs do you need to make this tour viable?</small>
             </div>
 
-            <div className="form-group">
-              <label>Target Cities (Optional)</label>
-              <input
-                type="text"
-                value={tourForm.targetCities}
-                onChange={(e) => setTourForm({ ...tourForm, targetCities: e.target.value })}
-                placeholder="e.g., Berlin, Amsterdam, Paris"
-                className="form-input"
-              />
-              <small className="form-hint">Comma-separated list of cities you'd like to play</small>
-            </div>
+            {/* Dynamic city fields based on minimum gigs */}
+            {tourForm.targetCities.map((city, index) => {
+              // Get cities for selected zone
+              const countries = tourForm.zone ? countriesByZone[tourForm.zone] || [] : [];
+              const allCities = countries.flatMap(country => citiesByCountry[country] || []);
+
+              return (
+                <div key={index} className="form-group">
+                  <label>Target City {index + 1} {index === 0 ? '*' : '(Optional)'}</label>
+                  <input
+                    type="text"
+                    list={`cities-datalist-${index}`}
+                    value={city}
+                    onChange={(e) => handleCityChange(index, e.target.value)}
+                    placeholder={tourForm.zone ? "Select city or type 'Other'" : "Select zone first"}
+                    className="form-input"
+                    disabled={!tourForm.zone}
+                  />
+                  {tourForm.zone && (
+                    <datalist id={`cities-datalist-${index}`}>
+                      <option value="Other">Other</option>
+                      {allCities.map((cityOption, i) => (
+                        <option key={i} value={cityOption}>{cityOption}</option>
+                      ))}
+                    </datalist>
+                  )}
+                  {index === 0 && <small className="form-hint">At least one target city is required</small>}
+                </div>
+              );
+            })}
 
             <div className="form-group">
               <label>Fee Expectation (Optional)</label>
-              <input
-                type="text"
-                value={tourForm.feeExpectation}
-                onChange={(e) => setTourForm({ ...tourForm, feeExpectation: e.target.value })}
-                placeholder="e.g., €500-800 per show"
-                className="form-input"
-              />
+              <div className="form-row">
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <select
+                    value={tourForm.feeCurrency}
+                    onChange={(e) => setTourForm({ ...tourForm, feeCurrency: e.target.value })}
+                    className="form-input"
+                  >
+                    <option value="EUR">EUR (€)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="JPY">JPY (¥)</option>
+                  </select>
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <input
+                    type="number"
+                    value={tourForm.feeMin}
+                    onChange={(e) => setTourForm({ ...tourForm, feeMin: e.target.value })}
+                    placeholder="Min"
+                    min="0"
+                    step="1"
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <input
+                    type="number"
+                    value={tourForm.feeMax}
+                    onChange={(e) => setTourForm({ ...tourForm, feeMax: e.target.value })}
+                    placeholder="Max"
+                    min="0"
+                    step="1"
+                    className="form-input"
+                  />
+                </div>
+              </div>
+              <small className="form-hint">Expected fee range per show</small>
             </div>
 
             <div className="form-group">
