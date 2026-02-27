@@ -675,7 +675,16 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
             {/* Dynamic city fields based on minimum gigs */}
             {tourForm.targetCities.map((city, index) => {
               // Get cities for selected zone and sort alphabetically
-              const countries = tourForm.zone ? countriesByZone[tourForm.zone] || [] : [];
+              // Handle "Americas" by combining North America + Latin America & Caribbean
+              let countries = [];
+              if (tourForm.zone === 'Americas') {
+                countries = [
+                  ...(countriesByZone['North America'] || []),
+                  ...(countriesByZone['Latin America & Caribbean'] || [])
+                ];
+              } else {
+                countries = tourForm.zone ? countriesByZone[tourForm.zone] || [] : [];
+              }
               const allCities = countries.flatMap(country => citiesByCountry[country] || []);
               const sortedCities = [...new Set(allCities)].sort(); // Remove duplicates and sort
 
