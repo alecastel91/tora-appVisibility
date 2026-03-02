@@ -2,7 +2,7 @@ import React from 'react';
 import { ProfileIcon, SearchIcon, BookingsIcon, MessageIcon, PlaneIcon } from '../../utils/icons';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0 }) => {
+const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0, unreadProposalsCount = 0 }) => {
   const { t } = useLanguage();
 
   const tabs = [
@@ -17,7 +17,9 @@ const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0 }) => {
     <nav className="tab-bar">
       {tabs.map(tab => {
         const Icon = tab.icon;
-        const showBadge = tab.id === 'messages' && unreadMessagesCount > 0;
+        const showMessagesBadge = tab.id === 'messages' && unreadMessagesCount > 0;
+        const showTourBadge = tab.id === 'tour' && unreadProposalsCount > 0;
+        const badgeCount = tab.id === 'messages' ? unreadMessagesCount : unreadProposalsCount;
         return (
           <button
             key={tab.id}
@@ -26,8 +28,8 @@ const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0 }) => {
           >
             <div className="tab-icon-wrapper">
               <Icon />
-              {showBadge && (
-                <span className="tab-badge">{unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}</span>
+              {(showMessagesBadge || showTourBadge) && (
+                <span className="tab-badge">{badgeCount > 99 ? '99+' : badgeCount}</span>
               )}
             </div>
             <span>{tab.label}</span>

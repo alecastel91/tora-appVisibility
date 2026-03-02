@@ -3,11 +3,12 @@ import ReactDOM from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ViewProfileScreen from './ViewProfileScreen';
+import MakeOfferModal from '../common/MakeOfferModal';
 import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon } from '../../utils/icons';
 import apiService from '../../services/api';
-import { citiesByCountry, countriesByZone } from '../../data/profiles';
+import { citiesByCountry, countriesByZone, genresList } from '../../data/profiles';
 
-const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
+const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange }) => {
   const { user, getCalendarMatches, sentRequests, sendConnectionRequest, connectedUsers } = useAppContext();
   const { t } = useLanguage();
 
@@ -29,7 +30,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const [myTours, setMyTours] = useState([]);
   const [allTours, setAllTours] = useState([]); // For promoters/venues
   const [tourZoneFilter, setTourZoneFilter] = useState('all');
-  const [tourGenreFilter, setTourGenreFilter] = useState('all');
+  const [tourGenreFilter, setTourGenreFilter] = useState([]); // Array for multi-select
+  const [showGenreDropdown, setShowGenreDropdown] = useState(false);
+  const [showZoneDropdown, setShowZoneDropdown] = useState(false);
   const [tourForm, setTourForm] = useState({
     zone: '',
     startDate: '',
@@ -41,6 +44,14 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     feeMax: '',
     additionalNotes: ''
   });
+
+  // Modal states
+  const [showMakeOfferModal, setShowMakeOfferModal] = useState(false);
+  const [selectedTourArtist, setSelectedTourArtist] = useState(null);
+  const [selectedTour, setSelectedTour] = useState(null);
+  const [showEditTourModal, setShowEditTourModal] = useState(false);
+  const [showMyProposalModal, setShowMyProposalModal] = useState(false);
+  const [myProposalData, setMyProposalData] = useState(null);
 
   // Generate month/year options starting from current month for next 12 months
   const generateMonthOptions = () => {
@@ -141,6 +152,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     const fetchTours = async () => {
       if (!user || activeTab !== 'kickstart') return;
 
+      console.log('[TourScreen] Fetching tours, user role:', user.role);
+
       try {
         const isArtist = user.role === 'ARTIST';
         const isPromoterOrVenue = user.role === 'PROMOTER' || user.role === 'VENUE';
@@ -148,10 +161,14 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
         if (isArtist) {
           // Fetch artist's own tours
           const response = await apiService.getMyTours();
+          console.log('[TourScreen] Artist tours received:', response.tours?.length);
+          console.log('[TourScreen] My tours count:', response.tours?.length);
           setMyTours(response.tours || []);
         } else if (isPromoterOrVenue) {
           // Fetch all tours for promoters/venues
+          console.log('[TourScreen] Fetching all tours with role:', user.role);
           const response = await apiService.getTours({ role: user.role });
+          console.log('[TourScreen] Promoter/Venue tours received:', response.tours?.length);
           setAllTours(response.tours || []);
         }
       } catch (error) {
@@ -160,7 +177,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     };
 
     fetchTours();
-  }, [user?._id, user?.role, activeTab]);
+  }, [user?._id, user?.role, activeTab, onUnreadProposalsChange]);
 
   // Helper function to check role compatibility
   const isValidRoleMatch = (role1, role2) => {
@@ -308,11 +325,19 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
   // Show viewing profile if selected
   if (viewingProfile) {
-    // Find the profile object from the matches
-    const profileToView = calendarMatches.find(m => {
-      const id = m.profile._id || m.profile.id;
-      return id === viewingProfile;
-    })?.profile;
+    // Check if viewingProfile is already a profile object (from tour cards)
+    let profileToView = null;
+
+    if (typeof viewingProfile === 'object' && viewingProfile._id) {
+      // Already a profile object from tour artist
+      profileToView = viewingProfile;
+    } else {
+      // It's an ID string, find from calendar matches
+      profileToView = calendarMatches.find(m => {
+        const id = m.profile._id || m.profile.id;
+        return id === viewingProfile;
+      })?.profile;
+    }
 
     if (!profileToView) {
       // If profile not found, close the view
@@ -609,6 +634,115 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     }
   };
 
+  // Handle Make Offer (for tours)
+  const handleMakeOffer = (tour) => {
+    setSelectedTour(tour);
+    setSelectedTourArtist(tour.artist); // Set the artist profile for MakeOfferModal
+    setShowMakeOfferModal(true);
+  };
+
+  // Handle Edit Tour
+  const handleEditTour = (tour) => {
+    setSelectedTour(tour);
+    setTourForm({
+      zone: tour.zone,
+      startDate: tour.startDate.split('T')[0],
+      endDate: tour.endDate.split('T')[0],
+      minGigs: tour.minGigs.toString(),
+      targetCities: tour.targetCities, // Keep all existing cities
+      feeCurrency: tour.feeExpectation ? tour.feeExpectation.split(' ')[0] : 'EUR',
+      feeMin: tour.feeExpectation ? tour.feeExpectation.split(' ')[1]?.split('-')[0] || '' : '',
+      feeMax: tour.feeExpectation ? tour.feeExpectation.split(' ')[1]?.split('-')[1] || '' : '',
+      additionalNotes: tour.additionalNotes || ''
+    });
+    setShowEditTourModal(true);
+  };
+
+  // Handle Update Tour form submission
+  const handleUpdateTour = async () => {
+    // Validation
+    if (!tourForm.zone || !tourForm.startDate || !tourForm.endDate || !tourForm.minGigs || !tourForm.targetCities[0]) {
+      alert('Please fill in all required fields (including at least one target city)');
+      return;
+    }
+
+    // Date validation - end date must be after start date
+    const startDate = new Date(tourForm.startDate);
+    const endDate = new Date(tourForm.endDate);
+    if (endDate <= startDate) {
+      alert('End date must be after start date');
+      return;
+    }
+
+    // Build fee expectation string
+    const feeExpectation = tourForm.feeMin && tourForm.feeMax
+      ? `${tourForm.feeCurrency} ${tourForm.feeMin}-${tourForm.feeMax}`
+      : '';
+
+    try {
+      // Update tour via backend
+      const tourData = {
+        zone: tourForm.zone,
+        startDate: tourForm.startDate,
+        endDate: tourForm.endDate,
+        minGigs: parseInt(tourForm.minGigs),
+        targetCities: tourForm.targetCities.filter(c => c), // Remove empty strings
+        feeExpectation: feeExpectation,
+        additionalNotes: tourForm.additionalNotes
+      };
+
+      const response = await apiService.updateTour(selectedTour._id, tourData);
+
+      // Update tours list with the updated tour
+      const updatedTour = response.tour;
+      setMyTours(prev => prev.map(t => t._id === updatedTour._id ? updatedTour : t));
+
+      // Close modal and reset form
+      setShowEditTourModal(false);
+      setTourForm({
+        zone: '',
+        startDate: '',
+        endDate: '',
+        minGigs: '5',
+        targetCities: ['', '', '', '', ''],
+        feeCurrency: 'EUR',
+        feeMin: '',
+        feeMax: '',
+        additionalNotes: ''
+      });
+      setSelectedTour(null);
+
+      alert('Tour updated successfully!');
+    } catch (error) {
+      console.error('Error updating tour:', error);
+      alert('Failed to update tour. Please try again.');
+    }
+  };
+
+  // Handle View Proposals
+  // Handle View My Sent Proposal
+  const handleViewMyProposal = async (tour) => {
+    if (!tour.myProposal) return;
+
+    try {
+      // Fetch the full proposal details
+      const response = await apiService.getTourProposals(tour._id);
+      const myProposal = response.proposals?.find(p => p._id === tour.myProposal._id);
+
+      if (!myProposal) {
+        alert('Proposal not found');
+        return;
+      }
+
+      // Store proposal data and show modal
+      setMyProposalData({ ...myProposal, tour });
+      setShowMyProposalModal(true);
+    } catch (error) {
+      console.error('Error fetching proposal:', error);
+      alert('Failed to load proposal details');
+    }
+  };
+
   // Render Create Tour Modal
   const renderCreateTourModal = () => {
     if (!showCreateTourModal) return null;
@@ -790,6 +924,176 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
     return ReactDOM.createPortal(modalContent, document.body);
   };
 
+  // Render Edit Tour Modal
+  const renderEditTourModal = () => {
+    if (!showEditTourModal || !selectedTour) return null;
+
+    const modalContent = (
+      <div className="create-tour-modal-overlay" onClick={() => setShowEditTourModal(false)}>
+        <div className="modal-content create-tour-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header">
+            <h2>Edit Tour</h2>
+            <button className="modal-close" onClick={() => setShowEditTourModal(false)}>×</button>
+          </div>
+          <div className="modal-body">
+            <div className="form-group">
+              <label>Zone *</label>
+              <select
+                value={tourForm.zone}
+                onChange={(e) => setTourForm({ ...tourForm, zone: e.target.value })}
+                className="form-input"
+              >
+                <option value="">Select Zone</option>
+                <option value="Europe">Europe</option>
+                <option value="Asia">Asia</option>
+                <option value="Americas">Americas</option>
+                <option value="Africa">Africa</option>
+                <option value="Oceania">Oceania</option>
+              </select>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Start Date *</label>
+                <input
+                  type="date"
+                  value={tourForm.startDate}
+                  onChange={(e) => setTourForm({ ...tourForm, startDate: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+              <div className="form-group">
+                <label>End Date *</label>
+                <input
+                  type="date"
+                  value={tourForm.endDate}
+                  onChange={(e) => setTourForm({ ...tourForm, endDate: e.target.value })}
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Minimum Gigs Required *</label>
+              <input
+                type="number"
+                value={tourForm.minGigs}
+                onChange={(e) => handleMinGigsChange(e.target.value)}
+                placeholder="5"
+                min="1"
+                className="form-input"
+              />
+              <small className="form-hint">Number of gigs you're looking for</small>
+            </div>
+
+            {/* Dynamic city fields based on minimum gigs */}
+            {tourForm.targetCities.map((city, index) => {
+              // Get cities for selected zone and sort alphabetically
+              // Handle "Americas" by combining North America + Latin America & Caribbean
+              let countries = [];
+              if (tourForm.zone === 'Americas') {
+                countries = [
+                  ...(countriesByZone['North America'] || []),
+                  ...(countriesByZone['Latin America & Caribbean'] || [])
+                ];
+              } else {
+                countries = tourForm.zone ? countriesByZone[tourForm.zone] || [] : [];
+              }
+              const allCities = countries.flatMap(country => citiesByCountry[country] || []);
+              const sortedCities = [...new Set(allCities)].sort(); // Remove duplicates and sort
+
+              return (
+                <div key={index} className="form-group">
+                  <label>Target City {index + 1} {index === 0 ? '*' : '(Optional)'}</label>
+                  <select
+                    value={city}
+                    onChange={(e) => handleCityChange(index, e.target.value)}
+                    className="form-input"
+                    disabled={!tourForm.zone}
+                  >
+                    <option value="">Select city</option>
+                    {sortedCities.map((cityOption, i) => (
+                      <option key={i} value={cityOption}>{cityOption}</option>
+                    ))}
+                    <option value="Other">Other</option>
+                  </select>
+                  {index === 0 && <small className="form-hint">Select a city from the list. Choose "Other" if your city is not listed.</small>}
+                </div>
+              );
+            })}
+
+            <div className="form-group">
+              <label>Fee Expectation Range (Optional)</label>
+              <div className="form-row" style={{ gap: '8px', marginBottom: '8px' }}>
+                <div className="form-group" style={{ flex: '0 0 120px', margin: 0 }}>
+                  <select
+                    value={tourForm.feeCurrency}
+                    onChange={(e) => setTourForm({ ...tourForm, feeCurrency: e.target.value })}
+                    className="form-input"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="JPY">JPY</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flex: 1, alignItems: 'center' }}>
+                  <div style={{ flex: 1 }}>
+                    <input
+                      type="number"
+                      value={tourForm.feeMin}
+                      onChange={(e) => setTourForm({ ...tourForm, feeMin: e.target.value })}
+                      placeholder="Min"
+                      min="0"
+                      step={tourForm.feeCurrency === 'JPY' ? '1000' : '50'}
+                      className="form-input fee-number-input"
+                    />
+                  </div>
+                  <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px' }}>to</span>
+                  <div style={{ flex: 1 }}>
+                    <input
+                      type="number"
+                      value={tourForm.feeMax}
+                      onChange={(e) => setTourForm({ ...tourForm, feeMax: e.target.value })}
+                      placeholder="Max"
+                      min="0"
+                      step={tourForm.feeCurrency === 'JPY' ? '1000' : '50'}
+                      className="form-input fee-number-input"
+                    />
+                  </div>
+                </div>
+              </div>
+              <small className="form-hint">Expected fee range per show</small>
+            </div>
+
+            <div className="form-group">
+              <label>Additional Notes (Optional)</label>
+              <textarea
+                value={tourForm.additionalNotes}
+                onChange={(e) => setTourForm({ ...tourForm, additionalNotes: e.target.value })}
+                placeholder="Any additional details promoters should know..."
+                className="form-input"
+                rows="3"
+              />
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowEditTourModal(false)}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleUpdateTour}>
+                Update Tour
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+
+    // Render modal using portal to escape the TourScreen stacking context
+    return ReactDOM.createPortal(modalContent, document.body);
+  };
+
   // Tour Kickstart Tab Content
   const renderTourKickstart = () => {
     // Show upgrade prompt for basic users
@@ -857,7 +1161,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
             ) : (
               <div className="tour-cards-list">
                 {myTours.map(tour => (
-                  <div key={tour.id} className="tour-card">
+                  <div key={tour._id} className="tour-card">
                     <div className="tour-card-header">
                       <div className="tour-info">
                         <h4>{tour.zone} Tour</h4>
@@ -870,15 +1174,24 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
                       </span>
                     </div>
                     <div className="tour-card-body">
-                      <div className="tour-stat">
-                        <span className="tour-stat-label">Min Gigs:</span>
-                        <span className="tour-stat-value">{tour.minGigs}</span>
+                      {/* Progress Tiles */}
+                      <div className="tour-progress">
+                        <div className="tour-progress-header">
+                          <span className="tour-progress-label">
+                            {tour.confirmedGigs || 0} / {tour.minGigs} gigs confirmed
+                          </span>
+                        </div>
+                        <div className="tour-progress-tiles">
+                          {Array.from({ length: tour.minGigs }).map((_, index) => (
+                            <div
+                              key={index}
+                              className={`tour-tile ${index < (tour.confirmedGigs || 0) ? 'confirmed' : 'pending'}`}
+                            />
+                          ))}
+                        </div>
                       </div>
-                      <div className="tour-stat">
-                        <span className="tour-stat-label">Proposals:</span>
-                        <span className="tour-stat-value">{tour.proposalsCount}</span>
-                      </div>
-                      {tour.targetCities.length > 0 && (
+
+                      {tour.targetCities && tour.targetCities.length > 0 && (
                         <div className="tour-cities">
                           <LocationIcon />
                           <span>{tour.targetCities.join(', ')}</span>
@@ -886,8 +1199,12 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
                       )}
                     </div>
                     <div className="tour-card-footer">
-                      <button className="btn btn-secondary btn-small">View Proposals</button>
-                      <button className="btn btn-outline btn-small">Edit</button>
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={() => handleEditTour(tour)}
+                      >
+                        Edit
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -900,11 +1217,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
     // PROMOTERS/VENUES: Browse and contribute to tours
     if (isPromoterOrVenue) {
-      // Filter tours by selected zone and genre
+      // Filter tours by selected zone and genres
       const filteredTours = allTours.filter(tour => {
         const zoneMatch = tourZoneFilter === 'all' || tour.zone === tourZoneFilter;
-        const genreMatch = tourGenreFilter === 'all' ||
-          (tour.artist && tour.artist.genres && tour.artist.genres.some(g => g.toLowerCase() === tourGenreFilter));
+        const genreMatch = tourGenreFilter.length === 0 ||
+          (tour.artist && tour.artist.genres && tour.artist.genres.some(g => tourGenreFilter.includes(g)));
         return zoneMatch && genreMatch;
       });
 
@@ -918,32 +1235,172 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
             {/* Filters */}
             <div className="tour-filters">
-              <select
-                className="filter-select"
-                value={tourZoneFilter}
-                onChange={(e) => setTourZoneFilter(e.target.value)}
-              >
-                <option value="all">All Zones</option>
-                <option value="Europe">Europe</option>
-                <option value="Asia">Asia</option>
-                <option value="Americas">Americas</option>
-                <option value="Africa">Africa</option>
-                <option value="Oceania">Oceania</option>
-              </select>
-              <select
-                className="filter-select"
-                value={tourGenreFilter}
-                onChange={(e) => setTourGenreFilter(e.target.value)}
-              >
-                <option value="all">All Genres</option>
-                <option value="house">House</option>
-                <option value="techno">Techno</option>
-                <option value="deep house">Deep House</option>
-                <option value="tech house">Tech House</option>
-                <option value="minimal">Minimal</option>
-                <option value="drum & bass">Drum & Bass</option>
-                <option value="dubstep">Dubstep</option>
-              </select>
+              <div className="zone-filter-dropdown">
+                <button
+                  className="filter-select zone-filter-button"
+                  onClick={() => setShowZoneDropdown(!showZoneDropdown)}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span>{tourZoneFilter === 'all' ? 'All Zones' : tourZoneFilter}</span>
+                  <span style={{ marginLeft: '8px' }}>▼</span>
+                </button>
+                {showZoneDropdown && (
+                  <div
+                    className="zone-dropdown-menu"
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      marginTop: '4px',
+                      background: '#1a1a1a',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '8px',
+                      maxHeight: '300px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                    }}
+                  >
+                    {['all', 'Europe', 'Asia', 'Americas', 'Africa', 'Oceania'].map(zone => (
+                      <div
+                        key={zone}
+                        onClick={() => {
+                          setTourZoneFilter(zone);
+                          setShowZoneDropdown(false);
+                        }}
+                        style={{
+                          padding: '12px 16px',
+                          cursor: 'pointer',
+                          background: tourZoneFilter === zone ? 'rgba(255,51,102,0.2)' : 'transparent',
+                          borderLeft: tourZoneFilter === zone ? '3px solid #FF3366' : '3px solid transparent',
+                          transition: 'all 0.2s',
+                          fontSize: '14px',
+                          color: tourZoneFilter === zone ? '#fff' : 'rgba(255,255,255,0.8)',
+                          fontWeight: tourZoneFilter === zone ? '600' : '400'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (tourZoneFilter !== zone) {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (tourZoneFilter !== zone) {
+                            e.currentTarget.style.background = 'transparent';
+                          }
+                        }}
+                      >
+                        {zone === 'all' ? 'All Zones' : zone}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="genre-filter-dropdown">
+                <button
+                  className="filter-select genre-filter-button"
+                  onClick={() => setShowGenreDropdown(!showGenreDropdown)}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                >
+                  <span>
+                    {tourGenreFilter.length === 0
+                      ? 'All Genres'
+                      : `${tourGenreFilter.length} genre${tourGenreFilter.length > 1 ? 's' : ''} selected`
+                    }
+                  </span>
+                  <span style={{ marginLeft: '8px' }}>▼</span>
+                </button>
+                {showGenreDropdown && (
+                  <div
+                    className="genre-dropdown-menu"
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      marginTop: '4px',
+                      background: '#1a1a1a',
+                      border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: '8px',
+                      maxHeight: '300px',
+                      overflowY: 'auto',
+                      zIndex: 1000,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: '8px 12px',
+                        borderBottom: '1px solid rgba(255,255,255,0.1)',
+                        display: 'flex',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <button
+                        onClick={() => setTourGenreFilter([])}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#FF3366',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        Clear All
+                      </button>
+                      <button
+                        onClick={() => setShowGenreDropdown(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'rgba(255,255,255,0.7)',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        Done
+                      </button>
+                    </div>
+                    {genresList.map(genre => (
+                      <label
+                        key={genre}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '10px 12px',
+                          cursor: 'pointer',
+                          background: tourGenreFilter.includes(genre) ? 'rgba(255,51,102,0.1)' : 'transparent',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!tourGenreFilter.includes(genre)) {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!tourGenreFilter.includes(genre)) {
+                            e.currentTarget.style.background = 'transparent';
+                          }
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={tourGenreFilter.includes(genre)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setTourGenreFilter([...tourGenreFilter, genre]);
+                            } else {
+                              setTourGenreFilter(tourGenreFilter.filter(g => g !== genre));
+                            }
+                          }}
+                          style={{ marginRight: '10px' }}
+                        />
+                        <span style={{ fontSize: '14px', color: '#fff' }}>{genre}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Tour cards or empty state */}
@@ -958,28 +1415,60 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 {filteredTours.map(tour => (
                   <div key={tour._id} className="tour-card">
                     <div className="tour-card-header">
-                      <div className="tour-info">
-                        <h4>{tour.zone} Tour</h4>
-                        <p className="tour-artist-name">{tour.artist?.name || 'Unknown Artist'}</p>
-                        <p className="tour-dates">
-                          {new Date(tour.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(tour.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </p>
+                      <div className="tour-artist-info">
+                        <div className="tour-artist-avatar">
+                          {tour.artist?.avatar ? (
+                            <img src={tour.artist.avatar} alt={tour.artist.name} />
+                          ) : (
+                            <div className="avatar-placeholder">
+                              {tour.artist?.name?.charAt(0) || 'A'}
+                            </div>
+                          )}
+                        </div>
+                        <div className="tour-artist-details">
+                          <h4 className="tour-artist-name">{tour.artist?.name || 'Unknown Artist'}</h4>
+                          <p className="tour-artist-role">{tour.artist?.role || 'Artist'}</p>
+                          <p className="tour-location-info">
+                            <LocationIcon /> {tour.zone} Tour
+                          </p>
+                        </div>
                       </div>
                       <span className={`tour-status-badge status-${tour.status.toLowerCase()}`}>
                         {tour.status}
                       </span>
                     </div>
+                    <div className="tour-dates-section">
+                      <CalendarIcon />
+                      <span>
+                        {new Date(tour.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(tour.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
                     <div className="tour-card-body">
-                      <div className="tour-stat">
-                        <span className="tour-stat-label">Min Gigs:</span>
-                        <span className="tour-stat-value">{tour.minGigs}</span>
-                      </div>
-                      {tour.feeExpectation && (
-                        <div className="tour-stat">
-                          <span className="tour-stat-label">Fee Range:</span>
-                          <span className="tour-stat-value">{tour.feeExpectation}</span>
+                      {/* Progress Tiles */}
+                      <div className="tour-progress">
+                        <div className="tour-progress-header">
+                          <span className="tour-progress-label">
+                            {tour.confirmedGigs || 0} / {tour.minGigs} gigs confirmed
+                          </span>
                         </div>
-                      )}
+                        <div className="tour-progress-tiles">
+                          {Array.from({ length: tour.minGigs }).map((_, index) => (
+                            <div
+                              key={index}
+                              className={`tour-tile ${index < (tour.confirmedGigs || 0) ? 'confirmed' : 'pending'}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="tour-stats-row">
+                        {tour.feeExpectation && (
+                          <div className="tour-stat">
+                            <span className="tour-stat-label">Fee Range:</span>
+                            <span className="tour-stat-value">{tour.feeExpectation}</span>
+                          </div>
+                        )}
+                      </div>
                       {tour.targetCities && tour.targetCities.length > 0 && (
                         <div className="tour-cities">
                           <LocationIcon />
@@ -994,10 +1483,42 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
                       )}
                     </div>
                     <div className="tour-card-footer">
-                      <button className="btn btn-primary btn-small">Send Proposal</button>
+                      {tour.myProposal ? (
+                        // User has already sent a proposal
+                        <button
+                          className={`btn btn-small ${
+                            tour.myProposal.status === 'ACCEPTED' ? 'btn-success' :
+                            tour.myProposal.status === 'DECLINED' ? 'btn-secondary' :
+                            'btn-primary'
+                          }`}
+                          onClick={() => handleViewMyProposal(tour)}
+                          style={{ flex: 1 }}
+                        >
+                          {tour.myProposal.status === 'ACCEPTED' ? '✓ Proposal Accepted' :
+                           tour.myProposal.status === 'DECLINED' ? 'Proposal Declined' :
+                           'View Sent Proposal'}
+                        </button>
+                      ) : (
+                        // No proposal sent yet
+                        <button
+                          className="btn btn-primary btn-small"
+                          onClick={() => handleMakeOffer(tour)}
+                        >
+                          Make an Offer
+                        </button>
+                      )}
                       <button
                         className="btn btn-outline btn-small"
-                        onClick={() => setViewingProfile(tour.artist)}
+                        onClick={async () => {
+                          // Fetch full artist profile from backend
+                          try {
+                            const fullProfile = await apiService.getProfile(tour.artist._id);
+                            setViewingProfile(fullProfile);
+                          } catch (error) {
+                            console.error('Error fetching artist profile:', error);
+                            alert('Failed to load artist profile');
+                          }
+                        }}
                       >
                         View Artist
                       </button>
@@ -1090,6 +1611,128 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
       {/* Create Tour Modal */}
       {renderCreateTourModal()}
+
+      {/* Edit Tour Modal */}
+      {renderEditTourModal()}
+
+      {/* Make Offer Modal (for tours) */}
+      <MakeOfferModal
+        isOpen={showMakeOfferModal}
+        onClose={() => {
+          setShowMakeOfferModal(false);
+          setSelectedTourArtist(null);
+        }}
+        recipientProfile={selectedTourArtist}
+        onSuccess={() => {
+          setShowMakeOfferModal(false);
+          setSelectedTourArtist(null);
+          // Navigate to Messages tab to see the offer
+          onNavigateToMessages();
+        }}
+      />
+
+      {/* View My Sent Proposal Modal */}
+      {showMyProposalModal && myProposalData && ReactDOM.createPortal(
+        <div className="create-tour-modal-overlay" onClick={() => setShowMyProposalModal(false)}>
+          <div className="modal-content create-tour-modal view-proposals-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Your Proposal</h2>
+              <button className="modal-close" onClick={() => setShowMyProposalModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              {/* Tour Info */}
+              <div className="proposal-tour-info" style={{ marginBottom: '24px', padding: '16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px', color: '#fff' }}>
+                  {myProposalData.tour?.zone} Tour
+                </h3>
+                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                  {new Date(myProposalData.tour?.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(myProposalData.tour?.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
+              </div>
+
+              {/* Proposal Card */}
+              <div style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '12px',
+                padding: '16px',
+                borderLeft: myProposalData.status === 'ACCEPTED' ? '3px solid #4CAF50' :
+                           myProposalData.status === 'DECLINED' ? '3px solid #f44336' :
+                           '3px solid #FFC107'
+              }}>
+                {/* Header with Artist Info and Status */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: '#fff', margin: '0 0 4px 0' }}>
+                      {myProposalData.tour?.artist?.name}
+                    </h4>
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', margin: 0 }}>
+                      ARTIST
+                    </p>
+                  </div>
+                  <span style={{
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    textTransform: 'uppercase',
+                    background: myProposalData.status === 'ACCEPTED' ? 'rgba(76, 175, 80, 0.2)' :
+                               myProposalData.status === 'DECLINED' ? 'rgba(244, 67, 54, 0.2)' :
+                               'rgba(255, 193, 7, 0.2)',
+                    color: myProposalData.status === 'ACCEPTED' ? '#4CAF50' :
+                           myProposalData.status === 'DECLINED' ? '#f44336' :
+                           '#FFC107',
+                    alignSelf: 'flex-start'
+                  }}>
+                    {myProposalData.status}
+                  </span>
+                </div>
+
+                {/* Your Message */}
+                <div style={{ marginBottom: '12px' }}>
+                  <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.5', margin: '0 0 12px 0', whiteSpace: 'pre-wrap' }}>
+                    {myProposalData.message}
+                  </p>
+
+                  {/* Proposed Details */}
+                  {(myProposalData.proposedDates || myProposalData.proposedFee) && (
+                    <div>
+                      {myProposalData.proposedDates && (
+                        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: '0 0 6px 0' }}>
+                          <strong style={{ color: 'rgba(255,255,255,0.8)' }}>Proposed Dates:</strong> {myProposalData.proposedDates}
+                        </p>
+                      )}
+                      {myProposalData.proposedFee && (
+                        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                          <strong style={{ color: 'rgba(255,255,255,0.8)' }}>Proposed Fee:</strong> {myProposalData.proposedFee.currency} {myProposalData.proposedFee.amount.toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Artist Response */}
+                {myProposalData.artistResponse && (
+                  <div style={{ marginTop: '12px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px' }}>
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '0 0 4px 0' }}>
+                      Artist Response:
+                    </p>
+                    <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', margin: 0, lineHeight: '1.5' }}>
+                      {myProposalData.artistResponse}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowMyProposalModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

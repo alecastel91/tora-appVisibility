@@ -3,6 +3,36 @@
 ## Overview
 TORA is a React-based web application designed for professionals in the electronic music/club scene to connect, network, and collaborate. The app features a dark theme with pink accent colors (#FF3366) and is built to be easily convertible to React Native.
 
+## Recent Updates (March 3, 2026)
+
+### Tour Kickstart - Integration with Booking Workflow
+- **Removed Proposals System**: Completely removed the old tour proposal system (View Proposals, proposal modals, proposal counts)
+- **Integrated with Standard Booking Flow**: Tour offers now use MakeOfferModal and create standard Deals
+  - "Make an Offer" button opens same modal as normal bookings
+  - Creates Deal linked to tour via `tour` field in Deal model
+  - Offers appear in Bookings screen (not separate proposal system)
+  - Standard Accept/Decline/Counter workflow applies
+- **Confirmed Gigs Counter**: When artist accepts a tour-linked booking, the tour's `confirmedGigs` count automatically increments
+  - Backend logic in deals.js (lines 301-308)
+  - Deal model includes `tour` field (ObjectId reference)
+  - Tour progress tiles update in real-time
+- **Simplified Tour Cards**: Artist tour cards now only show Edit button (removed View Proposals and proposal count)
+- **Clean State Management**: Removed unused state variables (`unreadProposalsCount`, `tourProposals`, `showViewProposalsModal`)
+- **Files Modified**:
+  - Frontend: [TourScreen.js](src/components/screens/TourScreen.js) - Removed ~200 lines of proposal UI code
+  - Backend: [tours.js](/Users/alessandrocastelbuono/Desktop/tora-backend/src/routes/tours.js) - Changed proposal creation to Deal creation
+  - Backend: [deals.js](/Users/alessandrocastelbuono/Desktop/tora-backend/src/routes/deals.js) - Added tour confirmedGigs increment on acceptance
+  - Backend: [Deal.js](/Users/alessandrocastelbuono/Desktop/tora-backend/src/models/Deal.js) - Added `tour` field
+
+### Tour Kickstart Workflow (Current State)
+1. **Artist Creates Tour**: Sets zone, dates, target cities, minimum gigs, fee expectations
+2. **Promoter/Venue Browses Tours**: Filters by zone and genres
+3. **Make an Offer**: Promoter clicks "Make an Offer" → MakeOfferModal opens
+4. **Deal Creation**: Standard booking deal created and linked to tour
+5. **Booking Management**: Offer appears in Bookings screen for both parties
+6. **Acceptance**: When artist accepts, tour's confirmed gigs count increments
+7. **Progress Tracking**: Tour card shows X/Y gigs confirmed with visual progress tiles
+
 ## Project Structure
 ```
 tora-app/

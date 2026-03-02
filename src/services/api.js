@@ -668,6 +668,56 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async updateTour(tourId, tourData) {
+    const response = await fetch(`${API_URL}/tours/${tourId}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(tourData)
+    });
+
+    return this.handleResponse(response);
+  }
+
+  // TOUR PROPOSAL ENDPOINTS
+  async createTourProposal(tourId, proposalData) {
+    const response = await fetch(`${API_URL}/tours/${tourId}/proposals`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(proposalData)
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getTourProposals(tourId) {
+    const response = await fetch(`${API_URL}/tours/${tourId}/proposals`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async acceptTourProposal(proposalId, response) {
+    const apiResponse = await fetch(`${API_URL}/tours/proposals/${proposalId}/accept`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ response })
+    });
+
+    return this.handleResponse(apiResponse);
+  }
+
+  async declineTourProposal(proposalId, response) {
+    const apiResponse = await fetch(`${API_URL}/tours/proposals/${proposalId}/decline`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ response })
+    });
+
+    return this.handleResponse(apiResponse);
+  }
+
   // Check if user is logged in
   isAuthenticated() {
     return !!this.token;

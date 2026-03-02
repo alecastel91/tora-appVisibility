@@ -41,6 +41,7 @@ function App() {
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
   const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [unreadProposalsCount, setUnreadProposalsCount] = useState(0);
   const [preferredCurrency, setPreferredCurrency] = useState('USD');
   const [accountUser, setAccountUser] = useState(null); // Account-level user data (email, currency, etc)
   const { t, language, changeLanguage, availableLanguages } = useLanguage();
@@ -226,7 +227,7 @@ function App() {
       case 'search':
         return <SearchScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onOpenPremium={() => setShowPremium(true)} />;
       case 'tour':
-        return <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
+        return <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} />;
       case 'bookings':
         return <BookingsScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
       case 'messages':
@@ -314,7 +315,7 @@ function App() {
             }}
           />
         )}
-        <TabBar activeTab={activeTab} onTabChange={setActiveTab} unreadMessagesCount={unreadMessagesCount} />
+        <TabBar activeTab={activeTab} onTabChange={setActiveTab} unreadMessagesCount={unreadMessagesCount} unreadProposalsCount={unreadProposalsCount} />
         
         {/* Settings Modal */}
         <Modal
