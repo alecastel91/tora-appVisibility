@@ -5,6 +5,37 @@ TORA is a React-based web application designed for professionals in the electron
 
 ## Recent Updates (March 4, 2026)
 
+### Agent Authorization Fix for Deal Management
+- **Issue**: Agents (Alessandro) could not view or manage booking offers made to their represented artists (Al Jones)
+  - Error: "403 Forbidden - Not authorized to view this deal"
+  - Frontend showed error when clicking "View Details" on offers
+- **Root Cause**: Backend authorization checks only verified if user was the artist or venue directly involved in the deal
+  - Did not account for agents who represent the artist
+  - `GET /api/deals/:dealId` rejected requests from agents even when they represented the artist in the deal
+- **Solution**: Added agent authorization logic to all deal endpoints
+  - Checks if requesting user is an agent with the artist in their `representingArtists` array
+  - Applied to: view deal, accept deal, decline deal, counter-offer, all deal modification endpoints
+  - Agents can now fully manage deals on behalf of their represented artists
+- **Implementation**:
+  ```javascript
+  // Check if profileId is artist, venue, or agent representing the artist
+  let isAuthorized = (artistId === profileId || venueId === profileId);
+
+  // If not directly authorized, check if user is an agent representing the artist
+  if (!isAuthorized) {
+    const userProfile = await Profile.findById(profileId);
+    if (userProfile && userProfile.role === 'AGENT' && userProfile.representingArtists) {
+      isAuthorized = userProfile.representingArtists.some(
+        artist => artist.profileId.toString() === artistId
+      );
+    }
+  }
+  ```
+- **Files Modified**:
+  - Backend: [deals.js:313-335](/Users/alessandrocastelbuono/Desktop/tora-backend/src/routes/deals.js) - GET /:dealId authorization
+  - Backend: [deals.js](/Users/alessandrocastelbuono/Desktop/tora-backend/src/routes/deals.js) - All deal modification endpoints (5 occurrences)
+- **Testing**: Alessandro can now successfully view and manage offers for Al Jones
+
 ### Tour Kickstart - Input Field Scroll Wheel Fix
 - **Issue**: Scroll wheel was changing minRevenue value when scrolling over the input field
   - Value "10050" would change to "10046" due to browser's default scroll increment behavior on `type="number"` inputs
