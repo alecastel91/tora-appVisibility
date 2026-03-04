@@ -462,6 +462,15 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async getDealsForTour(tourId) {
+    const response = await fetch(`${API_URL}/deals?tour=${tourId}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   async getDeal(dealId, profileId) {
     const url = profileId
       ? `${API_URL}/deals/${dealId}?profileId=${profileId}`

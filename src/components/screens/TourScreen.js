@@ -53,6 +53,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
   const [showEditTourModal, setShowEditTourModal] = useState(false);
   const [showMyProposalModal, setShowMyProposalModal] = useState(false);
   const [myProposalData, setMyProposalData] = useState(null);
+  const [showTourGigsModal, setShowTourGigsModal] = useState(false);
+  const [tourGigs, setTourGigs] = useState([]);
+  const [loadingTourGigs, setLoadingTourGigs] = useState(false);
 
   // Generate month/year options starting from current month for next 12 months
   const generateMonthOptions = () => {
@@ -742,6 +745,24 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
     }
   };
 
+  const handleViewTourGigs = async (tour) => {
+    setSelectedTour(tour);
+    setShowTourGigsModal(true);
+    setLoadingTourGigs(true);
+    setTourGigs([]);
+
+    try {
+      // Fetch deals linked to this tour
+      const response = await apiService.getDealsForTour(tour._id);
+      setTourGigs(response.deals || []);
+    } catch (error) {
+      console.error('Error fetching tour gigs:', error);
+      alert('Failed to load tour gigs. Please try again.');
+    } finally {
+      setLoadingTourGigs(false);
+    }
+  };
+
   // Handle View Proposals
   // Handle View My Sent Proposal
   const handleViewMyProposal = async (tour) => {
@@ -1237,6 +1258,12 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
 
                     </div>
                     <div className="tour-card-footer">
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={() => handleViewTourGigs(tour)}
+                      >
+                        View Gigs ({tour.confirmedGigs || 0})
+                      </button>
                       <button
                         className="btn btn-outline btn-small"
                         onClick={() => handleEditTour(tour)}
@@ -1765,6 +1792,96 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowMyProposalModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Tour Gigs Modal */}
+      {showTourGigsModal && selectedTour && ReactDOM.createPortal(
+        <div className="modal-overlay" onClick={() => setShowTourGigsModal(false)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{selectedTour.country || selectedTour.zone} Tour - Confirmed Gigs</h3>
+              <button className="modal-close" onClick={() => setShowTourGigsModal(false)}>×</button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+              {loadingTourGigs ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(255,255,255,0.5)' }}>
+                  Loading tour gigs...
+                </div>
+              ) : tourGigs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(255,255,255,0.5)' }}>
+                  <p>No confirmed gigs yet for this tour.</p>
+                  <p style={{ fontSize: '14px', marginTop: '8px' }}>Promoters and venues can make offers from the Browse Tours section.</p>
+                </div>
+              ) : (
+                <div className="tour-gigs-list">
+                  {tourGigs.map(deal => (
+                    <div key={deal._id} className="tour-gig-card" style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      borderRadius: '8px',
+                      padding: '16px',
+                      marginBottom: '12px',
+                      border: '1px solid rgba(255,255,255,0.1)'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <div>
+                          <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', color: '#fff' }}>
+                            {deal.eventName || deal.venueName}
+                          </h4>
+                          <p style={{ margin: '0', fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>
+                            {deal.venue?.name || deal.venueName}
+                          </p>
+                        </div>
+                        <span className="tour-status-badge status-accepted" style={{
+                          background: 'rgba(76, 175, 80, 0.2)',
+                          color: '#4CAF50',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: '600'
+                        }}>
+                          {deal.status}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px' }}>
+                        <div>
+                          <p style={{ margin: '0 0 4px 0', color: 'rgba(255,255,255,0.5)' }}>Date</p>
+                          <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)' }}>
+                            {new Date(deal.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <div>
+                          <p style={{ margin: '0 0 4px 0', color: 'rgba(255,255,255,0.5)' }}>Fee</p>
+                          <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>
+                            {deal.currency} {deal.fee?.toLocaleString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p style={{ margin: '0 0 4px 0', color: 'rgba(255,255,255,0.5)' }}>City</p>
+                          <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)' }}>
+                            {deal.city}
+                          </p>
+                        </div>
+                        <div>
+                          <p style={{ margin: '0 0 4px 0', color: 'rgba(255,255,255,0.5)' }}>Country</p>
+                          <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)' }}>
+                            {deal.country}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowTourGigsModal(false)}>
                 Close
               </button>
             </div>
