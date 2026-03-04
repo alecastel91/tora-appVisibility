@@ -5535,10 +5535,10 @@
 
 .premium-pricing {
   display: flex;
-  justify-content: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 16px;
   margin-bottom: 20px;
-  max-width: 400px;
+  max-width: 350px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -5547,11 +5547,10 @@
   background: var(--bg-gray);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 20px;
   text-align: center;
   position: relative;
-  flex: 1;
-  max-width: 180px;
+  width: 100%;
 }
 
 .price-card.featured {
