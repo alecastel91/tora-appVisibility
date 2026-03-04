@@ -3,6 +3,24 @@
 ## Overview
 TORA is a React-based web application designed for professionals in the electronic music/club scene to connect, network, and collaborate. The app features a dark theme with pink accent colors (#FF3366) and is built to be easily convertible to React Native.
 
+## Recent Updates (March 4, 2026)
+
+### Tour Kickstart - Input Field Scroll Wheel Fix
+- **Issue**: Scroll wheel was changing minRevenue value when scrolling over the input field
+  - Value "10050" would change to "10046" due to browser's default scroll increment behavior on `type="number"` inputs
+- **Solution**: Added `onWheel={(e) => e.target.blur()}` handler to disable scroll wheel interaction
+  - Applied to both Create Tour and Edit Tour modals
+  - Input field loses focus when scroll wheel is detected, preventing value changes
+  - Users can still type any value manually
+- **Additional Improvements**:
+  - Changed `parseFloat()` to `parseInt()` for minRevenue (more appropriate for integer values)
+  - Removed `step="1"` attribute (provides more flexibility without constraints)
+  - Cleaned up debug logging from previous session
+- **Files Modified**:
+  - Frontend: [TourScreen.js:878, 1067](src/components/screens/TourScreen.js) - Added onWheel handler
+  - Frontend: [TourScreen.js:589, 678](src/components/screens/TourScreen.js) - Changed to parseInt()
+  - Backend: [tours.js:38, 199](/Users/alessandrocastelbuono/Desktop/tora-backend/src/routes/tours.js) - Changed to parseInt()
+
 ## Recent Updates (March 3, 2026)
 
 ### Tour Kickstart - Integration with Booking Workflow

@@ -35,10 +35,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
   const [showZoneDropdown, setShowZoneDropdown] = useState(false);
   const [tourForm, setTourForm] = useState({
     zone: '',
+    country: '', // Optional - if selected, tour is country-specific
     startDate: '',
     endDate: '',
-    minGigs: '3',
-    targetCities: ['', '', ''], // Array of city strings
+    minRevenue: '',
+    revenueCurrency: 'EUR',
     feeCurrency: 'EUR',
     feeMin: '',
     feeMax: '',
@@ -555,29 +556,13 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
     );
   };
 
-  // Handle minGigs change to adjust city fields
-  const handleMinGigsChange = (newMinGigs) => {
-    const numGigs = parseInt(newMinGigs) || 0;
-    const newCities = Array(numGigs).fill('').map((_, i) => tourForm.targetCities[i] || '');
-    setTourForm({
-      ...tourForm,
-      minGigs: newMinGigs,
-      targetCities: newCities
-    });
-  };
-
   // Handle city field change
-  const handleCityChange = (index, value) => {
-    const newCities = [...tourForm.targetCities];
-    newCities[index] = value;
-    setTourForm({ ...tourForm, targetCities: newCities });
-  };
 
   // Handle Create Tour form submission
   const handleCreateTour = async () => {
     // Validation
-    if (!tourForm.zone || !tourForm.startDate || !tourForm.endDate || !tourForm.minGigs || !tourForm.targetCities[0]) {
-      alert('Please fill in all required fields (including at least one target city)');
+    if (!tourForm.zone || !tourForm.startDate || !tourForm.endDate || !tourForm.minRevenue) {
+      alert('Please fill in all required fields');
       return;
     }
 
@@ -598,10 +583,12 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
       // Save to backend
       const tourData = {
         zone: tourForm.zone,
+        country: tourForm.country || '', // Empty string means zone-wide tour
         startDate: tourForm.startDate,
         endDate: tourForm.endDate,
-        minGigs: parseInt(tourForm.minGigs),
-        targetCities: tourForm.targetCities.filter(c => c), // Remove empty strings
+        minRevenue: parseInt(tourForm.minRevenue, 10),
+        revenueCurrency: tourForm.revenueCurrency,
+        targetCities: [], // Always empty - feature removed
         feeExpectation: feeExpectation,
         additionalNotes: tourForm.additionalNotes
       };
@@ -615,10 +602,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
         // Reset form and close modal
         setTourForm({
           zone: '',
+          country: '',
           startDate: '',
           endDate: '',
-          minGigs: '3',
-          targetCities: ['', '', ''],
+          minRevenue: '',
+          revenueCurrency: 'EUR',
           feeCurrency: 'EUR',
           feeMin: '',
           feeMax: '',
@@ -646,10 +634,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
     setSelectedTour(tour);
     setTourForm({
       zone: tour.zone,
+      country: tour.country || '',
       startDate: tour.startDate.split('T')[0],
       endDate: tour.endDate.split('T')[0],
-      minGigs: tour.minGigs.toString(),
-      targetCities: tour.targetCities, // Keep all existing cities
+      minRevenue: tour.minRevenue?.toString() || '',
+      revenueCurrency: tour.revenueCurrency || 'EUR',
       feeCurrency: tour.feeExpectation ? tour.feeExpectation.split(' ')[0] : 'EUR',
       feeMin: tour.feeExpectation ? tour.feeExpectation.split(' ')[1]?.split('-')[0] || '' : '',
       feeMax: tour.feeExpectation ? tour.feeExpectation.split(' ')[1]?.split('-')[1] || '' : '',
@@ -661,8 +650,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
   // Handle Update Tour form submission
   const handleUpdateTour = async () => {
     // Validation
-    if (!tourForm.zone || !tourForm.startDate || !tourForm.endDate || !tourForm.minGigs || !tourForm.targetCities[0]) {
-      alert('Please fill in all required fields (including at least one target city)');
+    if (!tourForm.zone || !tourForm.startDate || !tourForm.endDate || !tourForm.minRevenue) {
+      alert('Please fill in all required fields');
       return;
     }
 
@@ -683,10 +672,12 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
       // Update tour via backend
       const tourData = {
         zone: tourForm.zone,
+        country: tourForm.country || '', // Empty string means zone-wide tour
         startDate: tourForm.startDate,
         endDate: tourForm.endDate,
-        minGigs: parseInt(tourForm.minGigs),
-        targetCities: tourForm.targetCities.filter(c => c), // Remove empty strings
+        minRevenue: parseInt(tourForm.minRevenue, 10),
+        revenueCurrency: tourForm.revenueCurrency,
+        targetCities: [], // Always empty - feature removed
         feeExpectation: feeExpectation,
         additionalNotes: tourForm.additionalNotes
       };
@@ -701,10 +692,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
       setShowEditTourModal(false);
       setTourForm({
         zone: '',
+        country: '',
         startDate: '',
         endDate: '',
-        minGigs: '5',
-        targetCities: ['', '', '', '', ''],
+        minRevenue: '',
+        revenueCurrency: 'EUR',
         feeCurrency: 'EUR',
         feeMin: '',
         feeMax: '',
@@ -716,6 +708,37 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
     } catch (error) {
       console.error('Error updating tour:', error);
       alert('Failed to update tour. Please try again.');
+    }
+  };
+
+  // Handle Delete Tour
+  const handleDeleteTour = async (tour) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete this ${tour.country || tour.zone} tour?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tours/${tour._id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete tour');
+      }
+
+      // Remove tour from myTours state
+      setMyTours(prevTours => prevTours.filter(t => t._id !== tour._id));
+
+      alert('Tour deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting tour:', error);
+      alert('Failed to delete tour. Please try again.');
     }
   };
 
@@ -759,7 +782,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
               <label>Zone *</label>
               <select
                 value={tourForm.zone}
-                onChange={(e) => setTourForm({ ...tourForm, zone: e.target.value })}
+                onChange={(e) => setTourForm({ ...tourForm, zone: e.target.value, country: '' })}
                 className="form-input"
               >
                 <option value="">Select Zone</option>
@@ -769,7 +792,36 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                 <option value="Africa">Africa</option>
                 <option value="Oceania">Oceania</option>
               </select>
+              <small className="form-hint">Tour area - leave country empty for zone-wide tour</small>
             </div>
+
+            {tourForm.zone && (
+              <div className="form-group">
+                <label>Country (Optional)</label>
+                <select
+                  value={tourForm.country}
+                  onChange={(e) => setTourForm({ ...tourForm, country: e.target.value })}
+                  className="form-input"
+                >
+                  <option value="">Zone-wide tour</option>
+                  {(() => {
+                    // For Americas, combine North America and Latin America
+                    if (tourForm.zone === 'Americas') {
+                      const northAmerica = countriesByZone['North America'] || [];
+                      const latinAmerica = countriesByZone['Latin America & Caribbean'] || [];
+                      return [...northAmerica, ...latinAmerica].sort().map(country => (
+                        <option key={country} value={country}>{country}</option>
+                      ));
+                    }
+                    // For other zones, use direct lookup
+                    return (countriesByZone[tourForm.zone] || []).sort().map(country => (
+                      <option key={country} value={country}>{country}</option>
+                    ));
+                  })()}
+                </select>
+                <small className="form-hint">Select a country to make this a country-specific tour</small>
+              </div>
+            )}
 
             <div className="form-row">
               <div className="form-group">
@@ -793,54 +845,33 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
             </div>
 
             <div className="form-group">
-              <label>Minimum Gigs Needed *</label>
-              <select
-                value={tourForm.minGigs}
-                onChange={(e) => handleMinGigsChange(e.target.value)}
-                className="form-input"
-              >
-                {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
-                  <option key={num} value={num}>{num} {num === 1 ? 'gig' : 'gigs'}</option>
-                ))}
-              </select>
-              <small className="form-hint">How many confirmed gigs do you need to make this tour viable?</small>
+              <label>Minimum Revenue Target *</label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <select
+                  value={tourForm.revenueCurrency}
+                  onChange={(e) => setTourForm({ ...tourForm, revenueCurrency: e.target.value })}
+                  className="form-input"
+                  style={{ width: '100px' }}
+                >
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="JPY">JPY</option>
+                </select>
+                <input
+                  type="number"
+                  value={tourForm.minRevenue}
+                  onChange={(e) => setTourForm({ ...tourForm, minRevenue: e.target.value })}
+                  onWheel={(e) => e.target.blur()}
+                  placeholder="0"
+                  min="0"
+                  className="form-input"
+                  style={{ flex: 1 }}
+                />
+              </div>
+              <small className="form-hint">Minimum total revenue needed to make this tour viable</small>
             </div>
 
-            {/* Dynamic city fields based on minimum gigs */}
-            {tourForm.targetCities.map((city, index) => {
-              // Get cities for selected zone and sort alphabetically
-              // Handle "Americas" by combining North America + Latin America & Caribbean
-              let countries = [];
-              if (tourForm.zone === 'Americas') {
-                countries = [
-                  ...(countriesByZone['North America'] || []),
-                  ...(countriesByZone['Latin America & Caribbean'] || [])
-                ];
-              } else {
-                countries = tourForm.zone ? countriesByZone[tourForm.zone] || [] : [];
-              }
-              const allCities = countries.flatMap(country => citiesByCountry[country] || []);
-              const sortedCities = [...new Set(allCities)].sort(); // Remove duplicates and sort
-
-              return (
-                <div key={index} className="form-group">
-                  <label>Target City {index + 1} {index === 0 ? '*' : '(Optional)'}</label>
-                  <select
-                    value={city}
-                    onChange={(e) => handleCityChange(index, e.target.value)}
-                    className="form-input"
-                    disabled={!tourForm.zone}
-                  >
-                    <option value="">Select city</option>
-                    {sortedCities.map((cityOption, i) => (
-                      <option key={i} value={cityOption}>{cityOption}</option>
-                    ))}
-                    <option value="Other">Other</option>
-                  </select>
-                  {index === 0 && <small className="form-hint">Select a city from the list. Choose "Other" if your city is not listed.</small>}
-                </div>
-              );
-            })}
 
             <div className="form-group">
               <label>Fee Expectation Per Show (Optional)</label>
@@ -950,7 +981,36 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                 <option value="Africa">Africa</option>
                 <option value="Oceania">Oceania</option>
               </select>
+              <small className="form-hint">Tour area - leave country empty for zone-wide tour</small>
             </div>
+
+            {tourForm.zone && (
+              <div className="form-group">
+                <label>Country (Optional)</label>
+                <select
+                  value={tourForm.country}
+                  onChange={(e) => setTourForm({ ...tourForm, country: e.target.value })}
+                  className="form-input"
+                >
+                  <option value="">Zone-wide tour</option>
+                  {(() => {
+                    // For Americas, combine North America and Latin America
+                    if (tourForm.zone === 'Americas') {
+                      const northAmerica = countriesByZone['North America'] || [];
+                      const latinAmerica = countriesByZone['Latin America & Caribbean'] || [];
+                      return [...northAmerica, ...latinAmerica].sort().map(country => (
+                        <option key={country} value={country}>{country}</option>
+                      ));
+                    }
+                    // For other zones, use direct lookup
+                    return (countriesByZone[tourForm.zone] || []).sort().map(country => (
+                      <option key={country} value={country}>{country}</option>
+                    ));
+                  })()}
+                </select>
+                <small className="form-hint">Select a country to make this a country-specific tour</small>
+              </div>
+            )}
 
             <div className="form-row">
               <div className="form-group">
@@ -974,53 +1034,33 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
             </div>
 
             <div className="form-group">
-              <label>Minimum Gigs Required *</label>
-              <input
-                type="number"
-                value={tourForm.minGigs}
-                onChange={(e) => handleMinGigsChange(e.target.value)}
-                placeholder="5"
-                min="1"
-                className="form-input"
-              />
-              <small className="form-hint">Number of gigs you're looking for</small>
+              <label>Minimum Revenue Target *</label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <select
+                  value={tourForm.revenueCurrency}
+                  onChange={(e) => setTourForm({ ...tourForm, revenueCurrency: e.target.value })}
+                  className="form-input"
+                  style={{ width: '100px' }}
+                >
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                  <option value="JPY">JPY</option>
+                </select>
+                <input
+                  type="number"
+                  value={tourForm.minRevenue}
+                  onChange={(e) => setTourForm({ ...tourForm, minRevenue: e.target.value })}
+                  onWheel={(e) => e.target.blur()}
+                  placeholder="0"
+                  min="0"
+                  className="form-input"
+                  style={{ flex: 1 }}
+                />
+              </div>
+              <small className="form-hint">Minimum total revenue to make tour viable</small>
             </div>
 
-            {/* Dynamic city fields based on minimum gigs */}
-            {tourForm.targetCities.map((city, index) => {
-              // Get cities for selected zone and sort alphabetically
-              // Handle "Americas" by combining North America + Latin America & Caribbean
-              let countries = [];
-              if (tourForm.zone === 'Americas') {
-                countries = [
-                  ...(countriesByZone['North America'] || []),
-                  ...(countriesByZone['Latin America & Caribbean'] || [])
-                ];
-              } else {
-                countries = tourForm.zone ? countriesByZone[tourForm.zone] || [] : [];
-              }
-              const allCities = countries.flatMap(country => citiesByCountry[country] || []);
-              const sortedCities = [...new Set(allCities)].sort(); // Remove duplicates and sort
-
-              return (
-                <div key={index} className="form-group">
-                  <label>Target City {index + 1} {index === 0 ? '*' : '(Optional)'}</label>
-                  <select
-                    value={city}
-                    onChange={(e) => handleCityChange(index, e.target.value)}
-                    className="form-input"
-                    disabled={!tourForm.zone}
-                  >
-                    <option value="">Select city</option>
-                    {sortedCities.map((cityOption, i) => (
-                      <option key={i} value={cityOption}>{cityOption}</option>
-                    ))}
-                    <option value="Other">Other</option>
-                  </select>
-                  {index === 0 && <small className="form-hint">Select a city from the list. Choose "Other" if your city is not listed.</small>}
-                </div>
-              );
-            })}
 
             <div className="form-group">
               <label>Fee Expectation Range (Optional)</label>
@@ -1164,7 +1204,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                   <div key={tour._id} className="tour-card">
                     <div className="tour-card-header">
                       <div className="tour-info">
-                        <h4>{tour.zone} Tour</h4>
+                        <h4>{tour.country || tour.zone} Tour</h4>
                         <p className="tour-dates">
                           {new Date(tour.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(tour.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </p>
@@ -1174,29 +1214,27 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                       </span>
                     </div>
                     <div className="tour-card-body">
-                      {/* Progress Tiles */}
+                      {/* Revenue Progress Bar */}
                       <div className="tour-progress">
                         <div className="tour-progress-header">
                           <span className="tour-progress-label">
-                            {tour.confirmedGigs || 0} / {tour.minGigs} gigs confirmed
+                            {tour.confirmedGigs || 0} gigs confirmed
+                          </span>
+                          <span className="tour-progress-amount">
+                            {tour.revenueCurrency || 'EUR'} {Math.round(tour.totalRevenue || 0)} / {Math.round(tour.minRevenue || 0)}
                           </span>
                         </div>
-                        <div className="tour-progress-tiles">
-                          {Array.from({ length: tour.minGigs }).map((_, index) => (
-                            <div
-                              key={index}
-                              className={`tour-tile ${index < (tour.confirmedGigs || 0) ? 'confirmed' : 'pending'}`}
-                            />
-                          ))}
+                        <div className="tour-progress-bar">
+                          <div
+                            className="tour-progress-fill"
+                            style={{ width: `${Math.min(100, ((tour.totalRevenue || 0) / (tour.minRevenue || 1)) * 100)}%` }}
+                          />
+                        </div>
+                        <div className="tour-progress-percentage">
+                          {Math.round(((tour.totalRevenue || 0) / (tour.minRevenue || 1)) * 100)}%
                         </div>
                       </div>
 
-                      {tour.targetCities && tour.targetCities.length > 0 && (
-                        <div className="tour-cities">
-                          <LocationIcon />
-                          <span>{tour.targetCities.join(', ')}</span>
-                        </div>
-                      )}
                     </div>
                     <div className="tour-card-footer">
                       <button
@@ -1204,6 +1242,12 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                         onClick={() => handleEditTour(tour)}
                       >
                         Edit
+                      </button>
+                      <button
+                        className="btn btn-outline btn-small"
+                        onClick={() => handleDeleteTour(tour)}
+                      >
+                        Cancel Tour
                       </button>
                     </div>
                   </div>
@@ -1429,7 +1473,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                           <h4 className="tour-artist-name">{tour.artist?.name || 'Unknown Artist'}</h4>
                           <p className="tour-artist-role">{tour.artist?.role || 'Artist'}</p>
                           <p className="tour-location-info">
-                            <LocationIcon /> {tour.zone} Tour
+                            <LocationIcon /> {tour.country || tour.zone} Tour
                           </p>
                         </div>
                       </div>
@@ -1444,20 +1488,21 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                       </span>
                     </div>
                     <div className="tour-card-body">
-                      {/* Progress Tiles */}
+                      {/* Revenue Progress Bar */}
                       <div className="tour-progress">
                         <div className="tour-progress-header">
                           <span className="tour-progress-label">
-                            {tour.confirmedGigs || 0} / {tour.minGigs} gigs confirmed
+                            {tour.confirmedGigs || 0} gigs confirmed
                           </span>
                         </div>
-                        <div className="tour-progress-tiles">
-                          {Array.from({ length: tour.minGigs }).map((_, index) => (
-                            <div
-                              key={index}
-                              className={`tour-tile ${index < (tour.confirmedGigs || 0) ? 'confirmed' : 'pending'}`}
-                            />
-                          ))}
+                        <div className="tour-progress-bar">
+                          <div
+                            className="tour-progress-fill"
+                            style={{ width: `${Math.min(100, ((tour.totalRevenue || 0) / (tour.minRevenue || 1)) * 100)}%` }}
+                          />
+                        </div>
+                        <div className="tour-progress-percentage">
+                          {Math.round(((tour.totalRevenue || 0) / (tour.minRevenue || 1)) * 100)}%
                         </div>
                       </div>
 
@@ -1469,12 +1514,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                           </div>
                         )}
                       </div>
-                      {tour.targetCities && tour.targetCities.length > 0 && (
-                        <div className="tour-cities">
-                          <LocationIcon />
-                          <span>{tour.targetCities.join(', ')}</span>
-                        </div>
-                      )}
                       {tour.artist?.genres && tour.artist.genres.length > 0 && (
                         <div className="tour-genres">
                           <span className="genres-label">Genres:</span>
