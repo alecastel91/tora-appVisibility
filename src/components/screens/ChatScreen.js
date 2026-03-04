@@ -1437,8 +1437,10 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   <span className="detail-label">Venue:</span>
                   <span className="detail-value">
                     <div>{selectedOffer.venueName}</div>
-                    {selectedOffer.venue?.location && (
-                      <div className="detail-subtext">({selectedOffer.venue.location})</div>
+                    {(selectedOffer.city || selectedOffer.venue?.location) && (
+                      <div className="detail-subtext">
+                        ({selectedOffer.city && selectedOffer.country ? `${selectedOffer.city}, ${selectedOffer.country}` : selectedOffer.venue?.location})
+                      </div>
                     )}
                   </span>
                 </div>
@@ -1530,8 +1532,14 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
             </div>
             <div className="modal-footer">
               {selectedOffer && selectedOffer.status === 'PENDING' &&
-               selectedOffer.artist && selectedOffer.artist._id === currentUser._id ? (
-                // Show Decline/Review/Accept for incoming offers
+               selectedOffer.artist && (
+                 selectedOffer.artist._id === currentUser._id ||
+                 (currentUser.role === 'AGENT' && selectedOffer.artistId &&
+                  currentUser.representingArtists?.some(a => a.profileId === selectedOffer.artistId)) ||
+                 (currentUser.role === 'AGENT' && selectedOffer.artist._id &&
+                  currentUser.representingArtists?.some(a => a.profileId === selectedOffer.artist._id))
+               ) ? (
+                // Show Decline/Review/Accept for incoming offers (artist or their agent)
                 showOfferDeclineComment ? (
                   <div className="decline-comment-container">
                     <div className="decline-comment-textarea-wrapper">

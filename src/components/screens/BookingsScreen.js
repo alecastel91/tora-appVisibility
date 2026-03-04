@@ -331,7 +331,9 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 {otherParty.role}
               </span>
             </div>
-            <p className="party-location">{otherParty.location}</p>
+            <p className="party-location">
+              {deal.city && deal.country ? `${deal.city}, ${deal.country}` : otherParty.location}
+            </p>
             <div className="party-status-row">
               <span className={getStatusBadgeClass(deal.status)}>
                 {deal.status}
@@ -373,8 +375,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 <span className="detail-label">Venue:</span>
                 <span className="detail-value">
                   <div>{deal.venueName}</div>
-                  {deal.venue?.location && (
-                    <div className="detail-subtext">({deal.venue.location})</div>
+                  {(deal.city || deal.venue?.location) && (
+                    <div className="detail-subtext">
+                      ({deal.city && deal.country ? `${deal.city}, ${deal.country}` : deal.venue?.location})
+                    </div>
                   )}
                 </span>
               </div>

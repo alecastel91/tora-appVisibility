@@ -462,6 +462,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
                   min="0"
                   value={formData.fee}
                   onChange={(e) => handleChange('fee', e.target.value)}
+                  onWheel={(e) => e.target.blur()}
                   placeholder="0"
                   className="form-input"
                   required
