@@ -1859,7 +1859,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                         <div>
                           <p style={{ margin: '0 0 4px 0', color: 'rgba(255,255,255,0.5)' }}>Fee</p>
                           <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)', fontWeight: '600' }}>
-                            {deal.currency} {(deal.currentOffer?.fee || deal.fee || 0).toLocaleString()}
+                            {deal.currency} {(deal.currentFee || 0).toLocaleString()}
                           </p>
                         </div>
                         <div>
