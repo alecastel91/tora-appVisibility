@@ -5,6 +5,93 @@ TORA is a React-based web application designed for professionals in the electron
 
 ## Recent Updates (March 4, 2026)
 
+### Tour Kickstart - View Gigs Feature
+- **Feature**: Artists can now view all confirmed bookings for a tour by clicking "View Gigs" button on tour cards
+- **Tour Gigs Modal**:
+  - Shows all ACCEPTED deals linked to the selected tour
+  - Displays event name, venue, date, fee, and location for each gig
+  - Status badge with green "Confirmed" label
+  - Loading state with spinner during data fetch
+  - Empty state message when no confirmed gigs exist
+  - Solid background (#1a1a1a) for better readability
+- **Backend Support**:
+  - Enhanced GET /api/deals endpoint to support `tour` query parameter
+  - Filters deals by tour ObjectId and ACCEPTED status
+  - Returns all confirmed bookings for the specified tour
+- **Implementation Details**:
+  - Added state management for modal visibility, selected tour, and gig data
+  - Created `handleViewTourGigs()` function to fetch and display tour-specific deals
+  - Added `getDealsForTour(tourId)` method to API service
+  - Fee display uses `deal.currentFee` field for accurate amount
+- **Files Modified**:
+  - [TourScreen.js:748-764](src/components/screens/TourScreen.js) - Handler function
+  - [TourScreen.js:1803-1891](src/components/screens/TourScreen.js) - Tour Gigs Modal
+  - [api.js:465-472](src/services/api.js) - API method
+  - [deals.js:261-265](/Users/alessandrocastelbuono/Desktop/tora-backend/src/routes/deals.js) - Backend tour filter
+
+### Calendar Matches - Role Matching Fix
+- **Issue**: Calendar matches were showing invalid same-role pairings
+  - Venue with Venue, Promoter with Promoter, Artist with Artist
+  - Agents were incorrectly matching with other artists
+- **Solution**: Enhanced role matching logic to prevent same-role matches
+  - Normalized AGENT → ARTIST before comparison
+  - Valid pairs: ARTIST ↔ VENUE, ARTIST ↔ PROMOTER, PROMOTER ↔ VENUE
+  - Prevents all same-role combinations from appearing in matches
+- **Implementation**:
+  ```javascript
+  const isValidRoleMatch = (role1, role2) => {
+    const normalizedRole1 = role1 === 'AGENT' ? 'ARTIST' : role1;
+    const normalizedRole2 = role2 === 'AGENT' ? 'ARTIST' : role2;
+
+    const validPairs = [
+      ['ARTIST', 'VENUE'],
+      ['ARTIST', 'PROMOTER'],
+      ['PROMOTER', 'VENUE']
+    ];
+
+    return validPairs.some(([r1, r2]) =>
+      (normalizedRole1 === r1 && normalizedRole2 === r2) ||
+      (normalizedRole1 === r2 && normalizedRole2 === r1)
+    );
+  };
+  ```
+- **Files Modified**: [TourScreen.js:187-202](src/components/screens/TourScreen.js)
+
+### Message Read Status - Notification Clearing Fix
+- **Issue**: Unread message badges and bold text persisted after viewing conversations
+  - MessagesScreen only fetched data once on initial mount
+  - Returning from ChatScreen didn't trigger refresh
+  - Notification count remained unchanged
+- **Solution**: Force MessagesScreen to remount when returning from chat
+  - Added dynamic key prop to MessagesScreen based on activeChatUser state
+  - Key changes when chat is opened/closed, triggering component remount
+  - Fresh data fetch occurs on every remount, updating unread counts
+- **Implementation**:
+  ```javascript
+  <MessagesScreen
+    onOpenChat={setActiveChatUser}
+    key={activeChatUser ? 'with-chat' : 'without-chat'}
+  />
+  ```
+- **Files Modified**:
+  - [App.js:234](src/App.js) - Dynamic key prop
+  - [MessagesScreen.js:43-47](src/components/screens/MessagesScreen.js) - useEffect fetch trigger
+
+### Premium Subscription - Pricing Update
+- **Pricing Changes**:
+  - Monthly: €19 → €19.90/month
+  - Yearly: €180 → €189.90/year (€15.83/month)
+  - Discount: 20% → 21% off annual plan
+- **Layout Improvement**: Changed pricing cards from horizontal to vertical stack
+  - Better spacing on mobile and small screens
+  - Increased gap from 12px to 16px
+  - Increased card padding from 16px to 20px
+  - Reduced container max-width from 400px to 350px
+  - Cards now full-width (100%) instead of flex: 1
+- **Files Modified**:
+  - [App.js:589,595,620,632](src/App.js) - Pricing values and text
+  - [App.css:5536-5554](src/styles/App.css) - Layout and spacing
+
 ### Agent Authorization Fix for Deal Management
 - **Issue**: Agents (Alessandro) could not view or manage booking offers made to their represented artists (Al Jones)
   - Error: "403 Forbidden - Not authorized to view this deal"
