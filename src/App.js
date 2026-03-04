@@ -586,13 +586,13 @@ function App() {
             <div className="premium-pricing">
               <div className="price-card">
                 <h4>Monthly</h4>
-                <div className="price">€19<span>/month</span></div>
+                <div className="price">€19.90<span>/month</span></div>
                 <button className="btn btn-outline" onClick={() => handleSelectPlan('monthly')}>Choose Monthly</button>
               </div>
               <div className="price-card featured">
-                <div className="badge">Save 20%</div>
+                <div className="badge">Save 21%</div>
                 <h4>Yearly</h4>
-                <div className="price">€180<span>/year</span></div>
+                <div className="price">€189.90<span>/year</span></div>
                 <button className="btn btn-primary" onClick={() => handleSelectPlan('yearly')}>Choose Yearly</button>
               </div>
             </div>
@@ -617,19 +617,19 @@ function App() {
                   <div className="summary-item">
                     <span>TORA Premium</span>
                     <span className="summary-value">
-                      {selectedPlan === 'monthly' ? '€19/month' : '€180/year'}
+                      {selectedPlan === 'monthly' ? '€19.90/month' : '€189.90/year'}
                     </span>
                   </div>
                   <div className="summary-item">
                     <span>Plan Type</span>
                     <span className="summary-value">
-                      {selectedPlan === 'monthly' ? 'Monthly' : 'Yearly (Save 20%)'}
+                      {selectedPlan === 'monthly' ? 'Monthly' : 'Yearly (Save 21%)'}
                     </span>
                   </div>
                   <div className="summary-total">
                     <span>Total</span>
                     <span className="total-value">
-                      {selectedPlan === 'monthly' ? '€19' : '€180'}
+                      {selectedPlan === 'monthly' ? '€19.90' : '€189.90'}
                     </span>
                   </div>
                 </div>
