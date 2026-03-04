@@ -185,16 +185,19 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
 
   // Helper function to check role compatibility
   const isValidRoleMatch = (role1, role2) => {
+    // Treat AGENT same as ARTIST (agents represent artists)
+    const normalizedRole1 = role1 === 'AGENT' ? 'ARTIST' : role1;
+    const normalizedRole2 = role2 === 'AGENT' ? 'ARTIST' : role2;
+
     const validPairs = [
       ['ARTIST', 'VENUE'],
       ['ARTIST', 'PROMOTER'],
-      ['PROMOTER', 'VENUE'],
-      ['AGENT', 'VENUE'],
-      ['AGENT', 'PROMOTER']
+      ['PROMOTER', 'VENUE']
     ];
 
     return validPairs.some(([r1, r2]) =>
-      (role1 === r1 && role2 === r2) || (role1 === r2 && role2 === r1)
+      (normalizedRole1 === r1 && normalizedRole2 === r2) ||
+      (normalizedRole1 === r2 && normalizedRole2 === r1)
     );
   };
 
