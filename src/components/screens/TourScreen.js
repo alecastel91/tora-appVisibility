@@ -1822,7 +1822,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                 <div className="tour-gigs-list">
                   {tourGigs.map(deal => (
                     <div key={deal._id} className="tour-gig-card" style={{
-                      background: 'rgba(255,255,255,0.05)',
+                      background: '#1a1a1a',
                       borderRadius: '8px',
                       padding: '16px',
                       marginBottom: '12px',
