@@ -1262,7 +1262,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                         className="btn btn-outline btn-small"
                         onClick={() => handleViewTourGigs(tour)}
                       >
-                        View Gigs ({tour.confirmedGigs || 0})
+                        View Gigs
                       </button>
                       <button
                         className="btn btn-outline btn-small"
