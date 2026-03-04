@@ -41,10 +41,8 @@ const MessagesScreen = ({ onOpenChat }) => {
   };
 
   useEffect(() => {
-    // Only fetch if not already loaded or user changed
-    if (!dataLoaded || conversations.length === 0) {
-      fetchData();
-    }
+    // Fetch data when component mounts or user changes
+    fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?._id]);
 

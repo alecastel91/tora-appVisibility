@@ -231,7 +231,7 @@ function App() {
       case 'bookings':
         return <BookingsScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
       case 'messages':
-        return <MessagesScreen onOpenChat={setActiveChatUser} />;
+        return <MessagesScreen onOpenChat={setActiveChatUser} key={activeChatUser ? 'with-chat' : 'without-chat'} />;
       default:
         return <ProfileScreen />;
     }
