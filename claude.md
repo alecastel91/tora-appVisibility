@@ -3,6 +3,33 @@
 ## Overview
 TORA is a React-based web application designed for professionals in the electronic music/club scene to connect, network, and collaborate. The app features a dark theme with pink accent colors (#FF3366) and is built to be easily convertible to React Native.
 
+## Recent Updates (March 5, 2026)
+
+### Subscription System Planning
+- **Feature**: Designed comprehensive subscription tier enforcement strategy
+- **Tier Structure**:
+  - **FREE**: City-based search, 2 likes/day, 3 connections/month, locked premium features
+  - **TRIAL (48h)**: Auto-activated on signup, unlocks feature previews (Manage, Match, Tour Kickstart, global search), same limits as FREE (2 likes/day, 3 connections/month)
+  - **MONTHLY (€19.90)**: Global search, all features unlocked, 5 likes/day, 10 connections/month
+  - **YEARLY (€189.90)**: All monthly features + unlimited likes/connections + exclusive features (hide calendar, artist visiting notifications, top search results)
+- **Trial Philosophy**: 48h trial is for **feature preview**, not free production use
+  - Users see interfaces and capabilities (Manage section, Match tab, Tour Kickstart, global search)
+  - Same usage limits as free tier (2 likes/day, 3 connections/month) prevents exploitation
+  - Forces upgrade decision based on feature value, not usage capacity
+- **Search Visibility**: Changed from 30km GPS radius to city-based (profile location)
+  - Privacy-friendly (no real-time tracking)
+  - Professional context (based city = business address)
+  - Touring artists discovered via Match tab (travel schedule matching)
+- **Implementation Plan**: 28-task TODO list created covering:
+  - Subscription system (database schema, middleware, auto-trial, feature locks, upgrade modals)
+  - Booking workflow finalization (contracts, documents, payment tracking, completion flow)
+  - Actions Required notifications in Manage section
+  - End-to-end testing
+- **Files to Modify**:
+  - Backend: User/Profile schema, subscription middleware, API endpoint protection
+  - Frontend: SearchScreen, ManageProfileScreen, MatchesScreen, TourScreen, CalendarScreen with tier checks
+- **Next Steps**: Implementation starts with database schema updates and subscription utility functions
+
 ## Recent Updates (March 4, 2026)
 
 ### Tour Kickstart - View Gigs Feature
