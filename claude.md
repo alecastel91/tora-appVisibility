@@ -3,9 +3,33 @@
 ## Overview
 TORA is a React-based web application designed for professionals in the electronic music/club scene to connect, network, and collaborate. The app features a dark theme with pink accent colors (#FF3366) and is built to be easily convertible to React Native.
 
-## Recent Updates (March 5, 2026)
+## Recent Updates (March 8, 2026)
 
-### Subscription System Planning
+### Subscription System - Feature 1: Search Restrictions (COMPLETE)
+- **Backend Implementation**:
+  - Added subscription fields to Profile schema (subscriptionTier, trial dates, usage tracking)
+  - Created subscription utility functions (getCurrentTier, hasFeatureAccess, like/connection limits)
+  - Created checkSubscription middleware for automatic tier expiration handling
+  - Updated /api/profiles/search endpoint to enforce city-based vs global search
+  - FREE tier: restricted to user's city only
+  - TRIAL/MONTHLY/YEARLY: global search with zone/country/city filters
+- **Frontend Implementation**:
+  - Added hasGlobalSearch() helper function in SearchScreen
+  - Updated search logic to use subscription tiers instead of isPremium
+  - Added upgrade banner for FREE tier users (yellow CTA button)
+  - Shows "Search limited to {city}" message with upgrade prompt
+  - TRIAL users see "Searching worldwide with 48h trial" notice
+  - MONTHLY/YEARLY users see "Searching worldwide with Premium" notice
+- **Auto-Trial on Signup**:
+  - New users automatically get TRIAL tier for 48 hours
+  - Trial unlocks feature previews but maintains same usage limits as FREE
+  - Trial limits: 2 likes/day, 3 connections/month (prevents exploitation)
+- **Files Modified**:
+  - Backend: Profile.js, subscription.js, checkSubscription.js, auth.js, profiles.js
+  - Frontend: SearchScreen.js, App.css
+- **Next**: Feature 2 (Like Limits) - Backend + Frontend implementation
+
+### Subscription System Planning (March 5, 2026)
 - **Feature**: Designed comprehensive subscription tier enforcement strategy
 - **Tier Structure**:
   - **FREE**: City-based search, 2 likes/day, 3 connections/month, locked premium features
@@ -20,15 +44,10 @@ TORA is a React-based web application designed for professionals in the electron
   - Privacy-friendly (no real-time tracking)
   - Professional context (based city = business address)
   - Touring artists discovered via Match tab (travel schedule matching)
-- **Implementation Plan**: 28-task TODO list created covering:
-  - Subscription system (database schema, middleware, auto-trial, feature locks, upgrade modals)
-  - Booking workflow finalization (contracts, documents, payment tracking, completion flow)
-  - Actions Required notifications in Manage section
-  - End-to-end testing
-- **Files to Modify**:
-  - Backend: User/Profile schema, subscription middleware, API endpoint protection
-  - Frontend: SearchScreen, ManageProfileScreen, MatchesScreen, TourScreen, CalendarScreen with tier checks
-- **Next Steps**: Implementation starts with database schema updates and subscription utility functions
+- **Implementation Approach**: Feature-by-feature (backend + frontend + testing per feature)
+  - Immediate feedback and integration testing
+  - Easier debugging and incremental deployment
+  - Better than doing all backend first, then all frontend
 
 ## Recent Updates (March 4, 2026)
 
