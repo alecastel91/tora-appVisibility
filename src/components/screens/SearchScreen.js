@@ -35,6 +35,12 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   // Dropdown states
   const [openDropdown, setOpenDropdown] = useState(null);
 
+  // Helper function to check if user has global search access
+  const hasGlobalSearch = () => {
+    const tier = user?.subscriptionTier || 'FREE';
+    return ['TRIAL', 'MONTHLY', 'YEARLY'].includes(tier);
+  };
+
   // Debug: Log when showConnectionChoice changes
   useEffect(() => {
     console.log('showConnectionChoice state changed:', showConnectionChoice);
@@ -88,13 +94,14 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   }, [profilesLoaded]);
 
   const handleSearch = async () => {
-    // Check if non-premium user is trying to use location filters
-    if (!user.isPremium) {
+    // Check if FREE tier user is trying to use location filters
+    if (!hasGlobalSearch()) {
       const hasLocationFilters = filters.zones.length > 0 || filters.countries.length > 0 || filters.cities.length > 0;
 
       if (hasLocationFilters) {
+        const tierName = user?.subscriptionTier === 'TRIAL' ? 'Your 48h trial' : 'FREE tier';
         // Show alert and clear location filters
-        alert(`Location filters are only available for Premium users.\n\nYour search is restricted to ${user.city} only.\n\nUpgrade to Premium to search worldwide!`);
+        alert(`Location filters require a paid subscription.\n\n${tierName} search is restricted to ${user.city} only.\n\nUpgrade to search worldwide!`);
 
         // Clear location filters but keep other filters
         setFilters({
@@ -371,10 +378,29 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
           </div>
         )}
 
-        {user && user.isPremium && (
+        {/* Tier-based notification banner */}
+        {user && hasGlobalSearch() && (
           <div className="search-premium-notice">
             <span className="premium-icon">✨</span>
-            <span>Searching worldwide with Premium</span>
+            <span>
+              {user.subscriptionTier === 'TRIAL' ? 'Searching worldwide with 48h trial' : 'Searching worldwide with Premium'}
+            </span>
+          </div>
+        )}
+
+        {/* Upgrade banner for FREE tier */}
+        {user && !hasGlobalSearch() && (
+          <div className="search-upgrade-banner">
+            <div className="upgrade-banner-content">
+              <span className="upgrade-icon">🔒</span>
+              <div className="upgrade-text">
+                <strong>Search limited to {user.city}</strong>
+                <p>Upgrade to search worldwide and unlock premium features</p>
+              </div>
+              <button className="btn btn-upgrade-banner" onClick={onOpenPremium}>
+                Upgrade Now
+              </button>
+            </div>
           </div>
         )}
 
