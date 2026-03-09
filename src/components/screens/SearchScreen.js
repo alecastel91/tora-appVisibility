@@ -196,13 +196,31 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const handleLike = async (profileId) => {
     console.log('Like button clicked for profile:', profileId);
     console.log('Current user:', user);
+
+    // Check if user is already liked (unlike action is always allowed)
+    const isAlreadyLiked = likedProfiles.has(profileId);
+
     try {
       console.log('Calling toggleLike...');
       await toggleLike(profileId);
       console.log('Toggle like successful!');
     } catch (error) {
       console.error('Error liking profile:', error);
-      alert('Failed to like profile: ' + error.message);
+
+      // Check if error is due to like limit
+      if (error.response?.status === 403 && error.response?.data?.error === 'Daily like limit reached') {
+        const { message, limit, tier } = error.response.data;
+
+        // Show upgrade modal with context
+        alert(`${message}\n\nYou're currently on ${tier} tier with ${limit} likes per day.`);
+
+        // Optional: Open premium modal automatically
+        if (onOpenPremium) {
+          onOpenPremium();
+        }
+      } else {
+        alert('Failed to like profile: ' + error.message);
+      }
     }
   };
 
@@ -343,6 +361,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
         onClose={() => setViewingProfile(null)}
         onOpenChat={onOpenChat}
         onNavigateToMessages={onNavigateToMessages}
+        onOpenPremium={onOpenPremium}
       />
     );
   }

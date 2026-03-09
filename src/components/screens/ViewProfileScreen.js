@@ -4,7 +4,7 @@ import { LinkIcon, HeartIcon, CloseIcon, HandshakeIcon } from '../../utils/icons
 import RAEventsModal from '../common/RAEventsModal';
 import ConnectionChoiceModal from '../common/ConnectionChoiceModal';
 
-const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages }) => {
+const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const { likedProfiles, toggleLike, sentRequests, receivedRequests, sendConnectionRequest, connectedUsers, removeConnection } = useAppContext();
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [message, setMessage] = useState('');
@@ -84,6 +84,21 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages 
       await toggleLike(profileId);
     } catch (error) {
       console.error('Error toggling like:', error);
+
+      // Check if error is due to like limit
+      if (error.response?.status === 403 && error.response?.data?.error === 'Daily like limit reached') {
+        const { message, limit, tier } = error.response.data;
+
+        // Show upgrade modal with context
+        alert(`${message}\n\nYou're currently on ${tier} tier with ${limit} likes per day.`);
+
+        // Open premium modal automatically
+        if (onOpenPremium) {
+          onOpenPremium();
+        }
+      } else {
+        alert('Failed to like profile: ' + error.message);
+      }
     }
   };
 

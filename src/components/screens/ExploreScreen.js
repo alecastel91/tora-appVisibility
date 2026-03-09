@@ -4,7 +4,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ViewProfileScreen from './ViewProfileScreen';
 
-const ExploreScreen = ({ onOpenChat, onNavigateToMessages }) => {
+const ExploreScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const { likedProfiles, toggleLike } = useAppContext();
   const { t } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -55,6 +55,22 @@ const ExploreScreen = ({ onOpenChat, onNavigateToMessages }) => {
         await toggleLike(currentProfile.id);
       } catch (error) {
         console.error('Error liking profile:', error);
+
+        // Check if error is due to like limit
+        if (error.response?.status === 403 && error.response?.data?.error === 'Daily like limit reached') {
+          const { message, limit, tier } = error.response.data;
+
+          // Show upgrade modal with context
+          alert(`${message}\n\nYou're currently on ${tier} tier with ${limit} likes per day.`);
+
+          // Open premium modal automatically
+          if (onOpenPremium) {
+            onOpenPremium();
+          }
+
+          // Don't move to next card if like failed
+          return;
+        }
       }
     }
 

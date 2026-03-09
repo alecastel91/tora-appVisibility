@@ -3,9 +3,9 @@
 ## Overview
 TORA is a React-based web application designed for professionals in the electronic music/club scene to connect, network, and collaborate. The app features a dark theme with pink accent colors (#FF3366) and is built to be easily convertible to React Native.
 
-## Recent Updates (March 8, 2026)
+## Recent Updates (March 9, 2026)
 
-### Subscription System - Feature 1: Search Restrictions (COMPLETE)
+### Subscription System - Feature 1: Search Restrictions (COMPLETE & TESTED ✅)
 - **Backend Implementation**:
   - Added subscription fields to Profile schema (subscriptionTier, trial dates, usage tracking)
   - Created subscription utility functions (getCurrentTier, hasFeatureAccess, like/connection limits)
@@ -20,12 +20,25 @@ TORA is a React-based web application designed for professionals in the electron
   - Shows "Search limited to {city}" message with upgrade prompt
   - TRIAL users see "Searching worldwide with 48h trial" notice
   - MONTHLY/YEARLY users see "Searching worldwide with Premium" notice
+  - Fixed: Reset search results when user logs in/out (no more cached results)
+  - Removed duplicate notification banner (cleaner UI)
 - **Auto-Trial on Signup**:
   - New users automatically get TRIAL tier for 48 hours
   - Trial unlocks feature previews but maintains same usage limits as FREE
   - Trial limits: 2 likes/day, 3 connections/month (prevents exploitation)
+- **Data Migration**:
+  - Created migration script to update existing profiles
+  - Migrated isPremium=true profiles to YEARLY tier
+  - Set other profiles to FREE tier
+  - Initialized usage tracking fields
+- **Testing Results**:
+  - ✅ FREE tier users see only profiles from their city (Amsterdam → 1 result, Tokyo → 5 results)
+  - ✅ YEARLY tier users see global search with all profiles
+  - ✅ Upgrade banner shows correctly for FREE tier only
+  - ✅ City name in banner updates correctly based on user location
+  - ✅ Backend logs confirm proper tier-based filtering
 - **Files Modified**:
-  - Backend: Profile.js, subscription.js, checkSubscription.js, auth.js, profiles.js
+  - Backend: Profile.js, subscription.js, checkSubscription.js, auth.js, profiles.js, migrate-subscription-tiers.js
   - Frontend: SearchScreen.js, App.css
 - **Next**: Feature 2 (Like Limits) - Backend + Frontend implementation
 
