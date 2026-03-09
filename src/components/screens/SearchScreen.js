@@ -86,6 +86,13 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   };
 
   useEffect(() => {
+    // Reset and reload profiles when user changes (e.g., login/logout)
+    setProfilesLoaded(false);
+    setSearchResults([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?._id]);
+
+  useEffect(() => {
     // Load profiles on component mount only if not already loaded
     if (!profilesLoaded) {
       fetchProfiles();
