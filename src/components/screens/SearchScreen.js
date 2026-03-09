@@ -795,9 +795,18 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
               <button className="modal-close" onClick={() => setShowLikeLimitModal(false)}>×</button>
             </div>
             <div className="modal-body">
-              <p>You've reached your daily limit of <strong>{likeLimitData.limit} likes</strong>.</p>
-              <p>Upgrade to Premium for unlimited likes!</p>
-              <p className="tier-info">You're currently on <strong>{likeLimitData.tier}</strong> tier with {likeLimitData.limit} likes per day.</p>
+              <div className="limit-message">
+                <div className="limit-icon">🚫</div>
+                <p className="limit-text">You've reached your daily limit of <strong>{likeLimitData.limit} likes</strong></p>
+              </div>
+
+              <div className="upgrade-message">
+                <p className="upgrade-cta">Upgrade to Premium for unlimited likes!</p>
+              </div>
+
+              <div className="tier-info-box">
+                <p className="tier-details">Current plan: <strong>{likeLimitData.tier}</strong> • {likeLimitData.limit} likes per day</p>
+              </div>
             </div>
             <div className="modal-footer">
               <button
