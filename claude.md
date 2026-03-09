@@ -40,7 +40,37 @@ TORA is a React-based web application designed for professionals in the electron
 - **Files Modified**:
   - Backend: Profile.js, subscription.js, checkSubscription.js, auth.js, profiles.js, migrate-subscription-tiers.js
   - Frontend: SearchScreen.js, App.css
-- **Next**: Feature 2 (Like Limits) - Backend + Frontend implementation
+
+### Subscription System - Feature 2: Like Limits (COMPLETE ✅)
+- **Backend Implementation**:
+  - Added subscription limit checks to POST /api/connections/like endpoint
+  - Imported canSendLike(), incrementLikeUsage(), getLikeLimit() from subscription utils
+  - Checks if like action is new (not unlike) before enforcing limits
+  - Returns 403 error with detailed message when limit exceeded
+  - Response includes: error, message, limit, tier, resetTime
+  - Increments like usage counter on successful likes
+  - Unlike actions always allowed (no limit check)
+- **Frontend Implementation**:
+  - SearchScreen: Enhanced handleLike with 403 error detection and handling
+  - ViewProfileScreen: Added error handling with premium modal auto-open
+  - ExploreScreen: Added onOpenPremium prop and limit error handling
+  - All like actions show alert with tier info and limit count
+  - Premium modal automatically opens after showing limit message
+  - Pass onOpenPremium through SearchScreen → ViewProfileScreen chain
+- **User Experience**:
+  - Clear error message: "You've reached your daily limit of X likes. Upgrade to Premium for unlimited likes!"
+  - Alert shows current tier and limit (e.g., "FREE tier with 2 likes per day")
+  - Seamless upgrade flow: alert → premium modal
+  - Unlike actions work without restrictions
+- **Testing Ready**:
+  - FREE tier: 2 likes/day limit
+  - TRIAL tier: 2 likes/day limit (same as FREE)
+  - MONTHLY tier: 5 likes/day limit
+  - YEARLY tier: Unlimited likes
+- **Files Modified**:
+  - Backend: connections.js (lines 9, 41-77)
+  - Frontend: SearchScreen.js (lines 196-225), ViewProfileScreen.js (lines 7, 82-103), ExploreScreen.js (lines 7, 53-75)
+- **Next**: Feature 3 (Connection Limits) - Backend + Frontend implementation
 
 ### Subscription System Planning (March 5, 2026)
 - **Feature**: Designed comprehensive subscription tier enforcement strategy
