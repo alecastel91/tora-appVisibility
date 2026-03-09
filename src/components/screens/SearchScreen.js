@@ -371,20 +371,6 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
           </button>
         </div>
 
-        {/* Location limitation indicator */}
-        {user && !user.isPremium && (
-          <div className="search-limitation-notice">
-            <div className="limitation-content">
-              <span className="limitation-icon">📍</span>
-              <span className="limitation-text">Searching in {user.city} only</span>
-            </div>
-            <button className="upgrade-btn" onClick={onOpenPremium}>
-              <span className="upgrade-icon">✨</span>
-              Upgrade to Premium
-            </button>
-          </div>
-        )}
-
         {/* Tier-based notification banner */}
         {user && hasGlobalSearch() && (
           <div className="search-premium-notice">
