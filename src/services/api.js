@@ -40,16 +40,22 @@ class ApiService {
   async handleResponse(response) {
     // First check if the response is ok
     if (!response.ok) {
-      // Try to parse error message
-      let errorMessage = 'Something went wrong';
+      // Try to parse error data
+      let errorData = {};
       try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorMessage;
+        errorData = await response.json();
       } catch (e) {
         // If parsing fails, use status text
-        errorMessage = response.statusText || errorMessage;
+        errorData = { error: response.statusText || 'Something went wrong' };
       }
-      throw new Error(errorMessage);
+
+      // Create an error object that mimics axios structure
+      const error = new Error(errorData.message || errorData.error || 'Request failed');
+      error.response = {
+        status: response.status,
+        data: errorData
+      };
+      throw error;
     }
 
     // Try to parse successful response

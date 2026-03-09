@@ -208,15 +208,22 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
       console.log('Toggle like successful!');
     } catch (error) {
       console.error('Error liking profile:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
 
       // Check if error is due to like limit
       if (error.response?.status === 403 && error.response?.data?.error === 'Daily like limit reached') {
         const { limit, tier } = error.response.data;
 
+        console.log('Like limit reached! Opening modal with:', { limit, tier });
         // Show like limit modal
         setLikeLimitData({ limit, tier });
         setShowLikeLimitModal(true);
       } else {
+        console.log('Not a like limit error, showing generic alert');
         alert('Failed to like profile. Please try again.');
       }
     }
