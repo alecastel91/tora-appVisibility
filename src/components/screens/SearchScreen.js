@@ -33,6 +33,8 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const [reviewingRequest, setReviewingRequest] = useState(null);
   const [showLikeLimitModal, setShowLikeLimitModal] = useState(false);
   const [likeLimitData, setLikeLimitData] = useState(null);
+  const [showConnectionLimitModal, setShowConnectionLimitModal] = useState(false);
+  const [connectionLimitData, setConnectionLimitData] = useState(null);
 
   // Dropdown states
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -277,17 +279,13 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
 
       // Check if this is a connection limit error (403)
       if (error.response?.status === 403 && error.response?.data?.error === 'CONNECTION_LIMIT_EXCEEDED') {
-        const { limit, tier, message } = error.response.data;
+        const { limit, tier } = error.response.data;
 
-        console.log('Connection limit reached! Opening premium modal with:', { limit, tier });
+        console.log('Connection limit reached! Opening modal with:', { limit, tier });
 
-        // Show limit message with tier info
-        alert(`${message}\n\nYour current plan: ${tier}\nMonthly limit: ${limit} connections`);
-
-        // Open premium modal
-        if (onOpenPremium) {
-          onOpenPremium();
-        }
+        // Show connection limit modal
+        setConnectionLimitData({ limit, tier });
+        setShowConnectionLimitModal(true);
         return;
       }
 
@@ -839,6 +837,49 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
                 className="btn btn-upgrade"
                 onClick={() => {
                   setShowLikeLimitModal(false);
+                  if (onOpenPremium) {
+                    onOpenPremium();
+                  }
+                }}
+              >
+                Upgrade
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Connection Limit Modal */}
+      {showConnectionLimitModal && connectionLimitData && (
+        <div className="modal-overlay" onClick={() => setShowConnectionLimitModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Monthly Connection Limit Reached</h3>
+              <button className="modal-close" onClick={() => setShowConnectionLimitModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="limit-message-centered">
+                <div className="limit-icon">
+                  <SlashCircleIcon />
+                </div>
+                <p className="limit-main-text">You've reached your monthly limit. Upgrade to Premium for unlimited connections!</p>
+              </div>
+
+              <div className="tier-info-box">
+                <p className="tier-details">Current plan: <strong>{connectionLimitData.tier}</strong> • {connectionLimitData.limit} connections per month</p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-outline"
+                onClick={() => setShowConnectionLimitModal(false)}
+              >
+                Close
+              </button>
+              <button
+                className="btn btn-upgrade"
+                onClick={() => {
+                  setShowConnectionLimitModal(false);
                   if (onOpenPremium) {
                     onOpenPremium();
                   }
