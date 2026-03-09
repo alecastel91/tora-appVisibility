@@ -269,20 +269,26 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
       alert(`Connection request sent to ${targetName}!`);
     } catch (error) {
       console.error('Error sending connection request:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
 
       // Check if this is a connection limit error (403)
-      if (error.response && error.response.status === 403) {
-        const errorData = error.response.data;
-        if (errorData.error === 'CONNECTION_LIMIT_EXCEEDED') {
-          // Show limit message with tier info
-          alert(`${errorData.message}\n\nYour current plan: ${errorData.tier}\nMonthly limit: ${errorData.limit} connections`);
+      if (error.response?.status === 403 && error.response?.data?.error === 'CONNECTION_LIMIT_EXCEEDED') {
+        const { limit, tier, message } = error.response.data;
 
-          // Open premium modal
-          if (onOpenPremium) {
-            onOpenPremium();
-          }
-          return;
+        console.log('Connection limit reached! Opening premium modal with:', { limit, tier });
+
+        // Show limit message with tier info
+        alert(`${message}\n\nYour current plan: ${tier}\nMonthly limit: ${limit} connections`);
+
+        // Open premium modal
+        if (onOpenPremium) {
+          onOpenPremium();
         }
+        return;
       }
 
       alert(`Failed to send connection request: ${error.message}`);
