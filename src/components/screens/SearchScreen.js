@@ -31,6 +31,8 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const [loading, setLoading] = useState(false);
   const [profilesLoaded, setProfilesLoaded] = useState(false); // Track if profiles loaded
   const [reviewingRequest, setReviewingRequest] = useState(null);
+  const [showLikeLimitModal, setShowLikeLimitModal] = useState(false);
+  const [likeLimitData, setLikeLimitData] = useState(null);
 
   // Dropdown states
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -209,17 +211,13 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
 
       // Check if error is due to like limit
       if (error.response?.status === 403 && error.response?.data?.error === 'Daily like limit reached') {
-        const { message, limit, tier } = error.response.data;
+        const { limit, tier } = error.response.data;
 
-        // Show upgrade modal with context
-        alert(`${message}\n\nYou're currently on ${tier} tier with ${limit} likes per day.`);
-
-        // Optional: Open premium modal automatically
-        if (onOpenPremium) {
-          onOpenPremium();
-        }
+        // Show like limit modal
+        setLikeLimitData({ limit, tier });
+        setShowLikeLimitModal(true);
       } else {
-        alert('Failed to like profile: ' + error.message);
+        alert('Failed to like profile. Please try again.');
       }
     }
   };
@@ -775,6 +773,42 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
                 onClick={handleAcceptRequest}
               >
                 Accept
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Like Limit Modal */}
+      {showLikeLimitModal && likeLimitData && (
+        <div className="modal-overlay" onClick={() => setShowLikeLimitModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Daily Like Limit Reached</h3>
+              <button className="modal-close" onClick={() => setShowLikeLimitModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p>You've reached your daily limit of <strong>{likeLimitData.limit} likes</strong>.</p>
+              <p>Upgrade to Premium for unlimited likes!</p>
+              <p className="tier-info">You're currently on <strong>{likeLimitData.tier}</strong> tier with {likeLimitData.limit} likes per day.</p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-outline"
+                onClick={() => setShowLikeLimitModal(false)}
+              >
+                Close
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setShowLikeLimitModal(false);
+                  if (onOpenPremium) {
+                    onOpenPremium();
+                  }
+                }}
+              >
+                Upgrade Now
               </button>
             </div>
           </div>

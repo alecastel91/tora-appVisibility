@@ -1429,6 +1429,21 @@
   padding: 20px;
 }
 
+.modal-body p {
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.modal-body p:last-child {
+  margin-bottom: 0;
+}
+
+.modal-body .tier-info {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-top: 16px;
+}
+
 .modal-footer {
   display: flex;
   gap: 12px;
