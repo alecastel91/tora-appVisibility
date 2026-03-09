@@ -3,6 +3,7 @@ import { dummyProfiles } from '../../data/profiles';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ViewProfileScreen from './ViewProfileScreen';
+import { SlashCircleIcon } from '../../utils/icons';
 
 const ExploreScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const { likedProfiles, toggleLike } = useAppContext();
@@ -392,13 +393,11 @@ const ExploreScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
               <button className="modal-close" onClick={() => setShowLikeLimitModal(false)}>×</button>
             </div>
             <div className="modal-body">
-              <div className="limit-message">
-                <div className="limit-icon">🚫</div>
-                <p className="limit-text">You've reached your daily limit of <strong>{likeLimitData.limit} likes</strong></p>
-              </div>
-
-              <div className="upgrade-message">
-                <p className="upgrade-cta">Upgrade to Premium for unlimited likes!</p>
+              <div className="limit-message-centered">
+                <div className="limit-icon">
+                  <SlashCircleIcon />
+                </div>
+                <p className="limit-main-text">You've reached your daily limit. Upgrade to Premium for unlimited likes!</p>
               </div>
 
               <div className="tier-info-box">
@@ -413,7 +412,7 @@ const ExploreScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
                 Close
               </button>
               <button
-                className="btn btn-primary"
+                className="btn btn-upgrade"
                 onClick={() => {
                   setShowLikeLimitModal(false);
                   if (onOpenPremium) {
@@ -421,7 +420,7 @@ const ExploreScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
                   }
                 }}
               >
-                Upgrade Now
+                Upgrade
               </button>
             </div>
           </div>

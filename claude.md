@@ -5,6 +5,53 @@ TORA is a React-based web application designed for professionals in the electron
 
 ## Recent Updates (March 9, 2026)
 
+### Premium Features Screen - Full Implementation (COMPLETE ✅)
+- **Converted to Full-Screen Page**: Changed from modal to dedicated full-screen interface
+  - Added sticky header with back button and centered "TORA Premium" title
+  - Full-screen layout with max-width 800px for better readability
+  - Scrollable content area with proper overflow handling
+  - More professional presentation for subscription decision
+- **Comprehensive Feature Comparison Table**: Role-based feature display with 11 features
+  - **Search Visibility**: User's city (FREE) → Global (MONTHLY/YEARLY)
+  - **Professional Dashboard**: Access to analytics and management tools
+  - **Update Travel Schedule**: Artists/Agents only - manage tour availability
+  - **Calendar Matching**: Find professionals with matching availability
+  - **Tour Kick-starter**: Tour planning and multi-gig booking tools
+  - **Artist Travel Alerts**: Promoters/Venues only - get notified when artists visit (YEARLY exclusive)
+  - **Calendar Privacy Controls**: Hide calendar from connections (YEARLY exclusive)
+  - **Messaging**: Available to all tiers
+  - **Priority Search Placement**: Appear first in search results (YEARLY exclusive)
+  - **Send Likes**: 2/day (FREE) → 5/day (MONTHLY) → Unlimited (YEARLY)
+  - **Connection Requests**: 3/month (FREE) → 10/month (MONTHLY) → Unlimited (YEARLY)
+- **Add-on Pricing Display**: Extra purchase options shown below respective features
+  - Extra Likes: (10 EXTRA LIKES €2, 7-DAYS UNLIMITED LIKES €5)
+  - Extra Connections: (1 EXTRA REQUEST €5, 5 EXTRA REQUESTS €15, 10 EXTRA CONTACTS €25)
+  - Positioned directly under Send Likes and Connection Requests rows
+  - Left-aligned compact text (10px font, grey color #666)
+  - Minimal spacing (4px margin-top) for visual grouping
+- **User-Friendly Feature Names**: Improved clarity for users unfamiliar with the app
+  - "Manage Section" → "Professional Dashboard"
+  - "Match Tab" → "Calendar Matching"
+  - "Notification Artist visiting" → "Artist Travel Alerts"
+  - "Hide Calendar to connected" → "Calendar Privacy Controls"
+  - "Message" → "Messaging"
+  - "Top result in search" → "Priority Search Placement"
+- **Role-Based Feature Display**: Dynamic features based on user role
+  - Artists/Agents see "Update Travel Schedule"
+  - Promoters/Venues see "Artist Travel Alerts"
+  - Conditional rendering using `user?.role` checks
+- **Visual Design Improvements**:
+  - Removed all feature icons for cleaner table layout
+  - Consistent left alignment for all feature names
+  - Thin grey dividing lines between all features (rgba(255, 255, 255, 0.05))
+  - Yearly column highlighted with pink accent color and star icon
+  - Hover effects on feature rows
+  - Clean typography with proper spacing
+- **Files Modified**:
+  - [App.js](src/App.js): Premium screen structure and feature table
+  - [App.css](src/styles/App.css): Premium screen styles, table layout, extras notes styling
+  - [icons.js](src/utils/icons.js): Removed unused icon imports (GlobeIcon, CalendarIcon, etc.)
+
 ### Subscription System - Feature 1: Search Restrictions (COMPLETE & TESTED ✅)
 - **Backend Implementation**:
   - Added subscription fields to Profile schema (subscriptionTier, trial dates, usage tracking)

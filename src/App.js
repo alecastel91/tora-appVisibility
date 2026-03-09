@@ -16,6 +16,7 @@ import Modal from './components/common/Modal';
 import { useLanguage } from './contexts/LanguageContext';
 import { useAppContext } from './contexts/AppContext';
 import apiService from './services/api';
+import { StarIcon } from './utils/icons';
 import './styles/App.css';
 import './styles/responsive.css';
 
@@ -518,13 +519,20 @@ function App() {
           </div>
         </Modal>
 
-        {/* Premium Upgrade Modal */}
-        <Modal
-          isOpen={showPremium}
-          onClose={() => setShowPremium(false)}
-          title="TORA Premium"
-        >
-          <div className="premium-content">
+        {/* Premium Upgrade Screen */}
+        {showPremium && (
+          <div className="screen active premium-screen">
+            <div className="premium-header">
+              <button className="back-button" onClick={() => setShowPremium(false)}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+              </button>
+              <h1>TORA Premium</h1>
+              <div style={{ width: '24px' }}></div>
+            </div>
+
+            <div className="premium-content">
             <div className="premium-hero">
               <div className="premium-icon-large">
                 <StarIcon />
@@ -536,51 +544,106 @@ function App() {
             </div>
             
             <div className="premium-features">
-              <h3>Premium Features</h3>
-              <ul className="premium-features-list">
-                <li>
-                  <span className="feature-icon">🌍</span>
-                  <div>
-                    <strong>Global Search & Discovery</strong>
-                    <p>Connect with artists, venues, and promoters worldwide</p>
+              <h3>Compare Plans</h3>
+              <div className="features-table">
+                <div className="features-table-header">
+                  <div className="feature-name-col">Feature</div>
+                  <div className="tier-col">Free</div>
+                  <div className="tier-col">Monthly</div>
+                  <div className="tier-col tier-col-highlight">Yearly</div>
+                </div>
+
+                <div className="features-table-row">
+                  <div className="feature-name">Search Visibility</div>
+                  <div className="tier-value">User's city</div>
+                  <div className="tier-value">Global</div>
+                  <div className="tier-value tier-value-highlight">Global</div>
+                </div>
+
+                <div className="features-table-row">
+                  <div className="feature-name">Professional Dashboard</div>
+                  <div className="tier-value">—</div>
+                  <div className="tier-value">✓</div>
+                  <div className="tier-value tier-value-highlight">✓</div>
+                </div>
+
+                {(user?.role === 'ARTIST' || user?.role === 'AGENT') && (
+                  <div className="features-table-row">
+                    <div className="feature-name">Update Travel Schedule</div>
+                    <div className="tier-value">—</div>
+                    <div className="tier-value">✓</div>
+                    <div className="tier-value tier-value-highlight">✓</div>
                   </div>
-                </li>
-                <li>
-                  <span className="feature-icon">📅</span>
-                  <div>
-                    <strong>Calendar Matching</strong>
-                    <p>Find professionals with matching availability</p>
+                )}
+
+                <div className="features-table-row">
+                  <div className="feature-name">Calendar Matching</div>
+                  <div className="tier-value">—</div>
+                  <div className="tier-value">✓</div>
+                  <div className="tier-value tier-value-highlight">✓</div>
+                </div>
+
+                <div className="features-table-row">
+                  <div className="feature-name">Tour Kick-starter</div>
+                  <div className="tier-value">—</div>
+                  <div className="tier-value">✓</div>
+                  <div className="tier-value tier-value-highlight">✓</div>
+                </div>
+
+                {(user?.role === 'PROMOTER' || user?.role === 'VENUE') && (
+                  <div className="features-table-row">
+                    <div className="feature-name">Artist Travel Alerts</div>
+                    <div className="tier-value">—</div>
+                    <div className="tier-value">—</div>
+                    <div className="tier-value tier-value-highlight">✓</div>
                   </div>
-                </li>
-                <li>
-                  <span className="feature-icon">🔒</span>
-                  <div>
-                    <strong>Privacy Controls</strong>
-                    <p>Hide your calendar while viewing others</p>
-                  </div>
-                </li>
-                <li>
-                  <span className="feature-icon">✈️</span>
-                  <div>
-                    <strong>Travel Mode</strong>
-                    <p>Appear in cities before you arrive</p>
-                  </div>
-                </li>
-                <li>
-                  <span className="feature-icon">💬</span>
-                  <div>
-                    <strong>Unlimited Messages</strong>
-                    <p>Connect with unlimited professionals</p>
-                  </div>
-                </li>
-                <li>
-                  <span className="feature-icon">⚡</span>
-                  <div>
-                    <strong>Priority Support</strong>
-                    <p>Get help when you need it</p>
-                  </div>
-                </li>
-              </ul>
+                )}
+
+                <div className="features-table-row">
+                  <div className="feature-name">Calendar Privacy Controls</div>
+                  <div className="tier-value">—</div>
+                  <div className="tier-value">—</div>
+                  <div className="tier-value tier-value-highlight">✓</div>
+                </div>
+
+                <div className="features-table-row">
+                  <div className="feature-name">Messaging</div>
+                  <div className="tier-value">✓</div>
+                  <div className="tier-value">✓</div>
+                  <div className="tier-value tier-value-highlight">✓</div>
+                </div>
+
+                <div className="features-table-row">
+                  <div className="feature-name">Priority Search Placement</div>
+                  <div className="tier-value">—</div>
+                  <div className="tier-value">—</div>
+                  <div className="tier-value tier-value-highlight">✓</div>
+                </div>
+
+                <div className="features-table-row">
+                  <div className="feature-name">Send Likes</div>
+                  <div className="tier-value">2 x day</div>
+                  <div className="tier-value">5 x day</div>
+                  <div className="tier-value tier-value-highlight">Unlimited</div>
+                </div>
+              </div>
+
+              <div className="premium-extras-note">
+                <div className="extras-text">(10 EXTRA LIKES €2, 7-DAYS UNLIMITED LIKES €5)</div>
+              </div>
+
+              <div className="features-table" style={{ marginTop: '0' }}>
+                <div className="features-table-row" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <div className="feature-name">Connection Requests</div>
+                  <div className="tier-value">3 x month</div>
+                  <div className="tier-value">10 x month</div>
+                  <div className="tier-value tier-value-highlight">Unlimited</div>
+                </div>
+              </div>
+
+              <div className="premium-extras-note">
+                <div className="extras-text">(1 EXTRA REQUEST €5, 5 EXTRA REQUESTS €15, 10 EXTRA CONTACTS €25)</div>
+              </div>
             </div>
             
             <div className="premium-pricing">
@@ -601,7 +664,8 @@ function App() {
               Cancel anytime. All prices in EUR.
             </p>
           </div>
-        </Modal>
+          </div>
+        )}
 
         {/* Subscription Modal */}
         <Modal
@@ -745,11 +809,5 @@ function App() {
     </Router>
   );
 }
-
-const StarIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-  </svg>
-);
 
 export default App;
