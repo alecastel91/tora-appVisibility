@@ -117,7 +117,36 @@ TORA is a React-based web application designed for professionals in the electron
 - **Files Modified**:
   - Backend: connections.js (lines 9, 41-77)
   - Frontend: SearchScreen.js (lines 196-225), ViewProfileScreen.js (lines 7, 82-103), ExploreScreen.js (lines 7, 53-75)
-- **Next**: Feature 3 (Connection Limits) - Backend + Frontend implementation
+
+### Subscription System - Feature 3: Connection Request Limits (COMPLETE ✅)
+- **Backend Implementation**:
+  - Added subscription limit checks to POST /api/connections/request endpoint
+  - Imported canSendConnection(), incrementConnectionUsage(), getConnectionLimit() from subscription utils
+  - Checks limits before allowing connection request creation
+  - Returns 403 error with detailed message when limit exceeded
+  - Response includes: error, message, limit, tier, resetTime (next month)
+  - Increments connection usage counter on successful requests
+  - Monthly reset handled automatically by subscription utility functions
+- **Frontend Implementation**:
+  - SearchScreen: Enhanced handleConnectionChoice with 403 error detection
+  - ViewProfileScreen: Added connection limit error handling
+  - Both show alert with tier info and monthly limit count
+  - Premium modal automatically opens after showing limit message
+  - Error message: "You've reached your monthly limit of X connection requests. Upgrade to Premium for more connections!"
+- **User Experience**:
+  - Clear error message with current tier and limit information
+  - Alert shows: "Your current plan: {TIER}\nMonthly limit: {LIMIT} connections"
+  - Seamless upgrade flow: alert → premium modal
+  - Monthly reset information provided in backend response
+- **Testing Ready**:
+  - FREE tier: 3 connections/month limit
+  - TRIAL tier: 3 connections/month limit (same as FREE)
+  - MONTHLY tier: 10 connections/month limit
+  - YEARLY tier: Unlimited connections
+- **Files Modified**:
+  - Backend: connections.js (lines 9, 513-532, 568-570)
+  - Frontend: SearchScreen.js (lines 262-290), ViewProfileScreen.js (lines 56-88)
+- **Next**: Feature 4 (Premium Feature Access Gates) - Lock Manage/Match/Tour features for FREE tier
 
 ### Subscription System Planning (March 5, 2026)
 - **Feature**: Designed comprehensive subscription tier enforcement strategy

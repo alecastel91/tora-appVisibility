@@ -67,6 +67,22 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
       alert(`Connection request sent to ${targetName}!`);
     } catch (error) {
       console.error('Error sending connection request:', error);
+
+      // Check if this is a connection limit error (403)
+      if (error.response && error.response.status === 403) {
+        const errorData = error.response.data;
+        if (errorData.error === 'CONNECTION_LIMIT_EXCEEDED') {
+          // Show limit message with tier info
+          alert(`${errorData.message}\n\nYour current plan: ${errorData.tier}\nMonthly limit: ${errorData.limit} connections`);
+
+          // Open premium modal
+          if (onOpenPremium) {
+            onOpenPremium();
+          }
+          return;
+        }
+      }
+
       alert(`Failed to send connection request: ${error.message}`);
     }
   };
