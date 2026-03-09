@@ -486,7 +486,8 @@ export const AppProvider = ({ children }) => {
       console.error('Error toggling like:', error);
       // Revert optimistic update on error
       setLikedProfiles(likedProfiles);
-      alert('Failed to toggle like. Please try again.');
+      // Re-throw error so component handlers can show proper modal
+      throw error;
     }
   };
 
