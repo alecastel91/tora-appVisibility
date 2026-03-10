@@ -15,7 +15,7 @@ import SearchAgentsModal from '../common/SearchAgentsModal';
 import ChatScreen from './ChatScreen';
 import apiService from '../../services/api';
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ onOpenPremium }) => {
   const { user, updateUser, userProfiles, switchProfile, addProfile, deleteProfile, likedProfiles, likedProfilesData, connectedUsers, connectedUsersData, likerProfilesData } = useAppContext();
   const { t } = useLanguage();
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -38,6 +38,29 @@ const ProfileScreen = () => {
   const fileInputRef = useRef(null);
   const [resolvedSoundCloudUrl, setResolvedSoundCloudUrl] = useState(null);
   const [resolvedSpotifyId, setResolvedSpotifyId] = useState(null);
+
+  // Helper function to calculate trial days/hours remaining
+  const getTrialTimeRemaining = () => {
+    if (!user || user.subscriptionTier !== 'TRIAL' || !user.trialEndDate) {
+      return null;
+    }
+
+    const now = new Date();
+    const endDate = new Date(user.trialEndDate);
+    const diffTime = endDate - now;
+
+    if (diffTime <= 0) return { expired: true };
+
+    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Show hours if less than 24h remaining, otherwise show days
+    if (diffHours < 24) {
+      return { hours: diffHours, days: null };
+    } else {
+      return { hours: null, days: diffDays };
+    }
+  };
 
   // Handle SoundCloud URLs
   React.useEffect(() => {
@@ -327,6 +350,55 @@ const ProfileScreen = () => {
           </div>
         )}
       </div>
+
+      {/* Trial Banner */}
+      {(() => {
+        const trialInfo = getTrialTimeRemaining();
+        if (!trialInfo) return null;
+
+        if (trialInfo.expired) {
+          return (
+            <div className="trial-banner trial-expired">
+              <div className="trial-banner-content">
+                <span className="trial-icon">⚠️</span>
+                <div className="trial-text">
+                  <strong>Your trial has expired</strong>
+                  <p>Upgrade to Premium to keep access to all features</p>
+                </div>
+              </div>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => onOpenPremium && onOpenPremium()}
+              >
+                Upgrade Now
+              </button>
+            </div>
+          );
+        }
+
+        return (
+          <div className="trial-banner trial-active">
+            <div className="trial-banner-content">
+              <span className="trial-icon">🎉</span>
+              <div className="trial-text">
+                <strong>Premium Trial Active</strong>
+                <p>
+                  {trialInfo.days
+                    ? `${trialInfo.days} ${trialInfo.days === 1 ? 'day' : 'days'} remaining`
+                    : `${trialInfo.hours} ${trialInfo.hours === 1 ? 'hour' : 'hours'} remaining`
+                  }
+                </p>
+              </div>
+            </div>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={() => onOpenPremium && onOpenPremium()}
+            >
+              Upgrade
+            </button>
+          </div>
+        );
+      })()}
 
       <div className="profile-stats">
         <div className="stat-item" onClick={() => setShowLikesList(true)}>

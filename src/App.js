@@ -130,7 +130,7 @@ function App() {
     return () => clearInterval(interval);
   }, [isAuthenticated, user, activeChatUser]); // Refresh when chat changes
 
-  const handleLoginSuccess = (data) => {
+  const handleLoginSuccess = async (data) => {
     console.log('[App] Login success, received data:', data);
     console.log('[App] Profiles:', data.profiles);
     console.log('[App] Profile:', data.profile);
@@ -147,6 +147,31 @@ function App() {
     console.log('[App] Updating user with profile data:', profileData);
     updateUser(profileData);
     setIsAuthenticated(true);
+
+    // Detect and update user timezone if not set
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    console.log('[App] Detected timezone:', userTimezone);
+
+    // Update timezone for all profiles if not already set
+    if (Array.isArray(profileData)) {
+      for (const profile of profileData) {
+        if (!profile.timezone || profile.timezone === 'UTC') {
+          try {
+            await apiService.updateProfile(profile._id, { timezone: userTimezone });
+            console.log(`[App] Updated timezone for profile ${profile._id} to ${userTimezone}`);
+          } catch (error) {
+            console.error('[App] Failed to update timezone:', error);
+          }
+        }
+      }
+    } else if (profileData && (!profileData.timezone || profileData.timezone === 'UTC')) {
+      try {
+        await apiService.updateProfile(profileData._id, { timezone: userTimezone });
+        console.log(`[App] Updated timezone for profile ${profileData._id} to ${userTimezone}`);
+      } catch (error) {
+        console.error('[App] Failed to update timezone:', error);
+      }
+    }
   };
 
   const handleSignupSuccess = (data) => {
@@ -224,17 +249,17 @@ function App() {
   const renderScreen = () => {
     switch(activeTab) {
       case 'profile':
-        return <ProfileScreen />;
+        return <ProfileScreen onOpenPremium={() => setShowPremium(true)} />;
       case 'search':
         return <SearchScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onOpenPremium={() => setShowPremium(true)} />;
       case 'tour':
-        return <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} />;
+        return <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} onOpenPremium={() => setShowPremium(true)} />;
       case 'bookings':
         return <BookingsScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
       case 'messages':
         return <MessagesScreen onOpenChat={setActiveChatUser} key={activeChatUser ? 'with-chat' : 'without-chat'} />;
       default:
-        return <ProfileScreen />;
+        return <ProfileScreen onOpenPremium={() => setShowPremium(true)} />;
     }
   };
 
@@ -318,24 +343,175 @@ function App() {
         )}
         <TabBar activeTab={activeTab} onTabChange={setActiveTab} unreadMessagesCount={unreadMessagesCount} unreadProposalsCount={unreadProposalsCount} />
         
-        {/* Settings Modal */}
-        <Modal
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          title={t('settings.title')}
-        >
-          <div className="settings-content">
+        {/* Settings Screen */}
+        {showSettings && (
+          <div className="screen active settings-screen">
+            <div className="settings-header">
+              <button className="back-button" onClick={() => setShowSettings(false)}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+              </button>
+              <h1>{t('settings.title')}</h1>
+              <div style={{ width: '24px' }}></div>
+            </div>
+
+            <div className="settings-content">
+            {/* Account Section */}
             <div className="settings-section">
               <h3>{t('settings.account')}</h3>
               <div className="settings-item">
                 <span>{t('settings.email')}</span>
-                <span className="settings-value">user@example.com</span>
-              </div>
-              <div className="settings-item">
-                <span>{t('settings.phone')}</span>
-                <span className="settings-value">+1 234 567 8900</span>
+                <span className="settings-value">{accountUser?.email || user?.email || 'Not available'}</span>
               </div>
               <button className="btn btn-outline" onClick={() => setShowPasswordChange(true)}>{t('settings.changePassword')}</button>
+            </div>
+
+            {/* Subscription & Usage Section */}
+            <div className="settings-section subscription-section">
+              <h3>Subscription & Usage</h3>
+
+              {/* Subscription Tier Badge */}
+              <div className="subscription-tier-badge">
+                <span className={`tier-label ${user?.subscriptionTier?.toLowerCase() || 'free'}`}>
+                  {user?.subscriptionTier || 'FREE'}
+                </span>
+                {(!user?.subscriptionTier || user?.subscriptionTier === 'FREE') && (
+                  <button
+                    className="btn btn-upgrade-small"
+                    onClick={() => {
+                      setShowSettings(false);
+                      setShowPremium(true);
+                    }}
+                  >
+                    Upgrade to Premium
+                  </button>
+                )}
+                {user?.subscriptionTier === 'MONTHLY' && (
+                  <button
+                    className="btn btn-upgrade-small"
+                    onClick={() => {
+                      setShowSettings(false);
+                      setShowPremium(true);
+                    }}
+                  >
+                    Upgrade to Yearly
+                  </button>
+                )}
+              </div>
+
+              {/* Trial Countdown */}
+              {user?.subscriptionTier === 'TRIAL' && user?.trialEndDate && (
+                <div className="trial-countdown-settings">
+                  <div className="trial-countdown-icon">⏱️</div>
+                  <div className="trial-countdown-text">
+                    <strong>Trial Period</strong>
+                    <p>
+                      {(() => {
+                        const now = new Date();
+                        const endDate = new Date(user.trialEndDate);
+                        const diffTime = endDate - now;
+                        if (diffTime <= 0) return 'Trial expired';
+
+                        const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (diffHours < 24) {
+                          return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} remaining`;
+                        } else {
+                          return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} remaining`;
+                        }
+                      })()}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Usage Stats */}
+              <div className="usage-stats">
+                <h4>Usage This Period</h4>
+
+                {/* Likes Today */}
+                <div className="usage-item">
+                  <div className="usage-header">
+                    <span className="usage-label">Likes Today</span>
+                    <span className="usage-count">
+                      {user?.likesUsedToday || 0} / {(() => {
+                        const tier = user?.subscriptionTier || 'FREE';
+                        if (tier === 'YEARLY') return '∞';
+                        if (tier === 'MONTHLY') return '5';
+                        return '2'; // FREE or TRIAL
+                      })()}
+                    </span>
+                  </div>
+                  {user?.subscriptionTier !== 'YEARLY' && (
+                    <div className="usage-progress-bar">
+                      <div
+                        className={`usage-progress-fill ${(() => {
+                          const tier = user?.subscriptionTier || 'FREE';
+                          const limit = tier === 'MONTHLY' ? 5 : 2;
+                          const used = user?.likesUsedToday || 0;
+                          if (used >= limit) return 'danger';
+                          if (used >= limit - 1) return 'warning';
+                          return 'safe';
+                        })()}`}
+                        style={{ width: `${(() => {
+                          const tier = user?.subscriptionTier || 'FREE';
+                          const limit = tier === 'MONTHLY' ? 5 : 2;
+                          const used = user?.likesUsedToday || 0;
+                          return Math.min((used / limit) * 100, 100);
+                        })()}%` }}
+                      />
+                    </div>
+                  )}
+                  <div className="usage-reset">
+                    {user?.subscriptionTier === 'YEARLY' ? 'Unlimited Likes' : 'Resets daily at midnight'}
+                  </div>
+                </div>
+
+                {/* Connections This Month */}
+                <div className="usage-item">
+                  <div className="usage-header">
+                    <span className="usage-label">Connections This Month</span>
+                    <span className="usage-count">
+                      {user?.connectionsThisMonth || 0} / {(() => {
+                        const tier = user?.subscriptionTier || 'FREE';
+                        if (tier === 'YEARLY') return '∞';
+                        if (tier === 'MONTHLY') return '10';
+                        return '3'; // FREE or TRIAL
+                      })()}
+                    </span>
+                  </div>
+                  {user?.subscriptionTier !== 'YEARLY' && (
+                    <div className="usage-progress-bar">
+                      <div
+                        className={`usage-progress-fill ${(() => {
+                          const tier = user?.subscriptionTier || 'FREE';
+                          const limit = tier === 'MONTHLY' ? 10 : 3;
+                          const used = user?.connectionsThisMonth || 0;
+                          if (used >= limit) return 'danger';
+                          if (used >= limit - 1) return 'warning';
+                          return 'safe';
+                        })()}`}
+                        style={{ width: `${(() => {
+                          const tier = user?.subscriptionTier || 'FREE';
+                          const limit = tier === 'MONTHLY' ? 10 : 3;
+                          const used = user?.connectionsThisMonth || 0;
+                          return Math.min((used / limit) * 100, 100);
+                        })()}%` }}
+                      />
+                    </div>
+                  )}
+                  <div className="usage-reset">
+                    {user?.subscriptionTier === 'YEARLY' ? 'Unlimited Connections' : (() => {
+                      const now = new Date();
+                      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+                      const daysUntil = Math.ceil((nextMonth - now) / (1000 * 60 * 60 * 24));
+                      return `Resets in ${daysUntil} day${daysUntil !== 1 ? 's' : ''} (${nextMonth.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`;
+                    })()}
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div className="settings-section">
@@ -385,12 +561,6 @@ function App() {
                   <span>{t('settings.emailNotifications')}</span>
                 </label>
               </div>
-              <div className="settings-item">
-                <label className="settings-toggle">
-                  <input type="checkbox" />
-                  <span>{t('settings.smsNotifications')}</span>
-                </label>
-              </div>
             </div>
             
             <div className="settings-section">
@@ -433,8 +603,9 @@ function App() {
               <button className="btn btn-outline" onClick={handleLogout}>{t('settings.signOut') || 'Sign Out'}</button>
               <button className="btn btn-danger">{t('settings.deleteAccount')}</button>
             </div>
+            </div>
           </div>
-        </Modal>
+        )}
 
         {/* Password Change Modal */}
         <Modal

@@ -3,6 +3,65 @@
 ## Overview
 TORA is a React-based web application designed for professionals in the electronic music/club scene to connect, network, and collaborate. The app features a dark theme with pink accent colors (#FF3366) and is built to be easily convertible to React Native.
 
+## Recent Updates (March 11, 2026)
+
+### Trial Period Management - Feature 5 (COMPLETE ✅)
+- **Auto Trial Activation**: New users automatically get 48-hour Premium trial on signup
+  - Backend sets `subscriptionTier: 'TRIAL'`, `trialStartDate`, and `trialEndDate`
+  - Trial provides full feature access with same usage limits as FREE tier
+  - Implemented in [auth.js](/Users/alessandrocastelbuono/Desktop/tora-backend/src/routes/auth.js#L55-L72)
+- **Trial Time Calculation Utilities**: Helper functions for tracking trial status
+  - `getTrialDaysRemaining()` - Returns days remaining in trial
+  - `getTrialHoursRemaining()` - Returns hours remaining in trial
+  - Implemented in [subscription.js](/Users/alessandrocastelbuono/Desktop/tora-backend/src/utils/subscription.js#L276-L310)
+- **Trial Banner in ProfileScreen**: Visual countdown display in user profile
+  - Shows "🎉 Premium Trial Active" with days/hours remaining
+  - Shows "⚠️ Your trial has expired" when trial ends
+  - "Upgrade" button opens Premium modal for conversion
+  - Green styling for active trial, orange for expired
+  - Implemented in [ProfileScreen.js](src/components/screens/ProfileScreen.js#L42-L63) and [ProfileScreen.js](src/components/screens/ProfileScreen.js#L354-L401)
+- **Trial Countdown in Settings**: Detailed trial info in Settings screen
+  - ⏱️ Clock icon with "Trial Period" heading
+  - Shows precise countdown (hours if < 24h, otherwise days)
+  - Appears in Subscription & Usage section below tier badge
+  - Green box styling matching trial theme
+  - Implemented in [App.js](src/App.js#L403-L428)
+- **Automatic Downgrade**: Backend automatically converts expired trials to FREE tier
+  - `getCurrentTier()` checks expiration and returns FREE for expired trials
+  - `autoDowngradeExpired()` permanently updates database when trial expires
+  - Already implemented in [subscription.js](/Users/alessandrocastelbuono/Desktop/tora-backend/src/utils/subscription.js#L11-L30) and [subscription.js](/Users/alessandrocastelbuono/Desktop/tora-backend/src/utils/subscription.js#L250-L274)
+- **CSS Styling**: Complete visual design for trial elements
+  - Trial banner styles with green (active) and orange (expired) themes
+  - Trial countdown box in settings with consistent green theme
+  - TRIAL tier label styling with green accent
+  - Implemented in [App.css](src/styles/App.css#L516-L584) and [App.css](src/styles/App.css#L2069-L2109)
+- **Props and Integration**: Connected Premium modal to trial CTAs
+  - ProfileScreen now accepts `onOpenPremium` prop from App.js
+  - Both trial banner and countdown buttons open Premium modal for upgrades
+
+### Membership-Only Strategy Discussion (March 11, 2026)
+- **Strategic Pivot**: Decision to make TORA a membership-only, application-based platform
+  - No public signups - users must apply and be approved
+  - Exclusive community model (similar to Soho House, Raya)
+  - Pre-launch: Collect applications on landing page
+  - Launch: Invite approved members with coupon codes
+  - Post-launch: Paid subscriptions only (no free tier)
+- **Coupon Package Strategy**:
+  - FOUNDING: 3 months free for first 100 members (key influencers, beta testers)
+  - LAUNCH: 1 month free for next 400 members
+  - STANDARD: 7-day trial for later members (after public launch)
+  - INFLUENCER: 12 months for strategic partners
+- **Landing Page**: Separate Next.js site on Vercel (tora-landing-page.vercel.app)
+  - Built by collaborator, hosted independently
+  - "Apply Now" flow for collecting applications
+  - Integration with TORA backend API for application submission
+- **Next Steps**: Implementation of application + invitation system
+  - Application model and API endpoints
+  - Admin review dashboard
+  - Invitation code generation
+  - Modified signup requiring invite codes
+  - Coupon auto-application based on invite type
+
 ## Recent Updates (March 9, 2026)
 
 ### Premium Features Screen - Full Implementation (COMPLETE ✅)

@@ -259,6 +259,25 @@
 }
 
 /* Premium star styling */
+.premium-btn.is-monthly {
+  color: #ff3366; /* Pink color for MONTHLY */
+}
+
+.premium-btn.is-monthly svg {
+  fill: #ff3366; /* Fill the star with pink */
+  stroke: #ff3366;
+}
+
+.premium-btn.is-yearly {
+  color: #FFD700; /* Gold color for YEARLY */
+}
+
+.premium-btn.is-yearly svg {
+  fill: #FFD700; /* Fill the star with gold */
+  stroke: #FFD700;
+}
+
+/* Legacy class for backwards compatibility */
 .premium-btn.is-premium {
   color: #FFD700; /* Gold color */
 }
@@ -492,6 +511,76 @@
 
 .represented-icon {
   font-size: 14px;
+}
+
+/* Trial Banner */
+.trial-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dark);
+}
+
+.trial-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.trial-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.trial-text {
+  flex: 1;
+}
+
+.trial-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.trial-text p {
+  font-size: 12px;
+  color: var(--text-gray);
+  margin: 0;
+}
+
+/* Trial Active State */
+.trial-banner.trial-active {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.05);
+}
+
+.trial-banner.trial-active .trial-text strong {
+  color: #4CAF50;
+}
+
+/* Trial Expired State */
+.trial-banner.trial-expired {
+  border-color: rgba(255, 152, 0, 0.3);
+  background: rgba(255, 152, 0, 0.05);
+}
+
+.trial-banner.trial-expired .trial-text strong {
+  color: #FF9800;
+}
+
+.trial-banner .btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .profile-stats {
@@ -1729,9 +1818,61 @@
   color: var(--text-gray);
 }
 
-/* Settings Modal Styles */
+/* Settings Screen Styles */
+.settings-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-dark);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.settings-header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-white);
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.settings-header .back-button {
+  background: none;
+  border: none;
+  color: var(--text-white);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-header .back-button:hover {
+  opacity: 0.8;
+}
+
 .settings-content {
-  padding: 20px 0;
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .settings-section {
@@ -1820,7 +1961,7 @@
 }
 
 .settings-link {
-  color: var(--text-light);
+  color: var(--text-gray);
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -1853,6 +1994,186 @@
 
 .settings-actions .btn-danger:hover {
   background: rgba(255, 51, 102, 0.1);
+}
+
+/* Subscription & Usage Section */
+.subscription-section {
+  /* No special background - matches other settings sections */
+}
+
+.subscription-tier-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+}
+
+.tier-label {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tier-label.free {
+  background: rgba(128, 128, 128, 0.25);
+  color: #ccc;
+  border: 2px solid rgba(128, 128, 128, 0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.tier-label.monthly {
+  background: rgba(255, 51, 102, 0.15);
+  color: #ff3366;
+  border: 2px solid rgba(255, 51, 102, 0.5);
+  box-shadow: 0 2px 8px rgba(255, 51, 102, 0.3);
+}
+
+.tier-label.premium {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  border: 2px solid #ffd700;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+}
+
+.tier-label.yearly {
+  background: rgba(255, 215, 0, 0.2);
+  color: #ffd700;
+  border: 2px solid #ffd700;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+}
+
+.btn-upgrade-small {
+  padding: 8px 16px;
+  font-size: 13px;
+  background: #ffd700;
+  color: #000;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-upgrade-small:hover {
+  background: #ffed4e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+/* Trial Countdown in Settings */
+.trial-countdown-settings {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  background: rgba(76, 175, 80, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+}
+
+.trial-countdown-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.trial-countdown-text {
+  flex: 1;
+}
+
+.trial-countdown-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4CAF50;
+  margin-bottom: 2px;
+}
+
+.trial-countdown-text p {
+  font-size: 13px;
+  color: var(--text-gray);
+  margin: 0;
+}
+
+.tier-label.trial {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4CAF50;
+  border: 2px solid rgba(76, 175, 80, 0.5);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.usage-stats h4 {
+  font-size: 13px;
+  color: var(--text-gray);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.usage-item {
+  margin-bottom: 20px;
+}
+
+.usage-item:last-child {
+  margin-bottom: 0;
+}
+
+.usage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.usage-label {
+  font-size: 14px;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.usage-count {
+  font-size: 14px;
+  color: var(--text-white);
+  font-weight: 600;
+}
+
+.usage-progress-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.usage-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.usage-progress-fill.safe {
+  background: linear-gradient(90deg, #4caf50, #66bb6a);
+}
+
+.usage-progress-fill.warning {
+  background: linear-gradient(90deg, #ffa726, #ffb74d);
+}
+
+.usage-progress-fill.danger {
+  background: linear-gradient(90deg, #ef5350, #f44336);
+}
+
+.usage-reset {
+  font-size: 12px;
+  color: var(--text-gray);
+  font-style: italic;
 }
 
 /* Profile Bio and Genres */
@@ -5847,14 +6168,24 @@
 
 .price-card h4 {
   color: var(--text-white);
-  font-size: 16px;
+  font-size: 14px;
   margin: 0 0 16px 0;
   text-transform: uppercase;
   letter-spacing: 1px;
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  font-weight: 600;
 }
 
 .price-card.featured h4 {
   margin-top: 8px;
+  background: rgba(255, 51, 102, 0.15);
+  border-color: var(--primary-pink);
+  color: var(--primary-pink);
+  box-shadow: 0 2px 8px rgba(255, 51, 102, 0.2);
 }
 
 .price {
@@ -11522,7 +11853,7 @@ select.form-input {
 }
 
 .coming-soon-placeholder {
-  text-align: left;
+  text-align: center;
   max-width: 100%;
   width: 100%;
   height: auto;
