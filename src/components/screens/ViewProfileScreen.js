@@ -87,7 +87,9 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
         return;
       }
 
-      alert(`Failed to send connection request: ${error.message}`);
+      // Only show alert for non-limit errors
+      console.error('Connection request failed:', error);
+      alert('Failed to send connection request. Please try again.');
     }
   };
 
