@@ -8,9 +8,15 @@ import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, Targe
 import apiService from '../../services/api';
 import { citiesByCountry, countriesByZone, genresList } from '../../data/profiles';
 
-const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange }) => {
+const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange, onOpenPremium }) => {
   const { user, getCalendarMatches, sentRequests, sendConnectionRequest, connectedUsers } = useAppContext();
   const { t } = useLanguage();
+
+  // Helper function to check if user has premium access
+  const isPremiumUser = () => {
+    const tier = user?.subscriptionTier || 'FREE';
+    return ['TRIAL', 'MONTHLY', 'YEARLY'].includes(tier);
+  };
 
   // Tab state
   const [activeTab, setActiveTab] = useState('calendar');  // 'calendar' or 'kickstart'
@@ -83,7 +89,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
   // Fetch calendar matches when user is premium and has available dates
   useEffect(() => {
     const fetchCalendarMatches = async () => {
-      if (!user || !user.isPremium || !user.availableDates || user.availableDates.length === 0) {
+      if (!user || !isPremiumUser() || !user.availableDates || user.availableDates.length === 0) {
         setCalendarMatches([]);
         return;
       }
@@ -149,7 +155,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
     };
 
     fetchCalendarMatches();
-  }, [user?._id, user?.isPremium, user?.availableDates?.length, activeTab]);
+  }, [user?._id, user?.subscriptionTier, user?.availableDates?.length, activeTab]);
 
   // Fetch tours when Kickstart tab is active
   useEffect(() => {
@@ -365,7 +371,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
   // Calendar Matches Tab Content
   const renderCalendarMatches = () => {
     // Show upgrade prompt for basic users
-    if (!user?.isPremium) {
+    if (!isPremiumUser()) {
       return (
         <div className="tour-kickstart-content">
           <div className="coming-soon-placeholder">
@@ -395,7 +401,17 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                 </li>
               </ul>
             </div>
-            <button className="btn coming-soon-badge" style={{ cursor: 'pointer', border: 'none' }}>
+            <button
+              className="btn btn-primary"
+              style={{
+                backgroundColor: '#FFD700',
+                color: '#000',
+                fontWeight: '600',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+              onClick={() => onOpenPremium && onOpenPremium()}
+            >
               Upgrade to Premium
             </button>
           </div>
@@ -1161,7 +1177,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
   // Tour Kickstart Tab Content
   const renderTourKickstart = () => {
     // Show upgrade prompt for basic users
-    if (!user?.isPremium) {
+    if (!isPremiumUser()) {
       return (
         <div className="tour-kickstart-content">
           <div className="coming-soon-placeholder">
@@ -1191,7 +1207,17 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange 
                 </li>
               </ul>
             </div>
-            <button className="btn coming-soon-badge" style={{ cursor: 'pointer', border: 'none' }}>
+            <button
+              className="btn btn-primary"
+              style={{
+                backgroundColor: '#FFD700',
+                color: '#000',
+                fontWeight: '600',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+              onClick={() => onOpenPremium && onOpenPremium()}
+            >
               Upgrade to Premium
             </button>
           </div>

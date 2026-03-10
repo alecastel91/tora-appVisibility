@@ -39,6 +39,49 @@ TORA is a React-based web application designed for professionals in the electron
   - ProfileScreen now accepts `onOpenPremium` prop from App.js
   - Both trial banner and countdown buttons open Premium modal for upgrades
 
+### Landing Page Development - Intro Splash Implementation (COMPLETE ✅)
+- **Repository Setup**: Cloned and configured separate landing page repository
+  - Location: `/Users/alessandrocastelbuono/Desktop/tora-landing-page`
+  - Repository: https://github.com/Alchemz/tora-landing-page-export
+  - Branch: `alessandro-modifications` (separate working branch)
+  - Tech Stack: Next.js 16, TypeScript, Tailwind CSS, Framer Motion
+  - Running on: http://localhost:3000 (local) / http://192.168.2.101:3000 (network)
+
+- **Intro Splash Screen**: Created brand-focused opening sequence
+  - New component: `IntroSplash.tsx` with logo + tagline animation
+  - **Pure black background** (removed grey frame)
+  - **TORA logo**: Cropped tight, sized at 320px (mobile) / 480px (desktop)
+  - **Tagline**: "WHERE THE MUSIC INDUSTRY CONNECTS." - 10px/12px font, positioned below logo
+  - **Animation sequence**:
+    - 0.3s: Logo fades in with blur effect
+    - 0.8s: Tagline appears
+    - 2.5s: Auto-transition to main page
+  - Files: [IntroSplash.tsx](../tora-landing-page/src/components/sections/infrared/IntroSplash.tsx)
+
+- **Main Page Flow**: Three-stage user journey
+  - **Stage 1**: Intro splash (2.5 seconds)
+  - **Stage 2**: Main content with "APPLY NOW" CTA
+  - **Stage 3**: Application form (future implementation)
+  - Updated [page.tsx](../tora-landing-page/src/app/page.tsx) with flow state management
+
+- **Logo Optimization**: Custom cropped logo for perfect composition
+  - Original logo had excessive white space padding
+  - Cropped tightly around "TORA" text using Preview
+  - Created `tora_logo_v2.png` to bypass browser cache
+  - Final size: 27KB (reduced from 126KB)
+
+- **Environment Configuration**: Fixed Supabase requirement
+  - Created `.env.local` with placeholder Supabase credentials
+  - Server runs successfully without actual Supabase connection
+  - Ready for backend integration when application system is implemented
+
+- **Design Refinements**:
+  - Logo size: 20% smaller than original for better mobile fit
+  - Tagline spacing: `mt-2 md:mt-1` (positioned just below logo)
+  - Font size: `text-[10px] md:text-[12px]` (balanced readability with width)
+  - Letter spacing: `tracking-[0.22em]` for proportional fit under logo
+  - All text remains on single line with `whitespace-nowrap`
+
 ### Membership-Only Strategy Discussion (March 11, 2026)
 - **Strategic Pivot**: Decision to make TORA a membership-only, application-based platform
   - No public signups - users must apply and be approved

@@ -24,17 +24,24 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
     setStep('message');
   };
 
-  const handleSendRequest = () => {
+  const handleSendRequest = async () => {
     console.log('Sending request with message:', message);
-    if (selectedType === 'AGENT') {
-      const agentId = artist.representedBy.agentId || artist.representedBy._id;
-      console.log('Calling onConnect with agentId:', agentId);
-      onConnect(agentId, 'AGENT', artist, message);
-    } else {
-      console.log('Calling onConnect with artist._id:', artist._id);
-      onConnect(artist._id, 'ARTIST', null, message);
+    try {
+      if (selectedType === 'AGENT') {
+        const agentId = artist.representedBy.agentId || artist.representedBy._id;
+        console.log('Calling onConnect with agentId:', agentId);
+        await onConnect(agentId, 'AGENT', artist, message);
+      } else {
+        console.log('Calling onConnect with artist._id:', artist._id);
+        await onConnect(artist._id, 'ARTIST', null, message);
+      }
+      onClose();
+    } catch (error) {
+      // Error is already handled by the parent component (handleConnectionChoice)
+      // Just close the modal so the parent's limit modal can show
+      console.log('Connection request error caught in modal, closing...');
+      onClose();
     }
-    onClose();
   };
 
   const handleBack = () => {

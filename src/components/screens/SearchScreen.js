@@ -366,13 +366,42 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const handleSendMessage = async () => {
     if (selectedProfile) {
       const profileId = selectedProfile._id || selectedProfile.id;
-      await sendConnectionRequest(profileId, message.trim() || '');
-      setShowMessageModal(false);
-      setMessage('');
-      setSelectedProfile(null);
+      try {
+        await sendConnectionRequest(profileId, message.trim() || '');
+        setShowMessageModal(false);
+        setMessage('');
+        setSelectedProfile(null);
 
-      // Refetch profiles to update UI with new request status
-      await fetchProfiles();
+        // Refetch profiles to update UI with new request status
+        await fetchProfiles();
+      } catch (error) {
+        console.error('Error sending connection request:', error);
+        console.error('Error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: error.message
+        });
+
+        // Check if this is a connection limit error (403)
+        if (error.response?.status === 403 && error.response?.data?.error === 'CONNECTION_LIMIT_EXCEEDED') {
+          const { limit, tier } = error.response.data;
+
+          console.log('Connection limit reached! Opening modal with:', { limit, tier });
+
+          // Close message modal first
+          setShowMessageModal(false);
+          setMessage('');
+          setSelectedProfile(null);
+
+          // Show connection limit modal
+          setConnectionLimitData({ limit, tier });
+          setShowConnectionLimitModal(true);
+          return;
+        }
+
+        // Only show alert for non-limit errors
+        alert('Failed to send connection request. Please try again.');
+      }
     }
   };
 

@@ -51,8 +51,12 @@ const Header = ({ onOpenSettings, onOpenPremium }) => {
             <span className="notification-dot" />
           )}
         </button>
-        <button 
-          className={`icon-btn premium-btn ${user?.isPremium ? 'is-premium' : ''}`}
+        <button
+          className={`icon-btn premium-btn ${
+            user?.subscriptionTier === 'YEARLY' ? 'is-yearly' :
+            user?.subscriptionTier === 'MONTHLY' ? 'is-monthly' :
+            ''
+          }`}
           onClick={handlePremiumClick}
         >
           <StarIcon />

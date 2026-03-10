@@ -122,10 +122,38 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
     }
   };
 
-  const handleSendMessage = () => {
-    sendConnectionRequest(profileId, message.trim() || '');
-    setShowMessageModal(false);
-    setMessage('');
+  const handleSendMessage = async () => {
+    try {
+      await sendConnectionRequest(profileId, message.trim() || '');
+      setShowMessageModal(false);
+      setMessage('');
+    } catch (error) {
+      console.error('Error sending connection request:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+
+      // Check if this is a connection limit error (403)
+      if (error.response?.status === 403 && error.response?.data?.error === 'CONNECTION_LIMIT_EXCEEDED') {
+        const { limit, tier } = error.response.data;
+
+        console.log('Connection limit reached! Opening modal with:', { limit, tier });
+
+        // Close message modal first
+        setShowMessageModal(false);
+        setMessage('');
+
+        // Show connection limit modal
+        setConnectionLimitData({ limit, tier });
+        setShowConnectionLimitModal(true);
+        return;
+      }
+
+      // Only show alert for non-limit errors
+      alert('Failed to send connection request. Please try again.');
+    }
   };
 
   const handleRemoveConnection = async () => {
