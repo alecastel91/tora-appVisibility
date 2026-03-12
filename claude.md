@@ -3,6 +3,49 @@
 ## Overview
 TORA is a React-based web application designed for professionals in the electronic music/club scene to connect, network, and collaborate. The app features a dark theme with pink accent colors (#FF3366) and is built to be easily convertible to React Native.
 
+## Recent Updates (March 13, 2026)
+
+### Landing Page - Complete Access Request Form (COMPLETE ✅)
+- **9-Step Application Flow**: Multi-step form with progress bar and smooth animations
+  - Step 0: Phone Verification (SMS code with country selector)
+  - Step 1: Role Selection (Artist, Promoter, Venue, Agent)
+  - Step 2: Identification (First/Last Name)
+  - Step 3: Profile Name (Artist/Promoter/Event/Venue/Agent Name)
+  - Step 4: Email Verification (custom validation with domain extension requirement)
+  - Step 5: Location (Zone → Country → City cascading dropdowns)
+  - Step 6: Music Genres (28 genres, multi-select)
+  - Step 7: Instagram Username (with fixed white @ symbol)
+  - Step 8: Role-Specific Additional Fields
+- **Role-Based Step 8 Fields**:
+  - **Artist**: Resident Advisor URL + SoundCloud URL (both optional)
+  - **Agent**: Agency Name (required) + Website/LinkedIn (optional)
+  - **Venue**: Venue Capacity (required) + Website (optional)
+  - **Promoter**: Website (optional)
+- **Complete Location Data**: All 45 countries now have cities (2-8 major cities each)
+  - Zones: Africa, Americas, Asia, Europe, Oceania
+  - Countries: 45 countries across all zones
+  - Cities: 200+ cities including capitals and electronic music hubs
+  - "Other" option available as fallback
+- **Genre List Synchronization**: Updated both landing page and main app to 28 genres
+  - Removed: Acid Techno, Breaks, Dark Techno, Funk, Soul, Latin House, Minimal Techno
+  - Added: Bass, Downtempo, Dub Techno, EBM, Funk/Soul, Hardcore, IDM, Italo Disco, Jungle, Minimal
+- **UX Improvements**:
+  - Bold "ACCESS REQUEST" title with font-weight 900 (Inter font family)
+  - Mobile optimization: 80% content scale to prevent margin cutoff
+  - Simplified phone verification UI with embedded country code prefix
+  - Instagram @ symbol fixed to pure white (#ffffff) with z-index: 10
+  - Removed redundant SKIP button from final step
+  - Reduced letter spacing on mobile (tracking-wide) for better text fit
+- **Technical Implementation**:
+  - Supabase integration for form submission
+  - Framer Motion animations with slide and blur effects
+  - Dynamic form rendering with key={`step8-${role}`} for proper re-rendering
+  - Custom email validation regex
+  - Form state management with React useState
+- **Files Modified**:
+  - Landing page: [ApplicationForm.tsx](../tora-landing-page/src/components/sections/infrared/ApplicationForm.tsx)
+  - Main app: [profiles.js](src/data/profiles.js) - Genre list update
+
 ## Recent Updates (March 11, 2026)
 
 ### Trial Period Management - Feature 5 (COMPLETE ✅)
