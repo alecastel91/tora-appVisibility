@@ -3,6 +3,46 @@
 ## Overview
 TORA is a React-based web application designed for professionals in the electronic music/club scene to connect, network, and collaborate. The app features a dark theme with pink accent colors (#FF3366) and is built to be easily convertible to React Native.
 
+## Recent Updates (March 17, 2026)
+
+### Login/Signup Screen Redesign - Landing Page Visual Style
+- **TORA Logo Integration**: Replaced text "TORA" with actual logo image
+  - Logo displayed in header (28px height)
+  - Logo displayed on all auth screens (200px max width, centered)
+  - Files: [Header.js](src/components/common/Header.js), [LoginScreen.js](src/components/screens/LoginScreen.js), [SignupScreen.js](src/components/screens/SignupScreen.js), [App.js](src/App.js)
+- **Tagline Update**: Changed subtitle to "WHERE MUSIC MEETS"
+  - Font size: 10px (matching landing page)
+  - Letter spacing: 0.22em (matching landing page)
+  - Color: White (#ffffff)
+  - Positioned 8px below logo
+- **Pure Black Background**: Changed from gradient to solid black (#000000)
+  - Removed grey gradient background
+  - Clean, minimal aesthetic matching landing page
+- **Frameless Form Design**: Removed card/border from login form
+  - Transparent background
+  - No borders or radius
+  - Seamless integration with black background
+- **Input Field Styling**: Updated to match landing page application form
+  - Background: Pure black (#000000)
+  - Border: Grey (#333333)
+  - Border radius: 6px
+  - Padding: 12px 16px
+  - Font: 14px Inter, weight 400
+  - Placeholder: Grey (#666666)
+  - Focus state: Pink border
+- **Label Styling**: Refined for cleaner appearance
+  - Color: rgba(255, 255, 255, 0.7)
+  - Font size: 13px
+  - Font weight: 500
+  - Margin bottom: 8px
+- **Files Modified**:
+  - [App.css](src/styles/App.css): Auth screen, form, input, and label styling
+  - [Header.js](src/components/common/Header.js): Logo image integration
+  - [LoginScreen.js](src/components/screens/LoginScreen.js): Logo and tagline
+  - [SignupScreen.js](src/components/screens/SignupScreen.js): Logo and tagline
+  - [App.js](src/App.js): Loading screen logo
+  - Logo file: Copied from landing page to `public/tora_logo.png`
+
 ## Recent Updates (March 13, 2026)
 
 ### Landing Page - Complete Access Request Form (COMPLETE ✅)

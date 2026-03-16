@@ -40,7 +40,9 @@ const Header = ({ onOpenSettings, onOpenPremium }) => {
 
   return (
     <header className="app-header">
-      <div className="logo">TORA</div>
+      <div className="logo">
+        <img src="/tora_logo.png" alt="TORA" className="logo-image" />
+      </div>
       <div className="header-icons">
         <button 
           className="icon-btn notification-btn"

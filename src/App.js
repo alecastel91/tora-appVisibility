@@ -291,7 +291,7 @@ function App() {
       <div className="auth-screen">
         <div className="auth-container">
           <div className="auth-header">
-            <h1 className="auth-title">TORA</h1>
+            <img src="/tora_logo.png" alt="TORA" className="auth-logo" />
             <p className="auth-subtitle">Loading...</p>
           </div>
         </div>

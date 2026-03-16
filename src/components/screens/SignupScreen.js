@@ -130,8 +130,8 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
     <div className="auth-screen">
       <div className="auth-container">
         <div className="auth-header">
-          <h1 className="auth-title">TORA</h1>
-          <p className="auth-subtitle">Join the music industry network</p>
+          <img src="/tora_logo.png" alt="TORA" className="auth-logo" />
+          <p className="auth-subtitle">WHERE MUSIC MEETS</p>
         </div>
 
         {step === 1 ? (
