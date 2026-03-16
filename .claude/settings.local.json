@@ -82,7 +82,14 @@
       "Bash(REACT_APP_API_URL=http://localhost:5001/api PORT=3001 npm start:*)",
       "Bash(pm2 restart:*)",
       "Bash(REACT_APP_API_URL=http://192.168.2.101:5001/api HOST=0.0.0.0 PORT=3001 npm start)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git clone:*)",
+      "Bash(open:*)",
+      "Bash(md5:*)",
+      "Bash(git rm:*)",
+      "Bash(git remote:*)",
+      "Bash(git merge:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []
