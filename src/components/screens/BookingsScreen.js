@@ -754,11 +754,6 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
   return (
     <div className="bookings-screen">
-      <div className="bookings-header">
-        <h1>Bookings</h1>
-        <p className="bookings-subtitle">Manage your booking offers</p>
-      </div>
-
       <div className="bookings-tabs">
         <button
           className={`bookings-tab ${activeTab === 'upcoming' ? 'active' : ''}`}

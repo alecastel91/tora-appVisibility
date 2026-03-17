@@ -3,6 +3,60 @@
 ## Overview
 TORA is a React-based web application designed for professionals in the electronic music/club scene to connect, network, and collaborate. The app features a dark theme with pink accent colors (#FF3366) and is built to be easily convertible to React Native.
 
+## Recent Updates (March 18, 2026)
+
+### Landing Page Styling Applied to Main App - Complete UI Overhaul
+- **Typography System Implementation**: Applied landing page fonts throughout entire app
+  - **Rajdhani Font**: Used for all headings, titles, names (uppercase, 0.05em letter-spacing)
+  - **Inter Font**: Used for all body text, labels, buttons (0.02-0.15em letter-spacing)
+  - Font sizes reduced across the board (9-16px range) for cleaner, more compact look
+
+- **Screens Updated with Landing Page Styling**:
+  - **Search Screen**: Updated cards, filters, premium notice, search bar
+  - **Bookings Screen**: Updated booking cards, headers, tabs, empty states
+  - **Tour Screen (Calendar Match)**: Updated tabs, headers, scrolling fixes
+  - **Messages Screen**: Updated tabs, conversation list, message previews
+  - **Chat Screen**: Updated header, message bubbles, timestamps, date separators, input field
+  - **Premium Modal**: Updated feature table, pricing cards, typography
+  - **Notification Dropdown**: Updated header, items, timestamps
+  - **Settings Screen**: Updated sections, items, headers, toggle switches
+  - **Make Offer Modal**: Updated form inputs, labels, sections, buttons
+  - **Contract Attachment Modal**: Button sizing adjustments
+  - **Password Change Modal**: Button font sizing
+
+- **Color Scheme Updates**:
+  - Pure black backgrounds (#000000) for modals and overlays
+  - Dark grey cards (#0f0f0f) for dimensional separation
+  - Brighter borders (rgba(255, 255, 255, 0.2)) for better visibility
+  - Input fields with black background (#000000) and proper focus states
+
+- **Component-Specific Updates**:
+  - **Booking Cards**: Dark grey background with hover effects, date badges
+  - **Tour Cards**: Enhanced with pink gradient for featured yearly plan
+  - **Pricing Cards**: Monthly vs Yearly distinction with gradient and shadows
+  - **Form Inputs**: Black background with !important flags for consistency
+  - **Buttons**: Standardized at 11px (was 9px, adjusted based on feedback)
+  - **Change Password CTA**: Smaller size (9px), right-aligned
+  - **Toggle Switches**: Spacing maintained at 15px margin-right
+
+- **Layout Improvements**:
+  - Edit Profile Screen: Fixed scrolling with mouse wheel
+  - Tour Screen: Fixed scrolling on Calendar Match tab
+  - Messages Tab: Fixed height to match Bookings/Tour tabs (16px padding)
+  - Make Offer Modal: Zone/Country on same line, City on separate line
+  - Form spacing standardized across all modals
+
+- **Translation Keys Added** (Pending Component Implementation):
+  - Added missing keys to en.js and ja.js: manage, findAgent, switchProfile, latestMix, spotifyArtist, events, viewUpcomingEvents, representedBy, searchingWorldwidePremium, searchingWorldwideTrial, searchLimitedTo
+  - Note: Hardcoded texts in components still need to be replaced with t() function calls
+
+- **Files Modified**:
+  - [App.css](src/styles/App.css): 200+ CSS updates across all screens
+  - [App.js](src/App.js): Added btn-change-password class
+  - [MakeOfferModal.js](src/components/common/MakeOfferModal.js): Layout adjustments
+  - [en.js](src/translations/en.js): Added profile screen translation keys
+  - [ja.js](src/translations/ja.js): Added Japanese translations for new keys
+
 ## Recent Updates (March 17, 2026)
 
 ### Login/Signup Screen Redesign - Landing Page Visual Style

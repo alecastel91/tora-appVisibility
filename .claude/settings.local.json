@@ -89,7 +89,11 @@
       "Bash(git rm:*)",
       "Bash(git remote:*)",
       "Bash(git merge:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(npx:*)",
+      "Bash(./node_modules/.bin/tailwindcss:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []

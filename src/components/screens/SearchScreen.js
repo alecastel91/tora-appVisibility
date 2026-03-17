@@ -506,7 +506,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
                   >
                     <div className="result-header">
                       <h3>{profile.name}</h3>
-                      <span className={`role-badge ${profile.role.toLowerCase()}`}>
+                      <span className={`role-badge badge-${profile.role.toLowerCase()}`}>
                         {profile.role}
                       </span>
                     </div>
@@ -802,7 +802,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
               <div className="review-modal-info">
                 <h3>{selectedProfile.name}</h3>
                 <p className="result-location">{selectedProfile.location}</p>
-                <span className={`role-badge ${selectedProfile.role.toLowerCase()}`}>
+                <span className={`role-badge badge-${selectedProfile.role.toLowerCase()}`}>
                   {selectedProfile.role}
                 </span>
               </div>

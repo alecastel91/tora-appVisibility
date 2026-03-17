@@ -1,12 +1,15 @@
 // Profiles will come from backend - this array is now empty
 export const dummyProfiles = [];
 
-// Genre list for dropdown
+// Genre list for dropdown (matches landing page - 37 genres)
 export const genresList = [
-  'Acid House',
+  'Acid',
+  'Afro House',
   'Afrobeat',
+  'Amapiano',
   'Ambient',
   'Bass',
+  'Dancehall',
   'Deep House',
   'Disco',
   'Downtempo',
@@ -19,15 +22,20 @@ export const genresList = [
   'Funk/Soul',
   'Garage',
   'Hardcore',
+  'Hip Hop',
   'House',
   'IDM',
   'Industrial',
   'Italo Disco',
+  'Jazz',
   'Jungle',
   'Melodic Techno',
   'Minimal',
+  'Noise',
   'Progressive House',
   'Psytrance',
+  'R&B',
+  'Reggaeton',
   'Tech House',
   'Techno',
   'Trance'

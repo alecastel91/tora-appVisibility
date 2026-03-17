@@ -12,6 +12,9 @@ const en = {
   profile: {
     editProfile: 'Edit Profile',
     calendar: 'Calendar',
+    manage: 'MANAGE',
+    findAgent: 'FIND AGENT',
+    switchProfile: 'SWITCH PROFILE',
     bio: 'Bio',
     likes: 'Likes',
     liked: 'Liked',
@@ -23,7 +26,15 @@ const en = {
     seeMore: 'See more',
     seeLess: 'See less',
     addLocation: 'Add Location',
-    yourName: 'Your Name'
+    yourName: 'Your Name',
+    latestMix: 'LATEST MIX',
+    spotifyArtist: 'SPOTIFY ARTIST',
+    events: 'EVENTS',
+    viewUpcomingEvents: 'View Upcoming Events',
+    representedBy: 'Represented by',
+    searchingWorldwidePremium: 'Searching worldwide with Premium',
+    searchingWorldwideTrial: 'Searching worldwide with 48h trial',
+    searchLimitedTo: 'Search limited to'
   },
   
   // Edit Profile

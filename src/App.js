@@ -364,7 +364,7 @@ function App() {
                 <span>{t('settings.email')}</span>
                 <span className="settings-value">{accountUser?.email || user?.email || 'Not available'}</span>
               </div>
-              <button className="btn btn-outline" onClick={() => setShowPasswordChange(true)}>{t('settings.changePassword')}</button>
+              <button className="btn btn-outline btn-change-password" onClick={() => setShowPasswordChange(true)}>{t('settings.changePassword')}</button>
             </div>
 
             {/* Subscription & Usage Section */}

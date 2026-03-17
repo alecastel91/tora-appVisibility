@@ -12,6 +12,9 @@ const ja = {
   profile: {
     editProfile: 'プロフィール編集',
     calendar: 'カレンダー',
+    manage: '管理',
+    findAgent: 'エージェントを探す',
+    switchProfile: 'プロフィール切替',
     bio: '自己紹介',
     likes: 'いいね',
     liked: 'いいね済み',
@@ -23,7 +26,15 @@ const ja = {
     seeMore: 'もっと見る',
     seeLess: '閉じる',
     addLocation: '場所を追加',
-    yourName: 'あなたの名前'
+    yourName: 'あなたの名前',
+    latestMix: '最新ミックス',
+    spotifyArtist: 'Spotifyアーティスト',
+    events: 'イベント',
+    viewUpcomingEvents: '今後のイベントを見る',
+    representedBy: '所属',
+    searchingWorldwidePremium: 'プレミアムで世界中を検索中',
+    searchingWorldwideTrial: '48時間トライアルで世界中を検索中',
+    searchLimitedTo: '検索範囲'
   },
   
   // Edit Profile

@@ -1,13 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import apiService from '../../services/api';
+import IntroSplash from '../common/IntroSplash';
+import { motion } from 'framer-motion';
 
 const LoginScreen = ({ onLoginSuccess, onSwitchToSignup }) => {
+  const [showIntro, setShowIntro] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Start showing form at 2.6s (when logo starts sliding)
+    const formTimer = setTimeout(() => setShowForm(true), 2600);
+    // Hide intro at 3.4s (after slide animation completes)
+    const introTimer = setTimeout(() => setShowIntro(false), 3400);
+
+    return () => {
+      clearTimeout(formTimer);
+      clearTimeout(introTimer);
+    };
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -48,23 +64,53 @@ const LoginScreen = ({ onLoginSuccess, onSwitchToSignup }) => {
   };
 
   return (
-    <div className="auth-screen">
-      <div className="auth-container">
-        <div className="auth-header">
-          <img src="/tora_logo.png" alt="TORA" className="auth-logo" />
-          <p className="auth-subtitle">WHERE MUSIC MEETS</p>
-        </div>
+    <>
+      {/* Intro Splash - stays visible during transition */}
+      {showIntro && <IntroSplash />}
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <h2>Welcome Back</h2>
+      {/* Login Form - fades in while logo is sliding */}
+      {showForm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          className="fixed inset-0 flex items-start justify-center bg-black px-5 py-5 overflow-y-auto"
+        >
+      <div className="w-full max-w-md my-5">
+        {/* Header with Logo and Tagline */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+          className="text-center mb-12"
+        >
+          <img
+            src="/tora_logo.png"
+            alt="TORA"
+            className="max-w-[200px] md:max-w-[220px] h-auto mb-3 mx-auto block"
+          />
+          <p className="text-white text-[10px] md:text-[12px] tracking-[0.22em] font-normal mt-2 whitespace-nowrap uppercase">
+            WHERE MUSIC MEETS
+          </p>
+        </motion.div>
 
+        {/* Login Form */}
+        <motion.form
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
+          className="bg-transparent py-0 px-0"
+          onSubmit={handleSubmit}
+        >
+          {/* Error Message */}
           {error && (
-            <div className="error-message">
+            <div className="bg-red-500/10 border border-red-500/50 rounded-lg px-4 py-3 mb-6 text-red-400 text-[13px] leading-relaxed">
               {error}
             </div>
           )}
 
-          <div className="form-group">
+          {/* Email Input */}
+          <div className="mb-4">
             <input
               type="email"
               name="email"
@@ -72,11 +118,12 @@ const LoginScreen = ({ onLoginSuccess, onSwitchToSignup }) => {
               value={formData.email}
               onChange={handleChange}
               required
-              className="form-input"
+              className="w-full px-4 py-3.5 bg-black border border-[#333333] rounded-lg text-white text-[15px] font-rajdhani tracking-[0.1em] placeholder:text-[#666666] focus:outline-none focus:border-primary-pink transition-all duration-200 ease-in-out"
             />
           </div>
 
-          <div className="form-group">
+          {/* Password Input */}
+          <div className="mb-6">
             <input
               type="password"
               name="password"
@@ -84,37 +131,42 @@ const LoginScreen = ({ onLoginSuccess, onSwitchToSignup }) => {
               value={formData.password}
               onChange={handleChange}
               required
-              className="form-input"
+              className="w-full px-4 py-3.5 bg-black border border-[#333333] rounded-lg text-white text-[15px] font-rajdhani tracking-[0.1em] placeholder:text-[#666666] focus:outline-none focus:border-primary-pink transition-all duration-200 ease-in-out"
             />
           </div>
 
+          {/* Login Button */}
           <button
             type="submit"
-            className="btn btn-primary btn-full"
             disabled={loading}
+            className="w-full px-8 py-4 bg-[#1a1a1a] text-white text-sm font-bold uppercase tracking-widest rounded-sm border border-white/15 cursor-pointer transition-all duration-300 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Logging in...' : 'Log In'}
+            {loading ? 'LOGGING IN...' : 'LOG IN'}
           </button>
 
-          <div className="auth-footer">
-            <p>Don't have an account?</p>
+          {/* Sign Up Link */}
+          <div className="text-center mt-5 text-[13px] font-normal">
+            <span className="text-gray-400">Don't have an account? </span>
             <button
               type="button"
-              className="btn-link"
               onClick={onSwitchToSignup}
+              className="text-primary-pink hover:text-primary-pink-hover underline bg-transparent border-none cursor-pointer font-normal transition-colors duration-200"
             >
               Sign Up
             </button>
           </div>
 
-          <div className="demo-credentials">
-            <p>Demo Credentials:</p>
-            <small>Email: demo@tora.com</small>
-            <small>Password: demo123</small>
+          {/* Demo Credentials */}
+          <div className="mt-6 p-4 bg-white/5 rounded-lg text-center border border-white/10">
+            <p className="text-white text-[11px] font-semibold mb-2 tracking-wide">DEMO CREDENTIALS</p>
+            <p className="text-gray-400 text-[13px] leading-relaxed">Email: demo@tora.com</p>
+            <p className="text-gray-400 text-[13px] leading-relaxed">Password: demo123</p>
           </div>
-        </form>
+        </motion.form>
       </div>
-    </div>
+    </motion.div>
+      )}
+    </>
   );
 };
 

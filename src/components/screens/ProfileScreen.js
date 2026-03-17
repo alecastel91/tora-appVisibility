@@ -204,7 +204,7 @@ const ProfileScreen = ({ onOpenPremium }) => {
 
   const getRoleBadgeClass = (role) => {
     const roleClasses = {
-      'ARTIST': 'role-badge',
+      'ARTIST': 'role-badge artist',
       'VENUE': 'role-badge venue',
       'PROMOTER': 'role-badge promoter',
       'AGENT': 'role-badge agent'

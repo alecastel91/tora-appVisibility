@@ -398,36 +398,36 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
                   ))}
                 </select>
               </div>
+            </div>
 
-              <div className="form-group">
-                <label>City *</label>
-                <select
-                  value={formData.city}
-                  onChange={(e) => handleCityChange(e.target.value)}
-                  className="form-input"
-                  disabled={!formData.country}
-                  required
-                >
-                  <option value="">Select City</option>
-                  {availableCities.map(city => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="form-group">
+              <label>City *</label>
+              <select
+                value={formData.city}
+                onChange={(e) => handleCityChange(e.target.value)}
+                className="form-input"
+                disabled={!formData.country}
+                required
+              >
+                <option value="">Select City</option>
+                {availableCities.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Date *</label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => handleChange('date', e.target.value)}
+                className="form-input"
+                required
+              />
             </div>
 
             <div className="form-row">
-              <div className="form-group">
-                <label>Date *</label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => handleChange('date', e.target.value)}
-                  className="form-input"
-                  required
-                />
-              </div>
-
               <div className="form-group">
                 <label>Event Start Time</label>
                 <input
