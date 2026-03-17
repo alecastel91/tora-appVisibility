@@ -189,10 +189,22 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   };
 
   const getAvailableCities = () => {
+    let cities;
     if (filters.countries.length > 0) {
-      return filters.countries.flatMap(country => citiesByCountry[country] || []).sort();
+      cities = filters.countries.flatMap(country => citiesByCountry[country] || []);
+    } else {
+      cities = Object.values(citiesByCountry).flat();
     }
-    return Object.values(citiesByCountry).flat().sort();
+
+    // Remove duplicate "Other" entries - keep only one
+    const uniqueCities = [...new Set(cities)];
+
+    // Sort alphabetically, but put "Other" at the end
+    return uniqueCities.sort((a, b) => {
+      if (a === 'Other') return 1;
+      if (b === 'Other') return -1;
+      return a.localeCompare(b);
+    });
   };
 
   const activeFilterCount = Object.values(filters).reduce((count, arr) => count + arr.length, 0);
@@ -553,13 +565,17 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
         )}
       </div>
       
-      {/* Filter Modal */}
-      <Modal
-        isOpen={showFilters}
-        onClose={() => setShowFilters(false)}
-        title={t('search.filters')}
-      >
-        <div className="filter-modal-content">
+      {/* Filter Full-Page Screen */}
+      {showFilters && (
+        <div className="screen active filter-screen">
+          <div className="screen-header">
+            <button className="back-btn" onClick={() => setShowFilters(false)}>
+              ←
+            </button>
+            <h2>{t('search.filters')}</h2>
+            <div style={{ width: '32px' }}></div>
+          </div>
+          <div className="filter-screen-content">
           {/* Roles Dropdown */}
           <div className="filter-dropdown-group">
             <div 
@@ -716,7 +732,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
           </div>
 
           {/* Filter Actions */}
-          <div className="filter-modal-actions">
+          <div className="filter-screen-actions">
             <button className="btn btn-outline" onClick={clearFilters}>
               {t('search.clearFilters')}
             </button>
@@ -728,7 +744,8 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
             </button>
           </div>
         </div>
-      </Modal>
+        </div>
+      )}
 
       {/* Message Modal */}
       {showMessageModal && selectedProfile && (
