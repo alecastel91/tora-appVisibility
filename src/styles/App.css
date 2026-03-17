@@ -480,9 +480,7 @@
   font-weight: 700;
   color: var(--text-white);
   margin-bottom: 8px;
-  font-family: 'Rajdhani', sans-serif;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
 }
 
 .profile-location {
@@ -3564,11 +3562,9 @@
 
 .result-info h3 {
   color: var(--text-white);
-  font-size: 14px;
-  font-weight: 700;
-  font-family: 'Rajdhani', sans-serif;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 17px;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
   margin: 0;
   line-height: 1.2;
 }
@@ -3834,13 +3830,12 @@
 }
 
 .message-info h3 {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 400;
   color: var(--text-white);
   margin: 0 0 4px 0;
-  font-family: 'Rajdhani', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.2;
 }
 
 .message-preview-container {
@@ -4014,13 +4009,12 @@
 }
 
 .chat-user-details h3 {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 400;
   color: var(--text-white);
   margin: 0;
-  font-family: 'Rajdhani', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.2;
 }
 
 .chat-role {
@@ -5900,12 +5894,10 @@
 
 .match-header h3 {
   color: var(--text-white);
-  font-size: 14px;
+  font-size: 17px;
   margin: 0;
-  font-weight: 700;
-  font-family: 'Rajdhani', sans-serif;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
   line-height: 1.2;
 }
 
@@ -5914,11 +5906,13 @@
 }
 
 .match-location {
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
   margin: 4px 0 8px 0;
+  line-height: 1.4;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }
 
 .match-genres {
@@ -6007,19 +6001,21 @@
 
 .match-name-role h3 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: 'Rajdhani', sans-serif;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 17px;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
   color: var(--text-white);
   line-height: 1.2;
 }
 
 .match-base-location {
   margin: 0;
-  font-size: 13px;
-  color: var(--text-secondary);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }
 
 .btn-match-full {
@@ -6108,7 +6104,8 @@
 .view-profile-content .profile-name {
   margin: 0;
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
 }
 
 .view-profile-content .profile-actions-bottom {
@@ -6239,15 +6236,13 @@
 }
 
 .premium-header h1 {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 600;
   color: var(--text-white);
   margin: 0;
   flex: 1;
   text-align: center;
-  font-family: 'Rajdhani', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: 'Inter', sans-serif;
 }
 
 .premium-header .back-button {
@@ -6598,10 +6593,10 @@
 
 .price {
   font-size: 32px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-white);
   margin-bottom: 8px;
-  font-family: 'Rajdhani', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .price span {
@@ -9562,14 +9557,12 @@ textarea.form-textarea:focus {
 }
 
 .party-name-role h3 {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 400;
   color: var(--text-white);
   margin: 0;
   line-height: 1.2;
-  font-family: 'Rajdhani', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: 'Inter', sans-serif;
 }
 
 .party-name-role .role-badge {
