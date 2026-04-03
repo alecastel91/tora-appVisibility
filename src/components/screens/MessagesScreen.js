@@ -14,7 +14,7 @@ const MessagesScreen = ({ onOpenChat }) => {
 
   // Function to fetch all data
   const fetchData = async () => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       setLoading(false);
       return;
     }
@@ -27,7 +27,7 @@ const MessagesScreen = ({ onOpenChat }) => {
       // OPTIMIZED: Fetch both in parallel
       const [convos, requestsData] = await Promise.all([
         getConversations(),
-        apiService.getReceivedRequests(user._id)
+        apiService.getReceivedRequests(user.id)
       ]);
 
       setConversations(convos);
@@ -44,7 +44,7 @@ const MessagesScreen = ({ onOpenChat }) => {
     // Fetch data when component mounts or user changes
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?._id]);
+  }, [user?.id]);
 
   const getTimeAgo = (timestamp) => {
     const now = new Date();
@@ -118,7 +118,7 @@ const MessagesScreen = ({ onOpenChat }) => {
               const isDeleted = conv.profile.isDeleted || false;
               return (
                 <div
-                  key={conv.profile._id || conv.profile.id}
+                  key={conv.profile.id}
                   className={`message-card ${conv.unreadCount > 0 ? 'unread' : ''} ${isDeleted ? 'deleted-profile' : ''}`}
                   onClick={() => onOpenChat && onOpenChat(conv.profile)}
                 >

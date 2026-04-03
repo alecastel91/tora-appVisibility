@@ -83,20 +83,20 @@ const ManageProfileScreen = ({ onClose }) => {
   // Fetch dashboard data - matches ManageArtistScreen logic
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!user?._id) {
-        console.log('[ManageProfileScreen] No user._id, skipping dashboard fetch');
+      if (!user?.id) {
+        console.log('[ManageProfileScreen] No user.id, skipping dashboard fetch');
         return;
       }
 
       try {
-        console.log('[ManageProfileScreen] Fetching deals for user:', user._id);
+        console.log('[ManageProfileScreen] Fetching deals for user:', user.id);
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const yearStart = new Date(today.getFullYear(), 0, 1);
 
         // Fetch deals using profileId parameter
-        const response = await apiService.getDeals({ profileId: user._id });
+        const response = await apiService.getDeals({ profileId: user.id });
         console.log('[ManageProfileScreen] Deals response:', response);
 
         if (response && response.deals && response.deals.length > 0) {
@@ -276,12 +276,12 @@ const ManageProfileScreen = ({ onClose }) => {
 
     fetchDashboardData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?._id, preferredCurrency]);
+  }, [user?.id, preferredCurrency]);
 
   // Sync documents when user changes - different structure based on role
-  // Only sync on initial mount or when user._id changes (not on every user update)
+  // Only sync on initial mount or when user.id changes (not on every user update)
   useEffect(() => {
-    console.log('[ManageProfileScreen] User._id changed, syncing documents. Role:', user?.role);
+    console.log('[ManageProfileScreen] User.id changed, syncing documents. Role:', user?.role);
     console.log('[ManageProfileScreen] User documents:', user?.documents);
 
     if (isPromoterOrVenue) {
@@ -300,7 +300,7 @@ const ManageProfileScreen = ({ onClose }) => {
       setDocuments(categorizedDocs);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?._id]); // Only re-sync when user ID changes, not on every user update
+  }, [user?.id]); // Only re-sync when user ID changes, not on every user update
 
   // Document handlers - different logic for Promoter/Venue vs Artist
   const handleAddDocument = (category) => {
@@ -386,8 +386,8 @@ const ManageProfileScreen = ({ onClose }) => {
 
     // Save to backend
     try {
-      console.log('[ManageProfileScreen] Calling API to save documents for user:', user._id);
-      const response = await apiService.updateProfile(user._id, {
+      console.log('[ManageProfileScreen] Calling API to save documents for user:', user.id);
+      const response = await apiService.updateProfile(user.id, {
         documents: isPromoterOrVenue ? { general: updatedDocuments } : updatedDocuments
       });
       console.log('[ManageProfileScreen] API response:', response);
@@ -425,7 +425,7 @@ const ManageProfileScreen = ({ onClose }) => {
 
     // Save to backend
     try {
-      await apiService.updateProfile(user._id, {
+      await apiService.updateProfile(user.id, {
         documents: isPromoterOrVenue ? { general: updatedDocuments } : updatedDocuments
       });
       await reloadProfileData();
@@ -843,7 +843,7 @@ const ManageProfileScreen = ({ onClose }) => {
           console.log('=== DOCUMENT SAVE DEBUG START ===');
           console.log('[ManageProfileScreen] Document data:', documentData);
           console.log('[ManageProfileScreen] Current user:', {
-            _id: user?._id,
+            id: user?.id,
             name: user?.name,
             role: user?.role
           });
@@ -914,9 +914,9 @@ const ManageProfileScreen = ({ onClose }) => {
               ? { general: updatedDocuments }
               : updatedDocuments;
             console.log('[ManageProfileScreen] Documents payload to save:', JSON.stringify(documentsToSave, null, 2));
-            console.log('[ManageProfileScreen] Calling apiService.updateProfile with profileId:', user._id);
+            console.log('[ManageProfileScreen] Calling apiService.updateProfile with profileId:', user.id);
 
-            const result = await apiService.updateProfile(user._id, { documents: documentsToSave });
+            const result = await apiService.updateProfile(user.id, { documents: documentsToSave });
             console.log('[ManageProfileScreen] Backend response:', result);
 
             // Update local state AFTER successful save

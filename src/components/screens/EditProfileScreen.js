@@ -104,8 +104,7 @@ const EditProfileScreen = ({ onClose }) => {
       delete updatedProfile.city;
       delete updatedProfile.country;
 
-      // Use id or _id depending on what's available
-      const profileId = user._id || user.id;
+      const profileId = user.id;
 
       if (!profileId) {
         setError('Profile ID is missing. Please log out and log back in.');
@@ -117,8 +116,9 @@ const EditProfileScreen = ({ onClose }) => {
       const response = await apiService.updateProfile(profileId, updatedProfile);
 
       // Update local state with response from backend
-      // Backend returns profile directly, not wrapped in { profile: ... }
-      updateUser(response);
+      // SQL backend returns { message, profile }, so extract profile
+      const updatedProfileData = response.profile || response;
+      updateUser(updatedProfileData);
 
       onClose();
     } catch (err) {

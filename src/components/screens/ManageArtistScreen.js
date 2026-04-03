@@ -93,13 +93,13 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         console.log('ManageArtistScreen - Artist object:', artist);
 
         // Get artist's ID - check multiple possible field names (profileId is from representation relationships)
-        const artistId = artist.profileId || artist._id || artist.id;
+        const artistId = artist.profileId || artist.id || artist.id;
 
         console.log('ManageArtistScreen - Artist ID:', artistId);
 
         if (!artistId) {
-          console.warn('Artist ID not found, using mock data');
-          setUpcomingGigs(15); // fallback to mock
+          console.warn('Artist ID not found');
+          setUpcomingGigs(0);
           return;
         }
 
@@ -284,10 +284,10 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         }
       } catch (error) {
         console.error('Error fetching upcoming gigs:', error);
-        // On error, fall back to mock data
-        setUpcomingGigs(15);
-        setYtdRevenue(127450);
-        setGigsError(true);
+        // Deals not migrated yet (Cluster 4) - show zeros instead of mock data
+        setUpcomingGigs(0);
+        setYtdRevenue(0);
+        setGigsError(false);
       }
     };
 
@@ -298,7 +298,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   useEffect(() => {
     const fetchArtistProfile = async () => {
       try {
-        const artistId = artist.profileId || artist._id || artist.id;
+        const artistId = artist.profileId || artist.id || artist.id;
 
         if (!artistId) {
           console.warn('ManageArtistScreen - No artist ID found, using passed artist data');
@@ -585,7 +585,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         // Editing existing schedule - preserve existing ID and merge new data
         const existingSchedule = travelSchedule[editingScheduleIndex];
         const updatedScheduleData = {
-          ...existingSchedule,  // Preserve all existing fields (including _id, id, etc.)
+          ...existingSchedule,  // Preserve all existing fields (including id, etc.)
           ...scheduleData       // Override with new data
         };
 
@@ -608,7 +608,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
       // Save to backend
       try {
         console.log('[ManageArtistScreen] Saving travel schedule:', updatedSchedule);
-        const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id || artist._id;
+        const artistId = artistProfile?.profileId || artistProfile?.id || artistProfile?.id || artist.id;
 
         // Save to backend
         const updatedProfile = await apiService.updateProfile(artistId, {
@@ -696,7 +696,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     // Save to backend
     try {
       console.log('[ManageArtistScreen] Deleting travel schedule, new array:', updatedSchedule);
-      const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id || artist._id;
+      const artistId = artistProfile?.profileId || artistProfile?.id || artistProfile?.id || artist.id;
 
       await apiService.updateProfile(artistId, {
         travelSchedule: updatedSchedule
@@ -744,7 +744,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
   // Artist info save function (full profile edit)
   const handleSaveArtistInfo = async () => {
     try {
-      const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+      const artistId = artistProfile?.profileId || artistProfile?.id || artistProfile?.id;
 
       if (!artistId) {
         alert('Artist ID not found');
@@ -843,109 +843,17 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     return name ? name.charAt(0).toUpperCase() : 'A';
   };
 
-  // Mock data for demonstration
+  // Placeholder data (will be populated from backend when Cluster 4 is migrated)
   const mockData = {
     metrics: {
-      upcomingGigs: 15,
-      ytdRevenue: 127450,
-      avgRating: 4.8
+      upcomingGigs: 0,
+      ytdRevenue: 0,
+      avgRating: 0
     },
-    actionItems: [
-      {
-        id: 1,
-        type: 'contract',
-        icon: '⚠️',
-        title: 'Contract needs signature',
-        description: 'Berlin, Watergate - Dec 1',
-        action: 'View Contract'
-      },
-      {
-        id: 2,
-        type: 'payment',
-        icon: '💰',
-        title: 'Payment overdue (7 days)',
-        description: 'London, Fabric - Nov 28 gig',
-        action: 'Send Reminder'
-      },
-      {
-        id: 3,
-        type: 'inquiry',
-        icon: '📨',
-        title: '2 booking inquiries pending',
-        description: 'Awaiting response',
-        action: 'View Requests'
-      }
-    ],
-    revenueData: [
-      { month: 'Jan', amount: 15000 },
-      { month: 'Feb', amount: 17500 },
-      { month: 'Mar', amount: 16000 },
-      { month: 'Apr', amount: 19000 },
-      { month: 'May', amount: 20500 },
-      { month: 'Jun', amount: 18500 },
-      { month: 'Jul', amount: 22000 },
-      { month: 'Aug', amount: 19500 },
-      { month: 'Sep', amount: 25000 },
-      { month: 'Oct', amount: 21000 },
-      { month: 'Nov', amount: 21450 },
-      { month: 'Dec', amount: 23500 }
-    ],
-    pendingOffers: [
-      {
-        id: 1,
-        venue: 'Fold',
-        location: 'London',
-        date: 'Dec 15, 2024',
-        fee: 4000,
-        currency: '£'
-      },
-      {
-        id: 2,
-        venue: 'Sisyphos',
-        location: 'Berlin',
-        date: 'Dec 20, 2024',
-        fee: 3500,
-        currency: '€'
-      }
-    ],
-    upcomingEvents: [
-      {
-        id: 1,
-        date: 'Dec 1, 2024',
-        time: '11:00 PM',
-        venue: 'Watergate',
-        location: 'Berlin',
-        fee: 5000,
-        currency: '€',
-        status: 'confirmed',
-        statusLabel: 'CONFIRMED',
-        statusDetails: 'Contract Signed, Payment Confirmed'
-      },
-      {
-        id: 2,
-        date: 'Dec 5, 2024',
-        time: '10:00 PM',
-        venue: 'Fabric',
-        location: 'London',
-        fee: 4500,
-        currency: '£',
-        status: 'pending-payment',
-        statusLabel: 'PENDING PAYMENT',
-        statusDetails: 'Gig completed, payment due'
-      },
-      {
-        id: 3,
-        date: 'Dec 8, 2024',
-        time: '11:30 PM',
-        venue: 'Closer',
-        location: 'Kyiv',
-        fee: 3000,
-        currency: '$',
-        status: 'offer-pending',
-        statusLabel: 'OFFER PENDING',
-        statusDetails: 'Received 2 days ago'
-      }
-    ]
+    actionItems: [],
+    revenueData: [],
+    pendingOffers: [],
+    upcomingEvents: []
   };
 
   const formatCurrency = (amount) => {
@@ -1119,7 +1027,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
     // Save available dates to backend
     const saveAvailableDatesToBackend = async (dates) => {
       try {
-        const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+        const artistId = artistProfile?.profileId || artistProfile?.id || artistProfile?.id;
 
         if (!artistId) {
           console.error('[ManageArtistScreen] Cannot save available dates - Artist ID is missing');
@@ -1455,24 +1363,24 @@ const ManageArtistScreen = ({ artist, onClose }) => {
             <div className="month-year-header">{cluster.monthYear}</div>
             <div className="bookings-list">
               {cluster.deals.map(deal => {
-                const isExpanded = expandedDealId === deal._id;
+                const isExpanded = expandedDealId === deal.id;
                 const dealDate = new Date(deal.date);
                 const dayNumber = dealDate.getDate();
                 const otherParty = deal.venue || deal.artist || {};
 
                 // Check if this is a deal viewed by the artist via their agent
-                const artistProfileId = artist.profileId || artist._id || artist.id;
-                const isViaAgent = deal.artistId && deal.artistId === artistProfileId && deal.artist._id !== artistProfileId;
+                const artistProfileId = artist.profileId || artist.id || artist.id;
+                const isViaAgent = deal.artistId && deal.artistId === artistProfileId && deal.artist.id !== artistProfileId;
 
                 return (
-                  <div key={deal._id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
+                  <div key={deal.id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
                     <div className="booking-date-badge">
                       {dayNumber}
                     </div>
                     <div className="booking-compact-view">
                       <div
                         className="party-avatar"
-                        onClick={() => toggleDealExpanded(deal._id)}
+                        onClick={() => toggleDealExpanded(deal.id)}
                         style={{ cursor: 'pointer' }}
                       >
                         {otherParty.avatar ? (
@@ -1484,7 +1392,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
                       <div
                         className="party-info"
-                        onClick={() => toggleDealExpanded(deal._id)}
+                        onClick={() => toggleDealExpanded(deal.id)}
                         style={{ cursor: 'pointer', flex: 1 }}
                       >
                         <div className="party-name-role">
@@ -1510,7 +1418,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
                       <button
                         className="btn-expand-arrow"
-                        onClick={() => toggleDealExpanded(deal._id)}
+                        onClick={() => toggleDealExpanded(deal.id)}
                       >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
                           <path d="M6 9l6 6 6-6"/>
@@ -1688,10 +1596,10 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
     // Save to backend
     try {
-      const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+      const artistId = artistProfile?.profileId || artistProfile?.id || artistProfile?.id;
       console.log('[ManageArtistScreen] Artist ID for save:', artistId);
-      console.log('[ManageArtistScreen] Current user ID:', user._id);
-      console.log('[ManageArtistScreen] Are they equal?', user._id === artistId);
+      console.log('[ManageArtistScreen] Current user ID:', user.id);
+      console.log('[ManageArtistScreen] Are they equal?', user.id === artistId);
       console.log('[ManageArtistScreen] artistProfile object:', artistProfile);
 
       if (artistId) {
@@ -1708,8 +1616,8 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
         // If this is the current user's profile, reload global context
         console.log('[ManageArtistScreen] Checking if should reload global context...');
-        console.log('[ManageArtistScreen] Comparing user._id:', user._id, 'with artistId:', artistId);
-        if (user._id === artistId || user._id === freshProfile._id) {
+        console.log('[ManageArtistScreen] Comparing user.id:', user.id, 'with artistId:', artistId);
+        if (user.id === artistId || user.id === freshProfile.id) {
           console.log('[ManageArtistScreen] ✅ This is current user, reloading global context');
           await reloadProfileData();
         } else {
@@ -1739,7 +1647,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
     // Save to backend
     try {
-      const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+      const artistId = artistProfile?.profileId || artistProfile?.id || artistProfile?.id;
       if (artistId) {
         await apiService.updateProfile(artistId, { documents: updatedDocuments });
         console.log('[ManageArtistScreen] Document deleted and saved to backend');
@@ -1749,8 +1657,8 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         setArtistProfile(freshProfile);
 
         // If this is the current user's profile, reload global context
-        console.log('[ManageArtistScreen] Delete - Comparing user._id:', user._id, 'with artistId:', artistId);
-        if (user._id === artistId || user._id === freshProfile._id) {
+        console.log('[ManageArtistScreen] Delete - Comparing user.id:', user.id, 'with artistId:', artistId);
+        if (user.id === artistId || user.id === freshProfile.id) {
           console.log('[ManageArtistScreen] ✅ This is current user, reloading global context after delete');
           await reloadProfileData();
         } else {
@@ -2094,7 +2002,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
           onClick={async () => {
             try {
               // Fetch absolutely fresh data from backend before opening modal
-              const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id || artist._id;
+              const artistId = artistProfile?.profileId || artistProfile?.id || artistProfile?.id || artist.id;
               console.log('[ManageArtistScreen] Fetching fresh profile before edit, artistId:', artistId);
 
               const freshProfile = await apiService.getProfile(artistId);
@@ -2432,7 +2340,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
         <button className="back-btn" onClick={onClose}>
           <CloseIcon />
         </button>
-        <h1>Manage {artist.name}</h1>
+        <h1>Manage</h1>
       </div>
 
       {/* Artist Info Bar */}
@@ -2959,7 +2867,7 @@ const ManageArtistScreen = ({ artist, onClose }) => {
 
           // Save to backend
           try {
-            const artistId = artistProfile?.profileId || artistProfile?._id || artistProfile?.id;
+            const artistId = artistProfile?.profileId || artistProfile?.id || artistProfile?.id;
             if (artistId) {
               await apiService.updateProfile(artistId, { documents: updatedDocuments });
               const freshProfile = await apiService.getProfile(artistId);

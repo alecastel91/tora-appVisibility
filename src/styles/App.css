@@ -1700,9 +1700,11 @@
   display: block;
   margin-bottom: 8px;
   color: var(--text-gray);
-  font-size: var(--font-sm);
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
 .form-group input,
@@ -1710,11 +1712,12 @@
 .form-group select {
   width: 100%;
   padding: 14px 16px;
-  background: var(--bg-black);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
   color: var(--text-white);
-  font-size: var(--font-base);
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
   outline: none;
 }
 
@@ -1722,11 +1725,31 @@
 .form-group textarea:focus,
 .form-group select:focus {
   border-color: var(--primary-pink);
+  background: #0a0a0a;
 }
 
 .form-group textarea {
   resize: vertical;
   min-height: 120px;
+}
+
+/* More specific selectors for dark backgrounds without !important */
+.edit-profile-screen .form-group input,
+.edit-profile-screen .form-group textarea,
+.edit-profile-screen .form-group select,
+.make-offer-modal .form-group input,
+.make-offer-modal .form-group textarea,
+.make-offer-modal .form-group select {
+  background-color: #000000;
+}
+
+.edit-profile-screen .form-group input:focus,
+.edit-profile-screen .form-group textarea:focus,
+.edit-profile-screen .form-group select:focus,
+.make-offer-modal .form-group input:focus,
+.make-offer-modal .form-group textarea:focus,
+.make-offer-modal .form-group select:focus {
+  background-color: #0a0a0a;
 }
 
 .form-actions {
@@ -1948,15 +1971,13 @@
 }
 
 .settings-header h1 {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 600;
   color: var(--text-white);
   margin: 0;
   flex: 1;
   text-align: center;
-  font-family: 'Rajdhani', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: 'Inter', sans-serif;
 }
 
 .settings-header .back-button {
@@ -2772,17 +2793,15 @@
 }
 
 /* Edit Profile Screen - Full Page */
-.edit-profile-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
+.edit-profile-screen.screen.active {
+  display: flex !important;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 120px) !important;
+  max-height: calc(100vh - 120px);
+  min-height: 0 !important;
   background: var(--bg-black);
-  z-index: 1000;
+  padding: 0;
+  overflow: hidden;
 }
 
 .edit-profile-header {
@@ -2796,12 +2815,18 @@
   z-index: 100;
 }
 
+.edit-profile-header .back-btn {
+  margin-right: 16px;
+}
+
 .edit-profile-header h1 {
-  flex: 1;
-  text-align: center;
   font-size: 20px;
+  font-weight: 600;
   color: var(--text-white);
   margin: 0;
+  font-family: 'Rajdhani', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .save-btn {
@@ -2816,13 +2841,62 @@
 
 .edit-profile-content {
   flex: 1;
-  overflow-y: scroll;
+  overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding: 20px;
   padding-bottom: 80px;
   min-height: 0;
-  max-height: calc(100vh - 60px);
+}
+
+/* Search Agents Screen - Full Page */
+.search-agents-screen {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-black);
+  padding: 0;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.search-agents-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.search-agents-header .back-btn {
+  margin-right: 16px;
+}
+
+.search-agents-header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-white);
+  margin: 0;
+  font-family: 'Rajdhani', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.search-agents-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 20px;
+  padding-bottom: 80px;
+  min-height: 0;
 }
 
 .edit-section {
@@ -3571,7 +3645,7 @@
 
 .result-location {
   color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: 13px;
   margin: 0;
   line-height: 1.4;
   font-family: 'Rajdhani', sans-serif;
@@ -5907,7 +5981,7 @@
 
 .match-location {
   color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  font-size: 13px;
   margin: 4px 0 8px 0;
   line-height: 1.4;
   font-family: 'Rajdhani', sans-serif;
@@ -6010,7 +6084,7 @@
 
 .match-base-location {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.5);
   line-height: 1.4;
   font-family: 'Rajdhani', sans-serif;
@@ -6288,12 +6362,10 @@
 
 .premium-title {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-white);
   margin: 0 0 12px 0;
-  font-family: 'Rajdhani', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: 'Inter', sans-serif;
 }
 
 .premium-description {
@@ -6525,7 +6597,7 @@
 }
 
 .price-card {
-  background: #0f0f0f;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   padding: 24px;
@@ -6738,8 +6810,11 @@
 .btn-full {
   width: 100%;
   padding: 14px;
-  font-size: 16px;
+  font-size: 11px;
   font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .payment-note {
@@ -7436,6 +7511,9 @@
   font-weight: 600;
   color: #fff;
   margin: 0;
+  font-family: 'Rajdhani', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .manage-artist-content {
@@ -8811,6 +8889,7 @@
   margin: 0;
   font-size: 20px;
   font-weight: 600;
+  font-family: 'Inter', sans-serif;
 }
 
 .modal-close-btn {
@@ -9234,14 +9313,14 @@
 
 select.form-input {
   cursor: pointer;
-  background-color: #000000 !important;
+  background-color: #000000;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
 }
 
 select.form-input:focus {
-  background-color: #0a0a0a !important;
+  background-color: #0a0a0a;
 }
 
 input.form-input,
@@ -9250,7 +9329,7 @@ input[type="date"].form-input,
 input[type="time"].form-input,
 input[type="number"].form-input,
 textarea.form-textarea {
-  background-color: #000000 !important;
+  background-color: #000000;
 }
 
 input.form-input:focus,
@@ -9259,7 +9338,7 @@ input[type="date"].form-input:focus,
 input[type="time"].form-input:focus,
 input[type="number"].form-input:focus,
 textarea.form-textarea:focus {
-  background-color: #0a0a0a !important;
+  background-color: #0a0a0a;
 }
 
 /* Responsive make offer modal */
@@ -9580,7 +9659,7 @@ textarea.form-textarea:focus {
 }
 
 .party-location {
-  font-size: 11px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.5);
   margin: 0 0 8px 0;
   font-family: 'Rajdhani', sans-serif;
@@ -9705,6 +9784,9 @@ textarea.form-textarea:focus {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
   flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
   font-family: 'Inter', sans-serif;
   letter-spacing: 0.02em;
 }
@@ -10701,6 +10783,7 @@ textarea.form-textarea:focus {
   border-radius: 8px;
   color: var(--text-white);
   font-size: 15px;
+  font-family: 'Rajdhani', sans-serif;
 }
 
 .search-input:focus {
@@ -10711,6 +10794,7 @@ textarea.form-textarea:focus {
 
 .search-input::placeholder {
   color: rgba(255, 255, 255, 0.4);
+  font-family: 'Rajdhani', sans-serif;
 }
 
 .loading-state {
@@ -10735,6 +10819,7 @@ textarea.form-textarea:focus {
   color: var(--text-gray);
   font-size: 14px;
   margin: 0;
+  font-family: 'Rajdhani', sans-serif;
 }
 
 .artist-item {
@@ -10774,8 +10859,9 @@ textarea.form-textarea:focus {
 
 .artist-details h4 {
   margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
   color: var(--text-white);
   white-space: nowrap;
   overflow: hidden;
@@ -10785,7 +10871,10 @@ textarea.form-textarea:focus {
 .artist-location {
   margin: 0 0 8px 0;
   font-size: 13px;
-  color: var(--text-gray);
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

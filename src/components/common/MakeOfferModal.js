@@ -47,7 +47,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
       if (isOpen && recipientProfile && recipientProfile.role === 'AGENT') {
         try {
           // Fetch the full profile data to get representingArtists array
-          const profileData = await apiService.getProfile(recipientProfile._id);
+          const profileData = await apiService.getProfile(recipientProfile.id);
           setRepresentedArtists(profileData.representingArtists || []);
         } catch (error) {
           console.error('Error fetching represented artists:', error);
@@ -214,8 +214,8 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
       const feeValue = Math.round(parseFloat(formData.fee) * 100) / 100;
 
       const dealData = {
-        initiatorProfileId: currentUser._id,
-        recipientProfileId: recipientProfile._id,
+        initiatorProfileId: currentUser.id,
+        recipientProfileId: recipientProfile.id,
         eventName: formData.eventName,
         venueName: formData.venueName || recipientProfile.name,
         zone: formData.zone,

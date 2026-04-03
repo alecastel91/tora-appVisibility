@@ -106,7 +106,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
 
         for (const profile of allProfiles) {
           // Skip self
-          if (profile._id === user._id) continue;
+          if (profile.id === user.id) continue;
 
           // Check role compatibility
           if (!isValidRoleMatch(user.role, profile.role)) continue;
@@ -155,7 +155,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     };
 
     fetchCalendarMatches();
-  }, [user?._id, user?.subscriptionTier, user?.availableDates?.length, activeTab]);
+  }, [user?.id, user?.subscriptionTier, user?.availableDates?.length, activeTab]);
 
   // Fetch tours when Kickstart tab is active
   useEffect(() => {
@@ -187,7 +187,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     };
 
     fetchTours();
-  }, [user?._id, user?.role, activeTab, onUnreadProposalsChange]);
+  }, [user?.id, user?.role, activeTab, onUnreadProposalsChange]);
 
   // Helper function to check role compatibility
   const isValidRoleMatch = (role1, role2) => {
@@ -323,7 +323,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
 
   const handleSendMessage = () => {
     if (selectedProfile) {
-      const profileId = selectedProfile._id || selectedProfile.id;
+      const profileId = selectedProfile.id;
       sendConnectionRequest(profileId, message.trim() || '');
       setShowMessageModal(false);
       setMessage('');
@@ -341,13 +341,13 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     // Check if viewingProfile is already a profile object (from tour cards)
     let profileToView = null;
 
-    if (typeof viewingProfile === 'object' && viewingProfile._id) {
+    if (typeof viewingProfile === 'object' && viewingProfile.id) {
       // Already a profile object from tour artist
       profileToView = viewingProfile;
     } else {
       // It's an ID string, find from calendar matches
       profileToView = calendarMatches.find(m => {
-        const id = m.profile._id || m.profile.id;
+        const id = m.profile.id;
         return id === viewingProfile;
       })?.profile;
     }
@@ -477,7 +477,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                 </p>
 
                 {matches.map((match, index) => {
-                  const profileId = match.profile._id || match.profile.id;
+                  const profileId = match.profile.id;
                   const isRequested = sentRequests.has(profileId);
                   const isConnected = connectedUsers.has(profileId);
 
@@ -704,11 +704,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
         additionalNotes: tourForm.additionalNotes
       };
 
-      const response = await apiService.updateTour(selectedTour._id, tourData);
+      const response = await apiService.updateTour(selectedTour.id, tourData);
 
       // Update tours list with the updated tour
       const updatedTour = response.tour;
-      setMyTours(prev => prev.map(t => t._id === updatedTour._id ? updatedTour : t));
+      setMyTours(prev => prev.map(t => t.id === updatedTour.id ? updatedTour : t));
 
       // Close modal and reset form
       setShowEditTourModal(false);
@@ -743,7 +743,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/tours/${tour._id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/tours/${tour.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -755,7 +755,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       }
 
       // Remove tour from myTours state
-      setMyTours(prevTours => prevTours.filter(t => t._id !== tour._id));
+      setMyTours(prevTours => prevTours.filter(t => t.id !== tour.id));
 
       alert('Tour deleted successfully!');
     } catch (error) {
@@ -772,7 +772,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
 
     try {
       // Fetch deals linked to this tour
-      const response = await apiService.getDealsForTour(tour._id);
+      const response = await apiService.getDealsForTour(tour.id);
       setTourGigs(response.deals || []);
     } catch (error) {
       console.error('Error fetching tour gigs:', error);
@@ -789,8 +789,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
 
     try {
       // Fetch the full proposal details
-      const response = await apiService.getTourProposals(tour._id);
-      const myProposal = response.proposals?.find(p => p._id === tour.myProposal._id);
+      const response = await apiService.getTourProposals(tour.id);
+      const myProposal = response.proposals?.find(p => p.id === tour.myProposal.id);
 
       if (!myProposal) {
         alert('Proposal not found');
@@ -1251,7 +1251,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             ) : (
               <div className="tour-cards-list">
                 {myTours.map(tour => (
-                  <div key={tour._id} className="tour-card">
+                  <div key={tour.id} className="tour-card">
                     <div className="tour-card-header">
                       <div className="tour-info">
                         <h4>{tour.country || tour.zone} Tour</h4>
@@ -1513,7 +1513,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             ) : (
               <div className="tour-cards-list">
                 {filteredTours.map(tour => (
-                  <div key={tour._id} className="tour-card">
+                  <div key={tour.id} className="tour-card">
                     <div className="tour-card-header">
                       <div className="tour-artist-info">
                         <div className="tour-artist-avatar">
@@ -1607,7 +1607,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                         onClick={async () => {
                           // Fetch full artist profile from backend
                           try {
-                            const fullProfile = await apiService.getProfile(tour.artist._id);
+                            const fullProfile = await apiService.getProfile(tour.artist.id);
                             setViewingProfile(fullProfile);
                           } catch (error) {
                             console.error('Error fetching artist profile:', error);
@@ -1850,7 +1850,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               ) : (
                 <div className="tour-gigs-list">
                   {tourGigs.map(deal => (
-                    <div key={deal._id} className="tour-gig-card" style={{
+                    <div key={deal.id} className="tour-gig-card" style={{
                       background: '#1a1a1a',
                       borderRadius: '8px',
                       padding: '16px',

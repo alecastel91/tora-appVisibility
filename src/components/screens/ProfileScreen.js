@@ -120,9 +120,9 @@ const ProfileScreen = ({ onOpenPremium }) => {
   // Fetch representation status for artists
   useEffect(() => {
     const fetchRepresentationStatus = async () => {
-      if (user?.role === 'ARTIST' && user?._id) {
+      if (user?.role === 'ARTIST' && user?.id) {
         try {
-          const data = await apiService.getProfileData(user._id);
+          const data = await apiService.getProfileData(user.id);
 
           // Check if there's an accepted representation request where the artist received it
           const acceptedRepresentation = (data.requests || []).find(
@@ -159,13 +159,13 @@ const ProfileScreen = ({ onOpenPremium }) => {
   // No need to fetch - data is already loaded in AppContext
   useEffect(() => {
     // This effect is now just for debugging/logging if needed
-    if (user?._id) {
+    if (user?.id) {
       console.log('ProfileScreen: Using cached profile data');
       console.log('Liked profiles:', likedProfilesList.length);
       console.log('Likers:', likerProfilesList.length);
       console.log('Connections:', connectionsList.length);
     }
-  }, [user?._id, likedProfilesList.length, likerProfilesList.length, connectionsList.length]);
+  }, [user?.id, likedProfilesList.length, likerProfilesList.length, connectionsList.length]);
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
@@ -174,7 +174,7 @@ const ProfileScreen = ({ onOpenPremium }) => {
       reader.onloadend = async () => {
         try {
           const avatarData = reader.result;
-          const profileId = user._id || user.id;
+          const profileId = user.id;
 
           if (!profileId) {
             console.error('Profile ID is missing');
@@ -216,7 +216,7 @@ const ProfileScreen = ({ onOpenPremium }) => {
     if (!profileToDelete) return;
 
     try {
-      await deleteProfile(profileToDelete._id || profileToDelete.id);
+      await deleteProfile(profileToDelete.id);
       setProfileToDelete(null);
       setShowProfileSwitcher(false);
     } catch (error) {
@@ -227,8 +227,8 @@ const ProfileScreen = ({ onOpenPremium }) => {
 
   const handleSelectAgent = async (agent, message = '') => {
     try {
-      const artistProfileId = user._id || user.id;
-      const agentProfileId = agent._id || agent.id;
+      const artistProfileId = user.id;
+      const agentProfileId = agent.id;
 
       await apiService.sendRepresentationRequest(
         artistProfileId,
@@ -295,7 +295,7 @@ const ProfileScreen = ({ onOpenPremium }) => {
         onClose={() => setShowAddProfile(false)}
         onSuccess={(newProfile) => {
           // Switch to the new profile
-          switchProfile(newProfile._id || newProfile.id);
+          switchProfile(newProfile.id);
         }}
       />
     );
@@ -648,7 +648,7 @@ const ProfileScreen = ({ onOpenPremium }) => {
         <div className="profiles-list">
           {likedProfilesList.length > 0 ? (
             likedProfilesList.map(profile => (
-              <div key={profile._id || profile.id} className="profile-list-item">
+              <div key={profile.id} className="profile-list-item">
                 {profile.avatar ? (
                   <img src={profile.avatar} alt={profile.name} />
                 ) : (
@@ -676,7 +676,7 @@ const ProfileScreen = ({ onOpenPremium }) => {
         <div className="profiles-list">
           {likerProfilesList.length > 0 ? (
             likerProfilesList.map(profile => (
-              <div key={profile._id || profile.id} className="profile-list-item">
+              <div key={profile.id} className="profile-list-item">
                 {profile.avatar ? (
                   <img src={profile.avatar} alt={profile.name} />
                 ) : (
@@ -704,7 +704,7 @@ const ProfileScreen = ({ onOpenPremium }) => {
         <div className="profiles-list">
           {connectionsList.length > 0 ? (
             connectionsList.map(profile => (
-              <div key={profile._id || profile.id} className="profile-list-item">
+              <div key={profile.id} className="profile-list-item">
                 {profile.avatar ? (
                   <img src={profile.avatar} alt={profile.name} />
                 ) : (
@@ -737,8 +737,8 @@ const ProfileScreen = ({ onOpenPremium }) => {
           )}
           <div className="profile-switcher-list">
             {userProfiles.map(profile => {
-              const profileId = profile._id || profile.id;
-              const currentUserId = user?._id || user?.id;
+              const profileId = profile.id;
+              const currentUserId = user?.id;
               const isActive = profileId === currentUserId;
 
               return (
@@ -843,7 +843,7 @@ const ProfileScreen = ({ onOpenPremium }) => {
         <SearchAgentsModal
           onClose={() => setShowFindAgent(false)}
           onSelectAgent={handleSelectAgent}
-          currentArtistId={user?._id || user?.id}
+          currentArtistId={user?.id}
         />
       )}
 

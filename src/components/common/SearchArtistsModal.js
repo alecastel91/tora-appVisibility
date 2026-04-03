@@ -46,16 +46,16 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       // Extract IDs of artists we've sent PENDING representation requests to
       const sentRequestedArtistIds = (data.sentRequests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'PENDING')
-        .map(req => String(req.to._id || req.to.id || req.to));
+        .map(req => String(req.to.id || req.to));
 
       // Extract IDs of artists who sent us PENDING representation OR connection requests
       const receivedRepRequestArtistIds = (data.requests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'PENDING')
-        .map(req => String(req.from._id || req.from.id || req.from));
+        .map(req => String(req.from.id || req.from));
 
       const receivedConnRequestArtistIds = (data.requests || [])
         .filter(req => req.type === 'CONNECTION_REQUEST' && req.status === 'PENDING')
-        .map(req => String(req.from._id || req.from.id || req.from));
+        .map(req => String(req.from.id || req.from));
 
       const receivedRequestedArtistIds = [...receivedRepRequestArtistIds, ...receivedConnRequestArtistIds];
 
@@ -69,11 +69,11 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       // Also check ACCEPTED requests for backward compatibility
       const acceptedRequestedArtistIds = (data.sentRequests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'ACCEPTED')
-        .map(req => String(req.to._id || req.to.id || req.to));
+        .map(req => String(req.to.id || req.to));
 
       const acceptedReceivedArtistIds = (data.requests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'ACCEPTED')
-        .map(req => String(req.from._id || req.from.id || req.from));
+        .map(req => String(req.from.id || req.from));
 
       // Combine both sent and received pending requests
       const allPendingRequestIds = [...sentRequestedArtistIds, ...receivedRequestedArtistIds];
@@ -90,7 +90,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       // Extract IDs of artists who DECLINED our representation requests
       const declinedArtistIds = (data.sentRequests || [])
         .filter(req => req.type === 'REPRESENTATION_REQUEST' && req.status === 'REJECTED')
-        .map(req => String(req.to._id || req.to.id || req.to));
+        .map(req => String(req.to.id || req.to));
       setDeclinedRequestIds(new Set(declinedArtistIds));
 
       // Extract IDs of artists we're connected to
@@ -107,7 +107,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       // Extract IDs of artists with pending connection requests
       const pendingConnectionArtistIds = (data.sentRequests || [])
         .filter(req => req.type === 'CONNECTION_REQUEST' && req.status === 'PENDING')
-        .map(req => String(req.to._id || req.to.id || req.to));
+        .map(req => String(req.to.id || req.to));
       setPendingConnectionIds(new Set(pendingConnectionArtistIds));
 
       console.log('[SearchArtistsModal] Final state:', {
@@ -139,7 +139,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
 
       // Filter out current agent's profile (just in case)
       const filteredArtists = (profiles || []).filter(profile => {
-        const profileId = profile._id || profile.id;
+        const profileId = profile.id;
         return profileId !== currentAgentId;
       });
 
@@ -173,7 +173,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
   };
 
   const handleCardClick = (artist) => {
-    console.log('[SearchArtistsModal] Card clicked, opening profile:', artist._id || artist.id);
+    console.log('[SearchArtistsModal] Card clicked, opening profile:', artist.id);
     setViewingProfile(artist);  // Pass full artist object
   };
 
@@ -196,7 +196,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
 
     setSending(true);
     try {
-      const artistId = selectedArtist._id || selectedArtist.id;
+      const artistId = selectedArtist.id;
 
       // Call the parent's onSelectArtist function with the artist and message
       await onSelectArtist(selectedArtist, messageText);
@@ -224,7 +224,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
 
     setSending(true);
     try {
-      const artistId = selectedArtist._id || selectedArtist.id;
+      const artistId = selectedArtist.id;
 
       // Send connection request (from currentAgentId to artistId)
       await apiService.sendConnectionRequest(currentAgentId, artistId, connectionMessage);
@@ -262,13 +262,13 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
 
   const handleReviewClick = async (artist) => {
     try {
-      const artistId = String(artist._id || artist.id);
+      const artistId = String(artist.id);
       // Fetch the full profile data to get the request details
       const data = await apiService.getProfileData(currentAgentId);
 
       // Find the request from this artist (either representation or connection)
       const request = (data.requests || []).find(req => {
-        const fromId = String(req.from._id || req.from.id || req.from);
+        const fromId = String(req.from.id || req.from);
         return fromId === artistId &&
                (req.type === 'REPRESENTATION_REQUEST' || req.type === 'CONNECTION_REQUEST') &&
                req.status === 'PENDING';
@@ -289,8 +289,8 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
 
     setSending(true);
     try {
-      const requestId = reviewingRequest._id || reviewingRequest.id;
-      const artistId = String(selectedArtist._id || selectedArtist.id);
+      const requestId = reviewingRequest.id;
+      const artistId = String(selectedArtist.id);
 
       // Accept the request (either representation or connection)
       await apiService.acceptRequest(requestId);
@@ -337,13 +337,13 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
 
     setSending(true);
     try {
-      const requestId = reviewingRequest._id || reviewingRequest.id;
+      const requestId = reviewingRequest.id;
 
       // Decline the representation request
       await apiService.declineRequest(requestId);
 
       // Update local state
-      const artistId = String(selectedArtist._id || selectedArtist.id);
+      const artistId = String(selectedArtist.id);
       setDeclinedRequestIds(prev => new Set([...prev, artistId]));
       setReceivedRequestIds(prev => {
         const newSet = new Set(prev);
@@ -435,7 +435,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
                     <p>{artists.length} artist{artists.length !== 1 ? 's' : ''} found</p>
                   </div>
                   {artists.map((artist) => {
-                    const artistId = String(artist._id || artist.id);
+                    const artistId = String(artist.id);
                     const hasRequested = sentRequestIds.has(artistId);
                     const hasAccepted = acceptedRequestIds.has(artistId);
                     const wasDeclined = declinedRequestIds.has(artistId);
@@ -517,7 +517,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
       {/* Profile View Modal - rendered on top */}
       {viewingProfile && (
         <>
-          {console.log('[SearchArtistsModal] Rendering ViewProfileScreen for:', viewingProfile._id || viewingProfile.id)}
+          {console.log('[SearchArtistsModal] Rendering ViewProfileScreen for:', viewingProfile.id)}
           <ViewProfileScreen
             profile={viewingProfile}
             onClose={() => setViewingProfile(null)}

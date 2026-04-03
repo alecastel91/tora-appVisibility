@@ -28,12 +28,12 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
     console.log('Sending request with message:', message);
     try {
       if (selectedType === 'AGENT') {
-        const agentId = artist.representedBy.agentId || artist.representedBy._id;
+        const agentId = artist.representedBy.agentId;
         console.log('Calling onConnect with agentId:', agentId);
         await onConnect(agentId, 'AGENT', artist, message);
       } else {
-        console.log('Calling onConnect with artist._id:', artist._id);
-        await onConnect(artist._id, 'ARTIST', null, message);
+        console.log('Calling onConnect with artist.id:', artist.id);
+        await onConnect(artist.id, 'ARTIST', null, message);
       }
       onClose();
     } catch (error) {

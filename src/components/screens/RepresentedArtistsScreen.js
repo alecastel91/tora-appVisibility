@@ -21,8 +21,8 @@ const RepresentedArtistsScreen = ({ onClose }) => {
 
   const handleSelectArtist = async (artist, message = '') => {
     try {
-      const agentProfileId = user._id || user.id;
-      const artistProfileId = artist._id || artist.id;
+      const agentProfileId = user.id;
+      const artistProfileId = artist.id;
 
       await apiService.sendRepresentationRequest(
         agentProfileId,
@@ -46,7 +46,7 @@ const RepresentedArtistsScreen = ({ onClose }) => {
   const handleViewProfile = async (artist) => {
     // Fetch the full profile data from the API
     // Note: artist object from representingArtists has profileId field
-    const artistId = artist.profileId || artist._id || artist.id;
+    const artistId = artist.profileId || artist.id;
     if (artistId) {
       setLoading(true);
       try {
@@ -137,7 +137,7 @@ const RepresentedArtistsScreen = ({ onClose }) => {
         {representedArtists.length > 0 ? (
           <div className="artists-list">
             {representedArtists.map((artist) => (
-              <div key={artist.profileId || artist._id || artist.id} className="artist-card-row">
+              <div key={artist.profileId || artist.id} className="artist-card-row">
                 <div className="artist-avatar-small">
                   {artist.avatar ? (
                     <img src={artist.avatar} alt={artist.name} />
@@ -187,7 +187,7 @@ const RepresentedArtistsScreen = ({ onClose }) => {
             key={Date.now()} // Force remount on each open to fetch fresh data
             onClose={() => setShowSearchModal(false)}
             onSelectArtist={handleSelectArtist}
-            currentAgentId={user?._id || user?.id}
+            currentAgentId={user?.id}
           />
         )}
 

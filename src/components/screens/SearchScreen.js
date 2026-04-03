@@ -72,9 +72,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
 
       // Filter out current user's profile
       const filteredProfiles = (profiles || []).filter(profile => {
-        const profileId = profile._id || profile.id;
-        const userId = user?._id || user?.id;
-        return profileId !== userId;
+        return profile.id !== user?.id;
       });
       setSearchResults(filteredProfiles);
       setProfilesLoaded(true);
@@ -94,7 +92,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
     setProfilesLoaded(false);
     setSearchResults([]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?._id]);
+  }, [user?.id]);
 
   useEffect(() => {
     // Load profiles on component mount only if not already loaded
@@ -144,9 +142,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
       const profiles = response.profiles || response;
       // Filter out current user's profile
       const filteredProfiles = (profiles || []).filter(profile => {
-        const profileId = profile._id || profile.id;
-        const userId = user?._id || user?.id;
-        return profileId !== userId;
+        return profile.id !== user?.id;
       });
       setSearchResults(filteredProfiles);
     } catch (error) {
@@ -247,7 +243,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
     console.log('SearchScreen handleConnect called with profile:', profile);
     console.log('profile.representedBy:', profile.representedBy);
 
-    const profileId = profile._id || profile.id;
+    const profileId = profile.id;
     if (!sentRequests.has(profileId)) {
       setSelectedProfile(profile);
 
@@ -255,7 +251,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
       const hasValidAgent = !!(
         profile.representedBy &&
         (profile.representedBy.name || profile.representedBy.agentName) &&
-        (profile.representedBy.agentId || profile.representedBy._id)
+        (profile.representedBy.agentId || profile.representedBy.id)
       );
 
       console.log('hasValidAgent:', hasValidAgent);
@@ -319,13 +315,13 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
 
   const handleReview = async (profile) => {
     try {
-      const profileId = profile._id || profile.id;
+      const profileId = profile.id;
       // Fetch the full profile data to get the request details
-      const data = await apiService.getProfileData(user._id || user.id);
+      const data = await apiService.getProfileData(user.id);
 
       // Find the request from this profile
       const request = (data.requests || []).find(req => {
-        const fromId = req.from._id || req.from.id || req.from;
+        const fromId = req.from.id || req.from;
         return String(fromId) === String(profileId) && req.type === 'CONNECTION_REQUEST' && req.status === 'PENDING';
       });
 
@@ -342,7 +338,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const handleAcceptRequest = async () => {
     if (reviewingRequest && selectedProfile) {
       try {
-        const requestId = reviewingRequest._id || reviewingRequest.id;
+        const requestId = reviewingRequest.id;
         await acceptConnectionRequest(requestId);
         setShowReviewModal(false);
         setReviewingRequest(null);
@@ -360,7 +356,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const handleDeclineRequest = async () => {
     if (reviewingRequest && selectedProfile) {
       try {
-        const requestId = reviewingRequest._id || reviewingRequest.id;
+        const requestId = reviewingRequest.id;
         await declineConnectionRequest(requestId);
         setShowReviewModal(false);
         setReviewingRequest(null);
@@ -377,7 +373,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
 
   const handleSendMessage = async () => {
     if (selectedProfile) {
-      const profileId = selectedProfile._id || selectedProfile.id;
+      const profileId = selectedProfile.id;
       try {
         await sendConnectionRequest(profileId, message.trim() || '');
         setShowMessageModal(false);
@@ -492,7 +488,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
           <div className="loading-message">Loading profiles...</div>
         ) : searchResults.length > 0 ? (
           searchResults.map(profile => {
-            const profileId = profile._id || profile.id;
+            const profileId = profile.id;
             const isLiked = likedProfiles.has(profileId);
             const isRequested = sentRequests.has(profileId);
             const isConnected = connectedUsers.has(profileId);

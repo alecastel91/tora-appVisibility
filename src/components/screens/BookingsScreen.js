@@ -12,7 +12,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     if (!url) return '';
 
     const token = localStorage.getItem('token');
-    const profileId = currentUser?._id;
+    const profileId = currentUser?.id;
 
     // If already a full URL with query params, return as is
     if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -94,7 +94,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   }, [showContractModal, showAddContractModal, selectedDealForWorkflow]);
 
   const fetchDeals = async () => {
-    if (!currentUser || !currentUser._id) {
+    if (!currentUser || !currentUser.id) {
       setLoading(false);
       return;
     }
@@ -104,7 +104,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
     try {
       // Fetch all deals for this user (both sent and received)
-      const response = await apiService.getDeals({ profileId: currentUser._id });
+      const response = await apiService.getDeals({ profileId: currentUser.id });
 
       // DEBUG: Log deal artistId fields
       console.log('[fetchDeals] Fetched', response.deals?.length, 'deals');
@@ -123,7 +123,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
   const handleAcceptDeal = async (dealId) => {
     try {
-      await apiService.acceptDeal(dealId, currentUser._id);
+      await apiService.acceptDeal(dealId, currentUser.id);
       // Refresh deals after accepting
       fetchDeals();
     } catch (err) {
@@ -141,7 +141,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     }
 
     try {
-      await apiService.declineDeal(dealToDecline, currentUser._id, declineReason);
+      await apiService.declineDeal(dealToDecline, currentUser.id, declineReason);
       setDealToDecline(null);
       setDeclineReason('');
       // Refresh deals after declining
@@ -158,7 +158,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     if (!dealToDelete) return;
 
     try {
-      await apiService.deleteDeal(dealToDelete, currentUser._id);
+      await apiService.deleteDeal(dealToDelete, currentUser.id);
       setDealToDelete(null);
       // Refresh deals after deleting
       fetchDeals();
@@ -174,7 +174,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
     try {
       // Call API to withdraw contract - resets contract status to NOT_SENT
-      await apiService.withdrawContract(dealToWithdraw._id, currentUser._id);
+      await apiService.withdrawContract(dealToWithdraw.id, currentUser.id);
 
       setDealToWithdraw(null);
       setShowWithdrawConfirmation(false);
@@ -288,14 +288,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   };
 
   const renderDealCard = (deal) => {
-    const isOutgoing = deal.initiator._id === currentUser._id;
+    const isOutgoing = deal.initiator.id === currentUser.id;
     const otherParty = isOutgoing
-      ? (deal.venue._id === currentUser._id ? deal.artist : deal.venue)
+      ? (deal.venue.id === currentUser.id ? deal.artist : deal.venue)
       : deal.initiator;
-    const isExpanded = expandedDealId === deal._id;
+    const isExpanded = expandedDealId === deal.id;
 
     // Check if this is a deal viewed by the artist via their agent
-    const isViaAgent = deal.artistId && deal.artistId === currentUser._id && deal.artist._id !== currentUser._id;
+    const isViaAgent = deal.artistId && deal.artistId === currentUser.id && deal.artist.id !== currentUser.id;
     // Get agent name for the "via agent" indicator
     const agentName = isViaAgent ? deal.artist.name : null;
 
@@ -303,14 +303,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     const dayNumber = dealDate.getDate();
 
     return (
-      <div key={deal._id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
+      <div key={deal.id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
         <div className="booking-date-badge">
           {dayNumber}
         </div>
         <div className="booking-compact-view">
           <div
             className="party-avatar"
-            onClick={() => toggleDealExpanded(deal._id)}
+            onClick={() => toggleDealExpanded(deal.id)}
             style={{ cursor: 'pointer' }}
           >
             {otherParty.avatar ? (
@@ -322,7 +322,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
           <div
             className="party-info"
-            onClick={() => toggleDealExpanded(deal._id)}
+            onClick={() => toggleDealExpanded(deal.id)}
             style={{ cursor: 'pointer', flex: 1 }}
           >
             <div className="party-name-role">
@@ -348,7 +348,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
 
           <button
             className="btn-expand-arrow"
-            onClick={() => toggleDealExpanded(deal._id)}
+            onClick={() => toggleDealExpanded(deal.id)}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
               <path d="M6 9l6 6 6-6"/>
@@ -476,7 +476,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                       onClick={async () => {
                         console.log('[Send Contract Button] Clicked for deal:', deal.eventName);
                         console.log('[Send Contract Button] Deal artistId:', deal.artistId || 'NOT SET');
-                        console.log('[Send Contract Button] Deal artist._id:', deal.artist?._id);
+                        console.log('[Send Contract Button] Deal artist.id:', deal.artist?.id);
 
                         setSelectedDealForWorkflow(deal);
 
@@ -513,7 +513,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                       onClick={async () => {
                         if (window.confirm('Skip contract stage? You can still share documents and proceed with the booking.')) {
                           try {
-                            await apiService.skipContract(deal._id, currentUser._id);
+                            await apiService.skipContract(deal.id, currentUser.id);
                             fetchDeals();
                           } catch (err) {
                             alert(err.message || 'Failed to skip contract');
@@ -531,16 +531,16 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 )}
                 {deal.contract && deal.contract.status !== 'NOT_SENT' && deal.contract.status !== 'FULLY_SIGNED' && (() => {
                   console.log('[BookingsScreen] Contract button debug:', {
-                    dealId: deal._id,
+                    dealId: deal.id,
                     eventName: deal.eventName,
                     contractStatus: deal.contract.status,
                     sentBy: deal.contract.sentBy,
-                    sentById: deal.contract.sentBy?._id,
-                    currentUserId: currentUser._id,
+                    sentById: deal.contract.sentBy?.id,
+                    currentUserId: currentUser.id,
                     currentUserName: currentUser.name,
-                    match: deal.contract.sentBy?._id === currentUser._id
+                    match: deal.contract.sentBy?.id === currentUser.id
                   });
-                  const isSender = deal.contract.sentBy && deal.contract.sentBy._id === currentUser._id;
+                  const isSender = deal.contract.sentBy && deal.contract.sentBy.id === currentUser.id;
 
                   if (isSender) {
                     // Sender sees: View Contract and Withdraw Contract
@@ -552,7 +552,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                             const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
                             const backendBase = API_URL.replace('/api', '');
                             const token = localStorage.getItem('token');
-                            const profileId = currentUser?._id;
+                            const profileId = currentUser?.id;
 
                             // First try documentUrl if it exists and looks valid
                             if (deal.contract.documentUrl && deal.contract.documentUrl !== 'N/A') {
@@ -608,7 +608,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                         className="btn btn-primary"
                         onClick={async () => {
                           try {
-                            await apiService.signContract(deal._id, currentUser._id);
+                            await apiService.signContract(deal.id, currentUser.id);
                             fetchDeals();
                           } catch (err) {
                             alert(err.message || 'Failed to sign contract');
@@ -661,7 +661,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 )}
 
                 {/* Payment Actions (only for venue/promoter) */}
-                {deal.venue._id === currentUser._id && deal.payment && deal.payment.status !== 'FULLY_PAID' && (
+                {deal.venue.id === currentUser.id && deal.payment && deal.payment.status !== 'FULLY_PAID' && (
                   <button
                     className="btn btn-primary"
                     onClick={() => {
@@ -679,12 +679,21 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               </div>
             )}
 
-            {/* Action buttons for incoming offers - hide for artist viewing via agent */}
-            {!isOutgoing && !isViaAgent && (deal.status === 'PENDING' || deal.status === 'NEGOTIATING') && (
+            {/* Action buttons - show when current user can accept/decline */}
+            {/* For PENDING: recipient (not initiator) can accept/decline */}
+            {/* For NEGOTIATING: the party who did NOT send the last counter-offer can accept/decline */}
+            {(() => {
+              const offerHistory = deal.offerHistory || [];
+              const lastOffer = offerHistory.length > 0 ? offerHistory[offerHistory.length - 1] : null;
+              const canRespond = lastOffer
+                ? lastOffer.offeredBy !== currentUser.id  // Counter-offer: other party can respond
+                : !isOutgoing;  // Initial offer: recipient can respond
+              return canRespond;
+            })() && !isViaAgent && (deal.status === 'PENDING' || deal.status === 'NEGOTIATING') && (
               <div className="booking-actions">
                 <button
                   className="btn btn-outline btn-decline"
-                  onClick={() => setDealToDecline(deal._id)}
+                  onClick={() => setDealToDecline(deal.id)}
                 >
                   Decline
                 </button>
@@ -702,7 +711,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 </button>
                 <button
                   className="btn btn-primary btn-accept"
-                  onClick={() => handleAcceptDeal(deal._id)}
+                  onClick={() => handleAcceptDeal(deal.id)}
                 >
                   Accept
                 </button>
@@ -740,7 +749,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                 className="btn btn-outline btn-delete-offer-expanded"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setDealToDelete(deal._id);
+                  setDealToDelete(deal.id);
                 }}
               >
                 Delete Offer
@@ -937,8 +946,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                         onClick={async () => {
                           try {
                             await apiService.sendContract(
-                              selectedDealForWorkflow._id,
-                              currentUser._id,
+                              selectedDealForWorkflow.id,
+                              currentUser.id,
                               doc
                             );
                             setShowContractModal(false);
@@ -1016,8 +1025,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                         onClick={async () => {
                           try {
                             await apiService.shareDocument(
-                              selectedDealForWorkflow._id,
-                              currentUser._id,
+                              selectedDealForWorkflow.id,
+                              currentUser.id,
                               documentTypeToShare,
                               doc
                             );
@@ -1085,8 +1094,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                   onClick={async () => {
                     try {
                       await apiService.updatePayment(
-                        selectedDealForWorkflow._id,
-                        currentUser._id,
+                        selectedDealForWorkflow.id,
+                        currentUser.id,
                         {
                           depositAmount: selectedDealForWorkflow.currentFee / 2,
                           paymentMethod: 'Bank Transfer'
@@ -1112,8 +1121,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                   onClick={async () => {
                     try {
                       await apiService.updatePayment(
-                        selectedDealForWorkflow._id,
-                        currentUser._id,
+                        selectedDealForWorkflow.id,
+                        currentUser.id,
                         {
                           fullPayment: true,
                           paymentMethod: 'Bank Transfer'
@@ -1164,8 +1173,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
             try {
               // Send the contract with the deal
               await apiService.sendContract(
-                selectedDealForWorkflow._id,
-                currentUser._id,
+                selectedDealForWorkflow.id,
+                currentUser.id,
                 {
                   id: contractData.existingContract?.id || Date.now().toString(),
                   title: contractData.title,

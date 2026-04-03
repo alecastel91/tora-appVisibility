@@ -20,8 +20,7 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
     return null;
   }
 
-  // Handle both MongoDB _id and old id format
-  const profileId = profile._id || profile.id;
+  const profileId = profile.id;
 
   const isLiked = likedProfiles.has(profileId);
   const isRequested = sentRequests.has(profileId);
@@ -39,7 +38,7 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
       // Check if profile has a valid representedBy agent (with name and agentId)
       const hasValidAgent = profile.representedBy &&
                             (profile.representedBy.name || profile.representedBy.agentName) &&
-                            (profile.representedBy.agentId || profile.representedBy._id);
+                            (profile.representedBy.agentId || profile.representedBy.id);
 
       console.log('hasValidAgent:', hasValidAgent);
 

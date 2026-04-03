@@ -94,13 +94,13 @@ function App() {
   // Fetch unread messages count (includes both unread messages and connection requests)
   useEffect(() => {
     const fetchUnreadCount = async () => {
-      if (!isAuthenticated || !user || !user._id) return;
+      if (!isAuthenticated || !user || !user.id) return;
 
       try {
         // Fetch both conversations and connection requests
         const [conversations, requestsData] = await Promise.all([
           getConversations(),
-          apiService.getReceivedRequests(user._id)
+          apiService.getReceivedRequests(user.id)
         ]);
 
         // Count unread messages in conversations
@@ -122,7 +122,7 @@ function App() {
 
     // Refresh every 30 seconds when authenticated
     const interval = setInterval(() => {
-      if (isAuthenticated && user && user._id) {
+      if (isAuthenticated && user && user.id) {
         fetchUnreadCount();
       }
     }, 30000);
@@ -157,8 +157,8 @@ function App() {
       for (const profile of profileData) {
         if (!profile.timezone || profile.timezone === 'UTC') {
           try {
-            await apiService.updateProfile(profile._id, { timezone: userTimezone });
-            console.log(`[App] Updated timezone for profile ${profile._id} to ${userTimezone}`);
+            await apiService.updateProfile(profile.id, { timezone: userTimezone });
+            console.log(`[App] Updated timezone for profile ${profile.id} to ${userTimezone}`);
           } catch (error) {
             console.error('[App] Failed to update timezone:', error);
           }
@@ -166,8 +166,8 @@ function App() {
       }
     } else if (profileData && (!profileData.timezone || profileData.timezone === 'UTC')) {
       try {
-        await apiService.updateProfile(profileData._id, { timezone: userTimezone });
-        console.log(`[App] Updated timezone for profile ${profileData._id} to ${userTimezone}`);
+        await apiService.updateProfile(profileData.id, { timezone: userTimezone });
+        console.log(`[App] Updated timezone for profile ${profileData.id} to ${userTimezone}`);
       } catch (error) {
         console.error('[App] Failed to update timezone:', error);
       }

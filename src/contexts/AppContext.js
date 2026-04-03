@@ -36,18 +36,19 @@ export const AppProvider = ({ children }) => {
   // Load profile-specific data when user/profile changes
   useEffect(() => {
     const loadProfileData = async () => {
-      if (!user || !user._id) return;
+      const userId = user?.id;
+      if (!user || !userId) return;
       if (isLoadingProfileData) return; // Prevent duplicate fetches
 
       const startTime = performance.now();
-      console.log('🔄 [AppContext] Starting to load profile data for:', user._id);
+      console.log('🔄 [AppContext] Starting to load profile data for:', userId);
 
       try {
         setIsLoadingProfileData(true);
 
         const apiStartTime = performance.now();
         // OPTIMIZED: Fetch all data in one request
-        const data = await apiService.getProfileData(user._id);
+        const data = await apiService.getProfileData(userId);
         const apiEndTime = performance.now();
         console.log(`✅ [AppContext] API call completed in ${(apiEndTime - apiStartTime).toFixed(0)}ms`);
 
@@ -80,7 +81,7 @@ export const AppProvider = ({ children }) => {
 
     loadProfileData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?._id]); // Re-load when active profile changes
+  }, [user?.id]); // Re-load when active profile changes
 
   const [searchResults, setSearchResults] = useState([]);
   const [conversations] = useState(mockConversations);
@@ -102,11 +103,11 @@ export const AppProvider = ({ children }) => {
     if (Array.isArray(userData)) {
       console.log('🔍 [AppContext updateUser] Received profiles ARRAY - count:', userData.length);
       console.log('🔍 [AppContext updateUser] Profiles:', userData.map(p => p.name));
-      console.log('🔍 [AppContext updateUser] First profile _id:', userData[0]?._id);
+      console.log('🔍 [AppContext updateUser] First profile id:', userData[0]?.id);
       setUserProfiles(userData);
       // Set the first profile as active
       const activeProfile = userData[0];
-      console.log('🔍 [AppContext updateUser] Setting active profile:', activeProfile.name, '_id:', activeProfile._id);
+      console.log('🔍 [AppContext updateUser] Setting active profile:', activeProfile.name, 'id:', activeProfile.id);
       setUser(activeProfile);
     }
     // Case 2: userData has a profiles property (object with profiles array)
@@ -122,16 +123,16 @@ export const AppProvider = ({ children }) => {
     else {
       console.log('🔍 [AppContext updateUser] Setting SINGLE profile:', userData.name || userData);
       console.log('🔍 [AppContext updateUser] Profile data:', userData);
-      console.log('🔍 [AppContext updateUser] Profile _id:', userData._id);
+      console.log('🔍 [AppContext updateUser] Profile id:', userData.id);
       // Single profile update - update within existing profiles array
-      const profileId = userData._id || userData.id;
+      const profileId = userData.id;
 
       if (!profileId) {
-        console.error('🔍 [AppContext updateUser] WARNING: Profile has no _id!', userData);
+        console.error('🔍 [AppContext updateUser] WARNING: Profile has no id!', userData);
       }
 
       // Check if this profile already exists in userProfiles
-      const existingIndex = userProfiles.findIndex(p => (p._id || p.id) === profileId);
+      const existingIndex = userProfiles.findIndex(p => p.id === profileId);
 
       if (existingIndex >= 0) {
         // Update existing profile in the array
@@ -150,7 +151,7 @@ export const AppProvider = ({ children }) => {
   };
 
   const switchProfile = (profileId) => {
-    const newProfile = userProfiles.find(p => p._id === profileId || p.id === profileId);
+    const newProfile = userProfiles.find(p => p.id === profileId);
     if (newProfile) {
       setUser(newProfile);
       // Profile data will reload automatically via useEffect
@@ -167,13 +168,13 @@ export const AppProvider = ({ children }) => {
       await apiService.deleteProfile(profileId);
 
       // Remove from userProfiles array
-      const updatedProfiles = userProfiles.filter(p => (p._id || p.id) !== profileId);
+      const updatedProfiles = userProfiles.filter(p => p.id !== profileId);
       setUserProfiles(updatedProfiles);
 
       // If we deleted the current profile, switch to another one
-      if ((user._id || user.id) === profileId) {
+      if (user.id === profileId) {
         if (updatedProfiles.length > 0) {
-          switchProfile(updatedProfiles[0]._id || updatedProfiles[0].id);
+          switchProfile(updatedProfiles[0].id);
         }
       }
     } catch (error) {
@@ -184,7 +185,8 @@ export const AppProvider = ({ children }) => {
 
   // Helper function to reload profile data (call after likes/connections change)
   const reloadProfileData = async () => {
-    if (!user || !user._id) return;
+    const userId = user?.id;
+    if (!user || !userId) return;
     if (isLoadingProfileData) return; // Prevent duplicate fetches
 
     try {
@@ -192,7 +194,7 @@ export const AppProvider = ({ children }) => {
 
       // OPTIMIZED: Fetch all data in one request
       const [profileData, userData] = await Promise.all([
-        apiService.getProfileData(user._id),
+        apiService.getProfileData(userId),
         apiService.getCurrentUser()
       ]);
 
@@ -208,9 +210,10 @@ export const AppProvider = ({ children }) => {
       // Also reload user stats
       console.log('🔍 [reloadProfileData] userData:', userData);
       console.log('🔍 [reloadProfileData] userData.profiles:', userData.profiles);
-      const currentProfile = userData.profiles.find(p => p._id === user._id);
+      const currentProfileId = user.id;
+      const currentProfile = userData.profiles.find(p => p.id === currentProfileId);
       console.log('🔍 [reloadProfileData] Found current profile:', currentProfile);
-      console.log('🔍 [reloadProfileData] Current profile _id:', currentProfile?._id);
+      console.log('🔍 [reloadProfileData] Current profile id:', currentProfile?.id);
       if (currentProfile) {
         setUser(currentProfile);
         // Update profiles array as well
@@ -250,12 +253,12 @@ export const AppProvider = ({ children }) => {
 
     // Remove duplicates by ID
     const uniqueProfiles = Array.from(
-      new Map(allProfilesToCheck.map(p => [p._id || p.id, p])).values()
+      new Map(allProfilesToCheck.map(p => [p.id, p])).values()
     );
 
     for (const profile of uniqueProfiles) {
       // Skip self
-      if ((profile._id || profile.id) === user._id) continue;
+      if (profile.id === user.id) continue;
 
       // Check role compatibility
       if (!isValidMatch(user.role, profile.role)) continue;
@@ -399,13 +402,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const getConversations = async () => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       console.error('No active user profile');
       return [];
     }
 
     try {
-      const data = await apiService.getConversations(user._id);
+      const data = await apiService.getConversations(user.id);
       return data.conversations || [];
     } catch (error) {
       console.error('Error getting conversations:', error);
@@ -414,13 +417,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const getMessageThread = async (otherProfileId) => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       console.error('No active user profile');
       return [];
     }
 
     try {
-      const data = await apiService.getMessageThread(user._id, otherProfileId);
+      const data = await apiService.getMessageThread(user.id, otherProfileId);
       return data.messages || [];
     } catch (error) {
       console.error('Error getting message thread:', error);
@@ -429,13 +432,13 @@ export const AppProvider = ({ children }) => {
   };
 
   const sendMessage = async (otherProfileId, text, connectionRequestId = null) => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       console.error('No active user profile');
       return;
     }
 
     try {
-      const data = await apiService.sendMessage(user._id, otherProfileId, text, connectionRequestId);
+      const data = await apiService.sendMessage(user.id, otherProfileId, text, connectionRequestId);
       return data.message;
     } catch (error) {
       console.error('Error sending message:', error);
@@ -448,10 +451,10 @@ export const AppProvider = ({ children }) => {
   };
 
   const clearNotifications = async () => {
-    if (!user || !user._id) return;
+    if (!user || !user.id) return;
 
     try {
-      await apiService.clearNotifications(user._id);
+      await apiService.clearNotifications(user.id);
       setNotifications([]);
     } catch (error) {
       console.error('Error clearing notifications:', error);
@@ -459,7 +462,7 @@ export const AppProvider = ({ children }) => {
   };
 
   const toggleLike = async (profileId) => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       console.error('No active user profile');
       return;
     }
@@ -477,7 +480,7 @@ export const AppProvider = ({ children }) => {
 
     try {
       // Call backend to toggle like
-      await apiService.toggleLike(user._id, profileId);
+      await apiService.toggleLike(user.id, profileId);
 
       // Force reload profile data by temporarily resetting loading flag
       setIsLoadingProfileData(false);
@@ -492,14 +495,14 @@ export const AppProvider = ({ children }) => {
   };
 
   const sendConnectionRequest = async (profileId, message) => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       console.error('No active user profile');
       return;
     }
 
     try {
       // Send connection request to backend
-      await apiService.sendConnectionRequest(user._id, profileId, message);
+      await apiService.sendConnectionRequest(user.id, profileId, message);
 
       // Reload profile data to get updated sent requests
       await reloadProfileData();
@@ -510,7 +513,7 @@ export const AppProvider = ({ children }) => {
   };
 
   const acceptRequest = async (requestId) => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       console.error('No active user profile');
       return;
     }
@@ -528,7 +531,7 @@ export const AppProvider = ({ children }) => {
   };
 
   const declineRequest = async (requestId) => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       console.error('No active user profile');
       return;
     }
@@ -546,14 +549,14 @@ export const AppProvider = ({ children }) => {
   };
 
   const removeConnection = async (profileId) => {
-    if (!user || !user._id) {
+    if (!user || !user.id) {
       console.error('No active user profile');
       return;
     }
 
     try {
       // Call backend to remove the connection
-      await apiService.removeConnection(user._id, profileId);
+      await apiService.removeConnection(user.id, profileId);
 
       // Reload profile data to get updated connections
       await reloadProfileData();

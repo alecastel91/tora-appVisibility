@@ -20,7 +20,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     if (!url) return '';
 
     const token = localStorage.getItem('token');
-    const profileId = currentUser?._id;
+    const profileId = currentUser?.id;
 
     // If already a full URL with query params, return as is
     if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -78,7 +78,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     setLoadingArtistDocs(true);
     try {
       // Fetch full profile data with documents
-      const artistProfileId = artist.profileId || artist.id || artist._id;
+      const artistProfileId = artist.profileId || artist.id || artist.id;
       console.log('[ChatScreen] Fetching profile for artistProfileId:', artistProfileId);
       const fullProfile = await apiService.getProfile(artistProfileId);
       console.log('[ChatScreen] Fetched full profile:', fullProfile);
@@ -95,23 +95,23 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
   // Function to fetch messages (can be called externally)
   const fetchMessages = async () => {
-    if (!currentUser || !currentUser._id || !user || !user._id) {
+    if (!currentUser || !currentUser.id || !user || !user.id) {
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      const response = await apiService.getMessageThread(currentUser._id, user._id);
+      const response = await apiService.getMessageThread(currentUser.id, user.id);
 
       // Transform backend messages to match the format expected by the UI
       const transformedMessages = (response.messages || []).map(msg => ({
         text: msg.text,
         timestamp: msg.createdAt,
-        isMe: msg.from._id === currentUser._id,
+        isMe: msg.from.id === currentUser.id,
         isSystem: msg.isSystemMessage || false,
         dealId: msg.dealId || null,
-        connectionRequestId: msg.connectionRequest ? (msg.connectionRequest._id || msg.connectionRequest) : null,
+        connectionRequestId: msg.connectionRequest ? (msg.connectionRequest.id || msg.connectionRequest) : null,
         documentAttachment: msg.documentAttachment || null
       }));
 
@@ -127,7 +127,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         await Promise.all(
           dealIds.map(async (dealId) => {
             try {
-              const dealResponse = await apiService.getDeal(dealId, currentUser._id);
+              const dealResponse = await apiService.getDeal(dealId, currentUser.id);
               const deal = dealResponse.deal || dealResponse;
               statuses[dealId] = {
                 status: deal.status,
@@ -185,7 +185,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     const fetchArtistForContract = async () => {
       if (showAddContractModal && currentUser.role === 'AGENT' && selectedOffer?.artist) {
         try {
-          const artistId = selectedOffer.artist._id || selectedOffer.artist.id;
+          const artistId = selectedOffer.artist.id || selectedOffer.artist.id;
           console.log('[ChatScreen] Fetching artist profile for contract:', artistId);
           const artistProfile = await apiService.getProfile(artistId);
           console.log('[ChatScreen] Fetched artist profile:', artistProfile);
@@ -207,7 +207,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     if (inputMessage.trim()) {
       try {
         // Send message to backend
-        await sendMessage(user._id, inputMessage);
+        await sendMessage(user.id, inputMessage);
 
         // Clear input
         setInputMessage('');
@@ -231,8 +231,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     try {
       // Send document as a special message
       const documentMessage = {
-        from: currentUser._id,
-        to: user._id,
+        from: currentUser.id,
+        to: user.id,
         text: `📎 ${document.title}`,
         isSystemMessage: false,
         documentAttachment: {
@@ -257,7 +257,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   const handleViewOffer = async (dealId) => {
     console.log('handleViewOffer called with dealId:', dealId);
     try {
-      const response = await apiService.getDeal(dealId, currentUser._id);
+      const response = await apiService.getDeal(dealId, currentUser.id);
       console.log('Fetched deal:', response);
 
       // The response might be wrapped or direct
@@ -277,7 +277,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
   const handleViewDeclineReason = async (dealId) => {
     try {
-      const response = await apiService.getDeal(dealId, currentUser._id);
+      const response = await apiService.getDeal(dealId, currentUser.id);
       const deal = response.deal || response;
       setDeclineReasonData(deal);
       setShowDeclineReasonModal(true);
@@ -290,7 +290,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     if (!selectedOffer) return;
 
     try {
-      await apiService.acceptDeal(selectedOffer._id, currentUser._id);
+      await apiService.acceptDeal(selectedOffer.id, currentUser.id);
       setShowOfferDetails(false);
       setSelectedOffer(null);
       // Refresh messages to show updated status
@@ -311,7 +311,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
     try {
       // Decline deal with reason - this will update the deal status
-      await apiService.declineDeal(selectedOffer._id, currentUser._id, offerDeclineComment);
+      await apiService.declineDeal(selectedOffer.id, currentUser.id, offerDeclineComment);
 
       setShowOfferDetails(false);
       setShowOfferDeclineComment(false);
@@ -415,7 +415,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
     try {
       // Accept the deal in the backend (this updates status to ACCEPTED and creates system message)
-      await apiService.acceptDeal(counterOfferData.dealId, currentUser._id);
+      await apiService.acceptDeal(counterOfferData.dealId, currentUser.id);
 
       setShowCounterOfferDetails(false);
 
@@ -440,7 +440,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
     try {
       // Decline the deal in the backend (this updates status to DECLINED and creates system message)
-      await apiService.declineDeal(counterOfferData.dealId, currentUser._id, declineComment);
+      await apiService.declineDeal(counterOfferData.dealId, currentUser.id, declineComment);
 
       setShowCounterOfferDetails(false);
       setShowDeclineComment(false);
@@ -479,7 +479,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     if (!selectedRepresentationRequest) return;
 
     try {
-      await apiService.acceptRepresentationRequest(selectedRepresentationRequest._id);
+      await apiService.acceptRepresentationRequest(selectedRepresentationRequest.id);
 
       // Close modal
       setShowRepresentationDetails(false);
@@ -489,10 +489,10 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       await fetchMessages();
 
       // Update the connection request cache
-      const updatedRequest = await apiService.getConnectionRequest(selectedRepresentationRequest._id);
+      const updatedRequest = await apiService.getConnectionRequest(selectedRepresentationRequest.id);
       setConnectionRequests(prev => ({
         ...prev,
-        [selectedRepresentationRequest._id]: updatedRequest
+        [selectedRepresentationRequest.id]: updatedRequest
       }));
 
       // Reload profile data to update representingArtists array
@@ -507,7 +507,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     if (!selectedRepresentationRequest) return;
 
     try {
-      await apiService.declineRepresentationRequest(selectedRepresentationRequest._id);
+      await apiService.declineRepresentationRequest(selectedRepresentationRequest.id);
 
       // Close modal
       setShowRepresentationDetails(false);
@@ -517,10 +517,10 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       await fetchMessages();
 
       // Update the connection request cache
-      const updatedRequest = await apiService.getConnectionRequest(selectedRepresentationRequest._id);
+      const updatedRequest = await apiService.getConnectionRequest(selectedRepresentationRequest.id);
       setConnectionRequests(prev => ({
         ...prev,
-        [selectedRepresentationRequest._id]: updatedRequest
+        [selectedRepresentationRequest.id]: updatedRequest
       }));
     } catch (error) {
       console.error('Error declining representation request:', error);
@@ -534,7 +534,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       return;
     }
 
-    if (!selectedOffer._id) {
+    if (!selectedOffer.id) {
       alert('Deal information not found');
       return;
     }
@@ -554,8 +554,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       }
 
       // Call the counter-offer API endpoint (this updates the deal and creates a system message)
-      await apiService.counterDeal(selectedOffer._id, {
-        profileId: currentUser._id,
+      await apiService.counterDeal(selectedOffer.id, {
+        profileId: currentUser.id,
         fee: feeValue,
         currency: reviewData.currency,
         additionalTerms: Object.keys(extras).length > 0 ? JSON.stringify(extras) : null,
@@ -924,7 +924,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                             if (comment && comment.trim()) {
                               try {
                                 // Send modification request as a chat message
-                                await sendMessage(user._id, `Contract Modification Request: ${comment}`);
+                                await sendMessage(user.id, `Contract Modification Request: ${comment}`);
                                 alert('Modification request sent to ' + user.name);
                                 // Refresh messages to show the new request
                                 await fetchMessages();
@@ -949,7 +949,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                           onClick={async () => {
                             if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
                               try {
-                                await apiService.deleteDeal(msg.dealId, currentUser._id);
+                                await apiService.deleteDeal(msg.dealId, currentUser.id);
                                 alert('Booking cancelled');
                                 await fetchMessages();
                               } catch (err) {
@@ -986,7 +986,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 // For declined/accepted offers, check who actually declined/accepted it
                 let displayName = msg.isMe ? 'You' : user.name;
                 if (isDeclined && dealStatus.declinedBy) {
-                  displayName = dealStatus.declinedBy._id === currentUser._id ? 'You' : dealStatus.declinedBy.name;
+                  displayName = dealStatus.declinedBy.id === currentUser.id ? 'You' : dealStatus.declinedBy.name;
                 } else if (isAccepted) {
                   // For accepted offers, use msg.isMe since the message sender is the one who accepted
                   displayName = msg.isMe ? 'You' : user.name;
@@ -1091,17 +1091,17 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                             }}
                             onClick={async () => {
                               try {
-                                await apiService.signContract(msg.dealId, currentUser._id);
+                                await apiService.signContract(msg.dealId, currentUser.id);
                                 alert('Contract signed successfully!');
                                 // Refresh messages
-                                const response = await apiService.getMessageThread(currentUser._id, user._id);
+                                const response = await apiService.getMessageThread(currentUser.id, user.id);
                                 const transformedMessages = (response.messages || []).map(m => ({
                                   text: m.text,
                                   timestamp: m.createdAt,
-                                  isMe: m.from._id === currentUser._id,
+                                  isMe: m.from.id === currentUser.id,
                                   isSystem: m.isSystemMessage || false,
                                   dealId: m.dealId || null,
-                                  connectionRequestId: m.connectionRequest ? (m.connectionRequest._id || m.connectionRequest) : null,
+                                  connectionRequestId: m.connectionRequest ? (m.connectionRequest.id || m.connectionRequest) : null,
                                   documentAttachment: m.documentAttachment || null
                                 }));
                                 setUserMessages(transformedMessages);
@@ -1143,17 +1143,17 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                             onClick={async () => {
                               if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
                                 try {
-                                  await apiService.cancelDeal(msg.dealId, currentUser._id);
+                                  await apiService.cancelDeal(msg.dealId, currentUser.id);
                                   alert('Booking cancelled');
                                   // Refresh messages
-                                  const response = await apiService.getMessageThread(currentUser._id, user._id);
+                                  const response = await apiService.getMessageThread(currentUser.id, user.id);
                                   const transformedMessages = (response.messages || []).map(m => ({
                                     text: m.text,
                                     timestamp: m.createdAt,
-                                    isMe: m.from._id === currentUser._id,
+                                    isMe: m.from.id === currentUser.id,
                                     isSystem: m.isSystemMessage || false,
                                     dealId: m.dealId || null,
-                                    connectionRequestId: m.connectionRequest ? (m.connectionRequest._id || m.connectionRequest) : null,
+                                    connectionRequestId: m.connectionRequest ? (m.connectionRequest.id || m.connectionRequest) : null,
                                     documentAttachment: m.documentAttachment || null
                                   }));
                                   setUserMessages(transformedMessages);
@@ -1212,17 +1212,17 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                           }}
                           onClick={async () => {
                             try {
-                              await apiService.signContract(msg.dealId, currentUser._id);
+                              await apiService.signContract(msg.dealId, currentUser.id);
                               alert('Contract signed successfully!');
                               // Refresh messages
-                              const response = await apiService.getMessageThread(currentUser._id, user._id);
+                              const response = await apiService.getMessageThread(currentUser.id, user.id);
                               const transformedMessages = (response.messages || []).map(m => ({
                                 text: m.text,
                                 timestamp: m.createdAt,
-                                isMe: m.from._id === currentUser._id,
+                                isMe: m.from.id === currentUser.id,
                                 isSystem: m.isSystemMessage || false,
                                 dealId: m.dealId || null,
-                                connectionRequestId: m.connectionRequest ? (m.connectionRequest._id || m.connectionRequest) : null,
+                                connectionRequestId: m.connectionRequest ? (m.connectionRequest.id || m.connectionRequest) : null,
                                 documentAttachment: m.documentAttachment || null
                               }));
                               setUserMessages(transformedMessages);
@@ -1264,17 +1264,17 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                           onClick={async () => {
                             if (window.confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
                               try {
-                                await apiService.cancelDeal(msg.dealId, currentUser._id);
+                                await apiService.cancelDeal(msg.dealId, currentUser.id);
                                 alert('Booking cancelled');
                                 // Refresh messages
-                                const response = await apiService.getMessageThread(currentUser._id, user._id);
+                                const response = await apiService.getMessageThread(currentUser.id, user.id);
                                 const transformedMessages = (response.messages || []).map(m => ({
                                   text: m.text,
                                   timestamp: m.createdAt,
-                                  isMe: m.from._id === currentUser._id,
+                                  isMe: m.from.id === currentUser.id,
                                   isSystem: m.isSystemMessage || false,
                                   dealId: m.dealId || null,
-                                  connectionRequestId: m.connectionRequest ? (m.connectionRequest._id || m.connectionRequest) : null,
+                                  connectionRequestId: m.connectionRequest ? (m.connectionRequest.id || m.connectionRequest) : null,
                                   documentAttachment: m.documentAttachment || null
                                 }));
                                 setUserMessages(transformedMessages);
@@ -1317,7 +1317,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       {(() => {
         // Check if there's a pending connection request sent by current user
         const hasPendingRequest = Object.values(connectionRequests).some(req =>
-          req && req.status === 'PENDING' && req.type === 'CONNECTION_REQUEST' && req.from === currentUser._id
+          req && req.status === 'PENDING' && req.type === 'CONNECTION_REQUEST' && req.from === currentUser.id
         );
 
         // User is deleted
@@ -1330,7 +1330,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         }
 
         // User is connected - show full chat functionality
-        if (connectedUsers.has(user._id || user.id)) {
+        if (connectedUsers.has(user.id || user.id)) {
           return (
             <>
               {canMakeOffer() && (
@@ -1531,15 +1531,26 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               </div>
             </div>
             <div className="modal-footer">
-              {selectedOffer && selectedOffer.status === 'PENDING' &&
-               selectedOffer.artist && (
-                 selectedOffer.artist._id === currentUser._id ||
-                 (currentUser.role === 'AGENT' && selectedOffer.artistId &&
-                  currentUser.representingArtists?.some(a => a.profileId === selectedOffer.artistId)) ||
-                 (currentUser.role === 'AGENT' && selectedOffer.artist._id &&
-                  currentUser.representingArtists?.some(a => a.profileId === selectedOffer.artist._id))
-               ) ? (
-                // Show Decline/Review/Accept for incoming offers (artist or their agent)
+              {selectedOffer && (selectedOffer.status === 'PENDING' || selectedOffer.status === 'NEGOTIATING') &&
+               (() => {
+                 // Determine who can respond: the party who did NOT send the last offer
+                 const offerHistory = selectedOffer.offerHistory || [];
+                 const lastOffer = offerHistory.length > 0 ? offerHistory[offerHistory.length - 1] : null;
+                 if (lastOffer) {
+                   // Counter-offer exists: the other party can respond
+                   return lastOffer.offeredBy !== currentUser.id;
+                 }
+                 // No counter-offers: the recipient (not initiator) can respond
+                 const isArtistOrAgent = selectedOffer.artist?.id === currentUser.id ||
+                   (currentUser.role === 'AGENT' && selectedOffer.artistId &&
+                    currentUser.representingArtists?.some(a => a.profileId === selectedOffer.artistId)) ||
+                   (currentUser.role === 'AGENT' && selectedOffer.artist?.id &&
+                    currentUser.representingArtists?.some(a => a.profileId === selectedOffer.artist.id));
+                 const isVenue = selectedOffer.venue?.id === currentUser.id;
+                 const isInitiator = selectedOffer.initiator?.id === currentUser.id;
+                 return (isArtistOrAgent || isVenue) && !isInitiator;
+               })() ? (
+                // Show Decline/Review/Accept for the party who can respond
                 showOfferDeclineComment ? (
                   <div className="decline-comment-container">
                     <div className="decline-comment-textarea-wrapper">
@@ -1972,7 +1983,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 <div className="offer-detail-row">
                   <span className="detail-label">Declined By:</span>
                   <span className="detail-value">
-                    {declineReasonData.declinedBy && declineReasonData.declinedBy._id === currentUser._id
+                    {declineReasonData.declinedBy && declineReasonData.declinedBy.id === currentUser.id
                       ? 'You'
                       : (declineReasonData.declinedBy?.name || 'Unknown')}
                   </span>
@@ -2404,7 +2415,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               const token = localStorage.getItem('token');
               await contractService.signContract(
                 selectedContractData.dealId,
-                currentUser._id,
+                currentUser.id,
                 signatureData,
                 token
               );
@@ -2437,7 +2448,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               const token = localStorage.getItem('token');
               await contractService.trackContractView(
                 selectedContractData.dealId,
-                currentUser._id,
+                currentUser.id,
                 viewDuration,
                 token
               );

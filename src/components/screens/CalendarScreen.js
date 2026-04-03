@@ -33,7 +33,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
   React.useEffect(() => {
     const refreshCalendarData = async () => {
       try {
-        const profileId = user?._id || user?.id;
+        const profileId = user?.id;
         if (!profileId) return;
 
         console.log('[CalendarScreen] Refreshing calendar data from backend...');
@@ -71,11 +71,11 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
   // Fetch upcoming events for Promoters/Venues
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
-      if (!isPromoterOrVenue || !user?._id) return;
+      if (!isPromoterOrVenue || !user?.id) return;
 
       try {
         console.log('[CalendarScreen] Fetching upcoming events for Promoter/Venue...');
-        const response = await apiService.getDeals({ profileId: user._id });
+        const response = await apiService.getDeals({ profileId: user.id });
 
         if (response && response.deals) {
           // Filter for upcoming events (future dates with active statuses)
@@ -101,7 +101,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
     };
 
     fetchUpcomingEvents();
-  }, [user?._id, isPromoterOrVenue]);
+  }, [user?.id, isPromoterOrVenue]);
 
   // NOTE: We refresh both availableDates and travelSchedule from backend on mount
   // This ensures we have the latest data when switching between CalendarScreen and ManageArtistScreen
@@ -188,7 +188,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
     console.log('[CalendarScreen] User object:', user);
 
     // Get profile ID - try multiple possible fields
-    const profileId = user?._id || user?.id;
+    const profileId = user?.id;
 
     if (!profileId) {
       console.error('[CalendarScreen] Cannot save - Profile ID is missing. User object:', user);
@@ -237,7 +237,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
   // Save dates to backend
   const saveDatesToBackend = async (dates) => {
     try {
-      const profileId = user?._id || user?.id;
+      const profileId = user?.id;
 
       if (!profileId) {
         console.error('[CalendarScreen] Cannot save available dates - Profile ID is missing, user:', user);
@@ -375,8 +375,8 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
 
       // Check for overlapping schedules
       const hasOverlap = schedules.some((schedule) => {
-        // Skip the schedule being edited (check both id and _id)
-        if (editingScheduleId && (schedule.id === editingScheduleId || schedule._id === editingScheduleId)) {
+        // Skip the schedule being edited
+        if (editingScheduleId && schedule.id === editingScheduleId) {
           return false;
         }
 
@@ -397,10 +397,9 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
       if (editingScheduleId) {
         // Editing existing schedule - preserve all existing fields
         updatedSchedules = schedules.map(s => {
-          // Check both id and _id (backend uses _id, frontend uses id)
-          if (s.id === editingScheduleId || s._id === editingScheduleId) {
+          if (s.id === editingScheduleId) {
             return {
-              ...s,              // Preserve all existing fields (including _id, createdAt, etc.)
+              ...s,              // Preserve all existing fields (including id, createdAt, etc.)
               ...scheduleForm    // Override with new form data
             };
           }
@@ -422,7 +421,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
       setSchedules(updatedSchedules);
 
       try {
-        const profileId = user._id || user.id;
+        const profileId = user.id || user.id;
 
         if (!profileId) {
           console.error('Profile ID is missing');
@@ -486,8 +485,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
       }
     });
 
-    // Use _id if available (backend), otherwise use id (frontend)
-    const scheduleId = schedule._id || schedule.id;
+    const scheduleId = schedule.id;
     console.log('[CalendarScreen] Editing schedule with id:', scheduleId);
     setEditingScheduleId(scheduleId);
     setShowLocationModal(true);
@@ -502,14 +500,12 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
   const confirmDeleteSchedule = async () => {
     if (!scheduleToDelete) return;
 
-    // Check both id and _id (backend uses _id, frontend uses id)
     const updatedSchedules = schedules.filter(s => {
-      const scheduleId = s._id || s.id;
-      return scheduleId !== scheduleToDelete;
+      return s.id !== scheduleToDelete;
     });
 
     try {
-      const profileId = user._id || user.id;
+      const profileId = user.id;
 
       if (!profileId) {
         console.error('Profile ID is missing');
@@ -820,17 +816,17 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
                   const dealDate = new Date(event.date);
                   const dayNumber = dealDate.getDate();
                   const otherParty = event.artist || {};
-                  const isExpanded = expandedDealId === event._id;
+                  const isExpanded = expandedDealId === event.id;
 
                   return (
-                    <div key={event._id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
+                    <div key={event.id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
                       <div className="booking-date-badge">
                         {dayNumber}
                       </div>
                       <div className="booking-compact-view">
                         <div
                           className="party-avatar"
-                          onClick={() => toggleDealExpanded(event._id)}
+                          onClick={() => toggleDealExpanded(event.id)}
                           style={{ cursor: 'pointer' }}
                         >
                           {otherParty.avatar ? (
@@ -842,7 +838,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
 
                         <div
                           className="party-info"
-                          onClick={() => toggleDealExpanded(event._id)}
+                          onClick={() => toggleDealExpanded(event.id)}
                           style={{ cursor: 'pointer', flex: 1 }}
                         >
                           <div className="party-name-role">
@@ -863,7 +859,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
 
                         <button
                           className="btn-expand-arrow"
-                          onClick={() => toggleDealExpanded(event._id)}
+                          onClick={() => toggleDealExpanded(event.id)}
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
                             <path d="M6 9l6 6 6-6"/>
@@ -1001,7 +997,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                       </button>
-                      <button className="icon-btn-delete" onClick={() => handleRemoveSchedule(schedule._id || schedule.id)} title="Delete schedule">
+                      <button className="icon-btn-delete" onClick={() => handleRemoveSchedule(schedule.id)} title="Delete schedule">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M3 6h18"/>
                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>

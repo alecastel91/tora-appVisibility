@@ -30,7 +30,7 @@ const NotificationDropdown = ({ onClose, onClearNotifications }) => {
       <div className="notifications-list">
         {notifications && notifications.length > 0 ? (
           notifications.map(notif => (
-            <div key={notif._id || notif.id} className="notification-item">
+            <div key={notif.id} className="notification-item">
               <p>{notif.message || notif.text}</p>
               <span className="notification-time">{getTimeAgo(notif.createdAt || notif.timestamp)}</span>
             </div>
