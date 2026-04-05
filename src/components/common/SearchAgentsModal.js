@@ -3,7 +3,7 @@ import { CloseIcon } from '../../utils/icons';
 import apiService from '../../services/api';
 import ViewProfileScreen from '../screens/ViewProfileScreen';
 
-const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
+const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -581,7 +581,7 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                     let buttonAction = () => handleRequestClick(agent);
 
                     if (hasAccepted) {
-                      buttonText = 'Represented';
+                      buttonText = 'Representing';
                       buttonClass = 'btn-success';
                       buttonDisabled = true;
                       buttonAction = null;
@@ -622,18 +622,31 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId }) => {
                             <p className="artist-location">{agent.location}</p>
                           </div>
                         </div>
-                        <button
-                          className={`btn btn-sm ${buttonClass}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!buttonDisabled && buttonAction) {
-                              buttonAction();
-                            }
-                          }}
-                          disabled={buttonDisabled}
-                        >
-                          {buttonText}
-                        </button>
+                        <div className="agent-action-buttons">
+                          {(hasAccepted || isConnected) && onOpenChat && (
+                            <button
+                              className="btn btn-sm btn-outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenChat(agent);
+                              }}
+                            >
+                              Message
+                            </button>
+                          )}
+                          <button
+                            className={`btn btn-sm ${buttonClass}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!buttonDisabled && buttonAction) {
+                                buttonAction();
+                              }
+                            }}
+                            disabled={buttonDisabled}
+                          >
+                            {buttonText}
+                          </button>
+                        </div>
                       </div>
                     );
                   })}

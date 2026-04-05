@@ -445,24 +445,12 @@ const ProfileScreen = ({ onOpenPremium }) => {
               Manage
             </button>
             {user?.role === 'ARTIST' && (
-              agentProfile ? (
-                <button
-                  className="btn btn-outline btn-full-width"
-                  onClick={() => setShowAgentChat(true)}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                  Message Agent
-                </button>
-              ) : (
-                <button
-                  className="btn btn-outline btn-full-width"
-                  onClick={() => setShowFindAgent(true)}
-                >
-                  <AddIcon /> Find Agent
-                </button>
-              )
+              <button
+                className="btn btn-outline btn-full-width"
+                onClick={() => setShowFindAgent(true)}
+              >
+                <AddIcon /> Find Agent
+              </button>
             )}
           </>
         )}
@@ -844,6 +832,11 @@ const ProfileScreen = ({ onOpenPremium }) => {
           onClose={() => setShowFindAgent(false)}
           onSelectAgent={handleSelectAgent}
           currentArtistId={user?.id}
+          onOpenChat={(agent) => {
+            setShowFindAgent(false);
+            setAgentProfile(agent);
+            setShowAgentChat(true);
+          }}
         />
       )}
 

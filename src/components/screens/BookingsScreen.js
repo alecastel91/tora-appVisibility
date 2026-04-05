@@ -48,6 +48,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
   const [documentTypeToShare, setDocumentTypeToShare] = useState(null);
   const [artistProfile, setArtistProfile] = useState(null); // For agent bookings
   const [showWithdrawConfirmation, setShowWithdrawConfirmation] = useState(false);
+
+  // Agent artist filter
+  const [selectedArtistFilter, setSelectedArtistFilter] = useState('all');
+  const representedArtists = currentUser?.role === 'AGENT' ? (currentUser.representingArtists || []) : [];
   const [dealToWithdraw, setDealToWithdraw] = useState(null);
 
   useEffect(() => {
@@ -109,7 +113,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
       // DEBUG: Log deal artistId fields
       console.log('[fetchDeals] Fetched', response.deals?.length, 'deals');
       response.deals?.forEach((deal, idx) => {
-        console.log(`[fetchDeals] Deal ${idx}:`, deal.eventName, 'artistId:', deal.artistId || 'NOT SET');
+        console.log(`[fetchDeals] Deal ${idx}:`, deal.eventName, 'bookedArtistId:', deal.bookedArtistId || 'NOT SET');
       });
 
       setDeals(response.deals || []);
@@ -204,7 +208,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     });
   };
 
-  // Filter deals into past, upcoming, and declined
+  // Filter deals into past, upcoming, and declined (with optional agent artist filter)
   const filterDeals = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -212,6 +216,12 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     return deals.filter(deal => {
       const dealDate = new Date(deal.date);
       dealDate.setHours(0, 0, 0, 0);
+
+      // Agent artist filter: if a specific artist is selected, only show their deals
+      if (selectedArtistFilter !== 'all' && currentUser?.role === 'AGENT') {
+        const dealArtistId = deal.bookedArtistId || deal.artistId;
+        if (dealArtistId !== selectedArtistFilter) return false;
+      }
 
       if (activeTab === 'declined') {
         return deal.status === 'DECLINED';
@@ -294,10 +304,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
       : deal.initiator;
     const isExpanded = expandedDealId === deal.id;
 
-    // Check if this is a deal viewed by the artist via their agent
-    const isViaAgent = deal.artistId && deal.artistId === currentUser.id && deal.artist.id !== currentUser.id;
+    // Check if this is a deal viewed by the artist who has an agent managing it
+    // Case 1: deal.bookedArtistId matches current user (booked through agent explicitly)
+    // Case 2: current user is the artist in the deal AND has a representedBy agent
+    // "via agent" when bookedArtistId is set — this means the offer was sent through the agent
+    // When bookedArtistId is null, the offer was sent directly to the artist
+    const isViaAgent = !!deal.bookedArtistId && currentUser.role === 'ARTIST';
     // Get agent name for the "via agent" indicator
-    const agentName = isViaAgent ? deal.artist.name : null;
+    const agentName = isViaAgent ? (currentUser.representedBy?.name || 'your agent') : null;
 
     const dealDate = new Date(deal.date);
     const dayNumber = dealDate.getDate();
@@ -434,12 +448,39 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                   </div>
                 </div>
               )}
-              {deal.additionalTerms && (
-                <div className="booking-detail-row full-width">
-                  <span className="detail-label">Additional Terms:</span>
-                  <span className="detail-value">{deal.additionalTerms}</span>
-                </div>
-              )}
+              {deal.additionalTerms && (() => {
+                // Try to parse additionalTerms as JSON and render like extras
+                let parsedTerms = null;
+                try {
+                  const parsed = typeof deal.additionalTerms === 'string'
+                    ? JSON.parse(deal.additionalTerms)
+                    : deal.additionalTerms;
+                  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                    parsedTerms = parsed;
+                  }
+                } catch (e) { /* not JSON, render as text */ }
+
+                return parsedTerms ? (
+                  <div className="booking-detail-row full-width">
+                    <span className="detail-label">Extras:</span>
+                    <div className="detail-value extras-list">
+                      {Object.entries(parsedTerms).filter(([, v]) => v).map(([key, value]) => (
+                        <div key={key} className="extra-item">
+                          <div className="extra-content">
+                            <strong style={{ textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1').trim()}</strong>
+                            {value !== 'Included' && value !== true && <span className="extra-note">: {value}</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="booking-detail-row full-width">
+                    <span className="detail-label">Additional Terms:</span>
+                    <span className="detail-value">{deal.additionalTerms}</span>
+                  </div>
+                );
+              })()}
               {deal.technicalRequirements && (
                 <div className="booking-detail-row full-width">
                   <span className="detail-label">Technical:</span>
@@ -461,12 +502,12 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
             </div>
 
             {/* Workflow Timeline for ACCEPTED deals */}
-            {deal.status === 'ACCEPTED' && (
+            {deal.status === 'ACCEPTED' && !isViaAgent && (
               <WorkflowTimeline deal={deal} />
             )}
 
-            {/* Workflow Action Buttons for ACCEPTED deals */}
-            {deal.status === 'ACCEPTED' && (
+            {/* Workflow Action Buttons for ACCEPTED deals - hidden for via-agent */}
+            {deal.status === 'ACCEPTED' && !isViaAgent && (
               <div className="workflow-actions">
                 {/* Contract Actions */}
                 {(!deal.contract || deal.contract.status === 'NOT_SENT') && (
@@ -475,16 +516,16 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                       className="btn btn-outline"
                       onClick={async () => {
                         console.log('[Send Contract Button] Clicked for deal:', deal.eventName);
-                        console.log('[Send Contract Button] Deal artistId:', deal.artistId || 'NOT SET');
+                        console.log('[Send Contract Button] Deal artistId:', deal.bookedArtistId || 'NOT SET');
                         console.log('[Send Contract Button] Deal artist.id:', deal.artist?.id);
 
                         setSelectedDealForWorkflow(deal);
 
                         // If this is an agent booking (has artistId), fetch artist profile FIRST
-                        if (deal.artistId) {
+                        if (deal.bookedArtistId) {
                           try {
-                            console.log('[Send Contract Button] Fetching artist profile BEFORE opening modal:', deal.artistId);
-                            const profile = await apiService.getProfile(deal.artistId);
+                            console.log('[Send Contract Button] Fetching artist profile BEFORE opening modal:', deal.bookedArtistId);
+                            const profile = await apiService.getProfile(deal.bookedArtistId);
                             console.log('[Send Contract Button] Artist profile fetched:', profile.name, 'Contracts:', profile.documents?.contracts?.length);
                             setArtistProfile(profile);
                             // NOW open the modal after profile is loaded
@@ -719,14 +760,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
             )}
 
             {/* Info message for artist viewing via agent */}
-            {isViaAgent && (deal.status === 'PENDING' || deal.status === 'NEGOTIATING') && (
+            {isViaAgent && (
               <div className="via-agent-info">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}>
                   <circle cx="12" cy="12" r="10"></circle>
                   <line x1="12" y1="16" x2="12" y2="12"></line>
                   <line x1="12" y1="8" x2="12" y2="8"></line>
                 </svg>
-                <span>This booking is being managed by your agent. Only your agent can accept or decline this offer.</span>
+                <span>This booking is managed by your agent{agentName ? ` (${agentName})` : ''}.</span>
               </div>
             )}
 
@@ -743,8 +784,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
               </button>
             )}
 
-            {/* Delete offer button (only for outgoing pending offers) */}
-            {isOutgoing && deal.status === 'PENDING' && (
+            {/* Delete offer button (only for outgoing pending offers, not via-agent) */}
+            {isOutgoing && !isViaAgent && deal.status === 'PENDING' && (
               <button
                 className="btn btn-outline btn-delete-offer-expanded"
                 onClick={(e) => {
@@ -792,6 +833,24 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
           )}
         </button>
       </div>
+
+      {/* Agent artist filter dropdown */}
+      {currentUser?.role === 'AGENT' && representedArtists.length > 0 && (
+        <div className="agent-artist-filter">
+          <select
+            value={selectedArtistFilter}
+            onChange={(e) => setSelectedArtistFilter(e.target.value)}
+            className="agent-artist-select"
+          >
+            <option value="all">All Artists ({deals.length})</option>
+            {representedArtists.map(artist => (
+              <option key={artist.profileId} value={artist.profileId}>
+                {artist.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="bookings-content">
         {loading ? (

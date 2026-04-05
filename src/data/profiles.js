@@ -3,7 +3,6 @@ export const dummyProfiles = [];
 
 // Genre list for dropdown (matches landing page - 37 genres)
 export const genresList = [
-  'Acid',
   'Afro House',
   'Afrobeat',
   'Amapiano',
@@ -32,6 +31,7 @@ export const genresList = [
   'Melodic Techno',
   'Minimal',
   'Noise',
+  'Pop',
   'Progressive House',
   'Psytrance',
   'R&B',

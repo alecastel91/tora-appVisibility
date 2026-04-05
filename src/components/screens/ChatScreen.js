@@ -1504,12 +1504,40 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     </div>
                   </div>
                 )}
-                {selectedOffer.additionalTerms && (
-                  <div className="offer-detail-row">
-                    <span className="detail-label">Additional Terms:</span>
-                    <span className="detail-value">{selectedOffer.additionalTerms}</span>
-                  </div>
-                )}
+                {selectedOffer.additionalTerms && (() => {
+                  let parsedTerms = null;
+                  try {
+                    const parsed = typeof selectedOffer.additionalTerms === 'string'
+                      ? JSON.parse(selectedOffer.additionalTerms)
+                      : selectedOffer.additionalTerms;
+                    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                      parsedTerms = parsed;
+                    }
+                  } catch (e) { /* not JSON */ }
+
+                  return parsedTerms ? (
+                    <div className="offer-detail-row">
+                      <span className="detail-label">Extras:</span>
+                      <div className="detail-value extras-list">
+                        {Object.entries(parsedTerms).filter(([, v]) => v).map(([key, value]) => (
+                          <div key={key} className="extra-item">
+                            <div className="extra-header">
+                              <strong style={{ textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1').trim()}:</strong>
+                            </div>
+                            {value !== 'Included' && value !== true && (
+                              <div className="extra-note">{value}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="offer-detail-row">
+                      <span className="detail-label">Additional Terms:</span>
+                      <span className="detail-value">{selectedOffer.additionalTerms}</span>
+                    </div>
+                  );
+                })()}
                 {selectedOffer.technicalRequirements && (
                   <div className="offer-detail-row">
                     <span className="detail-label">Technical:</span>
@@ -1542,8 +1570,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                  }
                  // No counter-offers: the recipient (not initiator) can respond
                  const isArtistOrAgent = selectedOffer.artist?.id === currentUser.id ||
-                   (currentUser.role === 'AGENT' && selectedOffer.artistId &&
-                    currentUser.representingArtists?.some(a => a.profileId === selectedOffer.artistId)) ||
+                   (currentUser.role === 'AGENT' && selectedOffer.bookedArtistId &&
+                    currentUser.representingArtists?.some(a => a.profileId === selectedOffer.bookedArtistId)) ||
                    (currentUser.role === 'AGENT' && selectedOffer.artist?.id &&
                     currentUser.representingArtists?.some(a => a.profileId === selectedOffer.artist.id));
                  const isVenue = selectedOffer.venue?.id === currentUser.id;
@@ -1621,8 +1649,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       // If this is an agent booking (has artistId), fetch artist profile FIRST
                       if (selectedOffer?.artistId) {
                         try {
-                          console.log('[ChatScreen] Fetching artist profile BEFORE opening modal:', selectedOffer.artistId);
-                          const profile = await apiService.getProfile(selectedOffer.artistId);
+                          console.log('[ChatScreen] Fetching artist profile BEFORE opening modal:', selectedOffer.bookedArtistId);
+                          const profile = await apiService.getProfile(selectedOffer.bookedArtistId);
                           console.log('[ChatScreen] Artist profile fetched:', profile.name, 'Contracts:', profile.documents?.contracts?.length);
                           setSelectedArtistForDocs(profile);
                           // NOW open the modal after profile is loaded
