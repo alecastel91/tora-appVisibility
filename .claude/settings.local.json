@@ -93,7 +93,11 @@
       "Bash(npx tailwindcss:*)",
       "Bash(npx:*)",
       "Bash(./node_modules/.bin/tailwindcss:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(npx react-email dev)",
+      "Bash(npx react-email dev:*)",
+      "Bash(git stash:*)",
+      "Bash(dig:*)"
     ],
     "deny": [],
     "ask": []

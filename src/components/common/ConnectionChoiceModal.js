@@ -8,12 +8,34 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
 
   console.log('ConnectionChoiceModal rendered', { artist, onConnect, onClose });
 
-  const [step, setStep] = useState('choice'); // 'choice' or 'message'
+  // Normalize representedBy to always be an array
+  const representedByArray = Array.isArray(artist.representedBy)
+    ? artist.representedBy
+    : (artist.representedBy ? [artist.representedBy] : []);
+
+  // Use the first agent as the primary agent for the choice modal
+  const primaryAgent = representedByArray[0] || {};
+
+  const [step, setStep] = useState('choice'); // 'choice', 'selectAgent', or 'message'
   const [selectedType, setSelectedType] = useState(null); // 'AGENT' or 'ARTIST'
+  const [selectedAgent, setSelectedAgent] = useState(primaryAgent);
   const [message, setMessage] = useState('');
 
   const handleSelectAgent = () => {
     console.log('Agent selected');
+    if (representedByArray.length > 1) {
+      // Multiple agents: show agent selection step
+      setStep('selectAgent');
+    } else {
+      // Single agent: go straight to message
+      setSelectedAgent(primaryAgent);
+      setSelectedType('AGENT');
+      setStep('message');
+    }
+  };
+
+  const handlePickAgent = (agent) => {
+    setSelectedAgent(agent);
     setSelectedType('AGENT');
     setStep('message');
   };
@@ -28,7 +50,7 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
     console.log('Sending request with message:', message);
     try {
       if (selectedType === 'AGENT') {
-        const agentId = artist.representedBy.agentId;
+        const agentId = selectedAgent.agentId || selectedAgent.profileId || selectedAgent.id;
         console.log('Calling onConnect with agentId:', agentId);
         await onConnect(agentId, 'AGENT', artist, message);
       } else {
@@ -45,7 +67,11 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
   };
 
   const handleBack = () => {
-    setStep('choice');
+    if (step === 'message' && selectedType === 'AGENT' && representedByArray.length > 1) {
+      setStep('selectAgent');
+    } else {
+      setStep('choice');
+    }
     setSelectedType(null);
     setMessage('');
   };
@@ -53,7 +79,7 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
   // For the message step, show the simplified message modal
   if (step === 'message') {
     const targetName = selectedType === 'AGENT'
-      ? artist.representedBy.name
+      ? (selectedAgent.name || selectedAgent.agentName || 'Agent')
       : artist.name;
 
     return (
@@ -88,7 +114,47 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
     );
   }
 
+  // Agent selection step (when multiple agents)
+  if (step === 'selectAgent') {
+    return (
+      <Modal isOpen={true} onClose={onClose}>
+        <div className="connection-choice-modal">
+          <h2>Select Agent</h2>
+          <p className="modal-description">
+            This artist has multiple agents. Who would you like to connect with?
+          </p>
+
+          {representedByArray.map((agent, index) => (
+            <button
+              key={agent.agentId || agent.profileId || agent.id || index}
+              className="connection-option agent-option"
+              onClick={() => handlePickAgent(agent)}
+            >
+              <div className="option-icon">
+                <HandshakeIcon />
+              </div>
+              <div className="option-content">
+                <div className="option-name">{agent.name || agent.agentName || 'Agent'}</div>
+                <div className="option-description">
+                  For booking inquiries
+                </div>
+              </div>
+            </button>
+          ))}
+
+          <button className="btn btn-secondary btn-full" onClick={() => setStep('choice')}>
+            Back
+          </button>
+        </div>
+      </Modal>
+    );
+  }
+
   // For the choice step, show the selection modal
+  const agentDisplayName = representedByArray.length === 1
+    ? (primaryAgent.name || primaryAgent.agentName || 'Agent')
+    : `${representedByArray.length} agents`;
+
   return (
     <Modal isOpen={true} onClose={onClose}>
       <div className="connection-choice-modal">
@@ -96,7 +162,7 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
 
         <div className="info-banner">
           <InfoIcon />
-          <span>This artist is represented by an agent</span>
+          <span>This artist is represented by {representedByArray.length === 1 ? 'an agent' : `${representedByArray.length} agents`}</span>
         </div>
 
         <p className="modal-description">
@@ -113,7 +179,7 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
           </div>
           <div className="option-content">
             <div className="option-title">Connect with Agent</div>
-            <div className="option-name">{artist.representedBy.name}</div>
+            <div className="option-name">{agentDisplayName}</div>
             <div className="option-description">
               For booking inquiries
             </div>

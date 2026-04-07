@@ -835,7 +835,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                         <div className="offer-card-text">
                           <p className="offer-card-name">{displayName}</p>
                           <p className="offer-card-action">
-                            {isDeclined ? 'declined representation request' : isAccepted ? 'accepted representation request' : 'sent representation request'}
+                            {isDeclined ? 'declined representation' : isAccepted ? 'accepted representation' : 'sent representation request'}
                           </p>
                         </div>
                       </div>

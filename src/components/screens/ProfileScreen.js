@@ -618,14 +618,23 @@ const ProfileScreen = ({ onOpenPremium }) => {
       </div>
 
       {/* Represented By Badge */}
-      {user?.representedBy && (user?.representedBy.name || user?.representedBy.agentName) && (
-        <div className="represented-by-container">
-          <div className="represented-by-badge">
-            <span className="represented-icon"><HandshakeIcon /></span>
-            Represented by {user.representedBy.name || user.representedBy.agentName}
+      {(() => {
+        const repArray = Array.isArray(user?.representedBy)
+          ? user.representedBy
+          : (user?.representedBy ? [user.representedBy] : []);
+        const agentNames = repArray
+          .map(a => a.name || a.agentName)
+          .filter(Boolean);
+        if (agentNames.length === 0) return null;
+        return (
+          <div className="represented-by-container">
+            <div className="represented-by-badge">
+              <span className="represented-icon"><HandshakeIcon /></span>
+              Represented by {agentNames.join(', ')}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Likes List Modal */}
       <Modal

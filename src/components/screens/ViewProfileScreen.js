@@ -35,10 +35,14 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
     if (!hasPendingRequest) {
       console.log('profile.representedBy:', profile.representedBy);
 
-      // Check if profile has a valid representedBy agent (with name and agentId)
-      const hasValidAgent = profile.representedBy &&
-                            (profile.representedBy.name || profile.representedBy.agentName) &&
-                            (profile.representedBy.agentId || profile.representedBy.id);
+      // Check if profile has a valid representedBy agent (now an array)
+      const representedByArray = Array.isArray(profile.representedBy)
+        ? profile.representedBy
+        : (profile.representedBy ? [profile.representedBy] : []);
+
+      const hasValidAgent = representedByArray.some(a =>
+        (a.name || a.agentName) && (a.agentId || a.profileId || a.id)
+      );
 
       console.log('hasValidAgent:', hasValidAgent);
 
@@ -64,7 +68,13 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
       console.log('Connection request sent successfully!');
 
       // Show success feedback
-      const targetName = type === 'AGENT' ? artistContext.representedBy.name : profile.name;
+      let targetName = profile.name;
+      if (type === 'AGENT' && artistContext) {
+        const repArray = Array.isArray(artistContext.representedBy)
+          ? artistContext.representedBy
+          : (artistContext.representedBy ? [artistContext.representedBy] : []);
+        targetName = repArray[0]?.name || repArray[0]?.agentName || 'Agent';
+      }
       alert(`Connection request sent to ${targetName}!`);
     } catch (error) {
       console.error('Error sending connection request:', error);
@@ -353,7 +363,7 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
             className={`btn ${isLiked ? 'btn-primary' : 'btn-outline'} btn-full-width`}
             onClick={handleLike}
           >
-            <HeartIcon /> {isLiked ? 'Liked' : 'Like'}
+            <HeartIcon filled={isLiked} /> {isLiked ? 'Liked' : 'Like'}
           </button>
           {isConnected ? (
             <button
@@ -374,14 +384,23 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
         </div>
 
         {/* Represented By Badge */}
-        {profile.representedBy && (profile.representedBy.name || profile.representedBy.agentName) && (
-          <div className="represented-by-container">
-            <div className="represented-by-badge">
-              <span className="represented-icon"><HandshakeIcon /></span>
-              Represented by {profile.representedBy.name || profile.representedBy.agentName}
+        {(() => {
+          const repArray = Array.isArray(profile.representedBy)
+            ? profile.representedBy
+            : (profile.representedBy ? [profile.representedBy] : []);
+          const agentNames = repArray
+            .map(a => a.name || a.agentName)
+            .filter(Boolean);
+          if (agentNames.length === 0) return null;
+          return (
+            <div className="represented-by-container">
+              <div className="represented-by-badge">
+                <span className="represented-icon"><HandshakeIcon /></span>
+                Represented by {agentNames.join(', ')}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Remove Connection Button (only shown if connected) */}
         {isConnected && (

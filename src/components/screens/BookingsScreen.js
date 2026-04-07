@@ -311,7 +311,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     // When bookedArtistId is null, the offer was sent directly to the artist
     const isViaAgent = !!deal.bookedArtistId && currentUser.role === 'ARTIST';
     // Get agent name for the "via agent" indicator
-    const agentName = isViaAgent ? (currentUser.representedBy?.name || 'your agent') : null;
+    const agentName = isViaAgent ? (
+      Array.isArray(currentUser.representedBy)
+        ? (currentUser.representedBy.map(a => a.name || a.agentName).filter(Boolean).join(', ') || 'your agent')
+        : (currentUser.representedBy?.name || 'your agent')
+    ) : null;
 
     const dealDate = new Date(deal.date);
     const dayNumber = dealDate.getDate();

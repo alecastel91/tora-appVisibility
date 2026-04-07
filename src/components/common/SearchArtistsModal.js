@@ -24,10 +24,9 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
   const [reviewingRequest, setReviewingRequest] = useState(null);
   const [receivedRequestIds, setReceivedRequestIds] = useState(new Set());
 
-  // Fetch all artists and sent requests on mount
+  // Fetch sent requests on mount (but NOT the full artist list — search only)
   useEffect(() => {
-    console.log('[SearchArtistsModal] Mounting - fetching data for agent:', currentAgentId);
-    fetchArtists();
+    console.log('[SearchArtistsModal] Mounting - fetching request data for agent:', currentAgentId);
     fetchSentRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run on mount
@@ -128,14 +127,15 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
     setLoading(true);
     try {
       const params = {
-        role: 'ARTIST' // Only search for artists
+        roles: 'ARTIST' // Only search for artists
       };
 
       if (query) {
         params.search = query;
       }
 
-      const profiles = await apiService.searchProfiles(params);
+      const response = await apiService.searchProfiles(params);
+      const profiles = response.profiles || response || [];
 
       // Filter out current agent's profile (just in case)
       const filteredArtists = (profiles || []).filter(profile => {
@@ -162,9 +162,10 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
     const value = e.target.value;
     setSearchQuery(value);
 
-    // Auto-search as user types (debounced effect would be better but this works)
+    // Clear results when input is cleared
     if (value.length === 0) {
-      fetchArtists('');
+      setArtists([]);
+      setHasSearched(false);
     }
   };
 
@@ -375,16 +376,18 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
   return (
     <>
       {/* Main Search Modal */}
-      <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content search-artists-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Search TORA Artists</h2>
-          <button className="close-btn" onClick={onClose}>
-            <CloseIcon />
+      <div className="screen active search-artists-screen">
+        <div className="search-agents-header">
+          <button className="back-btn" onClick={onClose}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
           </button>
+          <h1>FIND ARTIST</h1>
+          <div style={{ width: '24px' }}></div>
         </div>
 
-        <div className="modal-body">
+        <div className="search-agents-content">
           {/* Search Bar */}
           <form onSubmit={handleSearch} className="search-form">
             <input
@@ -403,6 +406,13 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
           {loading && (
             <div className="loading-state">
               <p>Searching artists...</p>
+            </div>
+          )}
+
+          {/* Prompt to search */}
+          {!loading && !hasSearched && (
+            <div className="empty-state">
+              <p>Search for an artist by name</p>
             </div>
           )}
 
@@ -512,7 +522,6 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
           )}
         </div>
       </div>
-    </div>
 
       {/* Profile View Modal - rendered on top */}
       {viewingProfile && (
@@ -588,7 +597,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
 
             <div className="modal-body">
               <p className="modal-description">
-                Sending representation request to <strong>{selectedArtist.name}</strong>
+                Sending representation request to:<br /><strong>{selectedArtist.name}</strong>
               </p>
 
               <div className="form-group">

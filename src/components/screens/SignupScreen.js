@@ -21,6 +21,39 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
   const [loading, setLoading] = useState(false);
   const [customCity, setCustomCity] = useState('');
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
+  const [invitationCode, setInvitationCode] = useState('');
+  const [invitationData, setInvitationData] = useState(null);
+  const [validatingCode, setValidatingCode] = useState(false);
+  const [codeError, setCodeError] = useState('');
+
+  const validateCode = async (code) => {
+    if (!code || code.length < 5) {
+      setInvitationData(null);
+      setCodeError('');
+      return;
+    }
+    setValidatingCode(true);
+    setCodeError('');
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || '/api';
+      const response = await fetch(`${API_URL}/invitations/validate/${code}`);
+      const data = await response.json();
+      if (data.valid) {
+        setInvitationData(data);
+        setFormData(prev => ({
+          ...prev,
+          email: data.email || prev.email
+        }));
+      } else {
+        setInvitationData(null);
+        setCodeError(data.error || 'Invalid code');
+      }
+    } catch (err) {
+      setCodeError('Could not validate code');
+    } finally {
+      setValidatingCode(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -82,11 +115,11 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
   // Get available cities based on selected country
   const availableCities = formData.country ? citiesByCountry[formData.country] || [] : [];
 
-  const handleNextStep = (e) => {
+  const handleNextStep = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validate step 1
+    // Validate passwords
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -97,6 +130,26 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
       return;
     }
 
+    // If invitation code is present, skip Step 2 — profile already exists
+    if (invitationData) {
+      setLoading(true);
+      try {
+        const signupData = {
+          email: formData.email,
+          password: formData.password,
+          invitationCode: invitationCode
+        };
+
+        const data = await apiService.signup(signupData);
+        onSignupSuccess(data);
+      } catch (err) {
+        setError(err.message || 'Signup failed. Please try again.');
+        setLoading(false);
+      }
+      return;
+    }
+
+    // No invitation — go to Step 2 for manual profile setup
     setStep(2);
   };
 
@@ -114,6 +167,9 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
       // Remove temporary fields and add location
       const { confirmPassword, zone, ...signupData } = formData;
       signupData.location = location;
+      if (invitationCode) {
+        signupData.invitationCode = invitationCode;
+      }
 
       const data = await apiService.signup(signupData);
 
@@ -138,13 +194,43 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
           // Step 1: Account Info
           <form className="auth-form" onSubmit={handleNextStep}>
             <h2>Create Account</h2>
-            <div className="step-indicator">Step 1 of 2</div>
+            {!invitationData && <div className="step-indicator">Step 1 of 2</div>}
 
             {error && (
               <div className="error-message">
                 {error}
               </div>
             )}
+
+            <div className="form-group">
+              <label>Invitation Code</label>
+              <div className="invitation-code-row">
+                <input
+                  type="text"
+                  placeholder="Enter your invitation code"
+                  value={invitationCode}
+                  onChange={(e) => setInvitationCode(e.target.value)}
+                  onBlur={() => validateCode(invitationCode)}
+                  className="form-input"
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-validate"
+                  onClick={() => validateCode(invitationCode)}
+                  disabled={validatingCode || !invitationCode}
+                >
+                  {validatingCode ? '...' : 'Validate'}
+                </button>
+              </div>
+              {codeError && (
+                <div className="invitation-error">{codeError}</div>
+              )}
+              {invitationData && (
+                <div className="invitation-success">
+                  Welcome, {invitationData.firstName}! Your {invitationData.packageLabel} is ready.
+                </div>
+              )}
+            </div>
 
             <div className="form-group">
               <input
@@ -154,7 +240,8 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="form-input"
+                readOnly={!!(invitationData && invitationData.email)}
+                className={`form-input ${invitationData && invitationData.email ? 'form-input-readonly' : ''}`}
               />
             </div>
 
@@ -185,8 +272,9 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
             <button
               type="submit"
               className="btn btn-primary btn-full"
+              disabled={loading}
             >
-              Next
+              {loading ? 'Creating Account...' : invitationData ? 'Create Account' : 'Next'}
             </button>
 
             <div className="auth-footer">

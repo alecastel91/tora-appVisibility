@@ -8,6 +8,24 @@ TORA App SQL is the PostgreSQL-compatible React frontend for the TORA platform, 
 - **Entity IDs**: UUIDs (never MongoDB ObjectIds)
 - **ID field**: Always `.id` (never `._id`)
 
+## Recent Updates (April 7, 2026)
+- **Multi-agent support**: `representedBy` is now an array — all screens handle multiple agents
+- **Signup with invitation code**: Skips Step 2 (profile setup) when code is valid — profile already pre-created
+- **Find Agent / Find Artist**: Converted to full-screen layout, search-only (no auto-loading all users)
+- **Heart icon**: Fills pink (#FF3366) when liked
+- **Remove artist from agent roster**: ✕ button on Represented Artists cards
+- **Via agent bookings**: Only shown when `bookedArtistId` is set (direct bookings have full CTAs)
+- **Extras display**: additionalTerms parsed as JSON and rendered as tagged items
+- **SearchArtistsModal**: Fixed `roles` param (was `role`), response extraction
+
+## Recent Updates (April 5, 2026)
+- **Via agent bookings**: Artist sees "via agent" badge and no CTAs for agent-managed deals; direct bookings have full CTAs
+- **Find Agent CTA**: Always shows "Find Agent" (not "Message Agent"); Message button available inside the modal for connected agents
+- **Counter-offer accept**: Fixed in BookingsScreen and ChatScreen — checks last offerer, supports NEGOTIATING status
+- **Additional Terms display**: JSON strings parsed and rendered as nice tagged extras (same as Extras field)
+- **Genres list**: Removed "Acid", added "Pop" — matches application landing page (36 genres)
+- **Agent artist filter**: Dropdown in Bookings screen for agents to filter by represented artist
+
 ## Migration Changes (April 3, 2026)
 
 ### MongoDB to PostgreSQL Frontend Migration

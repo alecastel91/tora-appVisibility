@@ -247,11 +247,13 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
     if (!sentRequests.has(profileId)) {
       setSelectedProfile(profile);
 
-      // Check if profile has valid representedBy data
-      const hasValidAgent = !!(
-        profile.representedBy &&
-        (profile.representedBy.name || profile.representedBy.agentName) &&
-        (profile.representedBy.agentId || profile.representedBy.id)
+      // Check if profile has valid representedBy data (now an array)
+      const representedByArray = Array.isArray(profile.representedBy)
+        ? profile.representedBy
+        : (profile.representedBy ? [profile.representedBy] : []);
+
+      const hasValidAgent = representedByArray.some(a =>
+        (a.name || a.agentName) && (a.agentId || a.profileId || a.id)
       );
 
       console.log('hasValidAgent:', hasValidAgent);
@@ -275,7 +277,13 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
       await sendConnectionRequest(targetProfileId, userMessage);
 
       // Show success feedback
-      const targetName = type === 'AGENT' ? artistContext.representedBy.name : selectedProfile.name;
+      let targetName = selectedProfile.name;
+      if (type === 'AGENT' && artistContext) {
+        const repArray = Array.isArray(artistContext.representedBy)
+          ? artistContext.representedBy
+          : (artistContext.representedBy ? [artistContext.representedBy] : []);
+        targetName = repArray[0]?.name || repArray[0]?.agentName || 'Agent';
+      }
       alert(`Connection request sent to ${targetName}!`);
     } catch (error) {
       console.error('Error sending connection request:', error);
@@ -526,7 +534,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
                     className={`btn ${isLiked ? 'btn-liked' : 'btn-outline'} btn-like`}
                     onClick={() => handleLike(profileId)}
                   >
-                    <HeartIcon /> {isLiked ? t('search.liked') : t('search.like')}
+                    <HeartIcon filled={isLiked} /> {isLiked ? t('search.liked') : t('search.like')}
                   </button>
                   {isConnected ? (
                     <button

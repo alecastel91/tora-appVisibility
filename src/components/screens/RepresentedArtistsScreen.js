@@ -18,6 +18,33 @@ const RepresentedArtistsScreen = ({ onClose }) => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const representedArtists = user?.representingArtists || [];
+  const [removingArtistId, setRemovingArtistId] = useState(null);
+
+  const handleRemoveArtist = async (artist) => {
+    const artistId = artist.profileId || artist.id;
+    const displayName = artist.name || 'this artist';
+    if (!window.confirm(`Remove ${displayName} from your represented artists?`)) return;
+
+    setRemovingArtistId(artistId);
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || '/api';
+      const token = localStorage.getItem('token');
+      await fetch(`${API_URL}/connections/cancel-representation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ artistId })
+      });
+      await reloadProfileData();
+    } catch (error) {
+      console.error('Error removing artist:', error);
+      alert('Failed to remove artist. Please try again.');
+    } finally {
+      setRemovingArtistId(null);
+    }
+  };
 
   const handleSelectArtist = async (artist, message = '') => {
     try {
@@ -156,13 +183,20 @@ const RepresentedArtistsScreen = ({ onClose }) => {
                     className="btn btn-outline btn-sm"
                     onClick={() => handleViewProfile(artist)}
                   >
-                    View Profile
+                    View
                   </button>
                   <button
                     className="btn btn-primary btn-sm"
                     onClick={() => handleManageArtist(artist)}
                   >
                     Manage
+                  </button>
+                  <button
+                    className="btn btn-outline btn-sm btn-remove-artist"
+                    onClick={() => handleRemoveArtist(artist)}
+                    disabled={removingArtistId === (artist.profileId || artist.id)}
+                  >
+                    {removingArtistId === (artist.profileId || artist.id) ? '...' : '✕'}
                   </button>
                 </div>
               </div>

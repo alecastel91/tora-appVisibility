@@ -23,12 +23,11 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewingRequest, setReviewingRequest] = useState(null);
   const [receivedRequestIds, setReceivedRequestIds] = useState(new Set());
-  const [representingAgent, setRepresentingAgent] = useState(null); // Current representing agent
+  const [representingAgents, setRepresentingAgents] = useState([]); // Current representing agents (array)
 
-  // Fetch all agents and sent requests on mount
+  // Fetch sent requests on mount (but NOT the full agent list — search only)
   useEffect(() => {
-    console.log('[SearchAgentsModal] Mounting - fetching data for artist:', currentArtistId);
-    fetchAgents();
+    console.log('[SearchAgentsModal] Mounting - fetching request data for artist:', currentArtistId);
     fetchSentRequests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run on mount
@@ -65,8 +64,14 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
       const receivedRequestedAgentIds = [...receivedRepRequestAgentIds, ...receivedConnRequestAgentIds];
 
       // Check representedBy field (source of truth for Artist's representation status)
-      const representedByAgentId = data.profile?.representedBy?.agentId?.toString() ||
-                                   data.profile?.representedBy?.agentId;
+      // representedBy is now an array of agents
+      const representedByRaw = data.profile?.representedBy;
+      const representedByArray = Array.isArray(representedByRaw)
+        ? representedByRaw
+        : (representedByRaw ? [representedByRaw] : []);
+      const representedByAgentIds = representedByArray
+        .map(a => (a.agentId?.toString?.() || a.agentId || a.profileId?.toString?.() || a.profileId))
+        .filter(Boolean);
 
       // Also check ACCEPTED representation requests for backward compatibility
       const acceptedRequestedAgentIds = (data.sentRequests || [])
@@ -82,22 +87,24 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
 
       // Combine all accepted: from representedBy field + ACCEPTED requests
       const allAcceptedRequestIds = [
-        ...(representedByAgentId ? [representedByAgentId] : []),
+        ...representedByAgentIds,
         ...acceptedRequestedAgentIds,
         ...acceptedReceivedAgentIds
       ];
 
       console.log('[SearchAgentsModal] Accepted agent IDs:', {
-        representedByAgentId,
+        representedByAgentIds,
         acceptedRequestedAgentIds,
         acceptedReceivedAgentIds,
         allAcceptedRequestIds
       });
 
-      // Store the representing agent data (if exists)
-      if (data.profile?.representedBy) {
-        setRepresentingAgent(data.profile.representedBy);
-        console.log('[SearchAgentsModal] Representing agent:', data.profile.representedBy);
+      // Store the representing agents data (if any exist)
+      if (representedByArray.length > 0) {
+        setRepresentingAgents(representedByArray);
+        console.log('[SearchAgentsModal] Representing agents:', representedByArray);
+      } else {
+        setRepresentingAgents([]);
       }
 
       setSentRequestIds(new Set(allPendingRequestIds));
@@ -187,9 +194,10 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
     const value = e.target.value;
     setSearchQuery(value);
 
-    // Auto-search as user types
+    // Clear results when input is cleared
     if (value.length === 0) {
-      fetchAgents('');
+      setAgents([]);
+      setHasSearched(false);
     }
   };
 
@@ -303,8 +311,11 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
 
       console.log('[SearchAgentsModal] Representation cancelled successfully');
 
-      // Clear the representing agent from local state
-      setRepresentingAgent(null);
+      // Remove this agent from the representing agents array
+      setRepresentingAgents(prev => prev.filter(a => {
+        const aId = a.agentId?.id || a.agentId || a.profileId;
+        return String(aId) !== String(agentId);
+      }));
 
       // Remove from acceptedRequestIds
       setAcceptedRequestIds(prev => {
@@ -451,8 +462,8 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
         </div>
 
         <div className="search-agents-content">
-          {/* Representing Agent Section (shown at top) */}
-          {representingAgent && (
+          {/* Representing Agents Section (shown at top) */}
+          {representingAgents.length > 0 && (
             <div style={{
               marginBottom: '12px',
               padding: '8px 10px',
@@ -468,43 +479,45 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px'
               }}>
-                Current Agent
+                {representingAgents.length === 1 ? 'Current Agent' : 'Current Agents'}
               </div>
-              <div className="artist-item" style={{ marginBottom: '0', gap: '10px' }}>
-                <div
-                  className="artist-info clickable"
-                  onClick={() => {
-                    const agentData = representingAgent.agentId;
-                    if (agentData) {
-                      handleCardClick(agentData);
-                    }
-                  }}
-                >
-                  <div className="artist-avatar">
-                    {representingAgent.agentId?.avatar ? (
-                      <img src={representingAgent.agentId.avatar} alt={representingAgent.agentId.name || representingAgent.name} />
-                    ) : (
-                      getInitial(representingAgent.agentId?.name || representingAgent.name || 'A')
-                    )}
+              {representingAgents.map((agent, index) => (
+                <div key={agent.agentId?.id || agent.agentId || agent.profileId || index} className="artist-item" style={{ marginBottom: index < representingAgents.length - 1 ? '8px' : '0', gap: '10px' }}>
+                  <div
+                    className="artist-info clickable"
+                    onClick={() => {
+                      const agentData = agent.agentId;
+                      if (agentData) {
+                        handleCardClick(agentData);
+                      }
+                    }}
+                  >
+                    <div className="artist-avatar">
+                      {agent.agentId?.avatar ? (
+                        <img src={agent.agentId.avatar} alt={agent.agentId.name || agent.name} />
+                      ) : (
+                        getInitial(agent.agentId?.name || agent.name || 'A')
+                      )}
+                    </div>
+                    <div className="artist-details">
+                      <h4>{agent.agentId?.name || agent.name}</h4>
+                      <p className="artist-location">{agent.agentId?.location || agent.location}</p>
+                    </div>
                   </div>
-                  <div className="artist-details">
-                    <h4>{representingAgent.agentId?.name || representingAgent.name}</h4>
-                    <p className="artist-location">{representingAgent.agentId?.location || representingAgent.location}</p>
-                  </div>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const agentData = agent.agentId;
+                      if (agentData) {
+                        handleCancelRepresentation(agentData);
+                      }
+                    }}
+                  >
+                    Remove
+                  </button>
                 </div>
-                <button
-                  className="btn btn-sm btn-danger"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const agentData = representingAgent.agentId;
-                    if (agentData) {
-                      handleCancelRepresentation(agentData);
-                    }
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
+              ))}
             </div>
           )}
 
@@ -526,6 +539,13 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
           {loading && (
             <div className="loading-state">
               <p>Searching agents...</p>
+            </div>
+          )}
+
+          {/* Prompt to search */}
+          {!loading && !hasSearched && (
+            <div className="empty-state">
+              <p>Search for an agent by name</p>
             </div>
           )}
 
@@ -557,12 +577,13 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
                   <div className="results-header">
                     <p>{agents.length} agent{agents.length !== 1 ? 's' : ''} found</p>
                   </div>
-                  {/* Filter out representing agent from search results (shown at top) */}
+                  {/* Filter out representing agents from search results (shown at top) */}
                   {(() => {
-                    const representingAgentId = representingAgent?.agentId?.id || representingAgent?.agentId;
+                    const representingAgentIds = new Set(
+                      representingAgents.map(a => String(a.agentId?.id || a.agentId || a.profileId)).filter(Boolean)
+                    );
                     const filteredAgents = agents.filter(agent => {
-                      const agentId = agent.id;
-                      return agentId !== representingAgentId;
+                      return !representingAgentIds.has(String(agent.id));
                     });
                     return filteredAgents;
                   })().map((agent) => {
