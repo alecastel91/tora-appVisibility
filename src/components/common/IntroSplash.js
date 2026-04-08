@@ -2,47 +2,37 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
 const IntroSplash = ({ onComplete }) => {
-  const [showLogo, setShowLogo] = useState(false);
-  const [showTagline, setShowTagline] = useState(false);
-  const [hideTagline, setHideTagline] = useState(false);
-  const [slideUp, setSlideUp] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+  const [dissolve, setDissolve] = useState(false);
 
   useEffect(() => {
-    // Logo animates in first
-    const logoTimer = setTimeout(() => setShowLogo(true), 300);
-    // Tagline appears shortly after logo
-    const taglineTimer = setTimeout(() => setShowTagline(true), 800);
-    // Tagline starts to disappear at 2.3 seconds
-    const hideTaglineTimer = setTimeout(() => setHideTagline(true), 2300);
-    // Logo slides up after 2.6 seconds (after tagline fades)
-    const slideTimer = setTimeout(() => {
-      setSlideUp(true);
-    }, 2600);
+    // Content fades in
+    const showTimer = setTimeout(() => setShowContent(true), 300);
+    // Everything dissolves out
+    const dissolveTimer = setTimeout(() => setDissolve(true), 2500);
+    // Notify parent to show login
+    const completeTimer = setTimeout(() => {
+      if (onComplete) onComplete();
+    }, 3300);
 
     return () => {
-      clearTimeout(logoTimer);
-      clearTimeout(taglineTimer);
-      clearTimeout(hideTaglineTimer);
-      clearTimeout(slideTimer);
+      clearTimeout(showTimer);
+      clearTimeout(dissolveTimer);
+      clearTimeout(completeTimer);
     };
-  }, []);
+  }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black z-50">
+    <motion.div
+      className="fixed inset-0 flex items-center justify-center bg-black z-50"
+      animate={{ opacity: dissolve ? 0 : 1 }}
+      transition={{ duration: 0.8, ease: 'easeOut' }}
+    >
       <div className="flex flex-col items-center text-center">
-        {/* Logo - slides up and shrinks */}
+        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9, filter: 'blur(8px)' }}
-          animate={
-            showLogo
-              ? {
-                  opacity: slideUp ? 0 : 1, // Fade out when sliding up
-                  scale: slideUp ? 0.625 : 1, // Shrinks to login size (200/320 = 0.625)
-                  filter: 'blur(0px)',
-                  y: slideUp ? -280 : 0 // Slides up higher to match login position
-                }
-              : {}
-          }
+          animate={showContent ? { opacity: 1, scale: 1, filter: 'blur(0px)' } : {}}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="mb-2"
         >
@@ -53,15 +43,11 @@ const IntroSplash = ({ onComplete }) => {
           />
         </motion.div>
 
-        {/* Tagline - fades out before logo slides */}
+        {/* Tagline */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
-          animate={
-            showTagline
-              ? { opacity: hideTagline ? 0 : 1, y: 0 }
-              : {}
-          }
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          animate={showContent ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.3, duration: 0.5, ease: 'easeOut' }}
           className="text-center mt-2"
         >
           <p className="text-white text-[10px] md:text-[12px] tracking-[0.22em] font-normal uppercase whitespace-nowrap">
@@ -69,7 +55,7 @@ const IntroSplash = ({ onComplete }) => {
           </p>
         </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

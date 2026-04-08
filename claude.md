@@ -8,6 +8,13 @@ TORA App SQL is the PostgreSQL-compatible React frontend for the TORA platform, 
 - **Entity IDs**: UUIDs (never MongoDB ObjectIds)
 - **ID field**: Always `.id` (never `._id`)
 
+## Recent Updates (April 8, 2026)
+- **Settings screen**: Shows firstName, lastName, phone, email from User (accountUser)
+- **Subscription/usage stats**: Read from accountUser (User table), not profile
+- **LinkedIn field**: Only shows in Edit Profile for AGENT role
+- **RA link construction**: Uses convertToRASlug logic matching admin dashboard (handles "DNG (1)" → "dng-1")
+- **Edit Profile RA placeholder**: Changed to "RA artist name"
+
 ## Recent Updates (April 7, 2026)
 - **Multi-agent support**: `representedBy` is now an array — all screens handle multiple agents
 - **Signup with invitation code**: Skips Step 2 (profile setup) when code is valid — profile already pre-created

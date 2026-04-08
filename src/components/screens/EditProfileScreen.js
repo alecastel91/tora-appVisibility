@@ -239,11 +239,12 @@ const EditProfileScreen = ({ onClose }) => {
             <div className="form-group">
               <label>Venue Capacity</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={editedUser.venueCapacity || ''}
-                onChange={(e) => setEditedUser({ ...editedUser, venueCapacity: parseInt(e.target.value) || '' })}
+                onChange={(e) => setEditedUser({ ...editedUser, venueCapacity: e.target.value.replace(/[^0-9]/g, '') })}
                 placeholder="Maximum capacity"
-                min="1"
               />
             </div>
           )}

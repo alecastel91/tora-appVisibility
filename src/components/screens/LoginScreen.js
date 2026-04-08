@@ -14,10 +14,10 @@ const LoginScreen = ({ onLoginSuccess, onSwitchToSignup }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Start showing form at 2.6s (when logo starts sliding)
-    const formTimer = setTimeout(() => setShowForm(true), 2600);
-    // Hide intro at 3.4s (after slide animation completes)
-    const introTimer = setTimeout(() => setShowIntro(false), 3400);
+    // Show form after dissolve starts (2.5s) so it fades in as splash fades out
+    const formTimer = setTimeout(() => setShowForm(true), 2800);
+    // Hide intro after dissolve completes
+    const introTimer = setTimeout(() => setShowIntro(false), 3500);
 
     return () => {
       clearTimeout(formTimer);
