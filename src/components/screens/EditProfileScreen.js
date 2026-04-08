@@ -237,13 +237,25 @@ const EditProfileScreen = ({ onClose }) => {
 
           {editedUser.role === 'VENUE' && (
             <div className="form-group">
-              <label>Capacity</label>
+              <label>Venue Capacity</label>
               <input
                 type="number"
-                value={editedUser.capacity || ''}
-                onChange={(e) => setEditedUser({ ...editedUser, capacity: parseInt(e.target.value) || '' })}
+                value={editedUser.venueCapacity || ''}
+                onChange={(e) => setEditedUser({ ...editedUser, venueCapacity: parseInt(e.target.value) || '' })}
                 placeholder="Maximum capacity"
                 min="1"
+              />
+            </div>
+          )}
+
+          {editedUser.role === 'AGENT' && (
+            <div className="form-group">
+              <label>Agency Name</label>
+              <input
+                type="text"
+                value={editedUser.agencyName || ''}
+                onChange={(e) => setEditedUser({ ...editedUser, agencyName: e.target.value })}
+                placeholder="Your agency name"
               />
             </div>
           )}
@@ -353,10 +365,10 @@ const EditProfileScreen = ({ onClose }) => {
             <div className="form-group">
               <label>Resident Advisor</label>
               <input
-                type="url"
+                type="text"
                 value={editedUser.residentAdvisor || ''}
                 onChange={(e) => setEditedUser({ ...editedUser, residentAdvisor: e.target.value })}
-                placeholder="https://ra.co/dj/..."
+                placeholder="RA artist name"
               />
             </div>
           )}
@@ -380,6 +392,18 @@ const EditProfileScreen = ({ onClose }) => {
               placeholder="https://..."
             />
           </div>
+
+          {editedUser.role === 'AGENT' && (
+            <div className="form-group">
+              <label>LinkedIn</label>
+              <input
+                type="url"
+                value={editedUser.linkedin || ''}
+                onChange={(e) => setEditedUser({ ...editedUser, linkedin: e.target.value })}
+                placeholder="https://linkedin.com/in/..."
+              />
+            </div>
+          )}
         </div>
 
         {/* Error Message */}

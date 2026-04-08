@@ -224,6 +224,11 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
               {profile.role}
             </div>
           </div>
+          {profile.role === 'AGENT' && profile.agencyName && (
+            <p className="profile-agency-name" style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px', marginTop: '4px' }}>
+              {profile.agencyName}
+            </p>
+          )}
           {profile.genres && profile.genres.length > 0 && (
             <div className="profile-genres-container">
               <div className="profile-genres">
@@ -250,9 +255,9 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
                 <span className="stat-label">Connections</span>
               </div>
             )}
-            {profile.capacity && (
+            {profile.venueCapacity && (
               <div className="stat-item">
-                <span className="stat-value">{profile.capacity.toLocaleString()}</span>
+                <span className="stat-value">{profile.venueCapacity.toLocaleString()}</span>
                 <span className="stat-label">Capacity</span>
               </div>
             )}
@@ -321,8 +326,11 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
                 <span className="ra-icon">📅</span>
                 <span>View Upcoming Events</span>
               </button>
-              <a 
-                href={profile.residentAdvisor}
+              <a
+                href={profile.residentAdvisor.startsWith('http')
+                  ? profile.residentAdvisor
+                  : `https://ra.co/dj/${profile.residentAdvisor.toLowerCase().replace(/\s+\(([^)]+)\)/g, '-$1').replace(/\s+/g, '').replace(/--+/g, '-').replace(/^-|-$/g, '')}`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ra-profile-link"
@@ -346,13 +354,23 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
             </a>
           )}
           {profile.website && (
-            <a 
+            <a
               href={profile.website}
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               className="btn btn-outline btn-social"
             >
               <span>Website</span>
+            </a>
+          )}
+          {profile.linkedin && (
+            <a
+              href={profile.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline btn-social"
+            >
+              <span>LinkedIn</span>
             </a>
           )}
         </div>

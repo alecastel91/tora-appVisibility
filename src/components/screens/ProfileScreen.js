@@ -15,7 +15,7 @@ import SearchAgentsModal from '../common/SearchAgentsModal';
 import ChatScreen from './ChatScreen';
 import apiService from '../../services/api';
 
-const ProfileScreen = ({ onOpenPremium }) => {
+const ProfileScreen = ({ onOpenPremium, accountUser }) => {
   const { user, updateUser, userProfiles, switchProfile, addProfile, deleteProfile, likedProfiles, likedProfilesData, connectedUsers, connectedUsersData, likerProfilesData } = useAppContext();
   const { t } = useLanguage();
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -41,12 +41,12 @@ const ProfileScreen = ({ onOpenPremium }) => {
 
   // Helper function to calculate trial days/hours remaining
   const getTrialTimeRemaining = () => {
-    if (!user || user.subscriptionTier !== 'TRIAL' || !user.trialEndDate) {
+    if (!accountUser || accountUser.subscriptionTier !== 'TRIAL' || !accountUser.trialEndDate) {
       return null;
     }
 
     const now = new Date();
-    const endDate = new Date(user.trialEndDate);
+    const endDate = new Date(accountUser.trialEndDate);
     const diffTime = endDate - now;
 
     if (diffTime <= 0) return { expired: true };
@@ -584,8 +584,11 @@ const ProfileScreen = ({ onOpenPremium }) => {
             >
               <span>View Upcoming Events</span>
             </button>
-            <a 
-              href={user.residentAdvisor}
+            <a
+              href={user.residentAdvisor.startsWith('http')
+                ? user.residentAdvisor
+                : `https://ra.co/dj/${user.residentAdvisor.toLowerCase().replace(/\s+\(([^)]+)\)/g, '-$1').replace(/\s+/g, '').replace(/--+/g, '-').replace(/^-|-$/g, '')}`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="ra-profile-link"
@@ -615,6 +618,16 @@ const ProfileScreen = ({ onOpenPremium }) => {
         >
           <span>Website</span>
         </button>
+        {user?.linkedin && (
+          <a
+            href={user.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-outline btn-social"
+          >
+            <span>LinkedIn</span>
+          </a>
+        )}
       </div>
 
       {/* Represented By Badge */}

@@ -249,9 +249,9 @@ function App() {
   const renderScreen = () => {
     switch(activeTab) {
       case 'profile':
-        return <ProfileScreen onOpenPremium={() => setShowPremium(true)} />;
+        return <ProfileScreen onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} />;
       case 'search':
-        return <SearchScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onOpenPremium={() => setShowPremium(true)} />;
+        return <SearchScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} />;
       case 'tour':
         return <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} onOpenPremium={() => setShowPremium(true)} />;
       case 'bookings':
@@ -259,7 +259,7 @@ function App() {
       case 'messages':
         return <MessagesScreen onOpenChat={setActiveChatUser} key={activeChatUser ? 'with-chat' : 'without-chat'} />;
       default:
-        return <ProfileScreen onOpenPremium={() => setShowPremium(true)} />;
+        return <ProfileScreen onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} />;
     }
   };
 
@@ -360,6 +360,18 @@ function App() {
             {/* Account Section */}
             <div className="settings-section">
               <h3>{t('settings.account')}</h3>
+              {(accountUser?.firstName || accountUser?.lastName) && (
+                <div className="settings-item">
+                  <span>Name</span>
+                  <span className="settings-value">{[accountUser.firstName, accountUser.lastName].filter(Boolean).join(' ')}</span>
+                </div>
+              )}
+              {accountUser?.phone && (
+                <div className="settings-item">
+                  <span>Phone</span>
+                  <span className="settings-value">{accountUser.phone}</span>
+                </div>
+              )}
               <div className="settings-item">
                 <span>{t('settings.email')}</span>
                 <span className="settings-value">{accountUser?.email || user?.email || 'Not available'}</span>
@@ -373,10 +385,10 @@ function App() {
 
               {/* Subscription Tier Badge */}
               <div className="subscription-tier-badge">
-                <span className={`tier-label ${user?.subscriptionTier?.toLowerCase() || 'free'}`}>
-                  {user?.subscriptionTier || 'FREE'}
+                <span className={`tier-label ${accountUser?.subscriptionTier?.toLowerCase() || 'free'}`}>
+                  {accountUser?.subscriptionTier || 'FREE'}
                 </span>
-                {(!user?.subscriptionTier || user?.subscriptionTier === 'FREE') && (
+                {(!accountUser?.subscriptionTier || accountUser?.subscriptionTier === 'FREE') && (
                   <button
                     className="btn btn-upgrade-small"
                     onClick={() => {
@@ -387,7 +399,7 @@ function App() {
                     Upgrade to Premium
                   </button>
                 )}
-                {user?.subscriptionTier === 'MONTHLY' && (
+                {accountUser?.subscriptionTier === 'MONTHLY' && (
                   <button
                     className="btn btn-upgrade-small"
                     onClick={() => {
@@ -401,7 +413,7 @@ function App() {
               </div>
 
               {/* Trial Countdown */}
-              {user?.subscriptionTier === 'TRIAL' && user?.trialEndDate && (
+              {accountUser?.subscriptionTier === 'TRIAL' && accountUser?.trialEndDate && (
                 <div className="trial-countdown-settings">
                   <div className="trial-countdown-icon">⏱️</div>
                   <div className="trial-countdown-text">
@@ -409,7 +421,7 @@ function App() {
                     <p>
                       {(() => {
                         const now = new Date();
-                        const endDate = new Date(user.trialEndDate);
+                        const endDate = new Date(accountUser.trialEndDate);
                         const diffTime = endDate - now;
                         if (diffTime <= 0) return 'Trial expired';
 
@@ -436,36 +448,36 @@ function App() {
                   <div className="usage-header">
                     <span className="usage-label">Likes Today</span>
                     <span className="usage-count">
-                      {user?.likesUsedToday || 0} / {(() => {
-                        const tier = user?.subscriptionTier || 'FREE';
+                      {accountUser?.likesSentToday || 0} / {(() => {
+                        const tier = accountUser?.subscriptionTier || 'FREE';
                         if (tier === 'YEARLY') return '∞';
                         if (tier === 'MONTHLY') return '5';
                         return '2'; // FREE or TRIAL
                       })()}
                     </span>
                   </div>
-                  {user?.subscriptionTier !== 'YEARLY' && (
+                  {accountUser?.subscriptionTier !== 'YEARLY' && (
                     <div className="usage-progress-bar">
                       <div
                         className={`usage-progress-fill ${(() => {
-                          const tier = user?.subscriptionTier || 'FREE';
+                          const tier = accountUser?.subscriptionTier || 'FREE';
                           const limit = tier === 'MONTHLY' ? 5 : 2;
-                          const used = user?.likesUsedToday || 0;
+                          const used = accountUser?.likesSentToday || 0;
                           if (used >= limit) return 'danger';
                           if (used >= limit - 1) return 'warning';
                           return 'safe';
                         })()}`}
                         style={{ width: `${(() => {
-                          const tier = user?.subscriptionTier || 'FREE';
+                          const tier = accountUser?.subscriptionTier || 'FREE';
                           const limit = tier === 'MONTHLY' ? 5 : 2;
-                          const used = user?.likesUsedToday || 0;
+                          const used = accountUser?.likesSentToday || 0;
                           return Math.min((used / limit) * 100, 100);
                         })()}%` }}
                       />
                     </div>
                   )}
                   <div className="usage-reset">
-                    {user?.subscriptionTier === 'YEARLY' ? 'Unlimited Likes' : 'Resets daily at midnight'}
+                    {accountUser?.subscriptionTier === 'YEARLY' ? 'Unlimited Likes' : 'Resets daily at midnight'}
                   </div>
                 </div>
 
@@ -474,36 +486,36 @@ function App() {
                   <div className="usage-header">
                     <span className="usage-label">Connections This Month</span>
                     <span className="usage-count">
-                      {user?.connectionsThisMonth || 0} / {(() => {
-                        const tier = user?.subscriptionTier || 'FREE';
+                      {accountUser?.connectionsSentThisMonth || 0} / {(() => {
+                        const tier = accountUser?.subscriptionTier || 'FREE';
                         if (tier === 'YEARLY') return '∞';
                         if (tier === 'MONTHLY') return '10';
                         return '3'; // FREE or TRIAL
                       })()}
                     </span>
                   </div>
-                  {user?.subscriptionTier !== 'YEARLY' && (
+                  {accountUser?.subscriptionTier !== 'YEARLY' && (
                     <div className="usage-progress-bar">
                       <div
                         className={`usage-progress-fill ${(() => {
-                          const tier = user?.subscriptionTier || 'FREE';
+                          const tier = accountUser?.subscriptionTier || 'FREE';
                           const limit = tier === 'MONTHLY' ? 10 : 3;
-                          const used = user?.connectionsThisMonth || 0;
+                          const used = accountUser?.connectionsSentThisMonth || 0;
                           if (used >= limit) return 'danger';
                           if (used >= limit - 1) return 'warning';
                           return 'safe';
                         })()}`}
                         style={{ width: `${(() => {
-                          const tier = user?.subscriptionTier || 'FREE';
+                          const tier = accountUser?.subscriptionTier || 'FREE';
                           const limit = tier === 'MONTHLY' ? 10 : 3;
-                          const used = user?.connectionsThisMonth || 0;
+                          const used = accountUser?.connectionsSentThisMonth || 0;
                           return Math.min((used / limit) * 100, 100);
                         })()}%` }}
                       />
                     </div>
                   )}
                   <div className="usage-reset">
-                    {user?.subscriptionTier === 'YEARLY' ? 'Unlimited Connections' : (() => {
+                    {accountUser?.subscriptionTier === 'YEARLY' ? 'Unlimited Connections' : (() => {
                       const now = new Date();
                       const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
                       const daysUntil = Math.ceil((nextMonth - now) / (1000 * 60 * 60 * 24));

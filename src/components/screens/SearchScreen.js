@@ -8,7 +8,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import apiService from '../../services/api';
 
-const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
+const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, accountUser }) => {
   const { user, likedProfiles, toggleLike, sentRequests, sendConnectionRequest, connectedUsers, receivedRequests, acceptConnectionRequest, declineConnectionRequest } = useAppContext();
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,7 +41,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
 
   // Helper function to check if user has global search access
   const hasGlobalSearch = () => {
-    const tier = user?.subscriptionTier || 'FREE';
+    const tier = accountUser?.subscriptionTier || 'FREE';
     return ['TRIAL', 'MONTHLY', 'YEARLY'].includes(tier);
   };
 
@@ -68,7 +68,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
       // Handle both response formats (old: array, new: object with profiles array)
       const profiles = response.profiles || response;
       console.log(`✅ [SearchScreen] API call completed in ${(apiEndTime - apiStartTime).toFixed(0)}ms, got ${profiles?.length || 0} profiles`);
-      console.log(`📍 [SearchScreen] User location restriction: ${response.userCity || 'N/A'}, isPremium: ${response.isPremium || user?.isPremium}`);
+      console.log(`📍 [SearchScreen] User location restriction: ${response.userCity || 'N/A'}, tier: ${accountUser?.subscriptionTier || 'FREE'}`);
 
       // Filter out current user's profile
       const filteredProfiles = (profiles || []).filter(profile => {
@@ -108,7 +108,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
       const hasLocationFilters = filters.zones.length > 0 || filters.countries.length > 0 || filters.cities.length > 0;
 
       if (hasLocationFilters) {
-        const tierName = user?.subscriptionTier === 'TRIAL' ? 'Your 48h trial' : 'FREE tier';
+        const tierName = accountUser?.subscriptionTier === 'TRIAL' ? 'Your 48h trial' : 'FREE tier';
         // Show alert and clear location filters
         alert(`Location filters require a paid subscription.\n\n${tierName} search is restricted to ${user.city} only.\n\nUpgrade to search worldwide!`);
 
@@ -467,7 +467,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium }) => {
           <div className="search-premium-notice">
             <span className="premium-icon">✨</span>
             <span>
-              {user.subscriptionTier === 'TRIAL' ? 'Searching worldwide with 48h trial' : 'Searching worldwide with Premium'}
+              {accountUser?.subscriptionTier === 'TRIAL' ? 'Searching worldwide with 48h trial' : 'Searching worldwide with Premium'}
             </span>
           </div>
         )}
