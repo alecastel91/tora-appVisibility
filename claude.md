@@ -8,6 +8,12 @@ TORA App SQL is the PostgreSQL-compatible React frontend for the TORA platform, 
 - **Entity IDs**: UUIDs (never MongoDB ObjectIds)
 - **ID field**: Always `.id` (never `._id`)
 
+## Recent Updates (April 10, 2026)
+- **Subscription tier fix**: Header, TourScreen, MatchesScreen now read from accountUser (User model) not profile
+- **AppContext fix**: Calendar matching and location filtering use accountSubscriptionTier (set from App.js)
+- **Removed isPremium references**: Replaced with proper subscriptionTier checks everywhere
+- **accountUser prop**: Passed to Header, TourScreen, SearchScreen, ProfileScreen
+
 ## Recent Updates (April 8, 2026)
 - **Settings screen**: Shows firstName, lastName, phone, email from User (accountUser)
 - **Subscription/usage stats**: Read from accountUser (User table), not profile

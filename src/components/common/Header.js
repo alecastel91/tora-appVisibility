@@ -3,7 +3,7 @@ import NotificationDropdown from './NotificationDropdown';
 import { BellIcon, GearIcon, StarIcon } from '../../utils/icons';
 import { useAppContext } from '../../contexts/AppContext';
 
-const Header = ({ onOpenSettings, onOpenPremium }) => {
+const Header = ({ onOpenSettings, onOpenPremium, accountUser }) => {
   const { notifications, clearNotificationDot, user } = useAppContext();
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasNotificationDot, setHasNotificationDot] = useState(true);
@@ -55,8 +55,8 @@ const Header = ({ onOpenSettings, onOpenPremium }) => {
         </button>
         <button
           className={`icon-btn premium-btn ${
-            user?.subscriptionTier === 'YEARLY' ? 'is-yearly' :
-            user?.subscriptionTier === 'MONTHLY' ? 'is-monthly' :
+            accountUser?.subscriptionTier === 'YEARLY' ? 'is-yearly' :
+            accountUser?.subscriptionTier === 'MONTHLY' ? 'is-monthly' :
             ''
           }`}
           onClick={handlePremiumClick}

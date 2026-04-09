@@ -8,13 +8,13 @@ import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, Targe
 import apiService from '../../services/api';
 import { citiesByCountry, countriesByZone, genresList } from '../../data/profiles';
 
-const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange, onOpenPremium }) => {
+const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange, onOpenPremium, accountUser }) => {
   const { user, getCalendarMatches, sentRequests, sendConnectionRequest, connectedUsers } = useAppContext();
   const { t } = useLanguage();
 
-  // Helper function to check if user has premium access
+  // Helper function to check if user has premium access (reads from accountUser)
   const isPremiumUser = () => {
-    const tier = user?.subscriptionTier || 'FREE';
+    const tier = accountUser?.subscriptionTier || 'FREE';
     return ['TRIAL', 'MONTHLY', 'YEARLY'].includes(tier);
   };
 

@@ -30,6 +30,9 @@ export const AppProvider = ({ children }) => {
   // Account-level preferred currency (not profile-specific)
   const [preferredCurrency, setPreferredCurrency] = useState('USD');
 
+  // Account-level subscription tier (set from App.js when accountUser loads)
+  const [accountSubscriptionTier, setAccountSubscriptionTier] = useState('FREE');
+
   // Track loading state to prevent duplicate fetches
   const [isLoadingProfileData, setIsLoadingProfileData] = useState(false);
 
@@ -228,7 +231,8 @@ export const AppProvider = ({ children }) => {
 
   // Calendar matching functionality
   const getCalendarMatches = () => {
-    if (!user || !user.isPremium) {
+    const hasPremium = ['TRIAL', 'MONTHLY', 'YEARLY'].includes(accountSubscriptionTier);
+    if (!user || !hasPremium) {
       return [];
     }
 
@@ -361,7 +365,8 @@ export const AppProvider = ({ children }) => {
     if (!user) return profiles;
 
     // Premium users can see all profiles globally
-    if (user.isPremium) {
+    const hasPremium = ['TRIAL', 'MONTHLY', 'YEARLY'].includes(accountSubscriptionTier);
+    if (hasPremium) {
       return searchLocation 
         ? profiles.filter(p => p.city.toLowerCase().includes(searchLocation.toLowerCase()) || 
                               p.country.toLowerCase().includes(searchLocation.toLowerCase()))
@@ -601,7 +606,9 @@ export const AppProvider = ({ children }) => {
     declineRequest,
     removeConnection,
     preferredCurrency,
-    setPreferredCurrency
+    setPreferredCurrency,
+    accountSubscriptionTier,
+    setAccountSubscriptionTier
   };
 
   return (

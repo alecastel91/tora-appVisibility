@@ -46,7 +46,7 @@ function App() {
   const [preferredCurrency, setPreferredCurrency] = useState('USD');
   const [accountUser, setAccountUser] = useState(null); // Account-level user data (email, currency, etc)
   const { t, language, changeLanguage, availableLanguages } = useLanguage();
-  const { updateUser, user, getConversations, setPreferredCurrency: setContextCurrency } = useAppContext();
+  const { updateUser, user, getConversations, setPreferredCurrency: setContextCurrency, setAccountSubscriptionTier } = useAppContext();
 
   // Available currencies
   const availableCurrencies = [
@@ -83,11 +83,14 @@ function App() {
     checkAuth();
   }, []);
 
-  // Load user's preferred currency from account (not profile)
+  // Sync account-level data to AppContext when accountUser loads
   useEffect(() => {
-    if (accountUser && accountUser.preferredCurrency) {
-      setPreferredCurrency(accountUser.preferredCurrency);
-      setContextCurrency(accountUser.preferredCurrency); // Also update AppContext
+    if (accountUser) {
+      if (accountUser.preferredCurrency) {
+        setPreferredCurrency(accountUser.preferredCurrency);
+        setContextCurrency(accountUser.preferredCurrency);
+      }
+      setAccountSubscriptionTier(accountUser.subscriptionTier || 'FREE');
     }
   }, [accountUser]);
 
@@ -253,7 +256,7 @@ function App() {
       case 'search':
         return <SearchScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} />;
       case 'tour':
-        return <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} onOpenPremium={() => setShowPremium(true)} />;
+        return <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} />;
       case 'bookings':
         return <BookingsScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => setActiveTab('messages')} />;
       case 'messages':
@@ -320,6 +323,7 @@ function App() {
         <Header
           onOpenSettings={() => setShowSettings(true)}
           onOpenPremium={() => setShowPremium(true)}
+          accountUser={accountUser}
         />
         <main className="app-content">
           {renderScreen()}

@@ -3,7 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ViewProfileScreen from './ViewProfileScreen';
 
-const MatchesScreen = ({ onOpenChat, onNavigateToMessages }) => {
+const MatchesScreen = ({ onOpenChat, onNavigateToMessages, accountUser }) => {
   const { user, getCalendarMatches, sentRequests, sendConnectionRequest, connectedUsers } = useAppContext();
   const { t } = useLanguage();
   const [viewingProfile, setViewingProfile] = useState(null);
@@ -116,8 +116,10 @@ const MatchesScreen = ({ onOpenChat, onNavigateToMessages }) => {
     );
   }
 
-  // Show upgrade prompt for basic users
-  if (!user?.isPremium) {
+  // Show upgrade prompt for FREE users
+  const tier = accountUser?.subscriptionTier || 'FREE';
+  const hasPremiumAccess = ['TRIAL', 'MONTHLY', 'YEARLY'].includes(tier);
+  if (!hasPremiumAccess) {
     return (
       <div className="screen active matches-screen">
         <div className="matches-header">
