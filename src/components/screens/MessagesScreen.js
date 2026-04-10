@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import apiService from '../../services/api';
+import { subscribeToInbox } from '../../services/realtime';
 
 const MessagesScreen = ({ onOpenChat }) => {
   const { user, getConversations, acceptRequest, declineRequest } = useAppContext();
@@ -43,6 +44,17 @@ const MessagesScreen = ({ onOpenChat }) => {
   useEffect(() => {
     // Fetch data when component mounts or user changes
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Realtime: subscribe to inbox updates so the conversation list refreshes
+  // automatically when a new message arrives or a request is sent.
+  useEffect(() => {
+    if (!user?.id) return;
+    const unsubscribe = subscribeToInbox(user.id, () => {
+      fetchData();
+    });
+    return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 

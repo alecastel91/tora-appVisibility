@@ -381,9 +381,13 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
 
   const handleSendMessage = async () => {
     if (selectedProfile) {
+      if (!message.trim()) {
+        alert('Please write a message to introduce yourself');
+        return;
+      }
       const profileId = selectedProfile.id;
       try {
-        await sendConnectionRequest(profileId, message.trim() || '');
+        await sendConnectionRequest(profileId, message.trim());
         setShowMessageModal(false);
         setMessage('');
         setSelectedProfile(null);

@@ -1,5 +1,9 @@
 node_modules
 node_modules/.cache/
 build/
+dist/
 .env
+.env.local
 frontend.log
+.DS_Store
+*.log

@@ -47,6 +47,10 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
   };
 
   const handleSendRequest = async () => {
+    if (!message.trim()) {
+      alert('Please write a message to introduce yourself');
+      return;
+    }
     console.log('Sending request with message:', message);
     try {
       if (selectedType === 'AGENT') {
@@ -88,7 +92,7 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
           <h2 className="message-modal-title">Send message to {targetName}</h2>
 
           <textarea
-            placeholder="Write a message (optional)..."
+            placeholder="Write a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows="5"

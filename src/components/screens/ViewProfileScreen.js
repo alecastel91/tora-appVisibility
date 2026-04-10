@@ -132,8 +132,12 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
   };
 
   const handleSendMessage = async () => {
+    if (!message.trim()) {
+      alert('Please write a message to introduce yourself');
+      return;
+    }
     try {
-      await sendConnectionRequest(profileId, message.trim() || '');
+      await sendConnectionRequest(profileId, message.trim());
       setShowMessageModal(false);
       setMessage('');
     } catch (error) {
@@ -452,7 +456,7 @@ const ViewProfileScreen = ({ profile, onClose, onOpenChat, onNavigateToMessages,
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   className="btn btn-primary btn-modal-send"
                   onClick={handleSendMessage}
                 >

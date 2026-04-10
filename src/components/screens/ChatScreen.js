@@ -3,6 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import apiService from '../../services/api';
 import contractService from '../../services/contractService';
+import { subscribeToChat } from '../../services/realtime';
 import MakeOfferModal from '../common/MakeOfferModal';
 import SignContractModal from '../common/SignContractModal';
 import ContractViewer from '../common/ContractViewer';
@@ -29,7 +30,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     }
 
     // Convert relative URL to full backend URL
-    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
     const backendBase = API_URL.replace('/api', ''); // Remove /api suffix
 
     // Add query parameters for authentication
@@ -94,14 +95,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   };
 
   // Function to fetch messages (can be called externally)
-  const fetchMessages = async () => {
+  // isPoll: when true, skip loading spinner and only update state if messages actually changed
+  const fetchMessages = async (isPoll = false) => {
     if (!currentUser || !currentUser.id || !user || !user.id) {
       setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
+      if (!isPoll) setLoading(true);
       const response = await apiService.getMessageThread(currentUser.id, user.id);
 
       // Transform backend messages to match the format expected by the UI
@@ -115,7 +117,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         documentAttachment: msg.documentAttachment || null
       }));
 
-      setUserMessages(transformedMessages);
+      // Only update state when something actually changed — avoids
+      // unnecessary re-renders that fight with scroll position and input focus
+      setUserMessages(prev => {
+        if (prev.length !== transformedMessages.length) return transformedMessages;
+        const lastPrev = prev[prev.length - 1];
+        const lastNew = transformedMessages[transformedMessages.length - 1];
+        if (lastPrev?.timestamp !== lastNew?.timestamp) return transformedMessages;
+        return prev;
+      });
 
       // Fetch deal statuses for all messages with dealId
       const dealIds = transformedMessages
@@ -163,9 +173,9 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
-      setUserMessages([]);
+      if (!isPoll) setUserMessages([]);
     } finally {
-      setLoading(false);
+      if (!isPoll) setLoading(false);
     }
   };
 
@@ -174,6 +184,17 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     fetchMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, user]);
+
+  // Realtime: subscribe to new messages on this chat thread.
+  // The backend broadcasts on the same channel after every message create.
+  useEffect(() => {
+    if (!currentUser?.id || !user?.id) return;
+    const unsubscribe = subscribeToChat(currentUser.id, user.id, () => {
+      fetchMessages(true);
+    });
+    return unsubscribe;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id, user?.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -258,18 +279,28 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     console.log('handleViewOffer called with dealId:', dealId);
     try {
       const response = await apiService.getDeal(dealId, currentUser.id);
-      console.log('Fetched deal:', response);
-
-      // The response might be wrapped or direct
       const deal = response.deal || response;
-      console.log('Setting offer:', deal);
-      console.log('setStartTime:', deal.setStartTime);
-      console.log('setEndTime:', deal.setEndTime);
-      console.log('extras:', deal.extras);
 
-      setSelectedOffer(deal);
+      // If the deal has been countered, show the ORIGINAL offer values
+      // (the original offer card is a snapshot of the first offer)
+      const offerHistory = Array.isArray(deal.offerHistory) ? deal.offerHistory : [];
+      const hasCounterOffers = offerHistory.length > 1;
+
+      let displayedOffer = deal;
+      if (hasCounterOffers) {
+        const original = offerHistory[0];
+        displayedOffer = {
+          ...deal,
+          currentFee: original.fee,
+          currency: original.currency || deal.currency,
+          additionalTerms: original.additionalTerms || null,
+          notes: original.notes || null,
+          isHistoricalView: true
+        };
+      }
+
+      setSelectedOffer(displayedOffer);
       setShowOfferDetails(true);
-      console.log('Modal should now be visible');
     } catch (error) {
       console.error('Error fetching offer details:', error);
     }
@@ -369,7 +400,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
     lines.forEach(line => {
       if (line.startsWith('Fee:')) {
-        const feeMatch = line.match(/Fee: ([\d,]+) (\w+)/);
+        // Match e.g. "Fee: 1,500 USD" or "Fee: 1,500.50 USD"
+        const feeMatch = line.match(/Fee:\s*([\d,.]+)\s+(\w+)/);
         if (feeMatch) {
           parsed.fee = feeMatch[1];
           parsed.currency = feeMatch[2];
@@ -454,7 +486,18 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     }
   };
 
-  const handleReviewCounterOffer = () => {
+  const handleReviewCounterOffer = async () => {
+    // Fetch the full deal so handleSubmitReview has selectedOffer.id available
+    try {
+      const response = await apiService.getDeal(counterOfferData.dealId, currentUser.id);
+      const deal = response.deal || response;
+      setSelectedOffer(deal);
+    } catch (error) {
+      console.error('Error fetching deal for counter-offer review:', error);
+      alert('Failed to load deal information');
+      return;
+    }
+
     // Open review modal with counter-offer data pre-filled
     setReviewData({
       fee: counterOfferData.fee.replace(/,/g, ''),
@@ -529,19 +572,28 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   };
 
   const handleSubmitReview = async () => {
-    if (!selectedOffer || reviewData.fee === '' || reviewData.fee === null || reviewData.fee === undefined) {
-      alert('Please enter a fee amount');
+    console.log('[handleSubmitReview] selectedOffer:', selectedOffer);
+    console.log('[handleSubmitReview] reviewData:', reviewData);
+    console.log('[handleSubmitReview] counterOfferData:', counterOfferData);
+
+    // Resolve dealId — prefer selectedOffer (set by handleOpenReview/handleReviewCounterOffer)
+    // but fall back to counterOfferData.dealId in case selectedOffer wasn't set
+    const dealId = selectedOffer?.id || counterOfferData?.dealId;
+    if (!dealId) {
+      alert('Deal information not found. Please close and try again.');
       return;
     }
 
-    if (!selectedOffer.id) {
-      alert('Deal information not found');
+    // Validate fee
+    const feeStr = String(reviewData.fee || '').trim();
+    if (!feeStr || isNaN(parseFloat(feeStr)) || parseFloat(feeStr) <= 0) {
+      alert('Please enter a valid fee amount');
       return;
     }
 
     try {
       // Round fee to 2 decimal places to avoid floating point precision errors
-      const feeValue = Math.round(parseFloat(reviewData.fee) * 100) / 100;
+      const feeValue = Math.round(parseFloat(feeStr) * 100) / 100;
 
       // Build extras object for API
       const extras = {};
@@ -554,7 +606,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       }
 
       // Call the counter-offer API endpoint (this updates the deal and creates a system message)
-      await apiService.counterDeal(selectedOffer.id, {
+      await apiService.counterDeal(dealId, {
         profileId: currentUser.id,
         fee: feeValue,
         currency: reviewData.currency,
@@ -667,36 +719,41 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       }
     });
 
-    // For each deal, determine which message to show
+    // For each deal, determine which messages to show
+    // - Always show the original offer + all counter-offers (negotiation history)
+    // - Plus the latest workflow stage (withdrawal > contract > acceptance) if it exists
     const filteredDealMessages = [];
     Object.keys(dealMessages).forEach(dealId => {
       const messages = dealMessages[dealId];
       console.log(`  📋 Deal ${dealId}: ${messages.length} messages`);
 
-      // Priority: withdrawal > contract > acceptance > offer
       const withdrawalMsg = messages.find(m => m.text && m.text.includes('withdrawn the contract'));
       const contractMsg = messages.find(m =>
         (m.documentAttachment && m.documentAttachment.category === 'contracts') ||
         (m.text && m.text.includes('Contract sent'))
       );
       const acceptanceMsg = messages.find(m => m.text && m.text.includes('Booking Confirmed!'));
+      const declineMsg = messages.find(m => m.text && m.text.includes('Booking Offer Declined'));
       const offerMsg = messages.find(m => m.text && m.text.includes('New Booking Offer'));
+      const counterOfferMsgs = messages.filter(m => m.text && m.text.startsWith('Counter-Offer:'));
 
-      console.log(`    Withdrawal: ${!!withdrawalMsg}, Contract: ${!!contractMsg}, Acceptance: ${!!acceptanceMsg}, Offer: ${!!offerMsg}`);
+      // Always show the original offer (so the negotiation start is visible)
+      if (offerMsg) {
+        filteredDealMessages.push(offerMsg);
+      }
 
-      // Show the highest priority message
+      // Always show all counter offers (each one is a separate moment in negotiation)
+      counterOfferMsgs.forEach(m => filteredDealMessages.push(m));
+
+      // Then add the latest workflow stage if any (these are separate cards)
       if (withdrawalMsg) {
-        console.log('    ✅ Showing WITHDRAWAL message');
         filteredDealMessages.push(withdrawalMsg);
       } else if (contractMsg) {
-        console.log('    ✅ Showing CONTRACT message');
         filteredDealMessages.push(contractMsg);
       } else if (acceptanceMsg) {
-        console.log('    ✅ Showing ACCEPTANCE message');
         filteredDealMessages.push(acceptanceMsg);
-      } else if (offerMsg) {
-        console.log('    ✅ Showing OFFER message');
-        filteredDealMessages.push(offerMsg);
+      } else if (declineMsg) {
+        filteredDealMessages.push(declineMsg);
       }
     });
 
@@ -979,18 +1036,16 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               </div>
             ) : msg.isSystem && msg.dealId ? (
               (() => {
-                const dealStatus = dealStatuses[msg.dealId];
-                const isDeclined = dealStatus && dealStatus.status === 'DECLINED';
-                const isAccepted = msg.text.includes('Booking Confirmed!') || msg.text.includes('accepted') || (dealStatus && dealStatus.status === 'ACCEPTED');
+                // Determine card type from the message text itself, so the original
+                // offer card and the decline/accept cards are distinct entries.
+                const isDeclineCard = msg.text && msg.text.includes('Booking Offer Declined');
+                const isAcceptCard = msg.text && msg.text.includes('Booking Confirmed!');
 
-                // For declined/accepted offers, check who actually declined/accepted it
-                let displayName = msg.isMe ? 'You' : user.name;
-                if (isDeclined && dealStatus.declinedBy) {
-                  displayName = dealStatus.declinedBy.id === currentUser.id ? 'You' : dealStatus.declinedBy.name;
-                } else if (isAccepted) {
-                  // For accepted offers, use msg.isMe since the message sender is the one who accepted
-                  displayName = msg.isMe ? 'You' : user.name;
-                }
+                const isDeclined = isDeclineCard;
+                const isAccepted = isAcceptCard;
+
+                // For decline/accept cards, sender of the message is the one who acted
+                const displayName = msg.isMe ? 'You' : user.name;
 
                 return (
                   <div className="message-with-timestamp">
@@ -1559,7 +1614,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               </div>
             </div>
             <div className="modal-footer">
-              {selectedOffer && (selectedOffer.status === 'PENDING' || selectedOffer.status === 'NEGOTIATING') &&
+              {selectedOffer && !selectedOffer.isHistoricalView && (selectedOffer.status === 'PENDING' || selectedOffer.status === 'NEGOTIATING') &&
                (() => {
                  // Determine who can respond: the party who did NOT send the last offer
                  const offerHistory = selectedOffer.offerHistory || [];
@@ -1702,6 +1757,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     min="0"
                     value={reviewData.fee}
                     onChange={(e) => setReviewData({ ...reviewData, fee: e.target.value })}
+                    onWheel={(e) => e.target.blur()}
                     placeholder="0"
                     className="form-input"
                   />

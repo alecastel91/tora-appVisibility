@@ -20,7 +20,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
     }
 
     // Convert relative URL to full backend URL
-    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
     const backendBase = API_URL.replace('/api', ''); // Remove /api suffix
 
     // Add query parameters for authentication
@@ -594,7 +594,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages }) => {
                         <a
                           href={(() => {
                             // Construct the contract view URL from documentId
-                            const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+                            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
                             const backendBase = API_URL.replace('/api', '');
                             const token = localStorage.getItem('token');
                             const profileId = currentUser?.id;

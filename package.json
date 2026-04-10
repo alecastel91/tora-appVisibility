@@ -2,49 +2,26 @@
   "name": "tora-app",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
+    "@supabase/supabase-js": "^2.103.0",
     "framer-motion": "^12.38.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
-    "react-scripts": "5.0.1",
-    "styled-components": "^6.1.1",
-    "web-vitals": "^2.1.4"
+    "styled-components": "^6.1.1"
   },
   "scripts": {
-    "start": "HOST=0.0.0.0 PORT=3002 react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "dev": "vite --host 0.0.0.0 --port 3002",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 3002",
+    "start": "vite --host 0.0.0.0 --port 3002"
   },
   "devDependencies": {
-    "@types/node": "^24.5.0",
-    "@types/react": "^19.1.13",
-    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.9.2"
+    "vite": "^6.3.2"
   }
 }

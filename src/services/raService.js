@@ -6,9 +6,9 @@
 
 // Configuration - will be moved to environment variables
 const RA_API_CONFIG = {
-  BASE_URL: process.env.REACT_APP_RA_API_URL || 'https://api.ra.co/v1', // Example URL
-  API_KEY: process.env.REACT_APP_RA_API_KEY || '',
-  USE_MOCK_DATA: process.env.REACT_APP_USE_MOCK_DATA !== 'false' // Default to true
+  BASE_URL: import.meta.env.VITE_RA_API_URL || 'https://api.ra.co/v1', // Example URL
+  API_KEY: import.meta.env.VITE_RA_API_KEY || '',
+  USE_MOCK_DATA: import.meta.env.VITE_USE_MOCK_DATA !== 'false' // Default to true
 };
 
 // Mock data for development - now empty, will come from real RA API or backend
