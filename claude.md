@@ -3,10 +3,61 @@
 ## Overview
 TORA App SQL is the PostgreSQL-compatible React frontend for the TORA platform, a networking application for electronic music industry professionals. It is functionally identical to the MongoDB version (`tora-app`) but connects to `tora-backend-sql` (Prisma + PostgreSQL) instead of the MongoDB backend. All `_id` references have been replaced with `id` to match PostgreSQL/Prisma UUID conventions.
 
-- **Backend**: tora-backend-sql on port 5002
-- **Database**: PostgreSQL (via Prisma ORM)
+- **Build tool**: Vite 6 (migrated from react-scripts/CRA on April 10, 2026)
+- **Backend**: tora-backend-sql on port 5002 (local) / Railway (production)
+- **Database**: PostgreSQL via Prisma ORM
 - **Entity IDs**: UUIDs (never MongoDB ObjectIds)
 - **ID field**: Always `.id` (never `._id`)
+- **Production URL**: https://tora-app-five.vercel.app (will move to `app.torahub.io`)
+- **Realtime**: Supabase Broadcast channels (no Postgres Changes / no RLS setup)
+
+## Deployment Topology (as of April 12, 2026)
+
+**Local dev** → `localhost:3002` → `localhost:5002` → Supabase Project 1 (`kujkzoaobkpqnbtpskpo`)
+**Production** → `tora-app-five.vercel.app` → Railway (`tora-backend-production.up.railway.app`) → Supabase Project 2 (`jzhrtaivrfegxbvpkfjg`)
+
+Vercel env vars (Production scope):
+- `VITE_API_URL` = `https://tora-backend-production.up.railway.app/api`
+- `VITE_SUPABASE_URL` = `https://jzhrtaivrfegxbvpkfjg.supabase.co`
+- `VITE_SUPABASE_ANON_KEY` = Project 2 anon key
+
+Local `.env` is for local dev only — it points at Project 1. The two stacks are fully isolated (different JWT_SECRETs, different databases). Test users on local don't exist on production and vice versa.
+
+## Recent Updates (April 11-12, 2026)
+
+### Database Split Validated End-to-End
+- Pushed Prisma schema to Project 2 (was empty) — all 11 tables created
+- Created test invitation `TORA-TEST-001` in Project 2 for smoke testing
+- Both Vercel surfaces validated:
+  - Landing page form → Project 2 `waitlist` table ✅
+  - Main app signup with invitation → Project 2 `users` + `profiles` ✅
+- Documentation header comments added to local `.env` files clarifying which project each environment uses
+
+### Realtime Subscriptions (Supabase Broadcast)
+- New `src/services/realtime.js` with `subscribeToChat(profileA, profileB, callback)` and `subscribeToInbox(profileId, callback)` helpers
+- Channel names sorted by profile ID so both participants subscribe to the same channel
+- ChatScreen subscribes to chat thread channel — refetches messages on broadcast
+- MessagesScreen subscribes to inbox channel — refetches conversation list on broadcast
+- Polling fallback removed
+- See `tora-backend-sql/src/services/realtime.js` for the broadcaster side
+
+### Counter Offer + Decline Card Rendering
+- ChatScreen `getFilteredMessages` no longer collapses counter-offer messages — they render as separate cards alongside the original offer
+- Decline messages render as separate cards (red X icon, "View Reason" button)
+- Original offer card always shows "sent an offer" regardless of deal status — declined/accepted state is shown on a SEPARATE card
+- `handleViewOffer` shows the ORIGINAL offer values (from `offerHistory[0]`) when the deal has been countered, with `isHistoricalView` flag that hides action buttons
+- `handleReviewCounterOffer` now fetches the full deal first so `handleSubmitReview` has `selectedOffer.id` available
+
+### Connection Request Flow
+- Message is now mandatory (frontend alert + backend validation)
+- Original request message survives accept and appears as the first chat message in the new conversation
+
+### UI Polish (won't carry over to Tailwind, but tracked here for completeness)
+- Date/time inputs: custom calendar/clock SVG icons, `color-scheme: dark`, `-webkit-min-logical-width: 0` to fix iOS intrinsic-width overflow
+- `min-width: 0` on `.form-row .form-group` so flex children can shrink
+- Make Offer modal converted to full-screen
+- Offer card name truncates with ellipsis, View Details button stays anchored
+- Disable wheel scroll on fee number inputs
 
 ## Recent Updates (April 10, 2026)
 - **Subscription tier fix**: Header, TourScreen, MatchesScreen now read from accountUser (User model) not profile
