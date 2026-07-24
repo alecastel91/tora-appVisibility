@@ -21,6 +21,8 @@ import VerifiedBadge from '../common/VerifiedBadge';
 import VerificationModal from '../common/VerificationModal';
 import PhotoGallery from '../common/PhotoGallery';
 import ArtistRosterGrid from '../common/ArtistRosterGrid';
+import ProfileMiniGrid from '../common/ProfileMiniGrid';
+import AvatarCropModal from '../common/AvatarCropModal';
 import { raProfileUrl } from '../../utils/urls';
 
 // --- Obsidian Neon redesign helpers (glassmorphism + crimson neon) ---
@@ -75,14 +77,17 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
   const [showManageProfile, setShowManageProfile] = useState(false);
   const [showRepresentedArtists, setShowRepresentedArtists] = useState(false);
   const [showFindAgent, setShowFindAgent] = useState(false);
-  // Own badges come from the enriched GET /profiles/:id payload
-  const [ownBadges, setOwnBadges] = useState(null);
+  // Enriched GET /profiles/:id payload: badges, playedWith, and (for agents)
+  // the roster merged with each artist's CURRENT avatar/location — the
+  // context `user` only carries the raw JSONB snapshot.
+  const [ownEnriched, setOwnEnriched] = useState(null);
+  const ownBadges = ownEnriched?.badges || null;
 
   useEffect(() => {
     let cancelled = false;
-    if (!user?.id) { setOwnBadges(null); return undefined; }
+    if (!user?.id) { setOwnEnriched(null); return undefined; }
     apiService.getProfile(user.id)
-      .then((p) => { if (!cancelled) setOwnBadges(p.badges || []); })
+      .then((p) => { if (!cancelled) setOwnEnriched(p.profile || p); })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [user?.id]);
@@ -271,18 +276,28 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
     }
   }, [user?.id, likedProfilesList.length, likerProfilesList.length, connectionsList.length]);
 
-  const handleImageUpload = async (event) => {
+  // Picking a file opens the adjust step (pan/zoom/round mask); the cropped
+  // square then flows through the existing downscale + multipart upload path.
+  const [avatarCropFile, setAvatarCropFile] = useState(null);
+
+  const handleImageUpload = (event) => {
     const file = event.target.files[0];
+    event.target.value = '';
     if (!file || !user?.id) return;
+    setAvatarCropFile(file);
+  };
+
+  const handleAvatarCropped = async (croppedBlob) => {
     try {
       // Downscale on-device before upload (backend re-normalizes to 512px
       // webp and stores it in object storage — the profile keeps a URL).
-      const avatarBlob = await downscaleImageToBlob(file);
+      const avatarBlob = await downscaleImageToBlob(croppedBlob);
       const response = await apiService.uploadAvatar(user.id, avatarBlob);
       // The multipart endpoint wraps the row: { profile } — updateUser needs
       // the bare profile object (it keys on userData.id).
       const updatedProfile = response.profile || response;
       updateUser(updatedProfile);
+      setAvatarCropFile(null);
     } catch (error) {
       console.error('Failed to upload avatar:', error);
       appAlert(error.message || t('profile.uploadFailed'));
@@ -357,6 +372,13 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
     AGENT: 'rgba(67, 233, 123, 0.22)',     // #43E97B
   }[user?.role] || 'rgba(255, 255, 255, 0.10)';
 
+  // Prefer the enriched roster (current avatars/locations) over the raw
+  // JSONB snapshot in the context user.
+  const rosterArtists = (ownEnriched?.representingArtists?.length
+    ? ownEnriched.representingArtists
+    : user?.representingArtists) || [];
+  const playedWith = ownEnriched?.playedWith || [];
+
   function renderProfileBody() {
   // The official TORA account is an admin/broadcast profile: no networking
   // stats or actions, no role — just identity + the website. It keeps full
@@ -418,6 +440,11 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
             <ActionCard icon={<EditIcon />} label={t('profile.editProfile')} onClick={() => { closeSubScreens(); setShowEditProfile(true); }} />
           </div>
         </div>
+        <AvatarCropModal
+          file={avatarCropFile}
+          onCancel={() => setAvatarCropFile(null)}
+          onApply={handleAvatarCropped}
+        />
       </div>
     );
   }
@@ -636,6 +663,33 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         </div>
       )}
 
+      {/* Past highlights — artist-curated gigs (same section as ViewProfile) */}
+      {user?.role === 'ARTIST' && Array.isArray(user?.pastHighlights) && user.pastHighlights.length > 0 && (
+        <div className="mb-5 text-left">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.pastHighlights')}</p>
+          <div className="flex flex-col gap-2">
+            {user.pastHighlights.map((h, i) => (
+              <div key={i} className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0e] px-4 py-2.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-infrared shrink-0" />
+                <span className="flex-1 text-sm text-white truncate">{h.venue}{h.city ? <span className="text-white/40"> · {h.city}</span> : null}</span>
+                {h.year && <span className="text-[11px] text-white/40 font-tech shrink-0">{h.year}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Played with — venues/promoters from completed TORA gigs */}
+      {user?.role === 'ARTIST' && playedWith.length > 0 && (
+        <div className="mb-5 text-left">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.playedWith')}</p>
+          <ProfileMiniGrid
+            profiles={playedWith}
+            onOpenProfile={(p) => { closeSubScreens(); setViewingArtistProfile(p); }}
+          />
+        </div>
+      )}
+
       {/* Photo gallery — venue photos / promoter past-event flyers */}
       {(user?.role === 'VENUE' || user?.role === 'PROMOTER') && (
         <PhotoGallery
@@ -649,9 +703,9 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         <div className="mb-8 text-left">
           <h3 className="text-lg font-bold text-white font-space-grotesk mb-4">{t('profile.artistsRepresenting')}</h3>
           <div className="flex flex-col gap-3">
-            {user?.representingArtists && user.representingArtists.length > 0 ? (
+            {rosterArtists.length > 0 ? (
               <ArtistRosterGrid
-                artists={user.representingArtists}
+                artists={rosterArtists}
                 onOpenArtist={(artist) => { closeSubScreens(); setViewingArtistProfile(artist); }}
                 renderOverlay={(artist) => (
                   <button
@@ -980,6 +1034,12 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
       {showVerification && (
         <VerificationModal onClose={() => setShowVerification(false)} />
       )}
+
+      <AvatarCropModal
+        file={avatarCropFile}
+        onCancel={() => setAvatarCropFile(null)}
+        onApply={handleAvatarCropped}
+      />
 
       {/* RA Events Modal */}
 

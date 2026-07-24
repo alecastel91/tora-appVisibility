@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-// Profile photo gallery (venue photos / promoter flyers): 2-per-row grid with
-// a portal lightbox on tap. Hidden entirely when there is nothing to show.
+// Profile photo gallery (venue photos / promoter flyers): a single row of two
+// preview tiles — the second carries a "+N" overlay when more exist — and a
+// portal lightbox that browses the full set. Hidden entirely when empty.
 const PhotoGallery = ({ photos, title }) => {
   const { t } = useLanguage();
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -11,6 +12,8 @@ const PhotoGallery = ({ photos, title }) => {
   const list = (Array.isArray(photos) ? photos : []).filter((p) => typeof p === 'string' && p);
   if (list.length === 0) return null;
 
+  const preview = list.slice(0, 2);
+  const extraCount = list.length - preview.length;
   const open = lightboxIndex !== null;
   const step = (delta) => setLightboxIndex((i) => (i + delta + list.length) % list.length);
 
@@ -18,15 +21,21 @@ const PhotoGallery = ({ photos, title }) => {
     <div className="mb-6 text-left">
       <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5 px-1">{title}</p>
       <div className="grid grid-cols-2 gap-2.5">
-        {list.map((src, i) => (
+        {preview.map((src, i) => (
           <button
             key={`${src}-${i}`}
             type="button"
             onClick={() => setLightboxIndex(i)}
-            className="block aspect-square rounded-2xl border border-white/10 bg-[#0a0a0e] overflow-hidden
+            className="relative block aspect-square rounded-2xl border border-white/10 bg-[#0a0a0e] overflow-hidden
                        p-0 cursor-pointer transition-colors hover:border-infrared/40"
           >
             <img src={src} alt={`${title} ${i + 1}`} loading="lazy" className="w-full h-full object-cover" />
+            {i === 1 && extraCount > 0 && (
+              <span className="absolute inset-0 flex items-center justify-center bg-black/60
+                               text-2xl font-bold text-white font-space-grotesk">
+                +{extraCount}
+              </span>
+            )}
           </button>
         ))}
       </div>

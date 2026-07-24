@@ -60,6 +60,37 @@ const EditProfileScreen = ({ onClose }) => {
     }
   };
 
+  // Pointer-based drag-to-reorder (mouse + touch): while a tile is held,
+  // moving over another tile moves the photo into that slot. Order is just
+  // the array order, persisted by the regular save.
+  const dragFrom = useRef(null);
+  const [draggingIdx, setDraggingIdx] = useState(null);
+
+  const handlePhotoPointerDown = (i) => (e) => {
+    dragFrom.current = i;
+    setDraggingIdx(i);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const handlePhotoPointerMove = (e) => {
+    const from = dragFrom.current;
+    if (from === null) return;
+    const tile = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-photo-idx]');
+    if (!tile) return;
+    const over = Number(tile.dataset.photoIdx);
+    if (Number.isNaN(over) || over === from) return;
+    setPhotos((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(over, 0, moved);
+      return next;
+    });
+    dragFrom.current = over;
+    setDraggingIdx(over);
+  };
+  const endPhotoDrag = () => {
+    dragFrom.current = null;
+    setDraggingIdx(null);
+  };
 
   const handleSave = async () => {
     try {
@@ -393,11 +424,22 @@ const EditProfileScreen = ({ onClose }) => {
             </p>
             <div className="grid grid-cols-3 gap-2">
               {photos.map((src, i) => (
-                <div key={`${src.slice(-24)}-${i}`} className="relative aspect-square rounded-xl border border-white/10 overflow-hidden bg-[#0a0a0e]">
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+                <div
+                  key={`${src.slice(-24)}-${i}`}
+                  data-photo-idx={i}
+                  onPointerDown={handlePhotoPointerDown(i)}
+                  onPointerMove={handlePhotoPointerMove}
+                  onPointerUp={endPhotoDrag}
+                  onPointerCancel={endPhotoDrag}
+                  className={`relative aspect-square rounded-xl border overflow-hidden bg-[#0a0a0e]
+                              touch-none select-none cursor-grab active:cursor-grabbing
+                              ${draggingIdx === i ? 'border-infrared/60 opacity-70' : 'border-white/10'}`}
+                >
+                  <img src={src} alt="" draggable={false} className="w-full h-full object-cover" />
                   <button
                     type="button"
                     aria-label={t('common.delete')}
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={() => setPhotos((prev) => prev.filter((_, j) => j !== i))}
                     className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/70 border border-white/20
                                flex items-center justify-center text-white text-sm leading-none cursor-pointer
@@ -420,6 +462,9 @@ const EditProfileScreen = ({ onClose }) => {
                 </button>
               )}
             </div>
+            {photos.length > 1 && (
+              <p className="m-0 mt-2 text-[10px] text-white/30">{t('editProfile.dragToReorder')}</p>
+            )}
             <input
               ref={photoInputRef}
               type="file"

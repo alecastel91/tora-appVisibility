@@ -14,6 +14,7 @@ import MakeOfferModal from '../common/MakeOfferModal';
 import LockOverlay from '../common/LockOverlay';
 import PhotoGallery from '../common/PhotoGallery';
 import ArtistRosterGrid from '../common/ArtistRosterGrid';
+import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import { isPremiumViewer } from '../../utils/subscription';
 import { RA_LOGO_WHITE } from '../../utils/brandAssets';
 
@@ -621,6 +622,17 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Played with — venues/promoters from completed TORA gigs */}
+        {profile.role === 'ARTIST' && Array.isArray(profile.playedWith) && profile.playedWith.length > 0 && (
+          <div className="mb-5 text-left">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.playedWith')}</p>
+            <ProfileMiniGrid
+              profiles={profile.playedWith}
+              onOpenProfile={(p) => setNestedProfile(p)}
+            />
           </div>
         )}
 
