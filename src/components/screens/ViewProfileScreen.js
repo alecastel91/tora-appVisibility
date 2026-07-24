@@ -12,6 +12,8 @@ import {roleLabel, getAvatarClass } from '../../utils/roles';
 import { raProfileUrl } from '../../utils/urls';
 import MakeOfferModal from '../common/MakeOfferModal';
 import LockOverlay from '../common/LockOverlay';
+import PhotoGallery from '../common/PhotoGallery';
+import ArtistRosterGrid from '../common/ArtistRosterGrid';
 import { isPremiumViewer } from '../../utils/subscription';
 import { RA_LOGO_WHITE } from '../../utils/brandAssets';
 
@@ -407,9 +409,10 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
           className="pointer-events-none absolute -inset-x-5 -top-5 h-56 -z-10 bg-grid
                      [mask-image:radial-gradient(70%_100%_at_50%_0%,black,transparent)]"
         />
-        <div className="profile-header">
-          <div className="profile-avatar-container">
-            <div className={`profile-avatar avatar-${(profile.role || 'artist').toLowerCase()}`}>
+        {/* Hero header: large avatar, tightened vertical rhythm */}
+        <div className="profile-header !mb-5">
+          <div className="profile-avatar-container !w-[136px] !h-[136px] !mb-3">
+            <div className={`profile-avatar !w-[136px] !h-[136px] !text-5xl avatar-${(profile.role || 'artist').toLowerCase()}`}>
               {profile.avatar ? (
                 <img src={profile.avatar} alt={profile.name} />
               ) : (
@@ -417,7 +420,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
               )}
             </div>
           </div>
-          
+
           <div className="profile-name-role-container">
             <h2 className="profile-name">
               {profile.name}
@@ -562,6 +565,29 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
               </button>
             )}
           </div>
+        )}
+
+        {/* Agent roster — visual grid, tap opens the artist's profile */}
+        {profile.role === 'AGENT' && Array.isArray(profile.representingArtists) && profile.representingArtists.length > 0 && (
+          <div className="mb-5 text-left">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5 px-1">{t('profile.artistsRepresenting')}</p>
+            <ArtistRosterGrid
+              artists={profile.representingArtists}
+              onOpenArtist={(artist) => setNestedProfile({
+                ...artist,
+                id: artist.profileId || artist.id,
+                role: 'ARTIST',
+              })}
+            />
+          </div>
+        )}
+
+        {/* Photo gallery — venue photos / promoter past-event flyers */}
+        {(profile.role === 'VENUE' || profile.role === 'PROMOTER') && (
+          <PhotoGallery
+            photos={profile.photos}
+            title={profile.role === 'VENUE' ? t('profile.venueGalleryTitle') : t('profile.pastEventsTitle')}
+          />
         )}
 
         {/* Venue capacity + rooms — showcased in a box for relevance */}

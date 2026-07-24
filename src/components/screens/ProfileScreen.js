@@ -19,6 +19,8 @@ import { downscaleImageToBlob } from '../../utils/image';
 import { getAvatarClass, roleLabel } from '../../utils/roles';
 import VerifiedBadge from '../common/VerifiedBadge';
 import VerificationModal from '../common/VerificationModal';
+import PhotoGallery from '../common/PhotoGallery';
+import ArtistRosterGrid from '../common/ArtistRosterGrid';
 import { raProfileUrl } from '../../utils/urls';
 
 // --- Obsidian Neon redesign helpers (glassmorphism + crimson neon) ---
@@ -438,15 +440,15 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
                    [mask-image:radial-gradient(70%_100%_at_50%_0%,black,transparent)]"
       />
 
-      {/* ===== Header ===== */}
-      <div className="text-center mb-6">
-        <div className="relative w-28 h-28 mx-auto mb-4">
+      {/* ===== Header — large hero avatar, tight vertical rhythm ===== */}
+      <div className="text-center mb-5">
+        <div className="relative w-[136px] h-[136px] mx-auto mb-3">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="group block w-full h-full rounded-full overflow-hidden bg-near-black ring-1 ring-white/15
                        flex items-center justify-center
-                       text-4xl font-bold text-white font-space-grotesk"
+                       text-5xl font-bold text-white font-space-grotesk"
           >
             {user?.avatar ? (
               <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover" />
@@ -459,7 +461,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
               <UploadIcon />
             </span>
           </button>
-          <span className="pointer-events-none absolute bottom-0.5 right-0.5 w-8 h-8 rounded-full
+          <span className="pointer-events-none absolute bottom-1 right-1 w-8 h-8 rounded-full
                            bg-[#232325] border border-white/15 flex items-center justify-center text-white/80
                            [&>svg]:w-3.5 [&>svg]:h-3.5">
             <UploadIcon />
@@ -473,11 +475,11 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
           />
         </div>
 
-        <h2 className="text-3xl font-bold text-white font-space-grotesk tracking-[-0.02em] leading-none mb-2">
+        <h2 className="text-3xl font-bold text-white font-space-grotesk tracking-[-0.02em] leading-none mb-1.5">
           {user?.name || t('profile.yourName')}
           {user?.verifyStatus === 'VERIFIED' && <VerifiedBadge size={18} className="ml-2" />}
         </h2>
-        <p className="flex items-center justify-center gap-1.5 text-[13px] text-white/60 mb-3 font-tech [&>svg]:w-3.5 [&>svg]:h-3.5">
+        <p className="flex items-center justify-center gap-1.5 text-[13px] text-white/60 mb-2 font-tech [&>svg]:w-3.5 [&>svg]:h-3.5">
           <LocationIcon />{user?.location || t('profile.addLocation')}
         </p>
         <div className={`inline-flex items-center px-3.5 py-1 rounded-full border text-[10px] font-semibold uppercase
@@ -634,41 +636,36 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         </div>
       )}
 
+      {/* Photo gallery — venue photos / promoter past-event flyers */}
+      {(user?.role === 'VENUE' || user?.role === 'PROMOTER') && (
+        <PhotoGallery
+          photos={user?.photos}
+          title={user.role === 'VENUE' ? t('profile.venueGalleryTitle') : t('profile.pastEventsTitle')}
+        />
+      )}
+
       {/* Agent Artists Representing Section */}
       {user?.role === 'AGENT' && (
         <div className="mb-8 text-left">
           <h3 className="text-lg font-bold text-white font-space-grotesk mb-4">{t('profile.artistsRepresenting')}</h3>
           <div className="flex flex-col gap-3">
-            {user?.representingArtists && user.representingArtists.length > 0 ? user.representingArtists.map(artist => (
-              <div
-                key={artist.id}
-                onClick={() => { closeSubScreens(); setViewingArtistProfile(artist.id); }}
-                className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0e] p-3 cursor-pointer
-                           hover:border-infrared/40 transition-colors"
-              >
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-near-black ring-1 ring-white/10 shrink-0
-                                flex items-center justify-center text-lg font-bold text-white font-space-grotesk">
-                  {artist.avatar ? (
-                    <img src={artist.avatar} alt={artist.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{artist.name.charAt(0)}</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-white truncate">{artist.name}</h4>
-                  <p className="text-xs text-white/50 truncate">{artist.location}</p>
-                </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); closeSubScreens(); setManagingArtist(artist); }}
-                  className="relative shrink-0 px-3 py-1.5 rounded-lg bg-infrared text-white text-xs font-semibold uppercase tracking-wider hover:bg-infrared-dim transition-colors"
-                >
-                  Manage
-                  {artistActionsMap[artist.profileId || artist.id] && (
-                    <span aria-label={t('manage.actionsRequired')} className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-white shadow-[0_0_5px_rgba(255,255,255,0.8)]" />
-                  )}
-                </button>
-              </div>
-            )) : (
+            {user?.representingArtists && user.representingArtists.length > 0 ? (
+              <ArtistRosterGrid
+                artists={user.representingArtists}
+                onOpenArtist={(artist) => { closeSubScreens(); setViewingArtistProfile(artist); }}
+                renderOverlay={(artist) => (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); closeSubScreens(); setManagingArtist(artist); }}
+                    className="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-infrared text-white text-[10px] font-semibold uppercase tracking-wider hover:bg-infrared-dim transition-colors"
+                  >
+                    {t('profile.manageLabel')}
+                    {artistActionsMap[artist.profileId || artist.id] && (
+                      <span aria-label={t('manage.actionsRequired')} className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-white shadow-[0_0_5px_rgba(255,255,255,0.8)]" />
+                    )}
+                  </button>
+                )}
+              />
+            ) : (
               <div className="rounded-xl border border-dashed border-white/15 bg-[#070709] p-6 text-center">
                 <p className="text-sm text-white/50 mb-3">No artists added yet</p>
                 <button onClick={() => { closeSubScreens(); setShowRepresentedArtists(true); }} className="px-4 py-2 rounded-lg border border-white/15 text-white text-xs font-semibold uppercase tracking-wider hover:border-infrared/50 hover:text-infrared transition-colors">Add Artists</button>
@@ -1052,7 +1049,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
   if (viewingArtistProfile) {
     return (
       <ViewProfileScreen
-        profileId={viewingArtistProfile}
+        profile={{ ...viewingArtistProfile, id: viewingArtistProfile.profileId || viewingArtistProfile.id }}
         onClose={() => setViewingArtistProfile(null)}
       />
     );
