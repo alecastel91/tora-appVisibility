@@ -5,6 +5,7 @@ import { appAlert } from '../../utils/dialogs';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
 import CitySearch from './CitySearch';
+import VenueSearch from './VenueSearch';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
@@ -19,6 +20,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
   const [formData, setFormData] = useState({
     eventName: '',
     venueName: '',
+    eventVenueId: '',
     zone: '',
     country: '',
     city: '',
@@ -218,7 +220,8 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
         finalPaymentDeadline: formData.finalPaymentDeadline || undefined,
         notes: formData.notes,
         artistId: formData.selectedArtistId || undefined,
-        artistName: formData.selectedArtistName || undefined
+        artistName: formData.selectedArtistName || undefined,
+        eventVenueId: formData.eventVenueId || undefined
       };
 
       const response = await apiService.createDeal(dealData);
@@ -236,6 +239,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
       setFormData({
         eventName: '',
         venueName: '',
+        eventVenueId: '',
         zone: '',
         country: '',
         city: '',
@@ -353,14 +357,25 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
 
             <div className="form-group">
               <label>{t('offer.venueName')} *</label>
-              <input
-                type="text"
-                value={formData.venueName}
-                onChange={(e) => handleChange('venueName', e.target.value)}
-                placeholder={isArtistOrAgent ? recipientProfile.name : t('offer.yourVenueName')}
-                className="form-input"
-                required
-              />
+              {currentUser.role === 'PROMOTER' ? (
+                // Promoters run events in other people's rooms — autocomplete
+                // against TORA venues (links eventVenueId); free text stays
+                // valid for off-platform venues.
+                <VenueSearch
+                  venueName={formData.venueName}
+                  venueId={formData.eventVenueId || null}
+                  onSelect={(name, id) => setFormData((prev) => ({ ...prev, venueName: name, eventVenueId: id || '' }))}
+                />
+              ) : (
+                <input
+                  type="text"
+                  value={formData.venueName}
+                  onChange={(e) => handleChange('venueName', e.target.value)}
+                  placeholder={isArtistOrAgent ? recipientProfile.name : t('offer.yourVenueName')}
+                  className="form-input"
+                  required
+                />
+              )}
             </div>
 
             <div className="form-group">

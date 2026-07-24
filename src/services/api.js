@@ -208,6 +208,15 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async lookupVenues(q) {
+    const response = await fetch(`${API_URL}/profiles/venues/lookup?q=${encodeURIComponent(q)}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   async uploadAvatar(profileId, blob) {
     const formData = new FormData();
     formData.append('avatar', blob, 'avatar.webp');

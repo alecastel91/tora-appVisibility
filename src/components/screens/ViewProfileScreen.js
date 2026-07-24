@@ -583,6 +583,27 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
           </div>
         )}
 
+        {/* Network strips — counterparts from completed TORA deals */}
+        {(() => {
+          const network = profile.network || { promoters: [], venues: [], artists: [] };
+          const sections = ({
+            ARTIST: [['promoters', 'viewProfile.networkPromoters'], ['venues', 'viewProfile.networkVenues']],
+            PROMOTER: [['venues', 'viewProfile.networkVenues'], ['artists', 'viewProfile.networkArtists']],
+            VENUE: [['promoters', 'viewProfile.networkPromoters'], ['artists', 'viewProfile.networkArtists']],
+          })[profile.role] || [];
+          return sections.map(([bucket, titleKey]) => (
+            (network[bucket] || []).length > 0 && (
+              <div key={bucket} className="mb-5 text-left">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t(titleKey)}</p>
+                <ProfileMiniGrid
+                  profiles={network[bucket]}
+                  onOpenProfile={(p) => setNestedProfile(p)}
+                />
+              </div>
+            )
+          ));
+        })()}
+
         {/* Photo gallery — venue photos / promoter past-event flyers */}
         {(profile.role === 'VENUE' || profile.role === 'PROMOTER') && (
           <PhotoGallery
@@ -622,17 +643,6 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Played with — venues/promoters from completed TORA gigs */}
-        {profile.role === 'ARTIST' && Array.isArray(profile.playedWith) && profile.playedWith.length > 0 && (
-          <div className="mb-5 text-left">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.playedWith')}</p>
-            <ProfileMiniGrid
-              profiles={profile.playedWith}
-              onOpenProfile={(p) => setNestedProfile(p)}
-            />
           </div>
         )}
 

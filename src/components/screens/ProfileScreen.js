@@ -77,7 +77,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
   const [showManageProfile, setShowManageProfile] = useState(false);
   const [showRepresentedArtists, setShowRepresentedArtists] = useState(false);
   const [showFindAgent, setShowFindAgent] = useState(false);
-  // Enriched GET /profiles/:id payload: badges, playedWith, and (for agents)
+  // Enriched GET /profiles/:id payload: badges, network, and (for agents)
   // the roster merged with each artist's CURRENT avatar/location — the
   // context `user` only carries the raw JSONB snapshot.
   const [ownEnriched, setOwnEnriched] = useState(null);
@@ -377,7 +377,14 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
   const rosterArtists = (ownEnriched?.representingArtists?.length
     ? ownEnriched.representingArtists
     : user?.representingArtists) || [];
-  const playedWith = ownEnriched?.playedWith || [];
+  // Network strips: completed-deal counterparts, two role-appropriate
+  // sections per profile role (agents keep the roster grid instead).
+  const network = ownEnriched?.network || { promoters: [], venues: [], artists: [] };
+  const networkSections = ({
+    ARTIST: [['promoters', 'viewProfile.networkPromoters'], ['venues', 'viewProfile.networkVenues']],
+    PROMOTER: [['venues', 'viewProfile.networkVenues'], ['artists', 'viewProfile.networkArtists']],
+    VENUE: [['promoters', 'viewProfile.networkPromoters'], ['artists', 'viewProfile.networkArtists']],
+  })[user?.role] || [];
 
   function renderProfileBody() {
   // The official TORA account is an admin/broadcast profile: no networking
@@ -679,16 +686,18 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         </div>
       )}
 
-      {/* Played with — venues/promoters from completed TORA gigs */}
-      {user?.role === 'ARTIST' && playedWith.length > 0 && (
-        <div className="mb-5 text-left">
-          <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.playedWith')}</p>
-          <ProfileMiniGrid
-            profiles={playedWith}
-            onOpenProfile={(p) => { closeSubScreens(); setViewingArtistProfile(p); }}
-          />
-        </div>
-      )}
+      {/* Network strips — counterparts from completed TORA deals */}
+      {networkSections.map(([bucket, titleKey]) => (
+        (network[bucket] || []).length > 0 && (
+          <div key={bucket} className="mb-5 text-left">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t(titleKey)}</p>
+            <ProfileMiniGrid
+              profiles={network[bucket]}
+              onOpenProfile={(p) => { closeSubScreens(); setViewingArtistProfile(p); }}
+            />
+          </div>
+        )
+      ))}
 
       {/* Photo gallery — venue photos / promoter past-event flyers */}
       {(user?.role === 'VENUE' || user?.role === 'PROMOTER') && (
