@@ -377,13 +377,20 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
   const rosterArtists = (ownEnriched?.representingArtists?.length
     ? ownEnriched.representingArtists
     : user?.representingArtists) || [];
-  // Network strips: completed-deal counterparts, two role-appropriate
-  // sections per profile role (agents keep the roster grid instead).
+  // Network strips: completed-deal counterparts. Artists get ONE combined
+  // strip (promoters + venues); promoters/venues get two role-appropriate
+  // ones; agents keep the roster grid instead.
   const network = ownEnriched?.network || { promoters: [], venues: [], artists: [] };
   const networkSections = ({
-    ARTIST: [['promoters', 'viewProfile.networkPromoters'], ['venues', 'viewProfile.networkVenues']],
-    PROMOTER: [['venues', 'viewProfile.networkVenues'], ['artists', 'viewProfile.networkArtists']],
-    VENUE: [['promoters', 'viewProfile.networkPromoters'], ['artists', 'viewProfile.networkArtists']],
+    ARTIST: [['workedWith', [...network.promoters, ...network.venues], 'viewProfile.workedWith']],
+    PROMOTER: [
+      ['venues', network.venues, 'viewProfile.venuesWorkedWith'],
+      ['artists', network.artists, 'viewProfile.artistsPlayed'],
+    ],
+    VENUE: [
+      ['promoters', network.promoters, 'viewProfile.promotersHosted'],
+      ['artists', network.artists, 'viewProfile.artistsPlayedHere'],
+    ],
   })[user?.role] || [];
 
   function renderProfileBody() {
@@ -687,12 +694,12 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
       )}
 
       {/* Network strips — counterparts from completed TORA deals */}
-      {networkSections.map(([bucket, titleKey]) => (
-        (network[bucket] || []).length > 0 && (
-          <div key={bucket} className="mb-5 text-left">
+      {networkSections.map(([key, items, titleKey]) => (
+        items.length > 0 && (
+          <div key={key} className="mb-5 text-left">
             <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t(titleKey)}</p>
             <ProfileMiniGrid
-              profiles={network[bucket]}
+              profiles={items}
               onOpenProfile={(p) => { closeSubScreens(); setViewingArtistProfile(p); }}
             />
           </div>

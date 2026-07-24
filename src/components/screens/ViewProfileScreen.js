@@ -583,20 +583,27 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
           </div>
         )}
 
-        {/* Network strips — counterparts from completed TORA deals */}
+        {/* Network strips — counterparts from completed TORA deals. Artists
+            get ONE combined strip; promoters/venues get two. */}
         {(() => {
           const network = profile.network || { promoters: [], venues: [], artists: [] };
           const sections = ({
-            ARTIST: [['promoters', 'viewProfile.networkPromoters'], ['venues', 'viewProfile.networkVenues']],
-            PROMOTER: [['venues', 'viewProfile.networkVenues'], ['artists', 'viewProfile.networkArtists']],
-            VENUE: [['promoters', 'viewProfile.networkPromoters'], ['artists', 'viewProfile.networkArtists']],
+            ARTIST: [['workedWith', [...network.promoters, ...network.venues], 'viewProfile.workedWith']],
+            PROMOTER: [
+              ['venues', network.venues, 'viewProfile.venuesWorkedWith'],
+              ['artists', network.artists, 'viewProfile.artistsPlayed'],
+            ],
+            VENUE: [
+              ['promoters', network.promoters, 'viewProfile.promotersHosted'],
+              ['artists', network.artists, 'viewProfile.artistsPlayedHere'],
+            ],
           })[profile.role] || [];
-          return sections.map(([bucket, titleKey]) => (
-            (network[bucket] || []).length > 0 && (
-              <div key={bucket} className="mb-5 text-left">
+          return sections.map(([key, items, titleKey]) => (
+            items.length > 0 && (
+              <div key={key} className="mb-5 text-left">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t(titleKey)}</p>
                 <ProfileMiniGrid
-                  profiles={network[bucket]}
+                  profiles={items}
                   onOpenProfile={(p) => setNestedProfile(p)}
                 />
               </div>
