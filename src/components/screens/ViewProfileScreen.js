@@ -101,6 +101,20 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
       .then((d) => setGigs(d.gigs || []))
       .catch(() => setGigs([]));
   }, [showGigsModal, gigs, passedProfile?.id]);
+
+  // "Similar profiles" strip at the bottom — shared recommendation heuristic
+  // (same role as the viewed profile, genre/city overlap, viewer's existing
+  // circle excluded). Hidden below 2 results.
+  const [similarProfiles, setSimilarProfiles] = useState([]);
+  useEffect(() => {
+    let cancelled = false;
+    setSimilarProfiles([]);
+    if (!passedProfile?.id) return undefined;
+    apiService.getSimilarProfiles(passedProfile.id, currentUser?.id)
+      .then((d) => { if (!cancelled) setSimilarProfiles(d.profiles || []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [passedProfile?.id, currentUser?.id]);
   useEffect(() => {
     let cancelled = false;
     setArtistTours([]);
@@ -825,6 +839,17 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
               <span className="flex-1 text-sm font-medium text-white">{t('viewProfile.gigsViaTora', { n: profile.gigsCompleted })}</span>
               <span className="text-white/30 text-xs">›</span>
             </button>
+          </div>
+        )}
+
+        {/* Similar profiles — recommendation strip, hidden below 2 results */}
+        {similarProfiles.length >= 2 && (
+          <div className="mb-5 text-left">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.similarProfiles')}</p>
+            <ProfileMiniGrid
+              profiles={similarProfiles}
+              onOpenProfile={(p) => setNestedProfile(p)}
+            />
           </div>
         )}
 

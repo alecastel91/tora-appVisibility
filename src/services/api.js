@@ -208,6 +208,25 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async getProfileSuggestions(profileId) {
+    const response = await fetch(`${API_URL}/profiles/suggestions?profileId=${encodeURIComponent(profileId || '')}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getSimilarProfiles(profileId, viewerProfileId) {
+    const qs = viewerProfileId ? `?viewerProfileId=${encodeURIComponent(viewerProfileId)}` : '';
+    const response = await fetch(`${API_URL}/profiles/${profileId}/similar${qs}`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   async lookupVenues(q) {
     const response = await fetch(`${API_URL}/profiles/venues/lookup?q=${encodeURIComponent(q)}`, {
       method: 'GET',

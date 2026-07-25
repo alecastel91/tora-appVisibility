@@ -10,14 +10,24 @@ import { appAlert } from '../../utils/dialogs';
 import { RA_URL_RE } from '../common/HighlightsList';
 
 const MAX_PROFILE_PHOTOS = 8;
-// Plausible highlight years — upper bound derived from today (backend
-// silently strips anything outside the range).
+// Plausible highlight years — upper bound derived from today. The three core
+// fields (venue / city-or-artist / year) are MANDATORY; only the RA link is
+// optional. Rows the user never touched are dropped silently at save.
 const HIGHLIGHT_YEAR_MIN = 1980;
 const HIGHLIGHT_YEAR_MAX = new Date().getFullYear();
-const highlightYearInvalid = (year) => {
-  if (!year || year.length < 4) return false;
-  const n = parseInt(year, 10);
-  return n < HIGHLIGHT_YEAR_MIN || n > HIGHLIGHT_YEAR_MAX;
+const highlightMidField = (role) => (role === 'ARTIST' ? 'city' : 'artist');
+const highlightRowBlank = (h) =>
+  !String(h?.venue || '').trim() && !String(h?.city || '').trim()
+  && !String(h?.artist || '').trim() && !String(h?.year || '').trim()
+  && !String(h?.raUrl || '').trim();
+// null | 'incomplete' | 'year' — blank rows never block
+const highlightRowIssue = (h, role) => {
+  if (!h || highlightRowBlank(h)) return null;
+  const mid = String(h[highlightMidField(role)] || '').trim();
+  if (!String(h.venue || '').trim() || !mid || !String(h.year || '').trim()) return 'incomplete';
+  const n = parseInt(h.year, 10);
+  if (!(Number.isInteger(n) && n >= HIGHLIGHT_YEAR_MIN && n <= HIGHLIGHT_YEAR_MAX)) return 'year';
+  return null;
 };
 
 const EditProfileScreen = ({ onClose }) => {
@@ -138,6 +148,18 @@ const EditProfileScreen = ({ onClose }) => {
         updatedProfile.photos = photos.slice(0, MAX_PROFILE_PHOTOS);
       } else {
         delete updatedProfile.photos;
+      }
+
+      // Highlights: untouched blank rows are dropped, not sent; anything
+      // partially filled blocks the save (the button is disabled too — this
+      // is the defensive path).
+      if (Array.isArray(updatedProfile.pastHighlights)) {
+        updatedProfile.pastHighlights = updatedProfile.pastHighlights.filter((h) => !highlightRowBlank(h));
+        if (updatedProfile.pastHighlights.some((h) => highlightRowIssue(h, user?.role))) {
+          setError(t('editProfile.highlightIncomplete'));
+          setSaving(false);
+          return;
+        }
       }
 
       const profileId = user.id;
@@ -592,7 +614,10 @@ const EditProfileScreen = ({ onClose }) => {
                 {h.raUrl && !RA_URL_RE.test(h.raUrl) && (
                   <p className="m-0 text-[11px] text-role-venue/90">{t('editProfile.raLinkInvalid')}</p>
                 )}
-                {highlightYearInvalid(h.year) && (
+                {highlightRowIssue(h, user?.role) === 'incomplete' && (
+                  <p className="m-0 text-[11px] text-role-venue/90">{t('editProfile.highlightIncomplete')}</p>
+                )}
+                {highlightRowIssue(h, user?.role) === 'year' && (
                   <p className="m-0 text-[11px] text-role-venue/90">
                     {t('editProfile.yearOutOfRange', { min: HIGHLIGHT_YEAR_MIN, max: HIGHLIGHT_YEAR_MAX })}
                   </p>
@@ -620,7 +645,11 @@ const EditProfileScreen = ({ onClose }) => {
           <button className="btn btn-secondary btn-full" onClick={onClose} disabled={saving}>
             {t('editProfile.cancel')}
           </button>
-          <button className="btn btn-primary btn-full" onClick={handleSave} disabled={saving}>
+          <button
+            className="btn btn-primary btn-full"
+            onClick={handleSave}
+            disabled={saving || (editedUser.pastHighlights || []).some((h) => highlightRowIssue(h, user?.role))}
+          >
             {saving ? t('editProfile.saving') : t('editProfile.saveChanges')}
           </button>
         </div>

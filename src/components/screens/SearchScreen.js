@@ -10,6 +10,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import apiService from '../../services/api';
 import LoadingGlobe from '../common/LoadingGlobe';
 import LimitReachedModal from '../common/LimitReachedModal';
+import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import { isPremiumViewer } from '../../utils/subscription';
 // The globe pulls in d3-geo + a world topojson (~150KB) — only load it when the
 // user actually switches to the globe view (matches the PdfViewer lazy pattern).
@@ -20,6 +21,18 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('globe'); // 'globe' | 'list' — the globe IS the search landing
+  // "Suggested for you" — complementary-role recommendations shown on the
+  // list view's empty state (no query, no filters).
+  const [suggestedProfiles, setSuggestedProfiles] = useState([]);
+  useEffect(() => {
+    let cancelled = false;
+    setSuggestedProfiles([]);
+    if (!user?.id) return undefined;
+    apiService.getProfileSuggestions(user.id)
+      .then((d) => { if (!cancelled) setSuggestedProfiles(d.profiles || []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user?.id]);
   const [globeUpsellCity, setGlobeUpsellCity] = useState(null); // FREE member tapped a locked city
   const stageRef = useRef(null);
   const [stageH, setStageH] = useState(0);
@@ -627,6 +640,18 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
         {upgradePill}
 
       </div>
+
+      {/* Suggested for you — recommendation strip on the empty state
+          (no query, no filters) */}
+      {searchQuery.trim() === '' && activeFilterCount === 0 && suggestedProfiles.length > 0 && (
+        <div className="mb-5 text-left">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5 px-1">{t('search.suggestedForYou')}</p>
+          <ProfileMiniGrid
+            profiles={suggestedProfiles}
+            onOpenProfile={handleProfileClick}
+          />
+        </div>
+      )}
 
       {/* Search Results */}
       <div className="search-results">
