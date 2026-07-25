@@ -71,8 +71,10 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
     setLoading(true);
     try {
       const apiStartTime = performance.now();
-      // Use the authenticated search endpoint with location restrictions (pass active profile for tier check)
-      const response = await apiService.searchProfiles({ activeProfileId: user?.id });
+      // Use the authenticated search endpoint with location restrictions (pass active profile for tier check).
+      // limit: 500 — this browse fetch also feeds the globe's city pins, and
+      // the default 100-row page silently drops older profiles from the map.
+      const response = await apiService.searchProfiles({ activeProfileId: user?.id, limit: 500 });
       const apiEndTime = performance.now();
 
       // Handle both response formats (old: array, new: object with profiles array)
