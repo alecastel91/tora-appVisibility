@@ -888,6 +888,7 @@ const ko = {
     pastHighlightsHintVenue: '주요 나이트나 레지던시를 추가하세요 — 이벤트명, 아티스트, 연도. 공개 프로필에 표시됩니다.',
     raEventLink: 'RA 이벤트 링크 (선택)',
     raLinkInvalid: 'Resident Advisor 링크(ra.co)를 입력하세요.',
+    yearOutOfRange: '연도는 {{min}}~{{max}} 사이여야 합니다.',
     addHighlight: '하이라이트 추가',
     venuePhotos: '베뉴 사진',
     venuePhotosHint: '베뉴 사진을 최대 8장 추가할 수 있습니다. 공개 프로필에 표시됩니다.',
@@ -1523,6 +1524,7 @@ const ko = {
   },
   news: {
     pinned: "고정됨",
+    suggested: '추천',
     addImage: "이미지 추가",
     official: "TORA · 공식",
     composerPlaceholder: "네트워크에 소식을 공유하세요...",

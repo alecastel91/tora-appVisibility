@@ -891,6 +891,7 @@ const en = {
     pastHighlightsHintVenue: 'Add notable nights or residencies — event name, artist and year. Shown on your public profile.',
     raEventLink: 'RA event link (optional)',
     raLinkInvalid: 'Enter a Resident Advisor link (ra.co).',
+    yearOutOfRange: 'Year must be between {{min}} and {{max}}.',
     addHighlight: 'Add highlight',
     venuePhotos: 'Venue Photos',
     venuePhotosHint: 'Add up to 8 photos of your venue. Shown on your public profile.',
@@ -1535,6 +1536,7 @@ const en = {
   },
   news: {
     pinned: "Pinned",
+    suggested: 'Suggested',
     addImage: "Add image",
     official: "TORA · Official",
     composerPlaceholder: "Share an update with the network...",

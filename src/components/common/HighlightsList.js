@@ -1,8 +1,26 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { RA_LOGO_WHITE } from '../../utils/brandAssets';
 
 export const RA_URL_RE = /^https:\/\/(www\.)?(ra\.co|residentadvisor\.net)\//i;
+
+// White "RA" wordmark on transparent — inline SVG text (Space Grotesk is
+// already loaded), no boxed background. The blocky RA_LOGO_WHITE PNG read
+// as white blocks at this size.
+const RAMark = () => (
+  <svg width="20" height="12" viewBox="0 0 26 14" aria-hidden="true" className="block">
+    <text
+      x="0"
+      y="12"
+      fill="currentColor"
+      fontFamily="'Space Grotesk', sans-serif"
+      fontWeight="700"
+      fontSize="13.5"
+      letterSpacing="0.5"
+    >
+      RA
+    </text>
+  </svg>
+);
 
 // Past-highlights dot-rows shared by ProfileScreen/ViewProfileScreen: shows
 // three rows, the rest expand inline (same drawer pattern as the galleries
@@ -32,9 +50,9 @@ const HighlightsList = ({ highlights }) => {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Resident Advisor"
-          className="shrink-0 flex items-center opacity-70 hover:opacity-100 transition-opacity"
+          className="shrink-0 flex items-center text-white/60 hover:text-white transition-colors"
         >
-          <img src={RA_LOGO_WHITE} alt="RA" className="w-[18px] h-auto" />
+          <RAMark />
         </a>
       )}
       {h.year && <span className="text-[11px] text-white/40 font-tech shrink-0">{h.year}</span>}

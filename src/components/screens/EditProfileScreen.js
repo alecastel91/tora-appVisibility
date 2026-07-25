@@ -10,6 +10,15 @@ import { appAlert } from '../../utils/dialogs';
 import { RA_URL_RE } from '../common/HighlightsList';
 
 const MAX_PROFILE_PHOTOS = 8;
+// Plausible highlight years — upper bound derived from today (backend
+// silently strips anything outside the range).
+const HIGHLIGHT_YEAR_MIN = 1980;
+const HIGHLIGHT_YEAR_MAX = new Date().getFullYear();
+const highlightYearInvalid = (year) => {
+  if (!year || year.length < 4) return false;
+  const n = parseInt(year, 10);
+  return n < HIGHLIGHT_YEAR_MIN || n > HIGHLIGHT_YEAR_MAX;
+};
 
 const EditProfileScreen = ({ onClose }) => {
   const { user, updateUser } = useAppContext();
@@ -582,6 +591,11 @@ const EditProfileScreen = ({ onClose }) => {
                 />
                 {h.raUrl && !RA_URL_RE.test(h.raUrl) && (
                   <p className="m-0 text-[11px] text-role-venue/90">{t('editProfile.raLinkInvalid')}</p>
+                )}
+                {highlightYearInvalid(h.year) && (
+                  <p className="m-0 text-[11px] text-role-venue/90">
+                    {t('editProfile.yearOutOfRange', { min: HIGHLIGHT_YEAR_MIN, max: HIGHLIGHT_YEAR_MAX })}
+                  </p>
                 )}
                 </div>
               ))}

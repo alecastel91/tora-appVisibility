@@ -888,6 +888,7 @@ const zh = {
     pastHighlightsHintVenue: '添加值得展示的夜场或驻场 — 活动名称、艺人和年份，显示在你的公开资料中。',
     raEventLink: 'RA活动链接（可选）',
     raLinkInvalid: '请输入Resident Advisor链接（ra.co）。',
+    yearOutOfRange: '年份须在{{min}}至{{max}}之间。',
     addHighlight: '添加亮点',
     venuePhotos: '场地照片',
     venuePhotosHint: '最多可添加8张场地照片，将显示在你的公开资料中。',
@@ -1523,6 +1524,7 @@ const zh = {
   },
   news: {
     pinned: "置顶",
+    suggested: '推荐',
     addImage: "添加图片",
     official: "TORA · 官方",
     composerPlaceholder: "与网络分享动态...",

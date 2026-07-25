@@ -334,6 +334,11 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
                       {t('news.pinned')}
                     </span>
                   )}
+                  {post.suggested && (
+                    <span className="shrink-0 rounded-full border border-white/20 px-2 py-0.5 text-[9px] font-tech uppercase tracking-[0.15em] text-white/60">
+                      {t('news.suggested')}
+                    </span>
+                  )}
                   {official ? (
                     <span className="shrink-0 rounded-full border border-infrared/60 bg-infrared/10 px-2 py-0.5 text-[9px] font-tech uppercase tracking-[0.15em] text-infrared">
                       {t('news.official')}

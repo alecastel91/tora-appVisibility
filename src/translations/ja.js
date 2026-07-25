@@ -888,6 +888,7 @@ const ja = {
     pastHighlightsHintVenue: '注目のナイトやレジデンシーを追加 — イベント名・アーティスト・年。公開プロフィールに表示されます。',
     raEventLink: 'RAイベントリンク（任意）',
     raLinkInvalid: 'Resident Advisorのリンク（ra.co）を入力してください。',
+    yearOutOfRange: '年は{{min}}〜{{max}}の間で入力してください。',
     addHighlight: 'ハイライトを追加',
     venuePhotos: '会場の写真',
     venuePhotosHint: '会場の写真を最大8枚追加できます。公開プロフィールに表示されます。',
@@ -1523,6 +1524,7 @@ const ja = {
   },
   news: {
     pinned: "固定",
+    suggested: 'おすすめ',
     addImage: "画像を追加",
     official: "TORA・公式",
     composerPlaceholder: "ネットワークに近況をシェア...",
