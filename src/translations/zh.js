@@ -884,6 +884,8 @@ const zh = {
     cityNotFound: '我的城市不在列表中',
     pastHighlights: '过往亮点',
     pastHighlightsHint: '添加值得展示的过往演出——场地、城市和年份。会显示在你的公开档案上。',
+    pastHighlightsHintPromoter: '添加值得展示的往期活动 — 场地、城市和年份，显示在你的公开资料中。',
+    pastHighlightsHintVenue: '添加值得展示的夜场或驻场 — 活动名称、城市和年份，显示在你的公开资料中。',
     addHighlight: '添加亮点',
     venuePhotos: '场地照片',
     venuePhotosHint: '最多可添加8张场地照片，将显示在你的公开资料中。',

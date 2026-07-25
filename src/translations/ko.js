@@ -884,6 +884,8 @@ const ko = {
     cityNotFound: '내 도시가 목록에 없어요',
     pastHighlights: '지난 하이라이트',
     pastHighlightsHint: '주목할 만한 과거 공연을 추가하세요 — 베뉴, 도시, 연도. 공개 프로필에 표시됩니다.',
+    pastHighlightsHintPromoter: '주요 지난 이벤트를 추가하세요 — 베뉴, 도시, 연도. 공개 프로필에 표시됩니다.',
+    pastHighlightsHintVenue: '주요 나이트나 레지던시를 추가하세요 — 이벤트명, 도시, 연도. 공개 프로필에 표시됩니다.',
     addHighlight: '하이라이트 추가',
     venuePhotos: '베뉴 사진',
     venuePhotosHint: '베뉴 사진을 최대 8장 추가할 수 있습니다. 공개 프로필에 표시됩니다.',

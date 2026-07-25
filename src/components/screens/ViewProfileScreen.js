@@ -637,8 +637,9 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
           </div>
         )}
 
-        {/* Past highlights — artist-curated gigs (roadmap item 10) */}
-        {profile.role === 'ARTIST' && Array.isArray(profile.pastHighlights) && profile.pastHighlights.length > 0 && (
+        {/* Past highlights — free-text career credits (text-styled, distinct
+            from the verified network strips) */}
+        {['ARTIST', 'PROMOTER', 'VENUE'].includes(profile.role) && Array.isArray(profile.pastHighlights) && profile.pastHighlights.length > 0 && (
           <div className="mb-5 text-left">
             <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.pastHighlights')}</p>
             <div className="flex flex-col gap-2">

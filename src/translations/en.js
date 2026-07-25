@@ -887,6 +887,8 @@ const en = {
     cityNotFound: 'My city isn\'t listed',
     pastHighlights: 'Past highlights',
     pastHighlightsHint: 'Add notable past gigs — venue, city and year. Shown on your public profile.',
+    pastHighlightsHintPromoter: 'Add notable past events — venue, city and year. Shown on your public profile.',
+    pastHighlightsHintVenue: 'Add notable nights or residencies — event name, city and year. Shown on your public profile.',
     addHighlight: 'Add highlight',
     venuePhotos: 'Venue Photos',
     venuePhotosHint: 'Add up to 8 photos of your venue. Shown on your public profile.',

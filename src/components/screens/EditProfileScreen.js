@@ -502,18 +502,25 @@ const EditProfileScreen = ({ onClose }) => {
           </div>
         )}
 
-        {/* Past highlights — artist-curated gigs shown on the public profile */}
-        {user?.role === 'ARTIST' && (
+        {/* Past highlights — free-text career credits, all main roles.
+            Artist: gigs · Promoter: past events · Venue: notable nights */}
+        {['ARTIST', 'PROMOTER', 'VENUE'].includes(user?.role) && (
           <div className="edit-section">
             <h3>{t('editProfile.pastHighlights')}</h3>
-            <p className="m-0 mb-3 text-xs text-white/40">{t('editProfile.pastHighlightsHint')}</p>
+            <p className="m-0 mb-3 text-xs text-white/40">
+              {user.role === 'PROMOTER'
+                ? t('editProfile.pastHighlightsHintPromoter')
+                : user.role === 'VENUE'
+                  ? t('editProfile.pastHighlightsHintVenue')
+                  : t('editProfile.pastHighlightsHint')}
+            </p>
             <div className="flex flex-col gap-2.5">
               {(editedUser.pastHighlights || []).map((h, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <input
                     type="text"
                     className="form-input flex-[2]"
-                    placeholder={t('editProfile.venuePlaceholder')}
+                    placeholder={user?.role === 'VENUE' ? t('offer.eventName') : t('editProfile.venuePlaceholder')}
                     value={h.venue || ''}
                     onChange={(e) => {
                       const next = [...editedUser.pastHighlights];

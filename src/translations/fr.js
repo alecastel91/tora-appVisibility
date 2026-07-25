@@ -884,6 +884,8 @@ const fr = {
     cityNotFound: 'Ma ville n\'est pas listée',
     pastHighlights: 'Dates marquantes',
     pastHighlightsHint: 'Ajoutez vos dates marquantes — salle, ville et année. Visibles sur votre profil public.',
+    pastHighlightsHintPromoter: 'Ajoutez des événements passés marquants — lieu, ville et année. Visibles sur votre profil public.',
+    pastHighlightsHintVenue: 'Ajoutez des soirées ou résidences marquantes — nom de l\'événement, ville et année. Visibles sur votre profil public.',
     addHighlight: 'Ajouter une date',
     venuePhotos: 'Photos du lieu',
     venuePhotosHint: 'Ajoutez jusqu\'à 8 photos de votre lieu. Visibles sur votre profil public.',

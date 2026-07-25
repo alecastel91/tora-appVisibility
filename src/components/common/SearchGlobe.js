@@ -399,13 +399,20 @@ const SearchGlobe = ({ profiles, onSelectProfile, locked = false, userCity = '',
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dims, projection]);
 
-  // hit-test: member pins first, then locked hubs (uses _xy from the last frame)
+  // hit-test: member pins first, then locked hubs (uses _xy from the last
+  // frame). Among pins inside the tap radius the BUSIEST city wins (nearest
+  // breaks ties) — an overlapping 1-member neighbor must not steal the tap
+  // from a hub's whole list.
   const hit = (mx, my) => {
-    let best = null, bd = 1e9;
+    let best = null, bd = 1e9, bestCount = -1;
     for (const c of citiesRef.current) {
       if (!c._xy) continue;
       const d = Math.hypot(mx - c._xy[0], my - c._xy[1]);
-      if (d < 16 && d < bd) { bd = d; best = { kind: 'city', ref: c }; }
+      if (d >= 16) continue;
+      const count = c._count || 0;
+      if (count > bestCount || (count === bestCount && d < bd)) {
+        bestCount = count; bd = d; best = { kind: 'city', ref: c };
+      }
     }
     if (!best) {
       for (const hub of lockedHubsRef.current) {
@@ -467,7 +474,14 @@ const SearchGlobe = ({ profiles, onSelectProfile, locked = false, userCity = '',
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDesktop]);
 
+  // Ghost-click shield: the tap's pointerup opens the sheet, then the
+  // browser's follow-up `click` lands on whichever profile row happens to
+  // render under the finger — silently opening a random member instead of
+  // showing the list. Rows ignore clicks for a beat after the sheet opens.
+  const sheetOpenedAt = useRef(0);
+
   const openCity = (c) => {
+    sheetOpenedAt.current = Date.now();
     setSelectedCity(c);
     setSelectedCountry(null);
     focusOn(c.coord[0], c.coord[1]);
@@ -493,6 +507,7 @@ const SearchGlobe = ({ profiles, onSelectProfile, locked = false, userCity = '',
         || (userCountry && fname === userCountry.toLowerCase());
       if (!allowed) { onLockedCity?.(name); return; }
     }
+    sheetOpenedAt.current = Date.now();
     setSelectedCountry({
       name,
       feature: f,
@@ -786,7 +801,10 @@ const SearchGlobe = ({ profiles, onSelectProfile, locked = false, userCity = '',
               {panelProfiles.map((p) => (
                 <button
                   key={p.id}
-                  onClick={() => onSelectProfile(p)}
+                  onClick={() => {
+                    if (Date.now() - sheetOpenedAt.current < 350) return; // ghost click from the pin tap
+                    onSelectProfile(p);
+                  }}
                   className="mb-2 flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-[#0a0a0e] px-3 py-2.5 text-left active:scale-[0.99]"
                 >
                   <span className={`flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-semibold text-white ${getAvatarClass(p.role)}`}>

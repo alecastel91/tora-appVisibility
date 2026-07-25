@@ -677,8 +677,9 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         </div>
       )}
 
-      {/* Past highlights — artist-curated gigs (same section as ViewProfile) */}
-      {user?.role === 'ARTIST' && Array.isArray(user?.pastHighlights) && user.pastHighlights.length > 0 && (
+      {/* Past highlights — free-text career credits (text-styled, distinct
+          from the verified network strips) */}
+      {['ARTIST', 'PROMOTER', 'VENUE'].includes(user?.role) && Array.isArray(user?.pastHighlights) && user.pastHighlights.length > 0 && (
         <div className="mb-5 text-left">
           <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.pastHighlights')}</p>
           <div className="flex flex-col gap-2">
