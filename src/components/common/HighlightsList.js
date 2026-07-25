@@ -3,22 +3,17 @@ import { useLanguage } from '../../contexts/LanguageContext';
 
 export const RA_URL_RE = /^https:\/\/(www\.)?(ra\.co|residentadvisor\.net)\//i;
 
-// White "RA" wordmark on transparent — inline SVG text (Space Grotesk is
-// already loaded), no boxed background. The blocky RA_LOGO_WHITE PNG read
-// as white blocks at this size.
+// Official Resident Advisor monogram as an inline vector path (traced from
+// the brand asset), filled via currentColor on a fully transparent
+// background — the letter notches are real path topology, so whatever sits
+// behind shows through instead of reading as a dark box.
 const RAMark = () => (
-  <svg width="20" height="12" viewBox="0 0 26 14" aria-hidden="true" className="block">
-    <text
-      x="0"
-      y="12"
+  <svg width="19" height="9" viewBox="0 0 120 57" aria-hidden="true" className="block">
+    <path
+      d="M0 0L0 35L34 36L52 55L56 57L109 56L120 45L120 41L89 11L86 6L75 17L100 41L100 43L62 43L58 41L39 22L14 21L14 14L39 14L47 18L51 24L58 31L60 31L69 22L69 20L52 4L42 0Z"
       fill="currentColor"
-      fontFamily="'Space Grotesk', sans-serif"
-      fontWeight="700"
-      fontSize="13.5"
-      letterSpacing="0.5"
-    >
-      RA
-    </text>
+      fillRule="evenodd"
+    />
   </svg>
 );
 
