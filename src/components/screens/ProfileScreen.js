@@ -23,6 +23,7 @@ import PhotoGallery from '../common/PhotoGallery';
 import ArtistRosterGrid from '../common/ArtistRosterGrid';
 import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import AvatarCropModal from '../common/AvatarCropModal';
+import HighlightsList from '../common/HighlightsList';
 import { raProfileUrl } from '../../utils/urls';
 
 // --- Obsidian Neon redesign helpers (glassmorphism + crimson neon) ---
@@ -682,20 +683,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
       {['ARTIST', 'PROMOTER', 'VENUE'].includes(user?.role) && Array.isArray(user?.pastHighlights) && user.pastHighlights.length > 0 && (
         <div className="mb-5 text-left">
           <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.pastHighlights')}</p>
-          <div className="flex flex-col gap-2">
-            {user.pastHighlights.map((h, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0e] px-4 py-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-infrared shrink-0" />
-                <span className="flex-1 text-sm text-white truncate">
-                  {h.venue}
-                  {(h.artist || h.city) && (
-                    <span className="text-white/40"> · {[h.artist, h.city].filter(Boolean).join(' · ')}</span>
-                  )}
-                </span>
-                {h.year && <span className="text-[11px] text-white/40 font-tech shrink-0">{h.year}</span>}
-              </div>
-            ))}
-          </div>
+          <HighlightsList highlights={user.pastHighlights} />
         </div>
       )}
 

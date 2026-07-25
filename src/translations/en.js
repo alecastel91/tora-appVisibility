@@ -889,6 +889,8 @@ const en = {
     pastHighlightsHint: 'Add notable past gigs — venue, city and year. Shown on your public profile.',
     pastHighlightsHintPromoter: 'Add notable past events — venue, artist and year. Shown on your public profile.',
     pastHighlightsHintVenue: 'Add notable nights or residencies — event name, artist and year. Shown on your public profile.',
+    raEventLink: 'RA event link (optional)',
+    raLinkInvalid: 'Enter a Resident Advisor link (ra.co).',
     addHighlight: 'Add highlight',
     venuePhotos: 'Venue Photos',
     venuePhotosHint: 'Add up to 8 photos of your venue. Shown on your public profile.',

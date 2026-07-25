@@ -7,6 +7,7 @@ import apiService from '../../services/api';
 import CitySearch from '../common/CitySearch';
 import { downscaleImageToDataUrl } from '../../utils/image';
 import { appAlert } from '../../utils/dialogs';
+import { RA_URL_RE } from '../common/HighlightsList';
 
 const MAX_PROFILE_PHOTOS = 8;
 
@@ -516,7 +517,8 @@ const EditProfileScreen = ({ onClose }) => {
             </p>
             <div className="flex flex-col gap-2.5">
               {(editedUser.pastHighlights || []).map((h, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <div key={i} className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
                   <input
                     type="text"
                     className="form-input flex-[2]"
@@ -565,6 +567,22 @@ const EditProfileScreen = ({ onClose }) => {
                   >
                     ×
                   </button>
+                </div>
+                {/* optional RA event link — only ra.co / residentadvisor.net URLs are stored */}
+                <input
+                  type="url"
+                  className="form-input !text-xs !py-2"
+                  placeholder={t('editProfile.raEventLink')}
+                  value={h.raUrl || ''}
+                  onChange={(e) => {
+                    const next = [...editedUser.pastHighlights];
+                    next[i] = { ...next[i], raUrl: e.target.value.trim() };
+                    setEditedUser({ ...editedUser, pastHighlights: next });
+                  }}
+                />
+                {h.raUrl && !RA_URL_RE.test(h.raUrl) && (
+                  <p className="m-0 text-[11px] text-role-venue/90">{t('editProfile.raLinkInvalid')}</p>
+                )}
                 </div>
               ))}
               {(editedUser.pastHighlights || []).length < 20 && (

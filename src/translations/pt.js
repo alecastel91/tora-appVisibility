@@ -886,6 +886,8 @@ const pt = {
     pastHighlightsHint: 'Adiciona atuações passadas de destaque — espaço, cidade e ano. Visíveis no teu perfil público.',
     pastHighlightsHintPromoter: 'Adicione eventos passados de destaque — espaço, artista e ano. Exibidos no seu perfil público.',
     pastHighlightsHintVenue: 'Adicione noites ou residências de destaque — nome do evento, artista e ano. Exibidos no seu perfil público.',
+    raEventLink: 'Link do evento no RA (opcional)',
+    raLinkInvalid: 'Insira um link do Resident Advisor (ra.co).',
     addHighlight: 'Adicionar destaque',
     venuePhotos: 'Fotos do espaço',
     venuePhotosHint: 'Adicione até 8 fotos do seu espaço. Exibidas no seu perfil público.',

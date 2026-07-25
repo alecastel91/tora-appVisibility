@@ -886,6 +886,8 @@ const it = {
     pastHighlightsHint: 'Aggiungi serate passate di rilievo — locale, città e anno. Visibili sul tuo profilo pubblico.',
     pastHighlightsHintPromoter: 'Aggiungi eventi passati di rilievo — locale, artista e anno. Visibili sul tuo profilo pubblico.',
     pastHighlightsHintVenue: 'Aggiungi serate o residency di rilievo — nome dell\'evento, artista e anno. Visibili sul tuo profilo pubblico.',
+    raEventLink: 'Link RA dell\'evento (facoltativo)',
+    raLinkInvalid: 'Inserisci un link Resident Advisor (ra.co).',
     addHighlight: 'Aggiungi highlight',
     venuePhotos: 'Foto del locale',
     venuePhotosHint: 'Aggiungi fino a 8 foto del tuo locale. Visibili sul tuo profilo pubblico.',

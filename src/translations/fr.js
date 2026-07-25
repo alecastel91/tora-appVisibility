@@ -886,6 +886,8 @@ const fr = {
     pastHighlightsHint: 'Ajoutez vos dates marquantes — salle, ville et année. Visibles sur votre profil public.',
     pastHighlightsHintPromoter: 'Ajoutez des événements passés marquants — lieu, artiste et année. Visibles sur votre profil public.',
     pastHighlightsHintVenue: 'Ajoutez des soirées ou résidences marquantes — nom de l\'événement, artiste et année. Visibles sur votre profil public.',
+    raEventLink: 'Lien RA de l\'événement (facultatif)',
+    raLinkInvalid: 'Saisissez un lien Resident Advisor (ra.co).',
     addHighlight: 'Ajouter une date',
     venuePhotos: 'Photos du lieu',
     venuePhotosHint: 'Ajoutez jusqu\'à 8 photos de votre lieu. Visibles sur votre profil public.',

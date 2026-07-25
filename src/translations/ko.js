@@ -886,6 +886,8 @@ const ko = {
     pastHighlightsHint: '주목할 만한 과거 공연을 추가하세요 — 베뉴, 도시, 연도. 공개 프로필에 표시됩니다.',
     pastHighlightsHintPromoter: '주요 지난 이벤트를 추가하세요 — 베뉴, 아티스트, 연도. 공개 프로필에 표시됩니다.',
     pastHighlightsHintVenue: '주요 나이트나 레지던시를 추가하세요 — 이벤트명, 아티스트, 연도. 공개 프로필에 표시됩니다.',
+    raEventLink: 'RA 이벤트 링크 (선택)',
+    raLinkInvalid: 'Resident Advisor 링크(ra.co)를 입력하세요.',
     addHighlight: '하이라이트 추가',
     venuePhotos: '베뉴 사진',
     venuePhotosHint: '베뉴 사진을 최대 8장 추가할 수 있습니다. 공개 프로필에 표시됩니다.',

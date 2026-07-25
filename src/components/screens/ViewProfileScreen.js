@@ -15,6 +15,7 @@ import LockOverlay from '../common/LockOverlay';
 import PhotoGallery from '../common/PhotoGallery';
 import ArtistRosterGrid from '../common/ArtistRosterGrid';
 import ProfileMiniGrid from '../common/ProfileMiniGrid';
+import HighlightsList from '../common/HighlightsList';
 import { isPremiumViewer } from '../../utils/subscription';
 import { RA_LOGO_WHITE } from '../../utils/brandAssets';
 
@@ -642,20 +643,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
         {['ARTIST', 'PROMOTER', 'VENUE'].includes(profile.role) && Array.isArray(profile.pastHighlights) && profile.pastHighlights.length > 0 && (
           <div className="mb-5 text-left">
             <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t('viewProfile.pastHighlights')}</p>
-            <div className="flex flex-col gap-2">
-              {profile.pastHighlights.map((h, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0e] px-4 py-2.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-infrared shrink-0" />
-                  <span className="flex-1 text-sm text-white truncate">
-                    {h.venue}
-                    {(h.artist || h.city) && (
-                      <span className="text-white/40"> · {[h.artist, h.city].filter(Boolean).join(' · ')}</span>
-                    )}
-                  </span>
-                  {h.year && <span className="text-[11px] text-white/40 font-tech shrink-0">{h.year}</span>}
-                </div>
-              ))}
-            </div>
+            <HighlightsList highlights={profile.pastHighlights} />
           </div>
         )}
 

@@ -886,6 +886,8 @@ const ja = {
     pastHighlightsHint: '注目の過去の出演を追加 — 会場、都市、年。公開プロフィールに表示されます。',
     pastHighlightsHintPromoter: '過去の注目イベントを追加 — 会場・アーティスト・年。公開プロフィールに表示されます。',
     pastHighlightsHintVenue: '注目のナイトやレジデンシーを追加 — イベント名・アーティスト・年。公開プロフィールに表示されます。',
+    raEventLink: 'RAイベントリンク（任意）',
+    raLinkInvalid: 'Resident Advisorのリンク（ra.co）を入力してください。',
     addHighlight: 'ハイライトを追加',
     venuePhotos: '会場の写真',
     venuePhotosHint: '会場の写真を最大8枚追加できます。公開プロフィールに表示されます。',

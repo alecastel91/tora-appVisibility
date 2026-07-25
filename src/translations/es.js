@@ -886,6 +886,8 @@ const es = {
     pastHighlightsHint: 'Añade bolos destacados del pasado — sala, ciudad y año. Se muestran en tu perfil público.',
     pastHighlightsHintPromoter: 'Añade eventos pasados destacados — local, artista y año. Se muestran en tu perfil público.',
     pastHighlightsHintVenue: 'Añade noches o residencias destacadas — nombre del evento, artista y año. Se muestran en tu perfil público.',
+    raEventLink: 'Enlace del evento en RA (opcional)',
+    raLinkInvalid: 'Introduce un enlace de Resident Advisor (ra.co).',
     addHighlight: 'Añadir destacado',
     venuePhotos: 'Fotos del local',
     venuePhotosHint: 'Añade hasta 8 fotos de tu local. Se muestran en tu perfil público.',
