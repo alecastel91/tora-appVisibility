@@ -646,7 +646,12 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
               {profile.pastHighlights.map((h, i) => (
                 <div key={i} className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0e] px-4 py-2.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-infrared shrink-0" />
-                  <span className="flex-1 text-sm text-white truncate">{h.venue}{h.city ? <span className="text-white/40"> · {h.city}</span> : null}</span>
+                  <span className="flex-1 text-sm text-white truncate">
+                    {h.venue}
+                    {(h.artist || h.city) && (
+                      <span className="text-white/40"> · {[h.artist, h.city].filter(Boolean).join(' · ')}</span>
+                    )}
+                  </span>
                   {h.year && <span className="text-[11px] text-white/40 font-tech shrink-0">{h.year}</span>}
                 </div>
               ))}

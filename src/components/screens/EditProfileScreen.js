@@ -528,14 +528,16 @@ const EditProfileScreen = ({ onClose }) => {
                       setEditedUser({ ...editedUser, pastHighlights: next });
                     }}
                   />
+                  {/* middle field: artists log the city, promoters/venues the artist */}
                   <input
                     type="text"
                     className="form-input flex-[2]"
-                    placeholder={t('editProfile.city')}
-                    value={h.city || ''}
+                    placeholder={user?.role === 'ARTIST' ? t('editProfile.city') : t('search.roleArtist')}
+                    value={(user?.role === 'ARTIST' ? h.city : h.artist) || ''}
                     onChange={(e) => {
+                      const field = user?.role === 'ARTIST' ? 'city' : 'artist';
                       const next = [...editedUser.pastHighlights];
-                      next[i] = { ...next[i], city: e.target.value };
+                      next[i] = { ...next[i], [field]: e.target.value };
                       setEditedUser({ ...editedUser, pastHighlights: next });
                     }}
                   />
@@ -571,7 +573,7 @@ const EditProfileScreen = ({ onClose }) => {
                   className="btn btn-outline"
                   onClick={() => setEditedUser({
                     ...editedUser,
-                    pastHighlights: [...(editedUser.pastHighlights || []), { venue: '', city: '', year: '' }],
+                    pastHighlights: [...(editedUser.pastHighlights || []), { venue: '', city: '', artist: '', year: '' }],
                   })}
                 >
                   + {t('editProfile.addHighlight')}
