@@ -647,6 +647,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
         <div className="mb-5 text-left">
           <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5 px-1">{t('search.suggestedForYou')}</p>
           <ProfileMiniGrid
+            variant="scroll"
             profiles={suggestedProfiles}
             onOpenProfile={handleProfileClick}
           />
