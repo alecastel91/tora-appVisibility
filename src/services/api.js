@@ -494,6 +494,19 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // Beta feedback viewer (official/admin account only). Sends the auth token
+  // like other authed calls; backend gates on isOfficial.
+  async getAdminFeedback({ before } = {}) {
+    const url = new URL(`${API_URL}/admin/feedback`);
+    if (before) url.searchParams.set('before', before);
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   // CONNECTION ENDPOINTS
   async toggleLike(fromProfileId, toProfileId) {
     const response = await fetch(`${API_URL}/connections/like/${toProfileId}`, {

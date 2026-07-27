@@ -10,6 +10,7 @@ import AddProfileScreen from './AddProfileScreen';
 import ManageArtistScreen from './ManageArtistScreen';
 import ManageProfileScreen from './ManageProfileScreen';
 import ViewProfileScreen from './ViewProfileScreen';
+import BetaFeedbackScreen from './BetaFeedbackScreen';
 import SearchAgentsModal from '../common/SearchAgentsModal';
 import { RA_LOGO_WHITE } from '../../utils/brandAssets';
 import ProfileBadges from '../common/ProfileBadges';
@@ -47,6 +48,8 @@ const InstagramGlyph = () => (
 );
 
 // Glassmorphic action tile (Edit Profile / Manage / Find Agent / Add Profile).
+const IS_BETA = import.meta.env.VITE_TORA_ENV === 'beta';
+
 const ActionCard = ({ icon, label, onClick, dot }) => {
   const { t } = useLanguage();
   return (
@@ -75,6 +78,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
   const { user, updateUser, userProfiles, switchProfile, addProfile, deleteProfile, likedProfiles, likedProfilesData, connectedUsers, connectedUsersData, likerProfilesData } = useAppContext();
   const { t } = useLanguage();
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showBetaFeedback, setShowBetaFeedback] = useState(false);
   const [showManageProfile, setShowManageProfile] = useState(false);
   const [showRepresentedArtists, setShowRepresentedArtists] = useState(false);
   const [showFindAgent, setShowFindAgent] = useState(false);
@@ -340,6 +344,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
     setShowRepresentedArtists(false);
     setManagingArtist(null);
     setViewingArtistProfile(null);
+    setShowBetaFeedback(false);
   };
 
   const handleDeleteProfile = async () => {
@@ -451,8 +456,11 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
               </div>
             )}
           </div>
-          <div className="mx-auto max-w-xs">
+          <div className="mx-auto max-w-xs space-y-2.5">
             <ActionCard icon={<EditIcon />} label={t('profile.editProfile')} onClick={() => { closeSubScreens(); setShowEditProfile(true); }} />
+            {IS_BETA && (
+              <ActionCard icon={<ListIcon />} label="Beta feedback" onClick={() => { closeSubScreens(); setShowBetaFeedback(true); }} />
+            )}
           </div>
         </div>
         {avatarCropModal}
@@ -1128,6 +1136,10 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
 
   if (showEditProfile) {
     return renderSplit(<EditProfileScreen onClose={() => setShowEditProfile(false)} />);
+  }
+
+  if (showBetaFeedback) {
+    return renderSplit(<BetaFeedbackScreen onClose={() => setShowBetaFeedback(false)} />);
   }
 
   if (showAddProfile) {
