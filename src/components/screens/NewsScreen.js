@@ -106,11 +106,31 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
   const [menuFor, setMenuFor] = useState(null);
   const busyRef = useRef(false);
 
+  // Suggested milestones arrive in their OWN array on page 1. The CLIENT
+  // interleaves once and pins the picks in a ref, so a refetch never
+  // reshuffles the rows; a suggested card is dropped the moment the same
+  // post arrives organically (dedupe on both interleave and load-more).
+  const suggestedRef = useRef(null);
+  useEffect(() => { suggestedRef.current = null; }, [user?.id]);
+
+  const interleaveSuggestions = (organic, suggested) => {
+    const organicIds = new Set(organic.map((p) => p.id));
+    const usable = (suggested || []).filter((s) => !organicIds.has(s.id));
+    const out = [...organic];
+    // one after every ~5 organic items, never consecutive; short feeds max 1
+    const injectable = out.length >= 7 ? usable : usable.slice(0, 1);
+    injectable.forEach((s, i) => {
+      out.splice(Math.min(5 * (i + 1) + i, out.length), 0, s);
+    });
+    return out;
+  };
+
   const load = useCallback(async () => {
     if (!user?.id) return;
     try {
       const data = await apiService.getFeed({ profileId: user.id });
-      setPosts(data.posts);
+      if (suggestedRef.current === null) suggestedRef.current = data.suggested || [];
+      setPosts(interleaveSuggestions(data.posts, suggestedRef.current));
       setCursor(data.nextCursor);
       setHasMore(data.hasMore);
     } catch {
@@ -125,7 +145,11 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
     setLoadingMore(true);
     try {
       const data = await apiService.getFeed({ profileId: user.id, cursor });
-      setPosts((prev) => [...(prev || []), ...data.posts]);
+      setPosts((prev) => {
+        const incomingIds = new Set(data.posts.map((p) => p.id));
+        const kept = (prev || []).filter((p) => !(p.suggested && incomingIds.has(p.id)));
+        return [...kept, ...data.posts];
+      });
       setCursor(data.nextCursor);
       setHasMore(data.hasMore);
     } finally {

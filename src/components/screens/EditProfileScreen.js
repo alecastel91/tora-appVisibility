@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { genresList, getZoneFromCountry } from '../../data/profiles';
@@ -11,8 +11,11 @@ import { RA_URL_RE } from '../common/HighlightsList';
 
 const MAX_PROFILE_PHOTOS = 8;
 // Plausible highlight years — upper bound derived from today. The three core
-// fields (venue / city-or-artist / year) are MANDATORY; only the RA link is
-// optional. Rows the user never touched are dropped silently at save.
+// fields (venue / city-or-artist / year) are MANDATORY for rows added or
+// edited in this session; only the RA link stays optional (but must be a
+// valid RA host when present). Rows loaded from the profile and left
+// untouched are GRANDFATHERED — legacy lenient-era entries never lock the
+// Save button. Blank rows the user never filled are dropped, not blocking.
 const HIGHLIGHT_YEAR_MIN = 1980;
 const HIGHLIGHT_YEAR_MAX = new Date().getFullYear();
 const highlightMidField = (role) => (role === 'ARTIST' ? 'city' : 'artist');
@@ -20,13 +23,19 @@ const highlightRowBlank = (h) =>
   !String(h?.venue || '').trim() && !String(h?.city || '').trim()
   && !String(h?.artist || '').trim() && !String(h?.year || '').trim()
   && !String(h?.raUrl || '').trim();
-// null | 'incomplete' | 'year' — blank rows never block
+// Mirrors the server's grandfather signature (raw values, all fields).
+const highlightSignature = (h) => JSON.stringify([
+  String(h?.venue || ''), String(h?.city || ''), String(h?.artist || ''),
+  String(h?.year || ''), String(h?.raUrl || ''),
+]);
+// null | 'incomplete' | 'year' | 'raUrl' — blank rows never block
 const highlightRowIssue = (h, role) => {
   if (!h || highlightRowBlank(h)) return null;
   const mid = String(h[highlightMidField(role)] || '').trim();
   if (!String(h.venue || '').trim() || !mid || !String(h.year || '').trim()) return 'incomplete';
   const n = parseInt(h.year, 10);
   if (!(Number.isInteger(n) && n >= HIGHLIGHT_YEAR_MIN && n <= HIGHLIGHT_YEAR_MAX)) return 'year';
+  if (String(h.raUrl || '').trim() && !RA_URL_RE.test(h.raUrl)) return 'raUrl';
   return null;
 };
 
@@ -74,26 +83,71 @@ const EditProfileScreen = ({ onClose }) => {
     if (!file) return;
     try {
       const dataUrl = await downscaleImageToDataUrl(file, { maxDimension: 1280, quality: 0.8 });
-      setPhotos((prev) => (prev.length >= MAX_PROFILE_PHOTOS ? prev : [...prev, dataUrl]));
+      // exact duplicates skipped — photos double as stable React keys
+      setPhotos((prev) => (prev.length >= MAX_PROFILE_PHOTOS || prev.includes(dataUrl) ? prev : [...prev, dataUrl]));
     } catch (err) {
       appAlert(err.message || t('editProfile.saveFailed'));
     }
   };
 
-  // Pointer-based drag-to-reorder (mouse + touch): while a tile is held,
-  // moving over another tile moves the photo into that slot. Order is just
-  // the array order, persisted by the regular save.
+  // Highlight validation only applies to rows ADDED or EDITED this session —
+  // rows matching what the profile loaded with pass untouched (the server
+  // grandfathers them too, so legacy entries are never silently deleted).
+  const initialHighlightSigs = useRef(
+    new Set((Array.isArray(user?.pastHighlights) ? user.pastHighlights : []).map(highlightSignature))
+  );
+  const highlightIssueFor = (h) =>
+    (initialHighlightSigs.current.has(highlightSignature(h)) ? null : highlightRowIssue(h, user?.role));
+  const highlightsBlocked = useMemo(
+    () => (editedUser.pastHighlights || []).some((h) => highlightIssueFor(h)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [editedUser.pastHighlights, user?.role]
+  );
+
+  // Pointer-based drag-to-reorder. Mouse drags start immediately; touch
+  // requires a ~250ms long-press (a wandering finger cancels it), so normal
+  // swipes scroll the page instead of scrambling the order. The drag always
+  // ends on a window-level pointerup so releasing outside a tile can't
+  // leave it stuck.
   const dragFrom = useRef(null);
   const [draggingIdx, setDraggingIdx] = useState(null);
+  const longPressTimer = useRef(null);
+  const pendingDrag = useRef(null); // { index, x, y, target, pointerId }
+  const photoGridRef = useRef(null);
+
+  const beginDrag = (index, target, pointerId) => {
+    dragFrom.current = index;
+    setDraggingIdx(index);
+    try { target.setPointerCapture(pointerId); } catch { /* already released */ }
+  };
+  const cancelPendingDrag = () => {
+    clearTimeout(longPressTimer.current);
+    pendingDrag.current = null;
+  };
 
   const handlePhotoPointerDown = (i) => (e) => {
-    dragFrom.current = i;
-    setDraggingIdx(i);
-    e.currentTarget.setPointerCapture(e.pointerId);
+    if (e.pointerType === 'touch') {
+      pendingDrag.current = { index: i, x: e.clientX, y: e.clientY, target: e.currentTarget, pointerId: e.pointerId };
+      longPressTimer.current = setTimeout(() => {
+        const p = pendingDrag.current;
+        pendingDrag.current = null;
+        if (p) beginDrag(p.index, p.target, p.pointerId);
+      }, 250);
+    } else {
+      beginDrag(i, e.currentTarget, e.pointerId);
+    }
   };
   const handlePhotoPointerMove = (e) => {
+    if (pendingDrag.current) {
+      // finger moved before the long-press armed — it's a scroll, not a drag
+      if (Math.hypot(e.clientX - pendingDrag.current.x, e.clientY - pendingDrag.current.y) > 8) {
+        cancelPendingDrag();
+      }
+      return;
+    }
     const from = dragFrom.current;
     if (from === null) return;
+    if (e.pointerType === 'mouse' && e.buttons === 0) { endPhotoDrag(); return; }
     const tile = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-photo-idx]');
     if (!tile) return;
     const over = Number(tile.dataset.photoIdx);
@@ -108,9 +162,35 @@ const EditProfileScreen = ({ onClose }) => {
     setDraggingIdx(over);
   };
   const endPhotoDrag = () => {
+    cancelPendingDrag();
     dragFrom.current = null;
     setDraggingIdx(null);
   };
+
+  // Window-level release so a pointerup anywhere ends the drag, and a
+  // non-passive touchmove blocker so the page doesn't scroll mid-drag
+  // (React's synthetic touch listeners are passive).
+  useEffect(() => {
+    const end = () => {
+      clearTimeout(longPressTimer.current);
+      pendingDrag.current = null;
+      dragFrom.current = null;
+      setDraggingIdx(null);
+    };
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
+    return () => {
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
+    };
+  }, []);
+  useEffect(() => {
+    const el = photoGridRef.current;
+    if (!el) return undefined;
+    const onTouchMove = (e) => { if (dragFrom.current !== null) e.preventDefault(); };
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onTouchMove);
+  }, [hasPhotoGallery]);
 
   const handleSave = async () => {
     try {
@@ -151,11 +231,12 @@ const EditProfileScreen = ({ onClose }) => {
       }
 
       // Highlights: untouched blank rows are dropped, not sent; anything
-      // partially filled blocks the save (the button is disabled too — this
-      // is the defensive path).
+      // added or edited this session that's still incomplete blocks the save
+      // (the button is disabled too — this is the defensive path). Untouched
+      // legacy rows pass through and the server grandfathers them.
       if (Array.isArray(updatedProfile.pastHighlights)) {
         updatedProfile.pastHighlights = updatedProfile.pastHighlights.filter((h) => !highlightRowBlank(h));
-        if (updatedProfile.pastHighlights.some((h) => highlightRowIssue(h, user?.role))) {
+        if (updatedProfile.pastHighlights.some((h) => highlightIssueFor(h))) {
           setError(t('editProfile.highlightIncomplete'));
           setSaving(false);
           return;
@@ -454,17 +535,15 @@ const EditProfileScreen = ({ onClose }) => {
             <p className="m-0 mb-3 text-xs text-white/40">
               {editedUser.role === 'VENUE' ? t('editProfile.venuePhotosHint') : t('editProfile.pastFlyersHint')}
             </p>
-            <div className="grid grid-cols-3 gap-2">
+            <div ref={photoGridRef} className="grid grid-cols-3 gap-2">
               {photos.map((src, i) => (
                 <div
-                  key={`${src.slice(-24)}-${i}`}
+                  key={src}
                   data-photo-idx={i}
                   onPointerDown={handlePhotoPointerDown(i)}
                   onPointerMove={handlePhotoPointerMove}
-                  onPointerUp={endPhotoDrag}
-                  onPointerCancel={endPhotoDrag}
                   className={`relative aspect-square rounded-xl border overflow-hidden bg-[#0a0a0e]
-                              touch-none select-none cursor-grab active:cursor-grabbing
+                              select-none cursor-grab active:cursor-grabbing
                               ${draggingIdx === i ? 'border-infrared/60 opacity-70' : 'border-white/10'}`}
                 >
                   <img src={src} alt="" draggable={false} className="w-full h-full object-cover" />
@@ -611,17 +690,19 @@ const EditProfileScreen = ({ onClose }) => {
                     setEditedUser({ ...editedUser, pastHighlights: next });
                   }}
                 />
-                {h.raUrl && !RA_URL_RE.test(h.raUrl) && (
-                  <p className="m-0 text-[11px] text-role-venue/90">{t('editProfile.raLinkInvalid')}</p>
-                )}
-                {highlightRowIssue(h, user?.role) === 'incomplete' && (
-                  <p className="m-0 text-[11px] text-role-venue/90">{t('editProfile.highlightIncomplete')}</p>
-                )}
-                {highlightRowIssue(h, user?.role) === 'year' && (
-                  <p className="m-0 text-[11px] text-role-venue/90">
-                    {t('editProfile.yearOutOfRange', { min: HIGHLIGHT_YEAR_MIN, max: HIGHLIGHT_YEAR_MAX })}
-                  </p>
-                )}
+                {(() => {
+                  const issue = highlightIssueFor(h);
+                  if (!issue) return null;
+                  return (
+                    <p className="m-0 text-[11px] text-role-venue/90">
+                      {issue === 'raUrl'
+                        ? t('editProfile.raLinkInvalid')
+                        : issue === 'year'
+                          ? t('editProfile.yearOutOfRange', { min: HIGHLIGHT_YEAR_MIN, max: HIGHLIGHT_YEAR_MAX })
+                          : t('editProfile.highlightIncomplete')}
+                    </p>
+                  );
+                })()}
                 </div>
               ))}
               {(editedUser.pastHighlights || []).length < 20 && (
@@ -641,6 +722,11 @@ const EditProfileScreen = ({ onClose }) => {
         )}
 
         {/* Action Buttons */}
+        {highlightsBlocked && (
+          <p className="m-0 mb-2 text-[11px] text-role-venue/90 text-center">
+            {t('editProfile.highlightIncomplete')}
+          </p>
+        )}
         <div className="edit-actions">
           <button className="btn btn-secondary btn-full" onClick={onClose} disabled={saving}>
             {t('editProfile.cancel')}
@@ -648,7 +734,7 @@ const EditProfileScreen = ({ onClose }) => {
           <button
             className="btn btn-primary btn-full"
             onClick={handleSave}
-            disabled={saving || (editedUser.pastHighlights || []).some((h) => highlightRowIssue(h, user?.role))}
+            disabled={saving || highlightsBlocked}
           >
             {saving ? t('editProfile.saving') : t('editProfile.saveChanges')}
           </button>

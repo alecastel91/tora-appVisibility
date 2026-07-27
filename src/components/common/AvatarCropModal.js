@@ -4,9 +4,10 @@ import Cropper from 'react-easy-crop';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 // Standard avatar adjust step: drag to recenter, slider/pinch to zoom, round
-// mask preview. Outputs a square crop as a Blob (canvas), which the caller
-// feeds through the existing downscale + upload path.
-const OUTPUT_SIZE = 640;
+// mask preview. Crops straight to the server's avatar size (512px) — the
+// caller uploads the blob as-is; the backend re-normalizes anyway, so no
+// intermediate decode/re-encode pass is needed.
+const OUTPUT_SIZE = 512;
 
 function cropToBlob(imageUrl, area) {
   return new Promise((resolve, reject) => {
@@ -38,6 +39,7 @@ const AvatarCropModal = ({ file, onCancel, onApply }) => {
   const [zoom, setZoom] = useState(1);
   const [areaPixels, setAreaPixels] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [cropError, setCropError] = useState(null);
 
   useEffect(() => {
     if (!file) return undefined;
@@ -45,6 +47,7 @@ const AvatarCropModal = ({ file, onCancel, onApply }) => {
     setImageUrl(url);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
+    setCropError(null);
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
@@ -55,9 +58,13 @@ const AvatarCropModal = ({ file, onCancel, onApply }) => {
   const handleApply = async () => {
     if (!imageUrl || !areaPixels || busy) return;
     setBusy(true);
+    setCropError(null);
     try {
       const blob = await cropToBlob(imageUrl, areaPixels);
       await onApply(blob);
+    } catch (err) {
+      // corrupt image / canvas failure — surface it instead of a silent UI
+      setCropError(err?.message || t('profile.uploadFailed'));
     } finally {
       setBusy(false);
     }
@@ -104,6 +111,9 @@ const AvatarCropModal = ({ file, onCancel, onApply }) => {
           />
           <span className="text-white/40 text-base leading-none">+</span>
         </div>
+        {cropError && (
+          <p className="m-0 mt-3 text-[12px] text-role-venue/90 text-center">{cropError}</p>
+        )}
         <div className="flex gap-2.5 mt-4">
           <button className="btn btn-outline flex-1" onClick={onCancel} disabled={busy}>
             {t('common.cancel')}
