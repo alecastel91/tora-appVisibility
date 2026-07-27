@@ -1,6 +1,38 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { getAvatarClass, ROLE_COLOR, roleLabel } from '../../utils/roles';
+import { getAvatarClass, ROLE_COLOR } from '../../utils/roles';
+
+// Minimal per-role stroke glyphs in the app's feather style (neither the
+// marketing site nor icons.js has role iconography) — language-independent,
+// tinted via currentColor, crisp at chip size.
+const ROLE_GLYPHS = {
+  ARTIST: ( // musical note
+    <>
+      <path d="M9 18V5l12-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="18" cy="16" r="3" />
+    </>
+  ),
+  AGENT: ( // briefcase (same geometry as icons.js BriefcaseIcon)
+    <>
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    </>
+  ),
+  PROMOTER: ( // megaphone
+    <>
+      <path d="M21 4L7 9H4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h3l14 5V4z" />
+      <path d="M8 15v4a1 1 0 0 0 1 1h2" />
+    </>
+  ),
+  VENUE: ( // building
+    <>
+      <path d="M3 21V8l9-5 9 5v13" />
+      <path d="M9 21v-6h6v6" />
+      <path d="M1 21h22" />
+    </>
+  ),
+};
 
 // Compact profile tiles (avatar + name).
 //
@@ -8,24 +40,28 @@ import { getAvatarClass, ROLE_COLOR, roleLabel } from '../../utils/roles';
 // exist the 3rd tile carries a "+N" overlay and tapping it expands the strip
 // inline (drawer-style) with a "See less" collapse.
 //
-// variant="scroll" (recommendation strips): smaller tiles (4 per row width)
-// in a single horizontally-scrollable snap row — no drawer — each tile
-// carrying a role chip (two-letter localized initial in the canonical role
-// color, so Artist/Agent stay distinguishable).
+// variant="scroll" (recommendation strips): smaller tiles — 4 per row plus a
+// sliver of the 5th peeking in so the horizontal scroll is discoverable —
+// in a single snap row with a right-edge fade while more content remains.
+// Each tile carries a role chip: a small role icon tinted with the canonical
+// role color (language-independent, Artist/Agent stay distinct).
 const ProfileMiniGrid = ({ profiles, onOpenProfile, variant = 'grid' }) => {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
+  const scrollRef = useRef(null);
+  const [scrolledToEnd, setScrolledToEnd] = useState(false);
 
   const list = Array.isArray(profiles) ? profiles : [];
   if (list.length === 0) return null;
 
   const roleChip = (role) => (
     <span
-      className="absolute top-1 left-1 rounded px-1 py-px text-[8px] font-tech font-semibold uppercase tracking-[0.08em]
-                 border bg-black/70 leading-[1.4]"
+      className="absolute top-1 left-1 flex items-center justify-center rounded border bg-black/70 p-0.5"
       style={{ color: ROLE_COLOR[role] || '#fff', borderColor: `${ROLE_COLOR[role] || '#ffffff'}55` }}
     >
-      {roleLabel(role, t).slice(0, 2).toUpperCase()}
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        {ROLE_GLYPHS[role] || <circle cx="12" cy="12" r="9" />}
+      </svg>
     </span>
   );
 
@@ -35,7 +71,7 @@ const ProfileMiniGrid = ({ profiles, onOpenProfile, variant = 'grid' }) => {
       type="button"
       onClick={() => (overlayCount ? setExpanded(true) : onOpenProfile && onOpenProfile(p))}
       className={`group block p-0 bg-transparent border-none text-center cursor-pointer
-                  ${variant === 'scroll' ? 'w-[calc((100%-1.5rem)/4)] flex-none snap-start' : ''}`}
+                  ${variant === 'scroll' ? 'w-[calc((100%-2rem)/4.4)] flex-none snap-start' : ''}`}
     >
       <span className="relative block aspect-square rounded-xl border border-white/10 bg-[#0a0a0e] overflow-hidden
                        transition-colors group-hover:border-infrared/40">
@@ -62,12 +98,29 @@ const ProfileMiniGrid = ({ profiles, onOpenProfile, variant = 'grid' }) => {
   );
 
   if (variant === 'scroll') {
+    const overflows = list.length > 4;
+    const onScroll = (e) => {
+      const el = e.currentTarget;
+      setScrolledToEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+    };
     return (
-      <div
-        className="flex gap-2 overflow-x-auto snap-x pb-1
-                   [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {list.map((p) => renderTile(p, 0, true))}
+      <div className="relative">
+        <div
+          ref={scrollRef}
+          onScroll={overflows ? onScroll : undefined}
+          className="flex gap-2 overflow-x-auto snap-x pb-1
+                     [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {list.map((p) => renderTile(p, 0, true))}
+        </div>
+        {/* right-edge fade: signals more content, gone once fully scrolled */}
+        {overflows && !scrolledToEnd && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-10
+                       bg-gradient-to-l from-black/80 to-transparent"
+          />
+        )}
       </div>
     );
   }
