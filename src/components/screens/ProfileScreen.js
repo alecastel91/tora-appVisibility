@@ -15,7 +15,6 @@ import { RA_LOGO_WHITE } from '../../utils/brandAssets';
 import ProfileBadges from '../common/ProfileBadges';
 import ChatScreen from './ChatScreen';
 import apiService from '../../services/api';
-import { downscaleImageToBlob } from '../../utils/image';
 import { getAvatarClass, roleLabel } from '../../utils/roles';
 import VerifiedBadge from '../common/VerifiedBadge';
 import VerificationModal from '../common/VerificationModal';
@@ -25,6 +24,7 @@ import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import AvatarCropModal from '../common/AvatarCropModal';
 import HighlightsList from '../common/HighlightsList';
 import { raProfileUrl } from '../../utils/urls';
+import { networkSectionsForRole } from '../../utils/networkSections';
 
 // --- Obsidian Neon redesign helpers (glassmorphism + crimson neon) ---
 const GridIcon = () => (
@@ -84,6 +84,12 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
   const [ownEnriched, setOwnEnriched] = useState(null);
   const ownBadges = ownEnriched?.badges || null;
 
+  // Re-keyed on the roster ids so add/remove from RepresentedArtistsScreen
+  // refetches the enriched data instead of serving a stale roster until
+  // the next full reload.
+  const rosterIdsKey = (user?.representingArtists || [])
+    .map((a) => a.profileId || a.id)
+    .join(',');
   useEffect(() => {
     let cancelled = false;
     if (!user?.id) { setOwnEnriched(null); return undefined; }
@@ -91,7 +97,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
       .then((p) => { if (!cancelled) setOwnEnriched(p.profile || p); })
       .catch(() => {});
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [user?.id, rosterIdsKey]);
   const [showAgentChat, setShowAgentChat] = useState(false);
   const [showLikesList, setShowLikesList] = useState(false);
   const [showLikersList, setShowLikersList] = useState(false);
@@ -288,22 +294,28 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
     setAvatarCropFile(file);
   };
 
+  // One element, referenced from both profile-body branches (regular +
+  // official) — a portal, so placement inside either branch is equivalent.
   const handleAvatarCropped = async (croppedBlob) => {
-    try {
-      // Downscale on-device before upload (backend re-normalizes to 512px
-      // webp and stores it in object storage — the profile keeps a URL).
-      const avatarBlob = await downscaleImageToBlob(croppedBlob);
-      const response = await apiService.uploadAvatar(user.id, avatarBlob);
-      // The multipart endpoint wraps the row: { profile } — updateUser needs
-      // the bare profile object (it keys on userData.id).
-      const updatedProfile = response.profile || response;
-      updateUser(updatedProfile);
-      setAvatarCropFile(null);
-    } catch (error) {
-      console.error('Failed to upload avatar:', error);
-      appAlert(error.message || t('profile.uploadFailed'));
-    }
+    // The crop is already the server's 512px avatar size — upload as-is
+    // (the backend re-encodes to webp regardless; the old downscale pass
+    // decoded + re-encoded the same pixels a second time for nothing).
+    // Errors propagate to the crop modal's inline error display.
+    const response = await apiService.uploadAvatar(user.id, croppedBlob);
+    // The multipart endpoint wraps the row: { profile } — updateUser needs
+    // the bare profile object (it keys on userData.id).
+    const updatedProfile = response.profile || response;
+    updateUser(updatedProfile);
+    setAvatarCropFile(null);
   };
+
+  const avatarCropModal = (
+    <AvatarCropModal
+      file={avatarCropFile}
+      onCancel={() => setAvatarCropFile(null)}
+      onApply={handleAvatarCropped}
+    />
+  );
 
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : 'A';
@@ -375,24 +387,12 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
 
   // Prefer the enriched roster (current avatars/locations) over the raw
   // JSONB snapshot in the context user.
-  const rosterArtists = (ownEnriched?.representingArtists?.length
-    ? ownEnriched.representingArtists
-    : user?.representingArtists) || [];
-  // Network strips: completed-deal counterparts. Artists get ONE combined
-  // strip (promoters + venues); promoters/venues get two role-appropriate
-  // ones; agents keep the roster grid instead.
-  const network = ownEnriched?.network || { promoters: [], venues: [], artists: [] };
-  const networkSections = ({
-    ARTIST: [['workedWith', [...network.promoters, ...network.venues], 'viewProfile.workedWith']],
-    PROMOTER: [
-      ['venues', network.venues, 'viewProfile.venuesWorkedWith'],
-      ['artists', network.artists, 'viewProfile.artistsPlayed'],
-    ],
-    VENUE: [
-      ['promoters', network.promoters, 'viewProfile.promotersHosted'],
-      ['artists', network.artists, 'viewProfile.artistsPlayedHere'],
-    ],
-  })[user?.role] || [];
+  const enrichedRoster = ownEnriched?.representingArtists;
+  const enrichedRosterCurrent = Array.isArray(enrichedRoster)
+    && enrichedRoster.map((a) => a.profileId || a.id).join(',') === rosterIdsKey;
+  const rosterArtists = (enrichedRosterCurrent ? enrichedRoster : user?.representingArtists) || [];
+  // Network strips: completed-deal counterparts (shared role config).
+  const networkSections = networkSectionsForRole(user?.role, ownEnriched?.network);
 
   function renderProfileBody() {
   // The official TORA account is an admin/broadcast profile: no networking
@@ -455,11 +455,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
             <ActionCard icon={<EditIcon />} label={t('profile.editProfile')} onClick={() => { closeSubScreens(); setShowEditProfile(true); }} />
           </div>
         </div>
-        <AvatarCropModal
-          file={avatarCropFile}
-          onCancel={() => setAvatarCropFile(null)}
-          onApply={handleAvatarCropped}
-        />
+        {avatarCropModal}
       </div>
     );
   }
@@ -1045,11 +1041,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         <VerificationModal onClose={() => setShowVerification(false)} />
       )}
 
-      <AvatarCropModal
-        file={avatarCropFile}
-        onCancel={() => setAvatarCropFile(null)}
-        onApply={handleAvatarCropped}
-      />
+      {avatarCropModal}
 
       {/* RA Events Modal */}
 

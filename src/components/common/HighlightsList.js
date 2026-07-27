@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import InlineDrawer from './InlineDrawer';
 
 export const RA_URL_RE = /^https:\/\/(www\.)?(ra\.co|residentadvisor\.net)\//i;
 
@@ -60,11 +61,9 @@ const HighlightsList = ({ highlights }) => {
         {list.slice(0, 3).map(row)}
       </div>
       {extras.length > 0 && (
-        <div className={`overflow-hidden transition-[max-height] duration-300 ${expanded ? 'max-h-[1600px]' : 'max-h-0'}`}>
-          <div className="flex flex-col gap-2 pt-2">
-            {extras.map((h, j) => row(h, j + 3))}
-          </div>
-        </div>
+        <InlineDrawer expanded={expanded} className="flex flex-col gap-2 pt-2">
+          {extras.map((h, j) => row(h, j + 3))}
+        </InlineDrawer>
       )}
       {extras.length > 0 && (
         <button

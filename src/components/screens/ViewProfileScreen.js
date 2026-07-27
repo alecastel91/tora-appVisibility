@@ -17,6 +17,7 @@ import ArtistRosterGrid from '../common/ArtistRosterGrid';
 import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import HighlightsList from '../common/HighlightsList';
 import { isPremiumViewer } from '../../utils/subscription';
+import { networkSectionsForRole } from '../../utils/networkSections';
 import { RA_LOGO_WHITE } from '../../utils/brandAssets';
 
 // 1234 -> '1.2K', matching the own-profile stats row.
@@ -598,22 +599,9 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
           </div>
         )}
 
-        {/* Network strips — counterparts from completed TORA deals. Artists
-            get ONE combined strip; promoters/venues get two. */}
-        {(() => {
-          const network = profile.network || { promoters: [], venues: [], artists: [] };
-          const sections = ({
-            ARTIST: [['workedWith', [...network.promoters, ...network.venues], 'viewProfile.workedWith']],
-            PROMOTER: [
-              ['venues', network.venues, 'viewProfile.venuesWorkedWith'],
-              ['artists', network.artists, 'viewProfile.artistsPlayed'],
-            ],
-            VENUE: [
-              ['promoters', network.promoters, 'viewProfile.promotersHosted'],
-              ['artists', network.artists, 'viewProfile.artistsPlayedHere'],
-            ],
-          })[profile.role] || [];
-          return sections.map(([key, items, titleKey]) => (
+        {/* Network strips — counterparts from completed TORA deals (shared
+            role config: artists ONE combined strip, promoters/venues two). */}
+        {networkSectionsForRole(profile.role, profile.network).map(([key, items, titleKey]) => (
             items.length > 0 && (
               <div key={key} className="mb-5 text-left">
                 <p className="text-[11px] uppercase tracking-[0.2em] text-white/40 font-tech mb-2.5">{t(titleKey)}</p>
@@ -623,8 +611,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
                 />
               </div>
             )
-          ));
-        })()}
+          ))}
 
         {/* Photo gallery — venue photos / promoter past-event flyers */}
         {(profile.role === 'VENUE' || profile.role === 'PROMOTER') && (

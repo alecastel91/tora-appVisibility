@@ -218,10 +218,16 @@ export const TrendingUpIcon = () => (
   </svg>
 );
 
-export const BriefcaseIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+const BRIEFCASE_PATHS = (
+  <>
     <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
     <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+  </>
+);
+
+export const BriefcaseIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    {BRIEFCASE_PATHS}
   </svg>
 );
 
@@ -310,3 +316,29 @@ export const GlobeIcon = () => (
 export const ExploreIcon = EyeIcon;
 export const BookingsIcon = ClipboardCheckIcon;
 export const SettingsIcon = GearIcon;
+// Minimal per-role stroke glyphs (24 viewBox path fragments) for the
+// role chips on the recommendation tiles — language-independent, tinted
+// via currentColor by the consumer.
+export const ROLE_GLYPHS = {
+  ARTIST: ( // musical note
+    <>
+      <path d="M9 18V5l12-2v13" />
+      <circle cx="6" cy="18" r="3" />
+      <circle cx="18" cy="16" r="3" />
+    </>
+  ),
+  AGENT: BRIEFCASE_PATHS,
+  PROMOTER: ( // megaphone
+    <>
+      <path d="M21 4L7 9H4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h3l14 5V4z" />
+      <path d="M8 15v4a1 1 0 0 0 1 1h2" />
+    </>
+  ),
+  VENUE: ( // building
+    <>
+      <path d="M3 21V8l9-5 9 5v13" />
+      <path d="M9 21v-6h6v6" />
+      <path d="M1 21h22" />
+    </>
+  ),
+};

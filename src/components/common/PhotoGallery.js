@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
+import InlineDrawer from './InlineDrawer';
 
 // Profile photo gallery (venue photos / promoter flyers): one row of two
 // tiles; when more photos exist the 2nd tile carries a "+N" overlay and
@@ -51,8 +52,7 @@ const PhotoGallery = ({ photos, title }) => {
 
       {/* Inline drawer with the remaining photos */}
       {extras.length > 0 && (
-        <div className={`overflow-hidden transition-[max-height] duration-300 ${expanded ? 'max-h-[1200px]' : 'max-h-0'}`}>
-          <div className="grid grid-cols-2 gap-2.5 pt-2.5">
+        <InlineDrawer expanded={expanded} className="grid grid-cols-2 gap-2.5 pt-2.5">
             {extras.map((src, j) => (
               <button
                 key={`${src}-${j + 2}`}
@@ -63,8 +63,7 @@ const PhotoGallery = ({ photos, title }) => {
                 <img src={src} alt={`${title} ${j + 3}`} loading="lazy" className="w-full h-full object-cover" />
               </button>
             ))}
-          </div>
-        </div>
+        </InlineDrawer>
       )}
       {expanded && (
         <button

@@ -1,38 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getAvatarClass, ROLE_COLOR } from '../../utils/roles';
-
-// Minimal per-role stroke glyphs in the app's feather style (neither the
-// marketing site nor icons.js has role iconography) — language-independent,
-// tinted via currentColor, crisp at chip size.
-const ROLE_GLYPHS = {
-  ARTIST: ( // musical note
-    <>
-      <path d="M9 18V5l12-2v13" />
-      <circle cx="6" cy="18" r="3" />
-      <circle cx="18" cy="16" r="3" />
-    </>
-  ),
-  AGENT: ( // briefcase (same geometry as icons.js BriefcaseIcon)
-    <>
-      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-    </>
-  ),
-  PROMOTER: ( // megaphone
-    <>
-      <path d="M21 4L7 9H4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h3l14 5V4z" />
-      <path d="M8 15v4a1 1 0 0 0 1 1h2" />
-    </>
-  ),
-  VENUE: ( // building
-    <>
-      <path d="M3 21V8l9-5 9 5v13" />
-      <path d="M9 21v-6h6v6" />
-      <path d="M1 21h22" />
-    </>
-  ),
-};
+import { ROLE_GLYPHS } from '../../utils/icons';
+import InlineDrawer from './InlineDrawer';
 
 // Compact profile tiles (avatar + name).
 //
@@ -48,7 +18,6 @@ const ROLE_GLYPHS = {
 const ProfileMiniGrid = ({ profiles, onOpenProfile, variant = 'grid' }) => {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
-  const scrollRef = useRef(null);
   const [scrolledToEnd, setScrolledToEnd] = useState(false);
 
   const list = Array.isArray(profiles) ? profiles : [];
@@ -106,7 +75,6 @@ const ProfileMiniGrid = ({ profiles, onOpenProfile, variant = 'grid' }) => {
     return (
       <div className="relative">
         <div
-          ref={scrollRef}
           onScroll={overflows ? onScroll : undefined}
           className="flex gap-2 overflow-x-auto snap-x pb-1
                      [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
