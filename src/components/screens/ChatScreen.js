@@ -19,7 +19,15 @@ import { appAlert, appConfirm } from '../../utils/dialogs';
 
 const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   const { user: currentUser, sendMessage, connectedUsers, reloadProfileData } = useAppContext();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  // Per-message translation state, keyed by message id:
+  //   { text, showing, loading }  — translated text, whether it's currently
+  //   shown (vs the original), and an in-flight flag for the spinner.
+  const [translations, setTranslations] = useState({});
+  // Set once if the backend reports the translate feature is unavailable
+  // (503, DEEPL_API_KEY unset). Hides the Translate button for the session so
+  // we don't spam a disabled endpoint.
+  const [translateUnavailable, setTranslateUnavailable] = useState(false);
   const [inputMessage, setInputMessage] = useState('');
   const [userMessages, setUserMessages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -117,6 +125,90 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     connectionRequestId: msg.connectionRequest ? (msg.connectionRequest.id || msg.connectionRequest) : null,
     documentAttachment: msg.documentAttachment || null
   });
+
+  // Translate a text message into the viewer's app language. Result is cached
+  // in local state keyed by message id, so re-showing after "Show original"
+  // never refetches. Toggling flips between original and cached translation.
+  const handleTranslate = async (msgId, text) => {
+    const existing = translations[msgId];
+    // Already have a translation → just toggle visibility (no refetch).
+    if (existing && existing.text != null) {
+      setTranslations((prev) => ({
+        ...prev,
+        [msgId]: { ...prev[msgId], showing: !prev[msgId].showing }
+      }));
+      return;
+    }
+    if (existing && existing.loading) return; // in-flight guard
+
+    setTranslations((prev) => ({ ...prev, [msgId]: { loading: true, showing: false, text: null } }));
+    try {
+      const res = await apiService.translateMessage(text, language);
+      setTranslations((prev) => ({
+        ...prev,
+        [msgId]: { loading: false, showing: true, text: res.translatedText }
+      }));
+    } catch (err) {
+      // Feature off (no DeepL key): hide the button for the rest of the session.
+      if (err?.response?.status === 503) {
+        setTranslateUnavailable(true);
+      }
+      setTranslations((prev) => {
+        const next = { ...prev };
+        delete next[msgId];
+        return next;
+      });
+      if (err?.response?.status !== 503) {
+        appAlert(t('chat.translateFailed'));
+      }
+    }
+  };
+
+  // Subtle "Translate" affordance rendered under a text bubble. Shows the
+  // translated text (when toggled on) plus a muted link that cycles
+  // Translate → Show original. Hidden entirely when the feature is
+  // unavailable or the bubble has no translatable text.
+  const renderTranslateAffordance = (msg) => {
+    if (translateUnavailable) return null;
+    if (!msg.text || !msg.text.trim()) return null;
+    const tr = translations[msg.id];
+    const isLoading = !!(tr && tr.loading);
+    const isShowing = !!(tr && tr.showing && tr.text != null);
+    return (
+      <>
+        {isShowing && (
+          <p style={{
+            marginTop: '6px',
+            paddingTop: '6px',
+            borderTop: '1px solid rgba(255,255,255,0.12)',
+            opacity: 0.95
+          }}>
+            {tr.text}
+          </p>
+        )}
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={() => handleTranslate(msg.id, msg.text)}
+          style={{
+            display: 'inline-block',
+            marginTop: '4px',
+            padding: 0,
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255,255,255,0.5)',
+            fontSize: '11px',
+            fontWeight: 600,
+            cursor: isLoading ? 'default' : 'pointer',
+            textTransform: 'uppercase',
+            letterSpacing: '0.03em'
+          }}
+        >
+          {isLoading ? t('chat.translating') : isShowing ? t('chat.showOriginal') : t('chat.translate')}
+        </button>
+      </>
+    );
+  };
 
   // "Load earlier" pagination: prepend the page older than the oldest
   // loaded message, keeping the viewport anchored (no jump, no auto-scroll).
@@ -1702,12 +1794,14 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   <div className="message-group">
                     <div className="message-bubble">
                       <p>{msg.text}</p>
+                      {renderTranslateAffordance(msg)}
                       <span className="message-time">{formatMessageTime(msg.timestamp)}</span>
                     </div>
                   </div>
                 ) : (
                   <div className="message-bubble">
                     <p>{msg.text}</p>
+                    {renderTranslateAffordance(msg)}
                     <span className="message-time">{formatMessageTime(msg.timestamp)}</span>
                   </div>
                 )}

@@ -728,6 +728,20 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // Translate a chat message into the viewer's app language (DeepL, server-side).
+  // Source language is auto-detected. Throws with error.response.status === 503
+  // when the feature is unavailable (DEEPL_API_KEY unset on the backend), which
+  // the caller uses to hide the Translate affordance for the session.
+  async translateMessage(text, targetLang) {
+    const response = await fetch(`${API_URL}/messages/translate`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ text, targetLang })
+    });
+
+    return this.handleResponse(response);
+  }
+
   async sendMessage(from, to, text, connectionRequestId = null) {
     const response = await fetch(`${API_URL}/messages/send`, {
       method: 'POST',
