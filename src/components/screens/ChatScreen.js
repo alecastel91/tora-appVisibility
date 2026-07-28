@@ -17,6 +17,27 @@ import { getAuthedBackendUrl } from '../../utils/urls';
 import { roleLabel, getAvatarClass } from '../../utils/roles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 
+// Hoisted out of renderTranslateAffordance so we don't rebuild these objects
+// for every text bubble on every render.
+const TRANSLATED_TEXT_STYLE = {
+  marginTop: '6px',
+  paddingTop: '6px',
+  borderTop: '1px solid rgba(255,255,255,0.12)',
+  opacity: 0.95,
+};
+const TRANSLATE_BUTTON_STYLE = {
+  display: 'inline-block',
+  marginTop: '4px',
+  padding: 0,
+  background: 'none',
+  border: 'none',
+  color: 'rgba(255,255,255,0.5)',
+  fontSize: '11px',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.03em',
+};
+
 const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   const { user: currentUser, sendMessage, connectedUsers, reloadProfileData } = useAppContext();
   const { t, language } = useLanguage();
@@ -177,12 +198,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     return (
       <>
         {isShowing && (
-          <p style={{
-            marginTop: '6px',
-            paddingTop: '6px',
-            borderTop: '1px solid rgba(255,255,255,0.12)',
-            opacity: 0.95
-          }}>
+          <p style={TRANSLATED_TEXT_STYLE}>
             {tr.text}
           </p>
         )}
@@ -190,19 +206,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
           type="button"
           disabled={isLoading}
           onClick={() => handleTranslate(msg.id, msg.text)}
-          style={{
-            display: 'inline-block',
-            marginTop: '4px',
-            padding: 0,
-            background: 'none',
-            border: 'none',
-            color: 'rgba(255,255,255,0.5)',
-            fontSize: '11px',
-            fontWeight: 600,
-            cursor: isLoading ? 'default' : 'pointer',
-            textTransform: 'uppercase',
-            letterSpacing: '0.03em'
-          }}
+          style={{ ...TRANSLATE_BUTTON_STYLE, cursor: isLoading ? 'default' : 'pointer' }}
         >
           {isLoading ? t('chat.translating') : isShowing ? t('chat.showOriginal') : t('chat.translate')}
         </button>
@@ -323,6 +327,14 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     fetchMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id, user?.id]);
+
+  // Drop cached translations when the active chat OR the app language changes.
+  // ChatScreen isn't remounted per chat, so without this the (msgId → text)
+  // cache would leak entries across conversations and serve stale text in the
+  // previous language after the user switches languages.
+  useEffect(() => {
+    setTranslations({});
+  }, [user?.id, language]);
 
   // Realtime: subscribe to new messages on this chat thread.
   // The backend broadcasts on the same channel after every message create.
@@ -1591,16 +1603,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                                 appAlert(t('chat.contractSignedSuccess'));
                                 // Refresh messages
                                 const response = await apiService.getMessageThread(currentUser.id, user.id);
-                                const transformedMessages = (response.messages || []).map(m => ({
-                                  text: m.text,
-                                  timestamp: m.createdAt,
-                                  isMe: m.from.id === currentUser.id,
-                                  isSystem: m.isSystemMessage || false,
-                                  dealId: m.dealId || null,
-                                  deal: m.deal || null,
-                                  connectionRequestId: m.connectionRequest ? (m.connectionRequest.id || m.connectionRequest) : null,
-                                  documentAttachment: m.documentAttachment || null
-                                }));
+                                const transformedMessages = (response.messages || []).map(transformThreadMessage);
                                 setUserMessages(transformedMessages);
                               } catch (err) {
                                 appAlert(err.message || t('chat.failedToSignContract'));
@@ -1644,15 +1647,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                                   appAlert(t('chat.bookingCancelled'));
                                   // Refresh messages
                                   const response = await apiService.getMessageThread(currentUser.id, user.id);
-                                  const transformedMessages = (response.messages || []).map(m => ({
-                                    text: m.text,
-                                    timestamp: m.createdAt,
-                                    isMe: m.from.id === currentUser.id,
-                                    isSystem: m.isSystemMessage || false,
-                                    dealId: m.dealId || null,
-                                    connectionRequestId: m.connectionRequest ? (m.connectionRequest.id || m.connectionRequest) : null,
-                                    documentAttachment: m.documentAttachment || null
-                                  }));
+                                  const transformedMessages = (response.messages || []).map(transformThreadMessage);
                                   setUserMessages(transformedMessages);
                                 } catch (err) {
                                   appAlert(err.message || t('chat.failedToCancelBooking'));
@@ -1712,15 +1707,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                               appAlert(t('chat.contractSignedSuccess'));
                               // Refresh messages
                               const response = await apiService.getMessageThread(currentUser.id, user.id);
-                              const transformedMessages = (response.messages || []).map(m => ({
-                                text: m.text,
-                                timestamp: m.createdAt,
-                                isMe: m.from.id === currentUser.id,
-                                isSystem: m.isSystemMessage || false,
-                                dealId: m.dealId || null,
-                                connectionRequestId: m.connectionRequest ? (m.connectionRequest.id || m.connectionRequest) : null,
-                                documentAttachment: m.documentAttachment || null
-                              }));
+                              const transformedMessages = (response.messages || []).map(transformThreadMessage);
                               setUserMessages(transformedMessages);
                             } catch (err) {
                               appAlert(err.message || t('chat.failedToSignContract'));
@@ -1764,15 +1751,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                                 appAlert(t('chat.bookingCancelled'));
                                 // Refresh messages
                                 const response = await apiService.getMessageThread(currentUser.id, user.id);
-                                const transformedMessages = (response.messages || []).map(m => ({
-                                  text: m.text,
-                                  timestamp: m.createdAt,
-                                  isMe: m.from.id === currentUser.id,
-                                  isSystem: m.isSystemMessage || false,
-                                  dealId: m.dealId || null,
-                                  connectionRequestId: m.connectionRequest ? (m.connectionRequest.id || m.connectionRequest) : null,
-                                  documentAttachment: m.documentAttachment || null
-                                }));
+                                const transformedMessages = (response.messages || []).map(transformThreadMessage);
                                 setUserMessages(transformedMessages);
                               } catch (err) {
                                 appAlert(err.message || t('chat.failedToCancelBooking'));

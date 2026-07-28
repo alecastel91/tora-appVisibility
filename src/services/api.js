@@ -496,9 +496,10 @@ class ApiService {
 
   // Beta feedback viewer (official/admin account only). Sends the auth token
   // like other authed calls; backend gates on isOfficial.
-  async getAdminFeedback({ before } = {}) {
+  async getAdminFeedback({ before, page } = {}) {
     const url = new URL(`${API_URL}/admin/feedback`);
     if (before) url.searchParams.set('before', before);
+    if (page && page !== 'all') url.searchParams.set('page', page);
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: this.getHeaders()

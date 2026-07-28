@@ -1,13 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import apiService from '../../services/api';
-import { getAvatarClass } from '../../utils/roles';
+import { getAvatarClass, roleLabel } from '../../utils/roles';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { CloseIcon } from '../../utils/icons';
 
 // Beta-only tool: English-only by design (mirrors BetaTools — no i18n keys).
 const PAGES = ['all', 'profile', 'search', 'news', 'tour', 'bookings', 'messages'];
-
-const ROLE_LABEL = { ARTIST: 'Artist', AGENT: 'Agent', PROMOTER: 'Promoter', VENUE: 'Venue' };
 
 const timeLabel = (iso) => {
   const d = new Date(iso);
@@ -25,6 +24,7 @@ const timeLabel = (iso) => {
 const initial = (name) => (name ? name.trim().charAt(0).toUpperCase() : '?');
 
 const BetaFeedbackScreen = ({ onClose }) => {
+  const { t } = useLanguage();
   const [items, setItems] = useState(null); // null = loading
   const [hasMore, setHasMore] = useState(false);
   const [nextCursor, setNextCursor] = useState(null);
@@ -33,11 +33,13 @@ const BetaFeedbackScreen = ({ onClose }) => {
   const [filter, setFilter] = useState('all');
   const [lightbox, setLightbox] = useState(null);
 
+  // The page/tab filter is applied server-side (?page=<tab>) so low-volume
+  // tabs paginate correctly instead of a mixed page filtering down to empty.
   const load = useCallback(async () => {
     setError('');
     setItems(null);
     try {
-      const res = await apiService.getAdminFeedback();
+      const res = await apiService.getAdminFeedback({ page: filter });
       setItems(res.items || []);
       setHasMore(!!res.hasMore);
       setNextCursor(res.nextCursor || null);
@@ -45,7 +47,7 @@ const BetaFeedbackScreen = ({ onClose }) => {
       setError('Could not load feedback — try again.');
       setItems([]);
     }
-  }, []);
+  }, [filter]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -53,7 +55,7 @@ const BetaFeedbackScreen = ({ onClose }) => {
     if (loadingMore || !nextCursor) return;
     setLoadingMore(true);
     try {
-      const res = await apiService.getAdminFeedback({ before: nextCursor });
+      const res = await apiService.getAdminFeedback({ before: nextCursor, page: filter });
       setItems((prev) => [...(prev || []), ...(res.items || [])]);
       setHasMore(!!res.hasMore);
       setNextCursor(res.nextCursor || null);
@@ -64,7 +66,15 @@ const BetaFeedbackScreen = ({ onClose }) => {
     }
   };
 
-  const visible = (items || []).filter((i) => filter === 'all' || i.page === filter);
+  // Escape closes the screenshot lightbox (added when it's open).
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e) => { if (e.key === 'Escape') setLightbox(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightbox]);
+
+  const visible = items || [];
 
   return (
     <div className="screen active px-5 pt-6 pb-8" style={{ backgroundColor: '#000' }}>
@@ -147,7 +157,7 @@ const BetaFeedbackScreen = ({ onClose }) => {
                 <div className="truncate text-sm font-semibold text-white">
                   {f.author ? f.author.name : 'Anonymous'}
                   {f.author && (
-                    <span className="ml-2 text-[11px] font-normal text-white/40">{ROLE_LABEL[f.author.role] || f.author.role}</span>
+                    <span className="ml-2 text-[11px] font-normal text-white/40">{roleLabel(f.author.role, t)}</span>
                   )}
                   {!f.author && f.email && (
                     <span className="ml-2 text-[11px] font-normal text-white/40">{f.email}</span>
@@ -180,7 +190,7 @@ const BetaFeedbackScreen = ({ onClose }) => {
         ))}
       </div>
 
-      {/* Load more (server pagination is unfiltered, so show whenever more exist) */}
+      {/* Load more (server paginates within the active page filter) */}
       {items !== null && hasMore && (
         <div className="mt-5 flex justify-center">
           <button
