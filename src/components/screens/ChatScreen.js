@@ -2037,12 +2037,6 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     <span className="detail-value">{selectedOffer.technicalRequirements}</span>
                   </div>
                 )}
-                {selectedOffer.paymentTerms && (
-                  <div className="offer-detail-row">
-                    <span className="detail-label">{t('chat.paymentTermsLabel')}</span>
-                    <span className="detail-value">{selectedOffer.paymentTerms}</span>
-                  </div>
-                )}
                 {(() => {
                   const { depositDeadline, finalPaymentDeadline } = dealDeadlines(selectedOffer);
                   const fmt = (d) => new Date(d).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });

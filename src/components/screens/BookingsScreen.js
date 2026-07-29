@@ -870,12 +870,6 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
                   <span className="detail-value">{deal.technicalRequirements}</span>
                 </div>
               )}
-              {deal.paymentTerms && (
-                <div className="booking-detail-row full-width">
-                  <span className="detail-label">{t('chat.paymentTermsLabel')}</span>
-                  <span className="detail-value">{deal.paymentTerms}</span>
-                </div>
-              )}
               {(() => {
                 const { depositDeadline, finalPaymentDeadline } = dealDeadlines(deal);
                 const fmt = (d) => new Date(d).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
