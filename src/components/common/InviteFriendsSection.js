@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
+import InlineDrawer from './InlineDrawer';
 
 const ROLES = ['ARTIST', 'AGENT', 'PROMOTER', 'VENUE'];
 
@@ -17,6 +18,8 @@ const InviteFriendsSection = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
+  // Invited-friends list: show the latest 3, rest behind a "See more" drawer.
+  const [invitesExpanded, setInvitesExpanded] = useState(false);
 
   const isVerified = user?.verifyStatus === 'VERIFIED';
 
@@ -118,23 +121,44 @@ const InviteFriendsSection = () => {
             </p>
           )}
 
-          {data && data.invitations.length > 0 && (
-            <div className="mt-3">
-              {data.invitations.map((inv) => (
-                <div key={inv.id} className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0c0c11] px-3.5 py-2.5">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm text-white">{inv.email}</div>
-                    <div className="text-[10px] font-tech uppercase tracking-[0.12em] text-white/35">
-                      {t(`editProfile.${(inv.role || '').toLowerCase()}`)}
-                    </div>
+          {data && data.invitations.length > 0 && (() => {
+            const renderInvite = (inv) => (
+              <div key={inv.id} className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#0c0c11] px-3.5 py-2.5">
+                <div className="min-w-0">
+                  <div className="truncate text-sm text-white">{inv.email}</div>
+                  <div className="text-[10px] font-tech uppercase tracking-[0.12em] text-white/35">
+                    {t(`editProfile.${(inv.role || '').toLowerCase()}`)}
                   </div>
-                  <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-tech uppercase tracking-[0.12em] ${statusStyle[inv.status] || statusStyle.PENDING}`}>
-                    {t(`referrals.status${inv.status.charAt(0)}${inv.status.slice(1).toLowerCase()}`)}
-                  </span>
                 </div>
-              ))}
-            </div>
-          )}
+                <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[9px] font-tech uppercase tracking-[0.12em] ${statusStyle[inv.status] || statusStyle.PENDING}`}>
+                  {t(`referrals.status${inv.status.charAt(0)}${inv.status.slice(1).toLowerCase()}`)}
+                </span>
+              </div>
+            );
+            const latest = data.invitations.slice(0, 3);
+            const rest = data.invitations.slice(3);
+            return (
+              <div className="mt-3">
+                {latest.map(renderInvite)}
+                {rest.length > 0 && (
+                  <>
+                    <InlineDrawer expanded={invitesExpanded}>
+                      {rest.map(renderInvite)}
+                    </InlineDrawer>
+                    <button
+                      type="button"
+                      onClick={() => setInvitesExpanded((v) => !v)}
+                      className="mt-1 bg-transparent border-none p-0 text-xs text-infrared/90 hover:text-infrared cursor-pointer font-tech transition-colors"
+                    >
+                      {invitesExpanded
+                        ? t('referrals.seeLess')
+                        : `${t('referrals.seeMore')} (${rest.length})`}
+                    </button>
+                  </>
+                )}
+              </div>
+            );
+          })()}
         </>
       )}
     </div>
