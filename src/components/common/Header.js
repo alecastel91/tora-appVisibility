@@ -3,7 +3,7 @@ import NotificationDropdown from './NotificationDropdown';
 import { BellIcon, GearIcon, StarIcon, ShieldIcon } from '../../utils/icons';
 import { useAppContext } from '../../contexts/AppContext';
 
-const Header = ({ onOpenSettings, onOpenPremium, onOpenAchievements, accountUser, onSwitchTab }) => {
+const Header = ({ onOpenSettings, onOpenPremium, onOpenAchievements, accountUser, onSwitchTab, activeTab }) => {
   const { notifications, clearNotificationDot, user } = useAppContext();
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasNotificationDot, setHasNotificationDot] = useState(true);
@@ -14,6 +14,12 @@ const Header = ({ onOpenSettings, onOpenPremium, onOpenAchievements, accountUser
       setHasNotificationDot(true);
     }
   }, [notifications]);
+
+  // Close the notification dropdown whenever the user switches tabs/screens —
+  // an open dropdown must not linger over unrelated content.
+  useEffect(() => {
+    setShowNotifications(false);
+  }, [activeTab]);
 
   const handleNotificationClick = () => {
     setShowNotifications(!showNotifications);

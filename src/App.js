@@ -72,6 +72,8 @@ function App() {
     }
     setActiveTab(tab);
     setMountedTabs((prev) => (prev.includes(tab) ? prev : [...prev, tab]));
+    // Opening Bookings clears its notification dot until a new action arrives.
+    if (tab === 'bookings') setBookingsDotDismissed(true);
     closeAllOverlays();
   };
 
@@ -140,6 +142,13 @@ function App() {
   const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadProposalsCount, setUnreadProposalsCount] = useState(0);
+  // Bookings tab notification dot: count of actionable booking items (pending
+  // offers, counters, contracts to sign/send, payments to mark/confirm). The
+  // dot is dismissed when the user opens Bookings and re-appears only when the
+  // count grows (a new actionable item arrived) — mirrors the Messages badge.
+  const [bookingsActionCount, setBookingsActionCount] = useState(0);
+  const [bookingsDotDismissed, setBookingsDotDismissed] = useState(false);
+  const prevBookingsActionCountRef = useRef(0);
   const [preferredCurrency, setPreferredCurrency] = useState('USD');
   const [accountUser, setAccountUser] = useState(null); // Account-level user data (email, currency, etc)
   const { t, language, changeLanguage, availableLanguages } = useLanguage();
@@ -248,13 +257,33 @@ function App() {
         // Badge = unread messages + pending connection requests. Uses the
         // lightweight count endpoint instead of downloading every
         // conversation just to sum unreadCount fields.
-        const [countData, requestsData] = await Promise.all([
+        const [countData, requestsData, actionData] = await Promise.all([
           apiService.getUnreadCount(user.id),
-          apiService.getReceivedRequests(user.id)
+          apiService.getReceivedRequests(user.id),
+          apiService.getActionSummary(user.id).catch(() => null)
         ]);
 
         const requestsCount = (requestsData.requests || []).length;
         setUnreadMessagesCount((countData.unreadCount || 0) + requestsCount);
+
+        // Bookings dot: count booking-workflow actions only (representation
+        // requests route to Messages, not Bookings).
+        if (actionData?.counts?.byType) {
+          const bt = actionData.counts.byType;
+          const bookingCount =
+            (bt.offer_received || 0) +
+            (bt.counter_offer_pending || 0) +
+            (bt.contract_to_send || 0) +
+            (bt.contract_to_sign || 0) +
+            (bt.payment_to_mark_sent || 0) +
+            (bt.payment_to_confirm_received || 0);
+          setBookingsActionCount(bookingCount);
+          // A newly-arrived actionable item re-surfaces a dismissed dot.
+          if (bookingCount > prevBookingsActionCountRef.current) {
+            setBookingsDotDismissed(false);
+          }
+          prevBookingsActionCountRef.current = bookingCount;
+        }
       } catch (error) {
         console.error('Error fetching unread count:', error);
       }
@@ -541,6 +570,7 @@ function App() {
           onOpenAchievements={() => setShowAchievements(true)}
           accountUser={accountUser}
           onSwitchTab={switchTab}
+          activeTab={activeTab}
         />
         <main className="app-content" ref={appContentRef}>
           {/* The active tab always renders even if a code path bypassed
@@ -578,7 +608,7 @@ function App() {
             }}
           />
         )}
-        <TabBar activeTab={activeTab} onTabChange={switchTab} unreadMessagesCount={unreadMessagesCount} unreadProposalsCount={unreadProposalsCount} />
+        <TabBar activeTab={activeTab} onTabChange={switchTab} unreadMessagesCount={unreadMessagesCount} unreadProposalsCount={unreadProposalsCount} bookingsHasDot={bookingsActionCount > 0 && !bookingsDotDismissed} />
         
         {/* Achievements Screen */}
         {showAchievements && (

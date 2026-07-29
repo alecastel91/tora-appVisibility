@@ -3,7 +3,7 @@ import { ProfileIcon, SearchIcon, BookingsIcon, MessageIcon, PlaneIcon, NewsIcon
 import { useLanguage } from '../../contexts/LanguageContext';
 import CountBadge from './CountBadge';
 
-const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0, unreadProposalsCount = 0 }) => {
+const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0, unreadProposalsCount = 0, bookingsHasDot = false }) => {
   const { t } = useLanguage();
 
   const tabs = [
@@ -30,6 +30,7 @@ const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0, unreadProposa
         const Icon = tab.icon;
         const showMessagesBadge = tab.id === 'messages' && unreadMessagesCount > 0;
         const showTourBadge = tab.id === 'tour' && unreadProposalsCount > 0;
+        const showBookingsDot = tab.id === 'bookings' && bookingsHasDot;
         const badgeCount = tab.id === 'messages' ? unreadMessagesCount : unreadProposalsCount;
         const isActive = activeTab === tab.id;
         return (
@@ -46,6 +47,10 @@ const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0, unreadProposa
               <Icon />
               {(showMessagesBadge || showTourBadge) && (
                 <CountBadge count={badgeCount} className="absolute -top-1 -right-2" />
+              )}
+              {showBookingsDot && (
+                <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-infrared
+                                 shadow-[0_0_6px_rgba(255,51,102,0.7)]" />
               )}
             </div>
             <span>{tab.label}</span>

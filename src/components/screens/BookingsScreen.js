@@ -196,6 +196,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     try {
       await apiService.acceptDeal(dealId, currentUser.id);
       fetchDeals();
+      reloadProfileData();
     } catch (err) {
       console.error('Error accepting deal:', err);
       appAlert(err.message || t('chat.failedToAcceptOffer'));
@@ -212,6 +213,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     try {
       await apiService.confirmEventVenue(dealId);
       fetchDeals();
+      reloadProfileData();
     } catch (err) {
       console.error('Error confirming event venue:', err);
       appAlert(err.message || t('bookings.venueConsentFailed'));
@@ -226,6 +228,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     try {
       await apiService.declineEventVenue(dealId);
       fetchDeals();
+      reloadProfileData();
     } catch (err) {
       console.error('Error declining event venue:', err);
       appAlert(err.message || t('bookings.venueConsentFailed'));
@@ -248,6 +251,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
       setDealToDecline(null);
       setDeclineReason('');
       fetchDeals();
+      reloadProfileData();
     } catch (err) {
       console.error('Error declining deal:', err);
       appAlert(err.message || t('chat.failedToDeclineOffer'));
@@ -282,6 +286,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
       setDealToWithdraw(null);
       setShowWithdrawConfirmation(false);
       fetchDeals();
+      reloadProfileData();
       appAlert(t('bookings.contractWithdrawnSuccess'));
     } catch (err) {
       console.error('Error withdrawing contract:', err);
@@ -684,6 +689,19 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
                 <span className="px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300
                                  text-[8px] font-semibold uppercase tracking-[0.15em] font-tech">
                   {t('bookings.awaitingVenue')}
+                </span>
+              )}
+              {/* Venue responded — surface the outcome on the initiator's card. */}
+              {deal.eventVenueStatus === 'CONFIRMED' && (
+                <span className="px-2 py-0.5 rounded-lg bg-[#43E97B]/15 border border-[#43E97B]/40 text-[#43E97B]
+                                 text-[8px] font-semibold uppercase tracking-[0.15em] font-tech">
+                  {t('bookings.venueConfirmedBadge')}
+                </span>
+              )}
+              {deal.eventVenueStatus === 'DECLINED' && (
+                <span className="px-2 py-0.5 rounded-lg bg-infrared/15 border border-infrared/40 text-infrared
+                                 text-[8px] font-semibold uppercase tracking-[0.15em] font-tech">
+                  {t('bookings.venueDeclinedBadge')}
                 </span>
               )}
             </div>
