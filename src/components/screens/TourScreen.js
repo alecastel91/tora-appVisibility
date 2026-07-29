@@ -1932,6 +1932,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       {/* Make Offer Modal (for tours) */}
       <MakeOfferModal
         isOpen={showMakeOfferModal}
+        dockAsDrawer
         onClose={() => {
           setShowMakeOfferModal(false);
           setSelectedTourArtist(null);
