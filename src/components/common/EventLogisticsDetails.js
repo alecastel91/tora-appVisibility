@@ -53,7 +53,7 @@ const EventLogisticsDetails = ({ deal, rowClass = 'offer-detail-row' }) => {
       )}
       {hasEntrance && (
         <div className={rowClass}>
-          <span className="detail-label">{t('offer.entranceFee')}</span>
+          <span className="detail-label">{t('offer.tickets')}</span>
           <span className="detail-value">
             <div>{Number(deal.entranceFee).toLocaleString()} {deal.currency}</div>
             {deal.entranceFeeNote && <div className="detail-subtext">{deal.entranceFeeNote}</div>}

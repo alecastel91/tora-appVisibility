@@ -8,7 +8,7 @@ import CitySearch from './CitySearch';
 import VenueSearch from './VenueSearch';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
+const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDrawer = false }) => {
   const { t } = useLanguage();
 
   const { user: currentUser } = useAppContext();
@@ -127,12 +127,11 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
 
   if (!isOpen) return null;
 
-  // A venue is "involved" (making capacity/rooms required) when the initiator
-  // is a venue, the recipient is a venue, or a TORA venue was linked.
-  const venueInvolved =
-    currentUser.role === 'VENUE' ||
-    recipientProfile.role === 'VENUE' ||
-    !!formData.eventVenueId;
+  // Event logistics (capacity / rooms / stage) are mandatory whenever the
+  // offer INITIATOR is a promoter or a venue — they own the event and must
+  // declare these details regardless of whether a TORA venue is tagged.
+  const logisticsRequired =
+    currentUser.role === 'PROMOTER' || currentUser.role === 'VENUE';
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -244,8 +243,9 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
       return;
     }
 
-    // Event capacity + rooms are required whenever a venue is involved.
-    if (venueInvolved) {
+    // Event capacity + rooms + stage are required whenever the initiator is a
+    // promoter or a venue. Each error names the specific missing field.
+    if (logisticsRequired) {
       const cap = parseInt(formData.eventCapacity, 10);
       if (!formData.eventCapacity || Number.isNaN(cap) || cap <= 0) {
         setError(t('offer.capacityRequired'));
@@ -409,7 +409,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
   // body:has(> .md-drawer), which only matches direct body children — and
   // the overlay must escape parent stacking contexts like the chat screen.
   return ReactDOM.createPortal(
-    <div className="make-offer-modal-overlay" onClick={onClose}>
+    <div className={`make-offer-modal-overlay${dockAsDrawer ? ' md-drawer' : ''}`} onClick={onClose}>
       <div className="make-offer-modal" onClick={(e) => e.stopPropagation()}>
         <div className="make-offer-header">
           <button className="back-btn" onClick={onClose}>
@@ -750,7 +750,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>{t('offer.eventCapacity')}{venueInvolved ? ' *' : ''}</label>
+                <label>{t('offer.eventCapacity')}{logisticsRequired ? ' *' : ''}</label>
                 <input
                   type="number"
                   step="1"
@@ -764,7 +764,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
               </div>
 
               <div className="form-group">
-                <label>{t('offer.eventRooms')}{venueInvolved ? ' *' : ''}</label>
+                <label>{t('offer.eventRooms')}{logisticsRequired ? ' *' : ''}</label>
                 <input
                   type="number"
                   step="1"
@@ -779,7 +779,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
             </div>
 
             <div className="form-group">
-              <label>{t('offer.eventStage')}{venueInvolved ? ' *' : ''}</label>
+              <label>{t('offer.eventStage')}{logisticsRequired ? ' *' : ''}</label>
               <input
                 type="text"
                 value={formData.eventStage}
