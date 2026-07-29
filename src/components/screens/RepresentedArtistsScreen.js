@@ -30,6 +30,28 @@ const RepresentedArtistsScreen = ({ onClose, onSwitchTab }) => {
   // Pink dot on Manage CTA when the represented artist has pending action
   // items (same pattern as ProfileScreen — fetch per-artist in one burst).
   const [artistActionsMap, setArtistActionsMap] = useState({});
+  // The representingArtists JSONB snapshot doesn't carry an avatar, so the card
+  // fell back to an initial. Enrich each artist with its live profile avatar.
+  const [avatarMap, setAvatarMap] = useState({});
+
+  useEffect(() => {
+    if (representedArtists.length === 0) return undefined;
+    let cancelled = false;
+    Promise.all(
+      representedArtists.map((a) => {
+        const artistId = a.profileId || a.id;
+        if (a.avatar) return Promise.resolve({ artistId, avatar: a.avatar });
+        return apiService.getProfile(artistId)
+          .then((p) => ({ artistId, avatar: p?.avatar || null }))
+          .catch(() => ({ artistId, avatar: null }));
+      })
+    ).then((results) => {
+      if (cancelled) return;
+      setAvatarMap(Object.fromEntries(results.map((r) => [r.artistId, r.avatar])));
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [representedArtists.length, refreshKey]);
 
   useEffect(() => {
     if (!user?.id || user.role !== 'AGENT' || representedArtists.length === 0) return undefined;
@@ -226,8 +248,8 @@ const RepresentedArtistsScreen = ({ onClose, onSwitchTab }) => {
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleViewProfile(artist); } }}
                 >
                   <div className="artist-avatar-small">
-                    {artist.avatar ? (
-                      <img src={artist.avatar} alt={artist.name} />
+                    {(artist.avatar || avatarMap[artist.profileId || artist.id]) ? (
+                      <img src={artist.avatar || avatarMap[artist.profileId || artist.id]} alt={artist.name} />
                     ) : (
                       getInitial(artist.name)
                     )}

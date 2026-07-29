@@ -17,6 +17,7 @@ import { DOC_CATEGORIES, DOC_CATEGORY_KEYS, BROADCAST_DOC_CATEGORY_KEYS, labelFo
 import { getAuthedBackendUrl } from '../../utils/urls';
 import { roleLabel, getAvatarClass } from '../../utils/roles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
+import { dealDeadlines } from '../../utils/paymentSummary';
 
 // Hoisted out of renderTranslateAffordance so we don't rebuild these objects
 // for every text bubble on every render.
@@ -2043,13 +2044,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   </div>
                 )}
                 {(() => {
-                  // Deadlines live on the latest offer entry until accept copies
-                  // them into deal.payment. Resolve from both so they show at
-                  // every stage — matches the booking-card deadline chips.
-                  const lastOffer = Array.isArray(selectedOffer.offerHistory) && selectedOffer.offerHistory.length
-                    ? selectedOffer.offerHistory[selectedOffer.offerHistory.length - 1] : null;
-                  const depositDeadline = selectedOffer.payment?.depositDeadline || selectedOffer.depositDeadline || lastOffer?.depositDeadline;
-                  const finalPaymentDeadline = selectedOffer.payment?.finalPaymentDeadline || selectedOffer.finalPaymentDeadline || lastOffer?.finalPaymentDeadline;
+                  const { depositDeadline, finalPaymentDeadline } = dealDeadlines(selectedOffer);
                   const fmt = (d) => new Date(d).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
                   return (
                     <>

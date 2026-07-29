@@ -44,3 +44,16 @@ export function summarizeDealPayment(deal) {
     hasAnyPayment: totalMarked > 0,
   };
 }
+
+// Payment deadlines become binding on accept (copied into deal.payment); before
+// that they live on the latest offer entry. Resolve from both so every surface
+// (booking-card recap, chat offer details, timeline chips) shows the same value
+// at every stage of the deal.
+export function dealDeadlines(deal) {
+  const history = Array.isArray(deal?.offerHistory) ? deal.offerHistory : [];
+  const last = history.length ? history[history.length - 1] : null;
+  return {
+    depositDeadline: deal?.payment?.depositDeadline || deal?.depositDeadline || last?.depositDeadline || null,
+    finalPaymentDeadline: deal?.payment?.finalPaymentDeadline || deal?.finalPaymentDeadline || last?.finalPaymentDeadline || null,
+  };
+}

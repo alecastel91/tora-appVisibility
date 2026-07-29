@@ -11,7 +11,7 @@ import PdfViewerModal from '../common/PdfViewerModal';
 import EventLogisticsDetails from '../common/EventLogisticsDetails';
 import { deriveSignerCapacity, deriveRecipientName, isArtistSideForDeal } from '../../utils/contractSigner';
 import { DOC_CATEGORIES, categoryStatus } from '../../utils/documentCategories';
-import { summarizeDealPayment } from '../../utils/paymentSummary';
+import { summarizeDealPayment, dealDeadlines } from '../../utils/paymentSummary';
 import { getAuthedBackendUrl, buildPaymentProofUrl } from '../../utils/urls';
 import { subscribeToDeals } from '../../services/realtime';
 import LoadingGlobe from '../common/LoadingGlobe';
@@ -877,14 +877,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
                 </div>
               )}
               {(() => {
-                // Deadlines become binding on accept (copied into deal.payment);
-                // before that they live on the latest offer entry. Resolve from
-                // both so the recap shows them at every stage — same values the
-                // WorkflowTimeline deadline chips use.
-                const lastOffer = Array.isArray(deal.offerHistory) && deal.offerHistory.length
-                  ? deal.offerHistory[deal.offerHistory.length - 1] : null;
-                const depositDeadline = deal.payment?.depositDeadline || deal.depositDeadline || lastOffer?.depositDeadline;
-                const finalPaymentDeadline = deal.payment?.finalPaymentDeadline || deal.finalPaymentDeadline || lastOffer?.finalPaymentDeadline;
+                const { depositDeadline, finalPaymentDeadline } = dealDeadlines(deal);
                 const fmt = (d) => new Date(d).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
                 return (
                   <>
