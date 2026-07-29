@@ -306,6 +306,17 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     });
   };
 
+  // Safely format a monetary amount. Returns null when the value is missing —
+  // e.g. a deal REDACTED for a tagged venue has no currentFee — so callers can
+  // omit the fee entirely instead of crashing on `.toLocaleString()`.
+  const formatFee = (fee) => {
+    const n = Number(fee);
+    if (fee == null || fee === '' || Number.isNaN(n)) return null;
+    return Number.isInteger(n)
+      ? n.toLocaleString()
+      : n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
   // This profile is only the tagged event-venue for the deal (a promoter's
   // event to be held here) — not the initiator, artist, or booking party.
   const isConsentOnlyDeal = (deal) =>
@@ -467,11 +478,16 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
   const docCatLabel = (cat) => labelMaps.docCat[cat.key] || cat.label;
   const extraLabel = (key) => labelMaps.extra[key] || key.replace(/([A-Z])/g, ' $1').trim();
 
+  // Minimal venue awareness/consent card. The promoter↔venue conversation
+  // happened offline — the venue is only giving a greenlight, so this shows NO
+  // capacity/rooms/fee, just who wants to hold what, when, and Confirm/Decline
+  // (while PENDING). Confirmed/declined states show a status line instead.
   const renderConsentCard = (deal) => {
     const promoterName = deal.initiator?.name || deal.venue?.name || t('bookings.aPromoter');
     const dateStr = new Date(deal.date).toLocaleDateString(t('dateFormat.locale'), {
       month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
     });
+    const status = deal.eventVenueStatus;
     return (
       <div key={deal.id} className="mb-4 rounded-2xl border border-infrared/40 bg-[#101015] p-4">
         <div className="flex items-center gap-2 mb-2">
@@ -483,40 +499,54 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
         <p className="m-0 mb-1 text-[15px] font-semibold font-space-grotesk tracking-[-0.01em] text-white">
           {t('bookings.venueConsentTitle', { promoter: promoterName, date: dateStr })}
         </p>
-        {(deal.eventName || deal.venueName) && (
+        {deal.eventName && (
           <p className="m-0 mb-3 text-[12px] text-white/45">
-            {[deal.eventName, deal.venueName].filter(Boolean).join(' · ')}
+            {deal.eventName}
           </p>
         )}
-        <div className="booking-details mb-3">
-          <EventLogisticsDetails deal={deal} rowClass="booking-detail-row" />
-        </div>
-        <p className="m-0 mb-3 text-[12px] leading-relaxed text-white/45">
-          {t('bookings.venueConsentBody')}
-        </p>
-        <div className="flex gap-2.5">
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={actionBusy}
-            onClick={() => handleConfirmEventVenue(deal.id)}
-          >
-            {t('bookings.venueConsentConfirm')}
-          </button>
-          <button
-            type="button"
-            className="btn btn-outline"
-            disabled={actionBusy}
-            onClick={() => handleDeclineEventVenue(deal.id)}
-          >
-            {t('bookings.venueConsentDecline')}
-          </button>
-        </div>
+        {status === 'PENDING' ? (
+          <>
+            <p className="m-0 mb-3 text-[12px] leading-relaxed text-white/45">
+              {t('bookings.venueConsentBody')}
+            </p>
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={actionBusy}
+                onClick={() => handleConfirmEventVenue(deal.id)}
+              >
+                {t('bookings.venueConsentConfirm')}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                disabled={actionBusy}
+                onClick={() => handleDeclineEventVenue(deal.id)}
+              >
+                {t('bookings.venueConsentDecline')}
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="m-0 text-[12px] font-medium text-white/60">
+            {status === 'CONFIRMED'
+              ? t('bookings.venueConsentConfirmed')
+              : t('bookings.venueConsentDeclined')}
+          </p>
+        )}
       </div>
     );
   };
 
   const renderDealCard = (deal) => {
+    // A deal the current profile sees ONLY as the tagged event-venue (or any
+    // deal the backend redacted for a venue viewer) has no fee/offer/contract
+    // data — it must never render the money booking card. Show the minimal
+    // venue awareness/consent card instead, whatever the consent status.
+    if (isConsentOnlyDeal(deal) || deal.redactedForVenue) {
+      return renderConsentCard(deal);
+    }
     const isOutgoing = deal.initiator.id === currentUser.id;
     const otherParty = isOutgoing
       ? (deal.venue.id === currentUser.id ? deal.artist : deal.venue)
@@ -629,12 +659,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
             {!isExpanded && (
             <p className="m-0 mb-2 text-[12px] font-space-grotesk font-medium text-white/85 truncate">
               {deal.eventName || t('bookings.booking')}
-              <span className="text-white/30"> · </span>
-              <span className="text-infrared font-semibold">
-                {Number.isInteger(deal.currentFee)
-                  ? deal.currentFee.toLocaleString()
-                  : deal.currentFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {deal.currency}
-              </span>
+              {formatFee(deal.currentFee) != null && (
+                <>
+                  <span className="text-white/30"> · </span>
+                  <span className="text-infrared font-semibold">
+                    {formatFee(deal.currentFee)} {deal.currency}
+                  </span>
+                </>
+              )}
             </p>
             )}
             <div className="party-status-row">
@@ -646,7 +678,20 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
                   </span>
                 );
               })()}
+              {/* The tagged TORA venue hasn't confirmed yet — the offer is
+                  being HELD and has not been sent to the artist/agent. */}
+              {deal.eventVenueStatus === 'PENDING' && (
+                <span className="px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300
+                                 text-[8px] font-semibold uppercase tracking-[0.15em] font-tech">
+                  {t('bookings.awaitingVenue')}
+                </span>
+              )}
             </div>
+            {deal.eventVenueStatus === 'PENDING' && (
+              <p className="m-0 mt-1 text-[11px] leading-relaxed text-white/45">
+                {t('bookings.awaitingVenueHint')}
+              </p>
+            )}
           </div>
 
           <button
@@ -711,14 +756,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
                   </span>
                 </div>
               )}
-              <div className="booking-detail-row">
-                <span className="detail-label">{t('chat.feeLabel')}</span>
-                <span className="detail-value booking-fee">
-                  {Number.isInteger(deal.currentFee)
-                    ? deal.currentFee.toLocaleString()
-                    : deal.currentFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {deal.currency}
-                </span>
-              </div>
+              {formatFee(deal.currentFee) != null && (
+                <div className="booking-detail-row">
+                  <span className="detail-label">{t('chat.feeLabel')}</span>
+                  <span className="detail-value booking-fee">
+                    {formatFee(deal.currentFee)} {deal.currency}
+                  </span>
+                </div>
+              )}
               <EventLogisticsDetails deal={deal} rowClass="booking-detail-row" />
               {(() => {
                 // Resolve the current extras: counter-offer additionalTerms (when JSON)
