@@ -11,6 +11,7 @@ import ContractViewer from '../common/ContractViewer';
 import AddContractModal from '../common/AddContractModal';
 import ShareDocumentsModal from '../common/ShareDocumentsModal';
 import PdfViewerModal from '../common/PdfViewerModal';
+import EventLogisticsDetails from '../common/EventLogisticsDetails';
 import { deriveSignerCapacity, deriveRecipientName, isArtistSideForDeal } from '../../utils/contractSigner';
 import { DOC_CATEGORIES, DOC_CATEGORY_KEYS, BROADCAST_DOC_CATEGORY_KEYS, labelForCategory } from '../../utils/documentCategories';
 import { getAuthedBackendUrl } from '../../utils/urls';
@@ -1964,6 +1965,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       : selectedOffer.currentFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {selectedOffer.currency}
                   </span>
                 </div>
+                <EventLogisticsDetails deal={selectedOffer} rowClass="offer-detail-row" />
                 {selectedOffer.extras && Object.keys(selectedOffer.extras).length > 0 && (
                   <div className="offer-detail-row">
                     <span className="detail-label">{t('chat.extrasLabel')}</span>
@@ -2480,6 +2482,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                           {counterOfferData.fee} {counterOfferData.currency}
                         </span>
                       </div>
+                      <EventLogisticsDetails deal={deal} rowClass="offer-detail-row" />
                       {counterOfferData.extras && Object.keys(counterOfferData.extras).length > 0 && (
                         <div className="offer-detail-row">
                           <span className="detail-label">{t('chat.extrasLabel')}</span>

@@ -876,6 +876,26 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // Event-venue consent: the tagged TORA venue confirms/declines an event a
+  // promoter wants to hold in their room (eventVenueId === this profile).
+  async confirmEventVenue(dealId) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/confirm-venue`, {
+      method: 'PUT',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async declineEventVenue(dealId) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/decline-venue`, {
+      method: 'PUT',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   // Currency / Exchange Rate Endpoints
   async getCurrentRates() {
     const response = await fetch(`${API_URL}/currency/rates`, {

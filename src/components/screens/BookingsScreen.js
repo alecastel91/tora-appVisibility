@@ -8,6 +8,7 @@ import AddContractModal from '../common/AddContractModal';
 import SignContractModal from '../common/SignContractModal';
 import ShareDocumentsModal from '../common/ShareDocumentsModal';
 import PdfViewerModal from '../common/PdfViewerModal';
+import EventLogisticsDetails from '../common/EventLogisticsDetails';
 import { deriveSignerCapacity, deriveRecipientName, isArtistSideForDeal } from '../../utils/contractSigner';
 import { DOC_CATEGORIES, categoryStatus } from '../../utils/documentCategories';
 import { summarizeDealPayment } from '../../utils/paymentSummary';
@@ -203,6 +204,36 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     }
   };
 
+  // Event-venue consent: this profile is the TORA venue a promoter tagged for
+  // an event they want to hold here (eventVenueId === me, not a deal party).
+  const handleConfirmEventVenue = async (dealId) => {
+    if (actionBusy) return;
+    setActionBusy(true);
+    try {
+      await apiService.confirmEventVenue(dealId);
+      fetchDeals();
+    } catch (err) {
+      console.error('Error confirming event venue:', err);
+      appAlert(err.message || t('bookings.venueConsentFailed'));
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const handleDeclineEventVenue = async (dealId) => {
+    if (actionBusy) return;
+    setActionBusy(true);
+    try {
+      await apiService.declineEventVenue(dealId);
+      fetchDeals();
+    } catch (err) {
+      console.error('Error declining event venue:', err);
+      appAlert(err.message || t('bookings.venueConsentFailed'));
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
   const handleDeclineDeal = async () => {
     if (actionBusy || !dealToDecline) return;
 
@@ -275,6 +306,19 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     });
   };
 
+  // This profile is only the tagged event-venue for the deal (a promoter's
+  // event to be held here) — not the initiator, artist, or booking party.
+  const isConsentOnlyDeal = (deal) =>
+    deal.eventVenueId === currentUser?.id &&
+    deal.initiator?.id !== currentUser?.id &&
+    deal.venue?.id !== currentUser?.id &&
+    deal.artist?.id !== currentUser?.id;
+
+  // Pending consent requests surface as their own action cards at the top.
+  const pendingConsentDeals = deals.filter(
+    (d) => isConsentOnlyDeal(d) && d.eventVenueStatus === 'PENDING'
+  );
+
   // Filter deals into past, upcoming, and declined (with optional agent artist filter)
   const filterDeals = () => {
     const today = new Date();
@@ -283,6 +327,9 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     return deals.filter(deal => {
       const dealDate = new Date(deal.date);
       dealDate.setHours(0, 0, 0, 0);
+
+      // Pending venue-consent requests render separately (not in the list).
+      if (isConsentOnlyDeal(deal) && deal.eventVenueStatus === 'PENDING') return false;
 
       // Agent artist filter: if a specific artist is selected, only show their deals
       if (selectedArtistFilter !== 'all' && currentUser?.role === 'AGENT') {
@@ -419,6 +466,55 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
   const statusLabel = (s) => labelMaps.status[s] || s;
   const docCatLabel = (cat) => labelMaps.docCat[cat.key] || cat.label;
   const extraLabel = (key) => labelMaps.extra[key] || key.replace(/([A-Z])/g, ' $1').trim();
+
+  const renderConsentCard = (deal) => {
+    const promoterName = deal.initiator?.name || deal.venue?.name || t('bookings.aPromoter');
+    const dateStr = new Date(deal.date).toLocaleDateString(t('dateFormat.locale'), {
+      month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+    });
+    return (
+      <div key={deal.id} className="mb-4 rounded-2xl border border-infrared/40 bg-[#101015] p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="px-2 py-0.5 rounded-lg bg-infrared/15 border border-infrared/40 text-infrared
+                           text-[8px] font-semibold uppercase tracking-[0.18em] font-tech">
+            {t('bookings.venueRequestBadge')}
+          </span>
+        </div>
+        <p className="m-0 mb-1 text-[15px] font-semibold font-space-grotesk tracking-[-0.01em] text-white">
+          {t('bookings.venueConsentTitle', { promoter: promoterName, date: dateStr })}
+        </p>
+        {(deal.eventName || deal.venueName) && (
+          <p className="m-0 mb-3 text-[12px] text-white/45">
+            {[deal.eventName, deal.venueName].filter(Boolean).join(' · ')}
+          </p>
+        )}
+        <div className="booking-details mb-3">
+          <EventLogisticsDetails deal={deal} rowClass="booking-detail-row" />
+        </div>
+        <p className="m-0 mb-3 text-[12px] leading-relaxed text-white/45">
+          {t('bookings.venueConsentBody')}
+        </p>
+        <div className="flex gap-2.5">
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={actionBusy}
+            onClick={() => handleConfirmEventVenue(deal.id)}
+          >
+            {t('bookings.venueConsentConfirm')}
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline"
+            disabled={actionBusy}
+            onClick={() => handleDeclineEventVenue(deal.id)}
+          >
+            {t('bookings.venueConsentDecline')}
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   const renderDealCard = (deal) => {
     const isOutgoing = deal.initiator.id === currentUser.id;
@@ -623,6 +719,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
                     : deal.currentFee.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {deal.currency}
                 </span>
               </div>
+              <EventLogisticsDetails deal={deal} rowClass="booking-detail-row" />
               {(() => {
                 // Resolve the current extras: counter-offer additionalTerms (when JSON)
                 // takes precedence over the original deal.extras since counters never
@@ -1259,6 +1356,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
       )}
 
       <div className="bookings-content">
+        {!loading && !error && activeTab === 'upcoming' && pendingConsentDeals.length > 0 && (
+          <div className="bookings-list mb-2">
+            {pendingConsentDeals.map((deal) => renderConsentCard(deal))}
+          </div>
+        )}
         {loading ? (
           <LoadingGlobe label={t('bookings.loadingBookings')} />
         ) : error ? (
@@ -1268,7 +1370,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
               {t('common.retry')}
             </button>
           </div>
-        ) : filteredDeals.length === 0 ? (
+        ) : filteredDeals.length === 0 && !(activeTab === 'upcoming' && pendingConsentDeals.length > 0) ? (
           <div className="bookings-empty">
             <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
