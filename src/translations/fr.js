@@ -330,6 +330,8 @@ const fr = {
     declinedOffer: "a refusé l'offre",
     acceptedOffer: "a accepté l'offre",
     sentAnOffer: 'a envoyé une offre',
+    pendingVenueConfirmation: 'En attente · confirmation du lieu',
+    venueDeclinedOffer: 'Lieu refusé',
     viewReason: 'Voir le motif',
     contractPending: 'Contrat en attente',
     skipContractConfirm: "Passer l'étape du contrat ? Vous pourrez quand même partager des documents et continuer.",

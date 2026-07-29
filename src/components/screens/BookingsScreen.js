@@ -859,6 +859,24 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
                   <span className="detail-value">{deal.paymentTerms}</span>
                 </div>
               )}
+              {(deal.depositDeadline || deal.payment?.depositDeadline) && (
+                <div className="booking-detail-row">
+                  <span className="detail-label">{t('offer.depositDeadline')}</span>
+                  <span className="detail-value">
+                    {new Date(deal.depositDeadline || deal.payment.depositDeadline)
+                      .toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
+                  </span>
+                </div>
+              )}
+              {(deal.finalPaymentDeadline || deal.payment?.finalPaymentDeadline) && (
+                <div className="booking-detail-row">
+                  <span className="detail-label">{t('offer.finalPaymentDeadline')}</span>
+                  <span className="detail-value">
+                    {new Date(deal.finalPaymentDeadline || deal.payment.finalPaymentDeadline)
+                      .toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
+                  </span>
+                </div>
+              )}
             </div>
             {deal.notes && (
               <div className="mb-4 -mt-1">

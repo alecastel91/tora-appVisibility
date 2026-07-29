@@ -330,6 +330,8 @@ const it = {
     declinedOffer: "ha rifiutato l'offerta",
     acceptedOffer: "ha accettato l'offerta",
     sentAnOffer: "ha inviato un'offerta",
+    pendingVenueConfirmation: 'In attesa · conferma della venue',
+    venueDeclinedOffer: 'Venue ha rifiutato',
     viewReason: 'Vedi motivo',
     contractPending: 'Contratto in sospeso',
     skipContractConfirm: 'Saltare la fase del contratto? Potrai comunque condividere documenti e procedere.',

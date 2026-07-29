@@ -330,6 +330,8 @@ const zh = {
     declinedOffer: '拒绝了报价',
     acceptedOffer: '接受了报价',
     sentAnOffer: '发送了报价',
+    pendingVenueConfirmation: '待定 · 等待场馆确认',
+    venueDeclinedOffer: '场馆已拒绝',
     viewReason: '查看原因',
     contractPending: '合同待处理',
     skipContractConfirm: '要跳过合同环节吗？你仍然可以共享文件并继续。',

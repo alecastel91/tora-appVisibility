@@ -330,6 +330,8 @@ const ko = {
     declinedOffer: '님이 오퍼를 거절했습니다',
     acceptedOffer: '님이 오퍼를 수락했습니다',
     sentAnOffer: '님이 오퍼를 보냈습니다',
+    pendingVenueConfirmation: '대기 중 · 베뉴 확인 대기',
+    venueDeclinedOffer: '베뉴가 거절함',
     viewReason: '사유 보기',
     contractPending: '계약서 대기 중',
     skipContractConfirm: '계약 단계를 건너뛰시겠습니까? 문서 공유와 다음 단계는 계속 진행할 수 있습니다.',

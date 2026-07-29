@@ -144,6 +144,9 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     isSystem: msg.isSystemMessage || false,
     dealId: msg.dealId || null,
     deal: msg.deal || null,
+    // Held-offer consent flags surfaced by the thread endpoint (promoter-only):
+    // data.pendingVenueConfirmation / data.venueDeclined. See offerMessageMeta.js.
+    data: msg.data || null,
     connectionRequestId: msg.connectionRequest ? (msg.connectionRequest.id || msg.connectionRequest) : null,
     documentAttachment: msg.documentAttachment || null
   });
@@ -1440,6 +1443,12 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 const isAcceptCard = msg.text && msg.text.includes('Booking Confirmed!');
                 const isDeclined = isDeclineCard;
                 const isAccepted = isAcceptCard;
+                // Held third-party-venue offer (promoter/sender only — the artist
+                // never receives this message). Not yet delivered: render it as
+                // pending, or venue-declined, until the venue confirms.
+                const isVenuePending = !!msg.data?.pendingVenueConfirmation;
+                const isVenueDeclined = !!msg.data?.venueDeclined;
+                const isHeldOffer = isVenuePending || isVenueDeclined;
 
                 // For decline/accept cards, sender of the message is the one who acted
                 const displayName = msg.isMe ? t('chat.you') : user.name;
@@ -1453,7 +1462,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 return (
                   <div className={`message-with-timestamp ${msg.isMe ? "card-sent" : "card-received"}`}>
                     <div
-                      className="offer-card-message"
+                      className={`offer-card-message${isHeldOffer ? ' offer-card-held' : ''}`}
                       style={showContractActions ? { flexDirection: 'column', alignItems: 'stretch' } : undefined}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', width: '100%' }}>
@@ -1486,6 +1495,12 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                               {isDeclined ? t('chat.declinedOffer') : isAccepted ? t('chat.acceptedOffer') : t('chat.sentAnOffer')}
                               {msg.deal?.eventName ? ` · ${msg.deal.eventName}` : ''}
                             </p>
+                            {isVenuePending && (
+                              <span className="offer-pending-badge">{t('chat.pendingVenueConfirmation')}</span>
+                            )}
+                            {isVenueDeclined && (
+                              <span className="offer-pending-badge offer-declined-badge">{t('chat.venueDeclinedOffer')}</span>
+                            )}
                           </div>
                         </div>
                         <button

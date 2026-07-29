@@ -10329,7 +10329,10 @@ textarea.form-textarea:focus {
   margin-right: 2px;
 }
 
-.btn-delete-offer-expanded {
+/* Two-class selector (matches .btn-outline.btn-remove-connection) so the
+   destructive red wins over the later plain .btn-outline rule — otherwise the
+   button rendered grey. Same size as the sibling .btn-chat button. */
+.btn-outline.btn-delete-offer-expanded {
   width: 100%;
   margin-top: 8px;
   display: flex;
@@ -10346,7 +10349,7 @@ textarea.form-textarea:focus {
   border-color: rgba(244, 67, 54, 0.3);
 }
 
-.btn-delete-offer-expanded:hover {
+.btn-outline.btn-delete-offer-expanded:hover {
   background: rgba(244, 67, 54, 0.1);
   border-color: rgba(244, 67, 54, 0.6);
   color: #F44336;
@@ -10447,6 +10450,35 @@ textarea.form-textarea:focus {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   gap: 12px;
+}
+
+/* Held offer (promoter-only): not yet delivered to the artist. Dashed,
+   muted, and slightly de-emphasized so it reads as not-yet-sent. */
+.offer-card-message.offer-card-held {
+  background: rgba(255, 51, 102, 0.05);
+  border: 1px dashed rgba(255, 51, 102, 0.45);
+  opacity: 0.9;
+}
+
+/* "Pending · awaiting venue confirmation" / "Venue declined" pill. */
+.offer-pending-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #FF3366;
+  background: rgba(255, 51, 102, 0.12);
+  border: 1px solid rgba(255, 51, 102, 0.35);
+}
+
+.offer-pending-badge.offer-declined-badge {
+  color: #ff7a90;
+  background: rgba(255, 51, 102, 0.18);
+  border-color: rgba(255, 51, 102, 0.55);
 }
 
 .offer-card-content {

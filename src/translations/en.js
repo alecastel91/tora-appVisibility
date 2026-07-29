@@ -330,6 +330,8 @@ const en = {
     declinedOffer: 'declined offer',
     acceptedOffer: 'accepted offer',
     sentAnOffer: 'sent an offer',
+    pendingVenueConfirmation: 'Pending · awaiting venue confirmation',
+    venueDeclinedOffer: 'Venue declined',
     viewReason: 'View Reason',
     contractPending: 'Contract pending',
     skipContractConfirm: 'Skip contract stage? You can still share documents and proceed.',

@@ -330,6 +330,8 @@ const pt = {
     declinedOffer: 'recusou a proposta',
     acceptedOffer: 'aceitou a proposta',
     sentAnOffer: 'enviou uma proposta',
+    pendingVenueConfirmation: 'Pendente · aguardando confirmação do local',
+    venueDeclinedOffer: 'Local recusou',
     viewReason: 'Ver motivo',
     contractPending: 'Contrato pendente',
     skipContractConfirm: 'Saltar a fase do contrato? Podes na mesma partilhar documentos e continuar.',

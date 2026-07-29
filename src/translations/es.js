@@ -330,6 +330,8 @@ const es = {
     declinedOffer: 'rechazó la oferta',
     acceptedOffer: 'aceptó la oferta',
     sentAnOffer: 'envió una oferta',
+    pendingVenueConfirmation: 'Pendiente · esperando confirmación del venue',
+    venueDeclinedOffer: 'El venue rechazó',
     viewReason: 'Ver motivo',
     contractPending: 'Contrato pendiente',
     skipContractConfirm: '¿Omitir la fase de contrato? Aún podrás compartir documentos y continuar.',

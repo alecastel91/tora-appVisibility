@@ -330,6 +330,8 @@ const ja = {
     declinedOffer: 'がオファーを辞退しました',
     acceptedOffer: 'がオファーを承認しました',
     sentAnOffer: 'がオファーを送りました',
+    pendingVenueConfirmation: '保留中 · 会場の確認待ち',
+    venueDeclinedOffer: '会場が拒否しました',
     viewReason: '理由を見る',
     contractPending: '契約書が未送付です',
     skipContractConfirm: '契約書のステップをスキップしますか？書類の共有と手続きは引き続き可能です。',
