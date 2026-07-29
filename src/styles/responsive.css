@@ -345,9 +345,12 @@
     overflow-y: auto;
   }
 
-  /* Full-screen overlays offset by the sidebar */
+  /* Full-screen overlays offset by the sidebar. Start below the app header
+     (57px) so the top menu stays visible — same framing as the other docked
+     sub-pages (.view-profile-screen), never covering the header. */
   .chat-screen,
   .filter-screen {
+    top: 57px;
     left: 240px;
     max-width: none;
   }
@@ -462,10 +465,10 @@
      the tour list left, opens as a right-side panel). This chat-context rule
      must not fight that positioning. */
   .make-offer-modal-overlay:not(.md-drawer) {
-    /* Cover from the very top like the chat conversation it replaces — the
-       overlay (z-2000) sits above the open chat (z-1000), so no chat header
-       or body bleeds through above/behind it. */
-    top: 0;
+    /* Dock in the same right-hand pane as the open chat it replaces, below the
+       app header (57px) so the top menu stays visible — matches the chat and
+       other docked sub-pages. */
+    top: 57px;
     left: calc(240px + 436px);
     right: 0;
     bottom: 0;

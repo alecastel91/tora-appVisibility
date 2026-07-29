@@ -176,18 +176,6 @@
   font-size: 14px;
 }
 
-/* Same error card, but sitting directly above the submit CTA (no bottom
-   gap needed there) so a blocked submit is readable without scrolling up. */
-.error-message-inline {
-  margin-top: 4px;
-  margin-bottom: 12px;
-}
-
-/* A required field's label flagged red in place when its value is missing. */
-.field-label-error {
-  color: #FF3366 !important;
-}
-
 .signup-terms-notice {
   font-size: 12px;
   color: var(--text-gray);

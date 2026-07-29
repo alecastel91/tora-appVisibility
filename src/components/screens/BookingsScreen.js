@@ -49,6 +49,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
   // same source as the Bookings tab dot / Manage action-summary. Drives the
   // per-card highlight so the user can spot WHICH booking needs attention.
   const [actionableDealIds, setActionableDealIds] = useState(() => new Set());
+  // Deal ids whose highlight the user has already seen (i.e. was on the tab
+  // while they were highlighted, then left). A highlight is a transient "these
+  // need attention now" cue — once the user leaves Bookings it clears and the
+  // reveal-refetch won't light it up again, until a genuinely NEW action lands.
+  const seenActionableRef = useRef(new Set());
   const [loading, setLoading] = useState(true);
   const [actionBusy, setActionBusy] = useState(false);
   const [error, setError] = useState('');
@@ -110,6 +115,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     if (isActive && staleRef.current) {
       staleRef.current = false;
       fetchDeals();
+    }
+    // Leaving the tab: the currently-highlighted cards are now "seen" — remember
+    // them and clear the highlight so returning doesn't re-light the same cards.
+    if (!isActive) {
+      setActionableDealIds((prev) => {
+        prev.forEach((id) => seenActionableRef.current.add(id));
+        return prev.size ? new Set() : prev;
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
@@ -179,7 +192,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
         const dealId = item?.target?.params?.dealId;
         if (dealId) ids.add(dealId);
       }
-      setActionableDealIds(ids);
+      // Only highlight actions the user hasn't already seen highlighted (see
+      // seenActionableRef) — so a card lights up when its action first appears,
+      // not every time the list refetches.
+      const fresh = new Set([...ids].filter((id) => !seenActionableRef.current.has(id)));
+      setActionableDealIds(fresh);
     } catch (err) {
       console.error('Error fetching deals:', err);
       setError(err.message || t('bookings.loadFailed'));
@@ -859,24 +876,33 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
                   <span className="detail-value">{deal.paymentTerms}</span>
                 </div>
               )}
-              {(deal.depositDeadline || deal.payment?.depositDeadline) && (
-                <div className="booking-detail-row">
-                  <span className="detail-label">{t('offer.depositDeadline')}</span>
-                  <span className="detail-value">
-                    {new Date(deal.depositDeadline || deal.payment.depositDeadline)
-                      .toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
-                  </span>
-                </div>
-              )}
-              {(deal.finalPaymentDeadline || deal.payment?.finalPaymentDeadline) && (
-                <div className="booking-detail-row">
-                  <span className="detail-label">{t('offer.finalPaymentDeadline')}</span>
-                  <span className="detail-value">
-                    {new Date(deal.finalPaymentDeadline || deal.payment.finalPaymentDeadline)
-                      .toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
-                  </span>
-                </div>
-              )}
+              {(() => {
+                // Deadlines become binding on accept (copied into deal.payment);
+                // before that they live on the latest offer entry. Resolve from
+                // both so the recap shows them at every stage — same values the
+                // WorkflowTimeline deadline chips use.
+                const lastOffer = Array.isArray(deal.offerHistory) && deal.offerHistory.length
+                  ? deal.offerHistory[deal.offerHistory.length - 1] : null;
+                const depositDeadline = deal.payment?.depositDeadline || deal.depositDeadline || lastOffer?.depositDeadline;
+                const finalPaymentDeadline = deal.payment?.finalPaymentDeadline || deal.finalPaymentDeadline || lastOffer?.finalPaymentDeadline;
+                const fmt = (d) => new Date(d).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+                return (
+                  <>
+                    {depositDeadline && (
+                      <div className="booking-detail-row">
+                        <span className="detail-label">{t('offer.depositDeadline')}</span>
+                        <span className="detail-value">{fmt(depositDeadline)}</span>
+                      </div>
+                    )}
+                    {finalPaymentDeadline && (
+                      <div className="booking-detail-row">
+                        <span className="detail-label">{t('offer.finalPaymentDeadline')}</span>
+                        <span className="detail-value">{fmt(finalPaymentDeadline)}</span>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
             {deal.notes && (
               <div className="mb-4 -mt-1">

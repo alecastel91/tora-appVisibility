@@ -14,15 +14,6 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
   const { user: currentUser } = useAppContext();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  // Which required field failed validation, so we can flag its label red in
-  // place (in addition to the error message shown above the submit button).
-  const [errorField, setErrorField] = useState(null);
-  // Set the blocking error + flag the offending field, all in one call.
-  const failValidation = (message, field = null) => {
-    setError(message);
-    setErrorField(field);
-  };
-  const labelErrorClass = (field) => (errorField === field ? 'field-label-error' : '');
   const [representedArtists, setRepresentedArtists] = useState([]);
   // Bumped whenever geography is prefilled externally (modal open, venue pick)
   // so the CitySearch input — which reads city/country only on mount —
@@ -144,11 +135,6 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear the red flag + error once the user starts fixing the field.
-    if (errorField === field) {
-      setErrorField(null);
-      setError('');
-    }
   };
 
   // Lineup: free-text artist name rows (row 0 is the booked artist).
@@ -222,23 +208,22 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setErrorField(null);
 
     // Validation
     if (recipientProfile.role === 'AGENT' && !formData.selectedArtistId) {
-      failValidation(t('offer.selectArtistError'), 'selectedArtistId');
+      setError(t('offer.selectArtistError'));
       return;
     }
     if (!formData.venueName.trim()) {
-      failValidation(t('offer.venueRequired'), 'venueName');
+      setError(t('offer.venueRequired'));
       return;
     }
     if (!formData.city || !formData.country || !formData.zone) {
-      failValidation(t('offer.cityRequired'), 'city');
+      setError(t('offer.cityRequired'));
       return;
     }
     if (!formData.date) {
-      failValidation(t('offer.dateRequired'), 'date');
+      setError(t('offer.dateRequired'));
       return;
     }
 
@@ -254,7 +239,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
     }
 
     if (!formData.fee || parseFloat(formData.fee) <= 0) {
-      failValidation(t('chat.enterValidFee'), 'fee');
+      setError(t('chat.enterValidFee'));
       return;
     }
 
@@ -263,16 +248,16 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
     if (logisticsRequired) {
       const cap = parseInt(formData.eventCapacity, 10);
       if (!formData.eventCapacity || Number.isNaN(cap) || cap <= 0) {
-        failValidation(t('offer.capacityRequired'), 'eventCapacity');
+        setError(t('offer.capacityRequired'));
         return;
       }
       const rooms = parseInt(formData.eventRoomsCount, 10);
       if (!formData.eventRoomsCount || Number.isNaN(rooms) || rooms <= 0) {
-        failValidation(t('offer.roomsRequired'), 'eventRoomsCount');
+        setError(t('offer.roomsRequired'));
         return;
       }
       if (!formData.eventStage.trim()) {
-        failValidation(t('offer.stageRequired'), 'eventStage');
+        setError(t('offer.stageRequired'));
         return;
       }
     }
@@ -462,7 +447,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
               <h4>{t('offer.artistSelection')}</h4>
 
               <div className="form-group">
-                <label className={labelErrorClass('selectedArtistId')}>{t('offer.selectArtistToBook')} *</label>
+                <label>{t('offer.selectArtistToBook')} *</label>
                 <select
                   value={formData.selectedArtistId}
                   onChange={handleArtistChange}
@@ -495,7 +480,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
             </div>
 
             <div className="form-group">
-              <label className={labelErrorClass('venueName')}>{t('offer.venueName')} *</label>
+              <label>{t('offer.venueName')} *</label>
               {currentUser.role === 'PROMOTER' ? (
                 // Promoters run events in other people's rooms — autocomplete
                 // against TORA venues (links eventVenueId); free text stays
@@ -523,7 +508,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
             </div>
 
             <div className="form-group">
-              <label className={labelErrorClass('city')}>{t('editProfile.city')} *</label>
+              <label>{t('editProfile.city')} *</label>
               <CitySearch
                 key={`city-${geoPrefillKey}`}
                 city={formData.city}
@@ -534,7 +519,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
             </div>
 
             <div className="form-group">
-              <label className={labelErrorClass('date')}>{t('tour.date')} *</label>
+              <label>{t('tour.date')} *</label>
               <input
                 type="date"
                 value={formData.date}
@@ -572,7 +557,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
 
             <div className="form-row">
               <div className="form-group" style={{ flex: 2 }}>
-                <label className={labelErrorClass('fee')}>{t('tour.fee')} *</label>
+                <label>{t('tour.fee')} *</label>
                 <input
                   type="number"
                   step="1"
@@ -765,7 +750,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
 
             <div className="form-row">
               <div className="form-group">
-                <label className={labelErrorClass('eventCapacity')}>{t('offer.eventCapacity')}{logisticsRequired ? ' *' : ''}</label>
+                <label>{t('offer.eventCapacity')}{logisticsRequired ? ' *' : ''}</label>
                 <input
                   type="number"
                   step="1"
@@ -775,11 +760,12 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
                   onWheel={(e) => e.target.blur()}
                   placeholder={t('offer.eventCapacityPlaceholder')}
                   className="form-input"
+                  required={logisticsRequired}
                 />
               </div>
 
               <div className="form-group">
-                <label className={labelErrorClass('eventRoomsCount')}>{t('offer.eventRooms')}{logisticsRequired ? ' *' : ''}</label>
+                <label>{t('offer.eventRooms')}{logisticsRequired ? ' *' : ''}</label>
                 <input
                   type="number"
                   step="1"
@@ -789,18 +775,20 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
                   onWheel={(e) => e.target.blur()}
                   placeholder={t('offer.eventRoomsPlaceholder')}
                   className="form-input"
+                  required={logisticsRequired}
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <label className={labelErrorClass('eventStage')}>{t('offer.eventStage')}{logisticsRequired ? ' *' : ''}</label>
+              <label>{t('offer.eventStage')}{logisticsRequired ? ' *' : ''}</label>
               <input
                 type="text"
                 value={formData.eventStage}
                 onChange={(e) => handleChange('eventStage', e.target.value)}
                 placeholder={t('offer.eventStagePlaceholder')}
                 className="form-input"
+                required={logisticsRequired}
               />
             </div>
 
@@ -918,14 +906,6 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
               />
             </div>
           </div>
-
-          {/* Repeat the validation error right above the CTA so the user
-              doesn't have to scroll back to the top of the modal to read it. */}
-          {error && (
-            <div className="error-message error-message-inline">
-              {error}
-            </div>
-          )}
 
           <div className="make-offer-actions">
             <button type="button" className="btn btn-outline" onClick={onClose} disabled={loading}>
