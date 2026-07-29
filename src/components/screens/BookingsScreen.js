@@ -45,6 +45,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
 
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming', 'past', or 'declined'
   const [deals, setDeals] = useState([]);
+  // Set of deal ids that currently have a pending action for this user —
+  // same source as the Bookings tab dot / Manage action-summary. Drives the
+  // per-card highlight so the user can spot WHICH booking needs attention.
+  const [actionableDealIds, setActionableDealIds] = useState(() => new Set());
   const [loading, setLoading] = useState(true);
   const [actionBusy, setActionBusy] = useState(false);
   const [error, setError] = useState('');
@@ -160,10 +164,22 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     setError('');
 
     try {
-      // Fetch all deals for this user (both sent and received)
-      const response = await apiService.getDeals({ profileId: currentUser.id });
+      // Fetch all deals for this user (both sent and received). In parallel,
+      // pull the action-summary so we know which cards are actionable (same
+      // logic that drives the Bookings tab dot). Failure is non-fatal — the
+      // list still renders, just without highlights.
+      const [response, actionData] = await Promise.all([
+        apiService.getDeals({ profileId: currentUser.id }),
+        apiService.getActionSummary(currentUser.id).catch(() => null),
+      ]);
       setDeals(response.deals || []);
       setHasMoreDeals(!!response.hasMore);
+      const ids = new Set();
+      for (const item of actionData?.items || []) {
+        const dealId = item?.target?.params?.dealId;
+        if (dealId) ids.add(dealId);
+      }
+      setActionableDealIds(ids);
     } catch (err) {
       console.error('Error fetching deals:', err);
       setError(err.message || t('bookings.loadFailed'));
@@ -614,8 +630,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
       : [];
     const hasPendingDocs = pendingDocCategories.length > 0;
 
+    const isActionable = actionableDealIds.has(deal.id);
+
     return (
-      <div key={deal.id} className={`booking-card ${isExpanded ? 'expanded' : ''}`}>
+      <div key={deal.id} className={`booking-card ${isExpanded ? 'expanded' : ''}${isActionable ? ' booking-card-actionable' : ''}`}>
         <div className="booking-date-badge">
           <span className="booking-date-month">
             {dealDate.toLocaleDateString(t('dateFormat.locale'), { month: 'short' })}
