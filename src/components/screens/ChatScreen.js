@@ -2027,6 +2027,24 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     <span className="detail-value">{selectedOffer.paymentTerms}</span>
                   </div>
                 )}
+                {(selectedOffer.depositDeadline || selectedOffer.payment?.depositDeadline) && (
+                  <div className="offer-detail-row">
+                    <span className="detail-label">{t('offer.depositDeadline')}</span>
+                    <span className="detail-value">
+                      {new Date(selectedOffer.depositDeadline || selectedOffer.payment.depositDeadline)
+                        .toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
+                    </span>
+                  </div>
+                )}
+                {(selectedOffer.finalPaymentDeadline || selectedOffer.payment?.finalPaymentDeadline) && (
+                  <div className="offer-detail-row">
+                    <span className="detail-label">{t('offer.finalPaymentDeadline')}</span>
+                    <span className="detail-value">
+                      {new Date(selectedOffer.finalPaymentDeadline || selectedOffer.payment.finalPaymentDeadline)
+                        .toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
+                    </span>
+                  </div>
+                )}
                 {selectedOffer.notes && (
                   <div className="offer-detail-row">
                     <span className="detail-label">{t('chat.notesLabel')}</span>
