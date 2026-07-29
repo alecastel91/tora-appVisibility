@@ -7,6 +7,7 @@ import LimitReachedModal from '../common/LimitReachedModal';
 import apiService from '../../services/api';
 import VerifiedBadge from '../common/VerifiedBadge';
 import ProfileBadges from '../common/ProfileBadges';
+import BioTranslate from '../common/BioTranslate';
 import { useLanguage } from '../../contexts/LanguageContext';
 import {roleLabel, getAvatarClass } from '../../utils/roles';
 import { raProfileUrl } from '../../utils/urls';
@@ -370,6 +371,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
           {profile.bio && (
             <div className="mx-auto mt-6 max-w-md rounded-2xl border border-white/10 bg-[#0c0c11] p-5">
               <p className="m-0 whitespace-pre-wrap text-sm leading-relaxed text-white/75">{profile.bio}</p>
+              <BioTranslate text={profile.bio} />
             </div>
           )}
           {profile.website && (
@@ -581,6 +583,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
                 {bioExpanded ? t('profile.seeLess') : t('profile.seeMore')}
               </button>
             )}
+            <div><BioTranslate text={profile.bio} /></div>
           </div>
         )}
 

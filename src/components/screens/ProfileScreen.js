@@ -14,6 +14,7 @@ import BetaFeedbackScreen from './BetaFeedbackScreen';
 import SearchAgentsModal from '../common/SearchAgentsModal';
 import { RA_LOGO_WHITE } from '../../utils/brandAssets';
 import ProfileBadges from '../common/ProfileBadges';
+import BioTranslate from '../common/BioTranslate';
 import ChatScreen from './ChatScreen';
 import apiService from '../../services/api';
 import { getAvatarClass, roleLabel } from '../../utils/roles';
@@ -679,6 +680,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
       {user?.bio && (
         <div className="rounded-2xl border border-white/10 bg-[#0a0a0e] p-4 mb-5 text-left">
           <p className="text-sm leading-relaxed text-white/70 whitespace-pre-line">{user.bio}</p>
+          <BioTranslate text={user.bio} />
         </div>
       )}
 
