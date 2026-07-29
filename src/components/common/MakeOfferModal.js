@@ -15,6 +15,10 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [representedArtists, setRepresentedArtists] = useState([]);
+  // Bumped whenever geography is prefilled externally (modal open, venue pick)
+  // so the CitySearch input — which reads city/country only on mount —
+  // remounts and reflects the new value.
+  const [geoPrefillKey, setGeoPrefillKey] = useState(0);
 
   // Form state - simplified for Venue/Promoter initial offer
   const [formData, setFormData] = useState({
@@ -37,6 +41,13 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
     notes: '',
     selectedArtistId: '',
     selectedArtistName: '',
+    // Event logistics (venue-facing details)
+    eventCapacity: '',
+    eventRoomsCount: '',
+    eventStage: '',
+    lineup: [''],
+    entranceFee: '',
+    entranceFeeNote: '',
     // Extras
     includeTravelIn: false,
     travelInNote: '',
@@ -71,19 +82,95 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
   }, [isOpen, recipientProfile]);
 
   // A venue making an offer IS the venue — prefill their name (promoters
-  // book many rooms, so they keep typing it). Must run above the early
+  // book many rooms, so they keep typing it) plus their own capacity/rooms.
+  // Also prefill the geography from the initiator's own profile location, and
+  // seed lineup row 0 with the booked artist. Must run above the early
   // return: hooks can never sit after a conditional return.
   useEffect(() => {
-    if (isOpen && currentUser.role === 'VENUE') {
-      setFormData((prev) => (prev.venueName ? prev : { ...prev, venueName: currentUser.name }));
-    }
+    if (!isOpen) return;
+    setFormData((prev) => {
+      const next = { ...prev };
+      if (currentUser.role === 'VENUE') {
+        if (!next.venueName) next.venueName = currentUser.name;
+        if (next.eventCapacity === '' && currentUser.venueCapacity != null) next.eventCapacity = String(currentUser.venueCapacity);
+        if (next.eventRoomsCount === '' && currentUser.venueRooms != null) next.eventRoomsCount = String(currentUser.venueRooms);
+      }
+      // Geography prefill from the initiator's own profile location.
+      if (!next.city && !next.country && currentUser.city && currentUser.country) {
+        next.city = currentUser.city;
+        next.country = currentUser.country;
+        next.zone = currentUser.zone || '';
+      }
+      // Lineup row 0 = the booked artist (direct recipient, or the agent's
+      // chosen artist once picked).
+      const bookedName = recipientProfile.role === 'ARTIST' ? recipientProfile.name : '';
+      if (bookedName && (!next.lineup?.[0] || next.lineup[0] === '')) {
+        next.lineup = [bookedName, ...(next.lineup || []).slice(1)];
+      }
+      return next;
+    });
+    setGeoPrefillKey((k) => k + 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
+  // Keep lineup row 0 in sync with the agent's selected artist.
+  useEffect(() => {
+    if (!isOpen || recipientProfile.role !== 'AGENT') return;
+    setFormData((prev) => {
+      const lineup = [...(prev.lineup || [''])];
+      lineup[0] = formData.selectedArtistName || '';
+      return { ...prev, lineup };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.selectedArtistName]);
+
   if (!isOpen) return null;
+
+  // A venue is "involved" (making capacity/rooms required) when the initiator
+  // is a venue, the recipient is a venue, or a TORA venue was linked.
+  const venueInvolved =
+    currentUser.role === 'VENUE' ||
+    recipientProfile.role === 'VENUE' ||
+    !!formData.eventVenueId;
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Lineup: free-text artist name rows (row 0 is the booked artist).
+  const handleLineupChange = (index, value) => {
+    setFormData((prev) => {
+      const lineup = [...(prev.lineup || [''])];
+      lineup[index] = value;
+      return { ...prev, lineup };
+    });
+  };
+  const addLineupRow = () => {
+    setFormData((prev) => ({ ...prev, lineup: [...(prev.lineup || ['']), ''] }));
+  };
+  const removeLineupRow = (index) => {
+    setFormData((prev) => {
+      const lineup = (prev.lineup || ['']).filter((_, i) => i !== index);
+      return { ...prev, lineup: lineup.length ? lineup : [''] };
+    });
+  };
+
+  // A promoter picking a TORA venue prefills capacity/rooms/location from it.
+  const handleVenuePick = (name, id, venue) => {
+    setFormData((prev) => {
+      const next = { ...prev, venueName: name, eventVenueId: id || '' };
+      if (venue) {
+        if (venue.venueCapacity != null) next.eventCapacity = String(venue.venueCapacity);
+        if (venue.venueRooms != null) next.eventRoomsCount = String(venue.venueRooms);
+        if (venue.city && venue.country) {
+          next.city = venue.city;
+          next.country = venue.country;
+          if (venue.zone) next.zone = venue.zone;
+          setGeoPrefillKey((k) => k + 1);
+        }
+      }
+      return next;
+    });
   };
 
   const handleArtistChange = (e) => {
@@ -156,6 +243,20 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
       return;
     }
 
+    // Event capacity + rooms are required whenever a venue is involved.
+    if (venueInvolved) {
+      const cap = parseInt(formData.eventCapacity, 10);
+      if (!formData.eventCapacity || Number.isNaN(cap) || cap <= 0) {
+        setError(t('offer.capacityRequired'));
+        return;
+      }
+      const rooms = parseInt(formData.eventRoomsCount, 10);
+      if (!formData.eventRoomsCount || Number.isNaN(rooms) || rooms <= 0) {
+        setError(t('offer.roomsRequired'));
+        return;
+      }
+    }
+
     // Validate that set time is within event time
     if (formData.setStartTime && formData.setEndTime && formData.eventStartTime && formData.eventEndTime) {
       const [eventStartHour, eventStartMin] = formData.eventStartTime.split(':').map(Number);
@@ -221,7 +322,17 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
         notes: formData.notes,
         artistId: formData.selectedArtistId || undefined,
         artistName: formData.selectedArtistName || undefined,
-        eventVenueId: formData.eventVenueId || undefined
+        eventVenueId: formData.eventVenueId || undefined,
+        // Event logistics
+        eventCapacity: formData.eventCapacity ? parseInt(formData.eventCapacity, 10) : undefined,
+        eventRoomsCount: formData.eventRoomsCount ? parseInt(formData.eventRoomsCount, 10) : undefined,
+        eventStage: formData.eventStage.trim() || undefined,
+        lineup: (formData.lineup || [])
+          .map((name) => name.trim())
+          .filter(Boolean)
+          .map((name) => ({ name })),
+        entranceFee: formData.entranceFee !== '' ? parseInt(formData.entranceFee, 10) : undefined,
+        entranceFeeNote: formData.entranceFeeNote.trim() || undefined
       };
 
       const response = await apiService.createDeal(dealData);
@@ -256,6 +367,12 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
         notes: '',
         selectedArtistId: '',
         selectedArtistName: '',
+        eventCapacity: '',
+        eventRoomsCount: '',
+        eventStage: '',
+        lineup: [''],
+        entranceFee: '',
+        entranceFeeNote: '',
         includeTravelIn: false,
         travelInNote: '',
         includeTravelOut: false,
@@ -364,7 +481,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
                 <VenueSearch
                   venueName={formData.venueName}
                   venueId={formData.eventVenueId || null}
-                  onSelect={(name, id) => setFormData((prev) => ({ ...prev, venueName: name, eventVenueId: id || '' }))}
+                  onSelect={handleVenuePick}
                 />
               ) : (
                 <input
@@ -381,6 +498,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
             <div className="form-group">
               <label>{t('editProfile.city')} *</label>
               <CitySearch
+                key={`city-${geoPrefillKey}`}
                 city={formData.city}
                 country={formData.country}
                 zone={formData.zone}
@@ -419,6 +537,110 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
                   className="form-input"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h4>{t('offer.eventLogistics')}</h4>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>{t('offer.eventCapacity')}{venueInvolved ? ' *' : ''}</label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={formData.eventCapacity}
+                  onChange={(e) => handleChange('eventCapacity', e.target.value)}
+                  onWheel={(e) => e.target.blur()}
+                  placeholder={t('offer.eventCapacityPlaceholder')}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t('offer.eventRooms')}{venueInvolved ? ' *' : ''}</label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={formData.eventRoomsCount}
+                  onChange={(e) => handleChange('eventRoomsCount', e.target.value)}
+                  onWheel={(e) => e.target.blur()}
+                  placeholder={t('offer.eventRoomsPlaceholder')}
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>{t('offer.eventStage')}</label>
+              <input
+                type="text"
+                value={formData.eventStage}
+                onChange={(e) => handleChange('eventStage', e.target.value)}
+                placeholder={t('offer.eventStagePlaceholder')}
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>{t('offer.lineup')}</label>
+              {(formData.lineup || ['']).map((name, i) => (
+                <div key={i} className="flex items-center gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => handleLineupChange(i, e.target.value)}
+                    placeholder={i === 0 ? t('offer.lineupHeadlinerPlaceholder') : t('offer.lineupPlaceholder')}
+                    className="form-input flex-1"
+                  />
+                  {i > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => removeLineupRow(i)}
+                      aria-label={t('offer.removeArtist')}
+                      className="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-[#0c0c11] border border-white/10 text-white/50 hover:text-infrared hover:border-infrared/40 cursor-pointer transition-colors"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addLineupRow}
+                className="mt-1 bg-transparent border-none p-0 text-xs text-infrared/90 hover:text-infrared cursor-pointer font-tech transition-colors"
+              >
+                + {t('offer.addArtist')}
+              </button>
+            </div>
+
+            <div className="form-group">
+              <label>{t('offer.entranceFee')} ({formData.currency})</label>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                value={formData.entranceFee}
+                onChange={(e) => handleChange('entranceFee', e.target.value)}
+                onWheel={(e) => e.target.blur()}
+                placeholder={t('offer.entranceFeePlaceholder')}
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>{t('offer.entranceFeeNote')}</label>
+              <input
+                type="text"
+                value={formData.entranceFeeNote}
+                onChange={(e) => handleChange('entranceFeeNote', e.target.value)}
+                placeholder={t('offer.entranceFeeNotePlaceholder')}
+                className="form-input"
+              />
             </div>
           </div>
 

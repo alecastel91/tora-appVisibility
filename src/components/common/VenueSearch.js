@@ -55,7 +55,7 @@ const VenueSearch = ({ venueName, venueId, onSelect }) => {
   };
 
   const pick = (v) => {
-    onSelect(v.name, v.id);
+    onSelect(v.name, v.id, v); // pass the full result so callers can prefill capacity/rooms/location
     setQuery(v.name);
     setResults([]);
     setOpen(false);
