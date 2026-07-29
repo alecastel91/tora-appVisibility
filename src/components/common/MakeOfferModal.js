@@ -47,6 +47,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
     eventStage: '',
     lineup: [''],
     entranceFee: '',
+    entranceFeeCurrency: '',
     entranceFeeNote: '',
     // Extras
     includeTravelIn: false,
@@ -255,6 +256,10 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
         setError(t('offer.roomsRequired'));
         return;
       }
+      if (!formData.eventStage.trim()) {
+        setError(t('offer.stageRequired'));
+        return;
+      }
     }
 
     // Validate that set time is within event time
@@ -332,6 +337,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
           .filter(Boolean)
           .map((name) => ({ name })),
         entranceFee: formData.entranceFee !== '' ? parseInt(formData.entranceFee, 10) : undefined,
+        entranceFeeCurrency: formData.entranceFee !== '' ? (formData.entranceFeeCurrency || formData.currency) : undefined,
         entranceFeeNote: formData.entranceFeeNote.trim() || undefined
       };
 
@@ -372,6 +378,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
         eventStage: '',
         lineup: [''],
         entranceFee: '',
+        entranceFeeCurrency: '',
         entranceFeeNote: '',
         includeTravelIn: false,
         travelInNote: '',
@@ -493,6 +500,11 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
                   required
                 />
               )}
+              {!!formData.eventVenueId && (
+                <p className="m-0 mt-2 text-xs leading-relaxed text-infrared/90">
+                  {t('offer.venueConfirmDisclaimer')}
+                </p>
+              )}
             </div>
 
             <div className="form-group">
@@ -537,110 +549,6 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
                   className="form-input"
                 />
               </div>
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h4>{t('offer.eventLogistics')}</h4>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>{t('offer.eventCapacity')}{venueInvolved ? ' *' : ''}</label>
-                <input
-                  type="number"
-                  step="1"
-                  min="0"
-                  value={formData.eventCapacity}
-                  onChange={(e) => handleChange('eventCapacity', e.target.value)}
-                  onWheel={(e) => e.target.blur()}
-                  placeholder={t('offer.eventCapacityPlaceholder')}
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>{t('offer.eventRooms')}{venueInvolved ? ' *' : ''}</label>
-                <input
-                  type="number"
-                  step="1"
-                  min="0"
-                  value={formData.eventRoomsCount}
-                  onChange={(e) => handleChange('eventRoomsCount', e.target.value)}
-                  onWheel={(e) => e.target.blur()}
-                  placeholder={t('offer.eventRoomsPlaceholder')}
-                  className="form-input"
-                />
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>{t('offer.eventStage')}</label>
-              <input
-                type="text"
-                value={formData.eventStage}
-                onChange={(e) => handleChange('eventStage', e.target.value)}
-                placeholder={t('offer.eventStagePlaceholder')}
-                className="form-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>{t('offer.lineup')}</label>
-              {(formData.lineup || ['']).map((name, i) => (
-                <div key={i} className="flex items-center gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => handleLineupChange(i, e.target.value)}
-                    placeholder={i === 0 ? t('offer.lineupHeadlinerPlaceholder') : t('offer.lineupPlaceholder')}
-                    className="form-input flex-1"
-                  />
-                  {i > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => removeLineupRow(i)}
-                      aria-label={t('offer.removeArtist')}
-                      className="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-[#0c0c11] border border-white/10 text-white/50 hover:text-infrared hover:border-infrared/40 cursor-pointer transition-colors"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                        <path d="M18 6L6 18M6 6l12 12"/>
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addLineupRow}
-                className="mt-1 bg-transparent border-none p-0 text-xs text-infrared/90 hover:text-infrared cursor-pointer font-tech transition-colors"
-              >
-                + {t('offer.addArtist')}
-              </button>
-            </div>
-
-            <div className="form-group">
-              <label>{t('offer.entranceFee')} ({formData.currency})</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={formData.entranceFee}
-                onChange={(e) => handleChange('entranceFee', e.target.value)}
-                onWheel={(e) => e.target.blur()}
-                placeholder={t('offer.entranceFeePlaceholder')}
-                className="form-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>{t('offer.entranceFeeNote')}</label>
-              <input
-                type="text"
-                value={formData.entranceFeeNote}
-                onChange={(e) => handleChange('entranceFeeNote', e.target.value)}
-                placeholder={t('offer.entranceFeeNotePlaceholder')}
-                className="form-input"
-              />
             </div>
           </div>
 
@@ -834,6 +742,123 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess }) => {
                   {setDuration > 0 ? t('offer.durationMinutes', { n: setDuration }) : '--'}
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h4>{t('offer.eventLogistics')}</h4>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>{t('offer.eventCapacity')}{venueInvolved ? ' *' : ''}</label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={formData.eventCapacity}
+                  onChange={(e) => handleChange('eventCapacity', e.target.value)}
+                  onWheel={(e) => e.target.blur()}
+                  placeholder={t('offer.eventCapacityPlaceholder')}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t('offer.eventRooms')}{venueInvolved ? ' *' : ''}</label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={formData.eventRoomsCount}
+                  onChange={(e) => handleChange('eventRoomsCount', e.target.value)}
+                  onWheel={(e) => e.target.blur()}
+                  placeholder={t('offer.eventRoomsPlaceholder')}
+                  className="form-input"
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>{t('offer.eventStage')}{venueInvolved ? ' *' : ''}</label>
+              <input
+                type="text"
+                value={formData.eventStage}
+                onChange={(e) => handleChange('eventStage', e.target.value)}
+                placeholder={t('offer.eventStagePlaceholder')}
+                className="form-input"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>{t('offer.lineup')}</label>
+              {(formData.lineup || ['']).map((name, i) => (
+                <div key={i} className="flex items-center gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => handleLineupChange(i, e.target.value)}
+                    placeholder={i === 0 ? t('offer.lineupHeadlinerPlaceholder') : t('offer.lineupPlaceholder')}
+                    className="form-input flex-1"
+                  />
+                  {i > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => removeLineupRow(i)}
+                      aria-label={t('offer.removeArtist')}
+                      className="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-[#0c0c11] border border-white/10 text-white/50 hover:text-infrared hover:border-infrared/40 cursor-pointer transition-colors"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addLineupRow}
+                className="mt-1 bg-transparent border-none p-0 text-xs text-infrared/90 hover:text-infrared cursor-pointer font-tech transition-colors"
+              >
+                + {t('offer.addArtist')}
+              </button>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group" style={{ flex: 2 }}>
+                <label>{t('offer.tickets')}</label>
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={formData.entranceFee}
+                  onChange={(e) => handleChange('entranceFee', e.target.value)}
+                  onWheel={(e) => e.target.blur()}
+                  placeholder={t('offer.entranceFeePlaceholder')}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>{t('chat.currency')}</label>
+                <select
+                  value={formData.entranceFeeCurrency || formData.currency}
+                  onChange={(e) => handleChange('entranceFeeCurrency', e.target.value)}
+                  className="form-input"
+                >
+{CURRENCY_OPTIONS}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>{t('offer.entranceFeeNote')}</label>
+              <input
+                type="text"
+                value={formData.entranceFeeNote}
+                onChange={(e) => handleChange('entranceFeeNote', e.target.value)}
+                placeholder={t('offer.entranceFeeNotePlaceholder')}
+                className="form-input"
+              />
             </div>
           </div>
 
