@@ -150,6 +150,14 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
+  // A top-menu overlay (Settings/Premium/Achievements) is opening — dismiss a
+  // docked Make-an-Offer so it never renders over the overlay.
+  useEffect(() => {
+    const close = () => setShowMakeOfferModal(false);
+    window.addEventListener('tora:close-docked-offer', close);
+    return () => window.removeEventListener('tora:close-docked-offer', close);
+  }, []);
+
   // A viewed calendar-match can disappear on refetch — clear the stale id so
   // the pane doesn't pop back open when a later fetch re-includes it.
   useEffect(() => {

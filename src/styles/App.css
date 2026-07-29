@@ -2000,7 +2000,10 @@
   right: 0;
   bottom: 0;
   background: #000000;
-  z-index: 1000;
+  /* Above the Make-an-Offer / chat docked overlays (z-2000) so a top-menu
+     overlay always prevails — nothing docks over Settings/Premium/Achievements
+     (which reuse .settings-screen). */
+  z-index: 3000;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -6057,7 +6060,8 @@
   right: 0;
   bottom: 0;
   background: #000000;
-  z-index: 1000;
+  /* Prevail over docked Make-an-Offer / chat overlays (z-2000). */
+  z-index: 3000;
   display: flex;
   flex-direction: column;
   overflow-y: auto;

@@ -61,6 +61,12 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
   // Active tours for artist profiles (Tour Kickstart entry point, roadmap 6a)
   const [artistTours, setArtistTours] = useState([]);
   const [showTourOffer, setShowTourOffer] = useState(false);
+  // Dismiss a docked Make-an-Offer when a top-menu overlay opens (item 5).
+  useEffect(() => {
+    const close = () => setShowTourOffer(false);
+    window.addEventListener('tora:close-docked-offer', close);
+    return () => window.removeEventListener('tora:close-docked-offer', close);
+  }, []);
   const [listModal, setListModal] = useState(null); // 'liked' | 'likes' | 'connections'
   const [listData, setListData] = useState({});
   const [likers, setLikers] = useState(null); // eager — powers the liked-by line

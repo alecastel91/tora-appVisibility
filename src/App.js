@@ -122,6 +122,19 @@ function App() {
   const [showPremium, setShowPremium] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [showSubscription, setShowSubscription] = useState(false);
+
+  // Top-menu overlays (Settings / Premium / Achievements) must prevail over
+  // any docked panel. Opening one closes the docked chat (which unmounts its
+  // in-panel Make-an-Offer modal) and broadcasts a close signal so a docked
+  // offer opened from Tour/ViewProfile dismisses too — no panel is left
+  // rendering over the overlay.
+  const openTopOverlay = (open) => {
+    setActiveChatUser(null);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('tora:close-docked-offer'));
+    }
+    open();
+  };
   const [selectedPlan, setSelectedPlan] = useState(null);
   // Agent per-seat detail ({ seats, amount, priceLabel, perMonthLabel }) so the
   // summary shows the roster-based price instead of the personal-tier default.
@@ -173,7 +186,7 @@ function App() {
 
   // Open the Premium screen from anywhere (e.g. the agent at-cap modal).
   useEffect(() => {
-    const openPremium = () => setShowPremium(true);
+    const openPremium = () => openTopOverlay(() => setShowPremium(true));
     window.addEventListener('tora:open-premium', openPremium);
     return () => window.removeEventListener('tora:open-premium', openPremium);
   }, []);
@@ -565,9 +578,9 @@ function App() {
         <BetaTools />
       <AppDialogHost />
         <Header
-          onOpenSettings={() => setShowSettings(true)}
-          onOpenPremium={() => setShowPremium(true)}
-          onOpenAchievements={() => setShowAchievements(true)}
+          onOpenSettings={() => openTopOverlay(() => setShowSettings(true))}
+          onOpenPremium={() => openTopOverlay(() => setShowPremium(true))}
+          onOpenAchievements={() => openTopOverlay(() => setShowAchievements(true))}
           accountUser={accountUser}
           onSwitchTab={switchTab}
           activeTab={activeTab}
