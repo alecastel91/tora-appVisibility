@@ -72,8 +72,6 @@ function App() {
     }
     setActiveTab(tab);
     setMountedTabs((prev) => (prev.includes(tab) ? prev : [...prev, tab]));
-    // Opening Bookings clears its notification dot until a new action arrives.
-    if (tab === 'bookings') setBookingsDotDismissed(true);
     closeAllOverlays();
   };
 
@@ -142,13 +140,12 @@ function App() {
   const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadProposalsCount, setUnreadProposalsCount] = useState(0);
-  // Bookings tab notification dot: count of actionable booking items (pending
-  // offers, counters, contracts to sign/send, payments to mark/confirm). The
-  // dot is dismissed when the user opens Bookings and re-appears only when the
-  // count grows (a new actionable item arrived) — mirrors the Messages badge.
+  // Bookings tab notification dot: shows whenever there are pending booking
+  // actions (offers, counters, contracts to sign/send, payments to mark/confirm)
+  // and the user isn't currently on the Bookings tab. It persists until those
+  // actions are actually handled (the count drops to 0), so a still-unhandled
+  // item keeps signalling instead of vanishing after one glance.
   const [bookingsActionCount, setBookingsActionCount] = useState(0);
-  const [bookingsDotDismissed, setBookingsDotDismissed] = useState(false);
-  const prevBookingsActionCountRef = useRef(0);
   const [preferredCurrency, setPreferredCurrency] = useState('USD');
   const [accountUser, setAccountUser] = useState(null); // Account-level user data (email, currency, etc)
   const { t, language, changeLanguage, availableLanguages } = useLanguage();
@@ -278,11 +275,6 @@ function App() {
             (bt.payment_to_mark_sent || 0) +
             (bt.payment_to_confirm_received || 0);
           setBookingsActionCount(bookingCount);
-          // A newly-arrived actionable item re-surfaces a dismissed dot.
-          if (bookingCount > prevBookingsActionCountRef.current) {
-            setBookingsDotDismissed(false);
-          }
-          prevBookingsActionCountRef.current = bookingCount;
         }
       } catch (error) {
         console.error('Error fetching unread count:', error);
@@ -608,7 +600,7 @@ function App() {
             }}
           />
         )}
-        <TabBar activeTab={activeTab} onTabChange={switchTab} unreadMessagesCount={unreadMessagesCount} unreadProposalsCount={unreadProposalsCount} bookingsHasDot={bookingsActionCount > 0 && !bookingsDotDismissed} />
+        <TabBar activeTab={activeTab} onTabChange={switchTab} unreadMessagesCount={unreadMessagesCount} unreadProposalsCount={unreadProposalsCount} bookingsHasDot={bookingsActionCount > 0 && activeTab !== 'bookings'} />
         
         {/* Achievements Screen */}
         {showAchievements && (
