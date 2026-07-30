@@ -369,7 +369,6 @@ const zh = {
     notesLabel: '备注：',
     additionalTermsLabel: '附加条款：',
     technicalLabel: '技术：',
-    paymentTermsLabel: '付款条款：',
     declineReasonLabel: '请填写拒绝原因：',
     declineReasonPlaceholder: '在此输入原因...',
     submit: '提交',

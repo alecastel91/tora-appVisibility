@@ -28,7 +28,7 @@ function validatePaymentProof(file) {
   return null;
 }
 
-const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) => {
+const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onActionCountChange }) => {
   const { t } = useLanguage();
   const { user: currentUser, reloadProfileData } = useAppContext();
   const getFullUrl = (url) => getAuthedBackendUrl(url, currentUser?.id);
@@ -185,6 +185,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
         if (dealId) ids.add(dealId);
       }
       setActionableDealIds(ids);
+      // Keep the tab-bar dot in sync with this authoritative refetch (runs on
+      // load and after every action), so handling the last action clears the
+      // dot immediately instead of lingering until the next 30s poll.
+      onActionCountChange?.(ids.size);
     } catch (err) {
       console.error('Error fetching deals:', err);
       setError(err.message || t('bookings.loadFailed'));

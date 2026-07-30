@@ -369,7 +369,6 @@ const ko = {
     notesLabel: '메모:',
     additionalTermsLabel: '추가 조건:',
     technicalLabel: '테크니컬:',
-    paymentTermsLabel: '결제 조건:',
     declineReasonLabel: '거절 사유를 입력해 주세요:',
     declineReasonPlaceholder: '사유를 입력하세요...',
     submit: '보내기',

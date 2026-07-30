@@ -369,7 +369,6 @@ const fr = {
     notesLabel: 'Notes :',
     additionalTermsLabel: 'Conditions supplémentaires :',
     technicalLabel: 'Technique :',
-    paymentTermsLabel: 'Conditions de paiement :',
     declineReasonLabel: 'Indiquez le motif du refus :',
     declineReasonPlaceholder: 'Saisissez le motif ici...',
     submit: 'Envoyer',

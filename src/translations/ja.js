@@ -369,7 +369,6 @@ const ja = {
     notesLabel: '備考：',
     additionalTermsLabel: '追加条件：',
     technicalLabel: 'テクニカル：',
-    paymentTermsLabel: '支払い条件：',
     declineReasonLabel: '辞退の理由を入力してください：',
     declineReasonPlaceholder: '理由を入力...',
     submit: '送信',

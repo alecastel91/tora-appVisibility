@@ -369,7 +369,6 @@ const en = {
     notesLabel: 'Notes:',
     additionalTermsLabel: 'Additional Terms:',
     technicalLabel: 'Technical:',
-    paymentTermsLabel: 'Payment Terms:',
     declineReasonLabel: 'Please provide a reason for declining:',
     declineReasonPlaceholder: 'Enter your reason here...',
     submit: 'Submit',

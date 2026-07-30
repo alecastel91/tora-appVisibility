@@ -437,7 +437,7 @@ function App() {
     search: <SearchScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => switchTab('messages')} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} />,
     news: <NewsScreen onOpenProfile={(profile) => setViewingProfile(profile)} onOpenPremium={() => setShowPremium(true)} />,
     tour: <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => switchTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} isActive={activeTab === 'tour'} />,
-    bookings: <BookingsScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => switchTab('messages')} isActive={activeTab === 'bookings'} />,
+    bookings: <BookingsScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => switchTab('messages')} isActive={activeTab === 'bookings'} onActionCountChange={setBookingsActionCount} />,
     // chatOpen (not a key remount): MessagesScreen refetches once when a
     // chat closes, to pick up read-state changes. A key here remounted the
     // permanently-mounted screen twice per chat session.

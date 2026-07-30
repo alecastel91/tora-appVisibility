@@ -369,7 +369,6 @@ const it = {
     notesLabel: 'Note:',
     additionalTermsLabel: 'Condizioni aggiuntive:',
     technicalLabel: 'Tecnica:',
-    paymentTermsLabel: 'Condizioni di pagamento:',
     declineReasonLabel: 'Indica il motivo del rifiuto:',
     declineReasonPlaceholder: 'Scrivi qui il motivo...',
     submit: 'Invia',
