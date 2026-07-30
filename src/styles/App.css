@@ -1524,7 +1524,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1000;
+  /* Modals are the topmost layer — above the docked panels (z-2000) AND the
+     Settings/Premium/Achievements overlays (z-3000), so a modal opened FROM
+     one of those screens (e.g. the subscription checkout) isn't hidden behind
+     it. Stays below the global alert/confirm dialog host (z-9999). */
+  z-index: 3100;
   background: rgba(0, 0, 0, 0.7);
 }
 
@@ -1541,7 +1545,8 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.8);
-  z-index: 1001;
+  /* topmost modal layer — above the z-3000 Settings/Premium overlays */
+  z-index: 3100;
 }
 
 /* Obsidian Neon glass panel: translucent near-black + heavy backdrop blur. */
@@ -9200,7 +9205,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1001;
+  /* topmost modal layer — above the z-3000 Settings/Premium overlays */
+  z-index: 3100;
   overflow-y: auto;
   padding: 20px;
 }
