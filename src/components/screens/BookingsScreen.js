@@ -48,12 +48,9 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
   // Set of deal ids that currently have a pending action for this user —
   // same source as the Bookings tab dot / Manage action-summary. Drives the
   // per-card highlight so the user can spot WHICH booking needs attention.
+  // Reflects the CURRENT pending actions on every load, so a card keeps its
+  // highlight until the action is handled (matches the persistent tab dot).
   const [actionableDealIds, setActionableDealIds] = useState(() => new Set());
-  // Deal ids whose highlight the user has already seen (i.e. was on the tab
-  // while they were highlighted, then left). A highlight is a transient "these
-  // need attention now" cue — once the user leaves Bookings it clears and the
-  // reveal-refetch won't light it up again, until a genuinely NEW action lands.
-  const seenActionableRef = useRef(new Set());
   const [loading, setLoading] = useState(true);
   const [actionBusy, setActionBusy] = useState(false);
   const [error, setError] = useState('');
@@ -115,14 +112,6 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
     if (isActive && staleRef.current) {
       staleRef.current = false;
       fetchDeals();
-    }
-    // Leaving the tab: the currently-highlighted cards are now "seen" — remember
-    // them and clear the highlight so returning doesn't re-light the same cards.
-    if (!isActive) {
-      setActionableDealIds((prev) => {
-        prev.forEach((id) => seenActionableRef.current.add(id));
-        return prev.size ? new Set() : prev;
-      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
@@ -187,16 +176,15 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true }) =
       ]);
       setDeals(response.deals || []);
       setHasMoreDeals(!!response.hasMore);
+      // Every deal that currently needs the user's action — highlight them all,
+      // so a card keeps its glow until the action is handled (the set shrinks on
+      // the next refetch once it's resolved).
       const ids = new Set();
       for (const item of actionData?.items || []) {
         const dealId = item?.target?.params?.dealId;
         if (dealId) ids.add(dealId);
       }
-      // Only highlight actions the user hasn't already seen highlighted (see
-      // seenActionableRef) — so a card lights up when its action first appears,
-      // not every time the list refetches.
-      const fresh = new Set([...ids].filter((id) => !seenActionableRef.current.has(id)));
-      setActionableDealIds(fresh);
+      setActionableDealIds(ids);
     } catch (err) {
       console.error('Error fetching deals:', err);
       setError(err.message || t('bookings.loadFailed'));
