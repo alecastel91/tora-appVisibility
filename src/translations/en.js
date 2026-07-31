@@ -636,6 +636,17 @@ const en = {
   },
 
   tour: {
+    imInterested: "I'm interested",
+    interested: 'Interested',
+    interestedCount: 'Interested',
+    interestedCountPublic: '{{n}} interested',
+    interestedList: 'Interested promoters & venues',
+    noInterestsYet: 'No interest yet — check back soon',
+    inviteToOffer: 'Invite to offer',
+    invited: 'Invited',
+    interestFailed: "Couldn't update interest — try again",
+    inviteFailed: "Couldn't send the invitation — try again",
+    loadInterestsFailed: "Couldn't load the interested list",
     artist: 'Artist',
     allArtists: 'All Artists',
     hideFeeYearlyNote: 'Hide fee is a Yearly feature — upgrade to keep your fee private.',

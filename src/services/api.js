@@ -1124,6 +1124,35 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // TOUR INTEREST ENDPOINTS
+  async toggleTourInterest(tourId, profileId) {
+    const response = await fetch(`${API_URL}/tours/${tourId}/interest`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async getTourInterests(tourId) {
+    const response = await fetch(`${API_URL}/tours/${tourId}/interests`, {
+      method: 'GET',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
+  async inviteTourInterest(tourId, interestId) {
+    const response = await fetch(`${API_URL}/tours/${tourId}/interests/${interestId}/invite`, {
+      method: 'POST',
+      headers: this.getHeaders()
+    });
+
+    return this.handleResponse(response);
+  }
+
   // TOUR PROPOSAL ENDPOINTS
   async createTourProposal(tourId, proposalData) {
     const response = await fetch(`${API_URL}/tours/${tourId}/proposals`, {

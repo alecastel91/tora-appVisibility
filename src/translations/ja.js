@@ -636,6 +636,17 @@ const ja = {
   },
 
   tour: {
+    imInterested: '興味を示す',
+    interested: '興味あり',
+    interestedCount: '興味あり',
+    interestedCountPublic: '{{n}}件の興味あり',
+    interestedList: '興味を示したプロモーター・会場',
+    noInterestsYet: 'まだ興味を示した人はいません — また確認してください',
+    inviteToOffer: 'オファーを依頼',
+    invited: '招待済み',
+    interestFailed: '興味の更新に失敗しました — もう一度お試しください',
+    inviteFailed: '招待の送信に失敗しました — もう一度お試しください',
+    loadInterestsFailed: '興味リストを読み込めませんでした',
     artist: 'アーティスト',
     allArtists: 'すべてのアーティスト',
     hideFeeYearlyNote: '料金の非表示はYearly限定機能です。アップグレードすると料金を非公開にできます。',

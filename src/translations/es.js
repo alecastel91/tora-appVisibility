@@ -636,6 +636,17 @@ const es = {
   },
 
   tour: {
+    imInterested: 'Me interesa',
+    interested: 'Interesado',
+    interestedCount: 'Interesados',
+    interestedCountPublic: '{{n}} interesados',
+    interestedList: 'Promotores y salas interesados',
+    noInterestsYet: 'Aún no hay interesados — vuelve pronto',
+    inviteToOffer: 'Invitar a ofertar',
+    invited: 'Invitado',
+    interestFailed: 'No se pudo actualizar el interés — inténtalo de nuevo',
+    inviteFailed: 'No se pudo enviar la invitación — inténtalo de nuevo',
+    loadInterestsFailed: 'No se pudieron cargar los interesados',
     artist: 'Artista',
     allArtists: 'Todos los artistas',
     hideFeeYearlyNote: 'Ocultar el caché es una función Yearly: mejora tu plan para mantenerlo privado.',

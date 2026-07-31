@@ -27,6 +27,12 @@ const TYPE_TO_TAB = {
   NEW_MESSAGE: 'messages',
   // Yearly travel alerts: a liked artist scheduled travel to your city.
   TRAVEL_ALERT: 'search',
+  // Tour interest: appetite signal on a tour (owner) / invite to offer (booker)
+  TOUR_INTEREST: 'tour',
+  TOUR_INTEREST_INVITE: 'tour',
+  TOUR_PROPOSAL: 'tour',
+  TOUR_PROPOSAL_ACCEPTED: 'tour',
+  TOUR_PROPOSAL_DECLINED: 'tour',
   // News feed
   CONNECTION_POSTED: 'news',
   OFFICIAL_POST: 'news',

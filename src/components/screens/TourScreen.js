@@ -5,7 +5,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import ViewProfileScreen from './ViewProfileScreen';
 import MakeOfferModal from '../common/MakeOfferModal';
-import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon } from '../../utils/icons';
+import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon, HeartIcon } from '../../utils/icons';
 import apiService from '../../services/api';
 import LoadingGlobe from '../common/LoadingGlobe';
 import { citiesByCountry, countriesByZone, genresList } from '../../data/profiles';
@@ -167,6 +167,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const [tourGigs, setTourGigs] = useState([]);
   const [loadingTourGigs, setLoadingTourGigs] = useState(false);
   const [tourBusy, setTourBusy] = useState(false);
+  // Tour interest: owner-side interested list + invite state
+  const [showInterestsModal, setShowInterestsModal] = useState(false);
+  const [tourInterests, setTourInterests] = useState([]);
+  const [loadingInterests, setLoadingInterests] = useState(false);
+  const [invitingInterestId, setInvitingInterestId] = useState(null);
 
   // Generate month/year options starting from current month for next 12 months
   const generateMonthOptions = () => {
@@ -899,6 +904,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     setShowTourGigsModal(false);
     setShowMyProposalModal(false);
     setShowMakeOfferModal(false);
+    setShowInterestsModal(false);
     setSelectedTourArtist(null);
     setViewingProfile(null);
   };
@@ -919,6 +925,63 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       appAlert(t('tour.loadGigsFailed'));
     } finally {
       setLoadingTourGigs(false);
+    }
+  };
+
+  // Owner opens the interested-list (the market-appetite map)
+  const handleViewInterests = async (tour) => {
+    setSelectedTour(tour);
+    closeTourPanes();
+    setShowInterestsModal(true);
+    setLoadingInterests(true);
+    setTourInterests([]);
+    try {
+      const response = await apiService.getTourInterests(tour.id);
+      setTourInterests(response.interests || []);
+    } catch (error) {
+      console.error('Error fetching tour interests:', error);
+      appAlert(t('tour.loadInterestsFailed'));
+    } finally {
+      setLoadingInterests(false);
+    }
+  };
+
+  // Owner invites an interested promoter/venue to make a real offer
+  const handleInviteInterest = async (interest) => {
+    if (invitingInterestId) return;
+    setInvitingInterestId(interest.id);
+    try {
+      const res = await apiService.inviteTourInterest(interest.tourId, interest.id);
+      const invitedAt = res.invitedAt || new Date().toISOString();
+      setTourInterests((prev) => prev.map((i) => (i.id === interest.id ? { ...i, invitedAt } : i)));
+    } catch (error) {
+      console.error('Error inviting interest:', error);
+      appAlert(t('tour.inviteFailed'));
+    } finally {
+      setInvitingInterestId(null);
+    }
+  };
+
+  // Promoter/venue toggles "I'm interested" on a tour card — optimistic,
+  // mirrors AppContext.toggleLike (flip, call, revert on error).
+  const handleToggleInterest = async (tour) => {
+    const patch = (on, delta) => setAllTours((prev) => prev.map((tt) => (
+      tt.id === tour.id
+        ? { ...tt, myInterest: on, interestsCount: Math.max(0, (tt.interestsCount || 0) + delta) }
+        : tt
+    )));
+    const turningOn = !tour.myInterest;
+    patch(turningOn, turningOn ? 1 : -1);
+    try {
+      const res = await apiService.toggleTourInterest(tour.id, user.id);
+      // Server is authoritative on the count (handles races)
+      setAllTours((prev) => prev.map((tt) => (
+        tt.id === tour.id ? { ...tt, myInterest: res.interested, interestsCount: res.interestsCount } : tt
+      )));
+    } catch (error) {
+      console.error('Error toggling tour interest:', error);
+      patch(!turningOn, turningOn ? -1 : 1);
+      appAlert(t('tour.interestFailed'));
     }
   };
 
@@ -1436,8 +1499,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                       </span>
                     </div>
 
-                    {/* Console: gigs + revenue tiles */}
-                    <div className="grid grid-cols-2 gap-2.5 mb-3">
+                    {/* Console: gigs + interest + revenue tiles */}
+                    <div className="grid grid-cols-3 gap-2.5 mb-3">
                       <div className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5">
                         <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
                           {tour.confirmedGigs || 0}
@@ -1446,6 +1509,19 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           {t('tour.gigsConfirmed')}
                         </p>
                       </div>
+                      {/* Market appetite: tap opens the named interested-list */}
+                      <button
+                        type="button"
+                        onClick={() => handleViewInterests(tour)}
+                        className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5 text-left cursor-pointer transition-colors hover:border-infrared/40"
+                      >
+                        <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
+                          {tour.interestsCount || 0}
+                        </p>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
+                          {t('tour.interestedCount')}
+                        </p>
+                      </button>
                       <div className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5">
                         <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
                           {Math.round(tour.totalRevenue || 0).toLocaleString()}
@@ -1747,6 +1823,13 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                             <span className="tour-stat-value">{tour.priceOnRequest ? t('tour.priceOnRequest') : tour.feeExpectation}</span>
                           </div>
                         )}
+                        {(tour.interestsCount || 0) > 0 && (
+                          <div className="tour-stat">
+                            <span className="tour-stat-value text-infrared">
+                              {t('tour.interestedCountPublic', { n: tour.interestsCount })}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       {tour.artist?.genres && tour.artist.genres.length > 0 && (
                         <div className="tour-genres">
@@ -1780,6 +1863,14 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           {t('tour.makeAnOffer')}
                         </button>
                       )}
+                      {/* Lightweight appetite signal — free, precedes an offer */}
+                      <button
+                        className={`btn btn-small ${tour.myInterest ? 'btn-liked' : 'btn-outline'}`}
+                        onClick={() => handleToggleInterest(tour)}
+                      >
+                        <HeartIcon filled={!!tour.myInterest} />{' '}
+                        {tour.myInterest ? t('tour.interested') : t('tour.imInterested')}
+                      </button>
                       <button
                         className="btn btn-outline btn-small"
                         onClick={async () => {
@@ -2131,6 +2222,80 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowTourGigsModal(false)}>
+                {t('common.close')}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Tour Interests Modal — the owner's market-appetite map */}
+      {showInterestsModal && selectedTour && ReactDOM.createPortal(
+        <div className="modal-overlay md-drawer" onClick={() => setShowInterestsModal(false)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{t('tour.interestedList')}</h3>
+              <button className="modal-close" onClick={() => setShowInterestsModal(false)}>×</button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: '500px', overflowY: 'auto' }}>
+              {loadingInterests ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(255,255,255,0.5)' }}>
+                  <LoadingGlobe label="" size={44} />
+                </div>
+              ) : tourInterests.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(255,255,255,0.5)' }}>
+                  <p>{t('tour.noInterestsYet')}</p>
+                </div>
+              ) : (
+                <div>
+                  {tourInterests.map((interest) => (
+                    <div
+                      key={interest.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '12px',
+                        background: '#101015', borderRadius: '12px', padding: '12px 14px',
+                        marginBottom: '10px', border: '1px solid rgba(255,255,255,0.08)',
+                      }}
+                    >
+                      <div style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontWeight: 700 }}>
+                        {interest.profile?.avatar
+                          ? <img src={interest.profile.avatar} alt={interest.profile.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : (interest.profile?.name || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {interest.profile?.name}
+                        </p>
+                        <p style={{ margin: '2px 0 0', fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>
+                          {[interest.profile?.role, interest.profile?.city].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
+                      {interest.invitedAt ? (
+                        <span style={{
+                          fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em',
+                          color: '#4CAF50', border: '1px solid rgba(76,175,80,0.4)',
+                          borderRadius: '999px', padding: '4px 10px', flexShrink: 0,
+                        }}>
+                          {t('tour.invited')}
+                        </span>
+                      ) : (
+                        <button
+                          className="btn btn-primary btn-small"
+                          style={{ flexShrink: 0 }}
+                          disabled={invitingInterestId === interest.id}
+                          onClick={() => handleInviteInterest(interest)}
+                        >
+                          {invitingInterestId === interest.id ? '...' : t('tour.inviteToOffer')}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowInterestsModal(false)}>
                 {t('common.close')}
               </button>
             </div>

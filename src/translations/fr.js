@@ -636,6 +636,17 @@ const fr = {
   },
 
   tour: {
+    imInterested: "Ça m'intéresse",
+    interested: 'Intéressé',
+    interestedCount: 'Intéressés',
+    interestedCountPublic: '{{n}} intéressés',
+    interestedList: 'Promoteurs et salles intéressés',
+    noInterestsYet: "Pas encore d'intéressés — revenez bientôt",
+    inviteToOffer: 'Inviter à faire une offre',
+    invited: 'Invité',
+    interestFailed: "Impossible de mettre à jour l'intérêt — réessayez",
+    inviteFailed: "Impossible d'envoyer l'invitation — réessayez",
+    loadInterestsFailed: 'Impossible de charger les intéressés',
     artist: 'Artiste',
     allArtists: 'Tous les artistes',
     hideFeeYearlyNote: 'Masquer le cachet est une fonction Yearly — passez au plan annuel pour le garder privé.',

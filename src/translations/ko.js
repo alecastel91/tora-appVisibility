@@ -636,6 +636,17 @@ const ko = {
   },
 
   tour: {
+    imInterested: '관심 있어요',
+    interested: '관심 표시됨',
+    interestedCount: '관심',
+    interestedCountPublic: '{{n}}명이 관심',
+    interestedList: '관심 있는 프로모터·베뉴',
+    noInterestsYet: '아직 관심 표시가 없습니다 — 곧 다시 확인해 보세요',
+    inviteToOffer: '오퍼 요청하기',
+    invited: '초대됨',
+    interestFailed: '관심을 업데이트하지 못했습니다 — 다시 시도해 주세요',
+    inviteFailed: '초대를 보내지 못했습니다 — 다시 시도해 주세요',
+    loadInterestsFailed: '관심 목록을 불러오지 못했습니다',
     artist: '아티스트',
     allArtists: '모든 아티스트',
     hideFeeYearlyNote: '요금 숨기기는 Yearly 전용 기능입니다. 업그레이드하면 요금을 비공개로 유지할 수 있습니다.',

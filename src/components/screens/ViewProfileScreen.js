@@ -256,6 +256,28 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
     }
   };
 
+  // Tour interest toggle on the profile's tour cards — optimistic, mirrors
+  // the like pattern (flip locally, call, server count wins, revert on error).
+  const handleToggleTourInterest = async (tour) => {
+    const patch = (on, delta) => setArtistTours((prev) => prev.map((tt) => (
+      tt.id === tour.id
+        ? { ...tt, myInterest: on, interestsCount: Math.max(0, (tt.interestsCount || 0) + delta) }
+        : tt
+    )));
+    const turningOn = !tour.myInterest;
+    patch(turningOn, turningOn ? 1 : -1);
+    try {
+      const res = await apiService.toggleTourInterest(tour.id, currentUser.id);
+      setArtistTours((prev) => prev.map((tt) => (
+        tt.id === tour.id ? { ...tt, myInterest: res.interested, interestsCount: res.interestsCount } : tt
+      )));
+    } catch (error) {
+      console.error('Error toggling tour interest:', error);
+      patch(!turningOn, turningOn ? -1 : 1);
+      appAlert(t('tour.interestFailed'));
+    }
+  };
+
   const handleSendMessage = async () => {
     if (actionBusy) return;
     if (!message.trim()) {
@@ -708,16 +730,29 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
                         {(tour.feeExpectation || tour.priceOnRequest)
                           ? ` · ${tour.priceOnRequest ? t('tour.priceOnRequest') : tour.feeExpectation}`
                           : ''}
+                        {(tour.interestsCount || 0) > 0
+                          ? ` · ${t('tour.interestedCountPublic', { n: tour.interestsCount })}`
+                          : ''}
                       </p>
                     </div>
                     {(currentUser?.role === 'PROMOTER' || currentUser?.role === 'VENUE') && (
-                      <button
-                        type="button"
-                        className="btn btn-primary btn-small shrink-0"
-                        onClick={(e) => { e.stopPropagation(); setShowTourOffer(true); }}
-                      >
-                        {t('tour.makeAnOffer')}
-                      </button>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Lightweight appetite signal — free, precedes an offer */}
+                        <button
+                          type="button"
+                          className={`btn btn-small ${tour.myInterest ? 'btn-liked' : 'btn-outline'}`}
+                          onClick={(e) => { e.stopPropagation(); handleToggleTourInterest(tour); }}
+                        >
+                          <HeartIcon filled={!!tour.myInterest} />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-small"
+                          onClick={(e) => { e.stopPropagation(); setShowTourOffer(true); }}
+                        >
+                          {t('tour.makeAnOffer')}
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

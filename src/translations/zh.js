@@ -636,6 +636,17 @@ const zh = {
   },
 
   tour: {
+    imInterested: '我感兴趣',
+    interested: '已感兴趣',
+    interestedCount: '感兴趣',
+    interestedCountPublic: '{{n}} 人感兴趣',
+    interestedList: '感兴趣的主办方与场地',
+    noInterestsYet: '暂无感兴趣的人 — 请稍后再来看看',
+    inviteToOffer: '邀请报价',
+    invited: '已邀请',
+    interestFailed: '无法更新兴趣 — 请重试',
+    inviteFailed: '无法发送邀请 — 请重试',
+    loadInterestsFailed: '无法加载感兴趣列表',
     artist: '艺人',
     allArtists: '所有艺人',
     hideFeeYearlyNote: '隐藏费用是年费专属功能——升级后可将费用保密。',
