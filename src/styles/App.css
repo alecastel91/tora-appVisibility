@@ -1524,10 +1524,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  /* Modals are the topmost layer — above the docked panels (z-2000) AND the
-     Settings/Premium/Achievements overlays (z-3000), so a modal opened FROM
-     one of those screens (e.g. the subscription checkout) isn't hidden behind
-     it. Stays below the global alert/confirm dialog host (z-9999). */
+  /* --z-modal sits above --z-screen so a dialog opened FROM Settings/Premium
+     (e.g. the subscription checkout) isn't hidden behind it. Full layer
+     ordering: see the scale in variables.css. */
   z-index: var(--z-modal);
   background: rgba(0, 0, 0, 0.7);
 }
@@ -1545,7 +1544,8 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.8);
-  /* topmost modal layer — above the z-3000 Settings/Premium overlays */
+  /* above --z-screen so dialogs opened from Settings/Premium stay visible;
+     full ordering in variables.css */
   z-index: var(--z-modal);
 }
 
@@ -1564,6 +1564,8 @@
   max-height: 85dvh;
   overflow-y: auto;
   margin: 20px;
+  /* local — competes only with siblings inside .modal's own stacking context
+     (the 1002 is a fossil magnitude, not a global layer) */
   z-index: 1002;
   pointer-events: auto;
 }
@@ -9205,7 +9207,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* topmost modal layer — above the z-3000 Settings/Premium overlays */
+  /* above --z-screen so dialogs opened from Settings/Premium stay visible;
+     full ordering in variables.css */
   z-index: var(--z-modal);
   overflow-y: auto;
   padding: 20px;

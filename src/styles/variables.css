@@ -2,7 +2,8 @@
   /* Stacking layers — the ONE place that defines what draws above what.
    * Every global overlay/screen/modal in App.css must use these tokens, never
    * a raw number (raw numbers are how modals silently sank behind the Premium
-   * screen once). Small within-component z-indexes (1–101) stay literal.
+   * screen once). Within-component z-indexes stay literal whatever their
+   * magnitude — they only compete inside their own stacking context.
    *
    * Order (low → high):
    *   overlay  — full-screen sub-pages: chat, search-artists, simple overlays
@@ -10,7 +11,7 @@
    *   docked   — panels that cover an open overlay: make-offer, create-tour
    *   screen   — top-menu screens: settings, premium/achievements, beta banner
    *   modal    — dialogs that can open from ANY layer incl. screens
-   *   top      — filter screen
+   *   top      — filter screen (BetaFeedbackScreen's z-[9999] preview ties here)
    *   confirm  — destructive-confirm overlay
    * JSX (Tailwind) layers above these: lightboxes z-[10001..10002],
    * app dialog host z-[10005] — the absolute topmost. */
