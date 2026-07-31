@@ -1528,7 +1528,7 @@
      Settings/Premium/Achievements overlays (z-3000), so a modal opened FROM
      one of those screens (e.g. the subscription checkout) isn't hidden behind
      it. Stays below the global alert/confirm dialog host (z-9999). */
-  z-index: 3100;
+  z-index: var(--z-modal);
   background: rgba(0, 0, 0, 0.7);
 }
 
@@ -1546,7 +1546,7 @@
   bottom: 0;
   background: rgba(0, 0, 0, 0.8);
   /* topmost modal layer — above the z-3000 Settings/Premium overlays */
-  z-index: 3100;
+  z-index: var(--z-modal);
 }
 
 /* Obsidian Neon glass panel: translucent near-black + heavy backdrop blur. */
@@ -1996,7 +1996,7 @@
   /* Above the Make-an-Offer / chat docked overlays (z-2000) so a top-menu
      overlay always prevails — nothing docks over Settings/Premium/Achievements
      (which reuse .settings-screen). */
-  z-index: 3000;
+  z-index: var(--z-screen);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -2936,7 +2936,7 @@
   background: var(--bg-black);
   padding: 0;
   overflow: hidden;
-  z-index: 1000;
+  z-index: var(--z-overlay);
 }
 
 .search-agents-header {
@@ -3927,7 +3927,7 @@
   right: 0;
   bottom: 0;
   background: #0a0a0a;
-  z-index: 1000;
+  z-index: var(--z-overlay);
   display: flex;
   flex-direction: column;
 }
@@ -4303,7 +4303,7 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.8);
-  z-index: 1000;
+  z-index: var(--z-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5321,7 +5321,7 @@
   right: 0;
   bottom: 0;
   background: #0a0a0a;
-  z-index: 9999;
+  z-index: var(--z-top);
   display: flex;
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
@@ -6054,7 +6054,7 @@
   bottom: 0;
   background: #000000;
   /* Prevail over docked Make-an-Offer / chat overlays (z-2000). */
-  z-index: 3000;
+  z-index: var(--z-screen);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -7761,7 +7761,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-overlay);
 }
 
 .add-artist-modal {
@@ -8695,7 +8695,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-overlay);
 }
 
 .new-contract-modal {
@@ -9206,7 +9206,7 @@
   align-items: center;
   justify-content: center;
   /* topmost modal layer — above the z-3000 Settings/Premium overlays */
-  z-index: 3100;
+  z-index: var(--z-modal);
   overflow-y: auto;
   padding: 20px;
 }
@@ -9480,7 +9480,7 @@
      bleeding through behind it. Desktop docking is set in responsive.css. */
   inset: 0;
   background: #000000;
-  z-index: 2000;
+  z-index: var(--z-docked);
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -10780,7 +10780,7 @@ textarea.form-textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 3000;
+  z-index: var(--z-screen);
 }
 
 .review-modal {
@@ -10793,7 +10793,7 @@ textarea.form-textarea:focus {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  z-index: 3001;
+  z-index: calc(var(--z-screen) + 1);
 }
 
 .review-modal .modal-body {
@@ -11192,7 +11192,7 @@ textarea.form-textarea:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10000;
+  z-index: var(--z-confirm);
   animation: fadeIn 0.2s ease;
   /* Allow the overlay itself to scroll on small viewports so a tall
      modal (with cap of 90dvh) never traps the close button off-screen. */
@@ -13108,7 +13108,7 @@ textarea.form-textarea:focus {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.9);
-  z-index: 2000;
+  z-index: var(--z-docked);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14085,7 +14085,7 @@ textarea.form-textarea:focus {
   left: 0;
   right: 0;
   height: 24px;
-  z-index: 3000;
+  z-index: var(--z-screen);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14133,7 +14133,7 @@ body.beta-env #root {
   position: fixed;
   right: 16px;
   bottom: 92px; /* clears the bottom tab bar */
-  z-index: 1500;
+  z-index: var(--z-fab);
   width: 44px;
   height: 44px;
   border-radius: 50%;

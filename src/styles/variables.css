@@ -1,4 +1,27 @@
 :root {
+  /* Stacking layers — the ONE place that defines what draws above what.
+   * Every global overlay/screen/modal in App.css must use these tokens, never
+   * a raw number (raw numbers are how modals silently sank behind the Premium
+   * screen once). Small within-component z-indexes (1–101) stay literal.
+   *
+   * Order (low → high):
+   *   overlay  — full-screen sub-pages: chat, search-artists, simple overlays
+   *   fab      — floating action button (beta feedback)
+   *   docked   — panels that cover an open overlay: make-offer, create-tour
+   *   screen   — top-menu screens: settings, premium/achievements, beta banner
+   *   modal    — dialogs that can open from ANY layer incl. screens
+   *   top      — filter screen
+   *   confirm  — destructive-confirm overlay
+   * JSX (Tailwind) layers above these: lightboxes z-[10001..10002],
+   * app dialog host z-[10005] — the absolute topmost. */
+  --z-overlay: 1000;
+  --z-fab: 1500;
+  --z-docked: 2000;
+  --z-screen: 3000;
+  --z-modal: 3100;
+  --z-top: 9999;
+  --z-confirm: 10000;
+
   /* Primary Colors */
   --primary-pink: #FF3366;
   --primary-pink-hover: #FF1A4D;
