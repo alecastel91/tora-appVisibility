@@ -33,6 +33,8 @@ import VerificationModal from './components/common/VerificationModal';
 import AppDialogHost from './components/common/AppDialogHost';
 import StripeCheckout from './components/common/StripeCheckout';
 import BetaTools from './components/common/BetaTools';
+import AssistantChat from './components/common/AssistantChat';
+import GettingStartedSheet from './components/common/GettingStartedSheet';
 import { appConfirm, appAlert } from './utils/dialogs';
 
 function App() {
@@ -72,6 +74,10 @@ function App() {
     }
     setActiveTab(tab);
     setMountedTabs((prev) => (prev.includes(tab) ? prev : [...prev, tab]));
+    // Activation checklist: "explore Tour Kickstart" completes on first visit.
+    if (tab === 'tour' && accountUser?.id) {
+      localStorage.setItem(`tora:visited-tour:${accountUser.id}`, '1');
+    }
     closeAllOverlays();
   };
 
@@ -146,8 +152,22 @@ function App() {
   // actions are actually handled (the count drops to 0), so a still-unhandled
   // item keeps signalling instead of vanishing after one glance.
   const [bookingsActionCount, setBookingsActionCount] = useState(0);
+  // First-login "Getting started" carousel (reopenable from Settings).
+  const [showGettingStarted, setShowGettingStarted] = useState(false);
   const [preferredCurrency, setPreferredCurrency] = useState('USD');
   const [accountUser, setAccountUser] = useState(null); // Account-level user data (email, currency, etc)
+
+  // Show Getting Started on the account's first login on this device.
+  useEffect(() => {
+    if (isAuthenticated && accountUser?.id && !localStorage.getItem(`tora:onboarded:${accountUser.id}`)) {
+      setShowGettingStarted(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, accountUser?.id]);
+  const closeGettingStarted = () => {
+    if (accountUser?.id) localStorage.setItem(`tora:onboarded:${accountUser.id}`, '1');
+    setShowGettingStarted(false);
+  };
   const { t, language, changeLanguage, availableLanguages } = useLanguage();
   const { updateUser, user, setPreferredCurrency: setContextCurrency, setAccountSubscriptionTier, setRefreshAccountUserCallback } = useAppContext();
 
@@ -556,6 +576,8 @@ function App() {
       <div className={`app-container tab-${activeTab}`}>
         <BetaTools />
       <AppDialogHost />
+        <AssistantChat />
+        <GettingStartedSheet open={showGettingStarted} onClose={closeGettingStarted} />
         <Header
           onOpenSettings={() => setShowSettings(true)}
           onOpenPremium={() => setShowPremium(true)}
@@ -839,6 +861,17 @@ function App() {
             </div>
 
             <InviteFriendsSection />
+
+            <div className="settings-section">
+              <h3>{t('onboarding.helpSection')}</h3>
+              <button
+                type="button"
+                className="btn btn-outline btn-full-width"
+                onClick={() => { setShowSettings(false); setShowGettingStarted(true); }}
+              >
+                {t('onboarding.reopen')}
+              </button>
+            </div>
 
             <div className="settings-section">
               <h3>{t('settingsExtra.emailPreferences')}</h3>

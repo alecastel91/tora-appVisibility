@@ -1124,6 +1124,17 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // TORA ASSISTANT
+  async assistantChat(messages) {
+    const response = await fetch(`${API_URL}/assistant/chat`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ messages })
+    });
+
+    return this.handleResponse(response);
+  }
+
   // TOUR INTEREST ENDPOINTS
   async toggleTourInterest(tourId, profileId) {
     const response = await fetch(`${API_URL}/tours/${tourId}/interest`, {
