@@ -962,6 +962,18 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     }
   };
 
+  // Open the tour's artist profile (card header identity is the link)
+  const handleViewTourArtist = async (tour) => {
+    if (!tour.artist?.id) return;
+    try {
+      const fullProfile = await apiService.getProfile(tour.artist.id);
+      setViewingProfile(fullProfile);
+    } catch (error) {
+      console.error('Error fetching artist profile:', error);
+      appAlert(t('tour.loadArtistProfileFailed'));
+    }
+  };
+
   // Promoter/venue toggles "I'm interested" on a tour card — optimistic,
   // mirrors AppContext.toggleLike (flip, call, revert on error).
   const handleToggleInterest = async (tour) => {
@@ -1769,7 +1781,16 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                 {filteredTours.map(tour => (
                   <div key={tour.id} className="tour-card">
                     <div className="tour-card-header">
-                      <div className="tour-artist-info">
+                      {/* Artist identity links to the profile (replaces the old
+                          View Artist CTA in the footer) */}
+                      <div
+                        className="tour-artist-info"
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleViewTourArtist(tour)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleViewTourArtist(tour); } }}
+                      >
                         <div className="tour-artist-avatar">
                           {tour.artist?.avatar ? (
                             <img src={tour.artist.avatar} alt={tour.artist.name} />
@@ -1858,6 +1879,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                         // No proposal sent yet
                         <button
                           className="btn btn-primary btn-small"
+                          style={{ flex: 1 }}
                           onClick={() => handleMakeOffer(tour)}
                         >
                           {t('tour.makeAnOffer')}
@@ -1866,25 +1888,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                       {/* Lightweight appetite signal — free, precedes an offer */}
                       <button
                         className={`btn btn-small ${tour.myInterest ? 'btn-liked' : 'btn-outline'}`}
+                        style={{ flex: 1 }}
                         onClick={() => handleToggleInterest(tour)}
                       >
                         <HeartIcon filled={!!tour.myInterest} />{' '}
                         {tour.myInterest ? t('tour.interested') : t('tour.imInterested')}
-                      </button>
-                      <button
-                        className="btn btn-outline btn-small"
-                        onClick={async () => {
-                          // Fetch full artist profile from backend
-                          try {
-                            const fullProfile = await apiService.getProfile(tour.artist.id);
-                            setViewingProfile(fullProfile);
-                          } catch (error) {
-                            console.error('Error fetching artist profile:', error);
-                            appAlert(t('tour.loadArtistProfileFailed'));
-                          }
-                        }}
-                      >
-                        {t('tour.viewArtist')}
                       </button>
                     </div>
                   </div>
