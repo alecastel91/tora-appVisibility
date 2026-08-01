@@ -657,7 +657,6 @@ const ko = {
     addArtist: '첫 담당 아티스트 추가',
     readyTitle: '준비 완료',
     readyBody: '프로필을 인증하고 첫 연결을 만들면 부킹이 찾아옵니다. TORA에 오신 것을 환영합니다.',
-    restoreChecklist: '시작 체크리스트 복원',
     completeProfile: '프로필 완성 (사진+소개)',
     setAvailability: '공연 가능 날짜 설정',
     likeProfiles: '프로필 3개에 좋아요',

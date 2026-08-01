@@ -657,7 +657,6 @@ const ja = {
     addArtist: '最初の担当アーティストを追加',
     readyTitle: '準備完了',
     readyBody: 'プロフィールを認証し、最初のつながりを作って、ブッキングを待ちましょう。TORAへようこそ。',
-    restoreChecklist: 'スタートチェックリストを再表示',
     completeProfile: 'プロフィールを完成（写真+自己紹介）',
     setAvailability: '出演可能日を設定',
     likeProfiles: '3件のプロフィールにいいね',

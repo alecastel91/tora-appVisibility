@@ -657,7 +657,6 @@ const it = {
     addArtist: 'Aggiungi il tuo primo artista rappresentato',
     readyTitle: 'Tutto pronto',
     readyBody: 'Verifica il tuo profilo, crea le prime connessioni e lascia che i booking arrivino. Benvenuto su TORA.',
-    restoreChecklist: 'Ripristina la lista dei primi passi',
     completeProfile: 'Completa il tuo profilo (foto + bio)',
     setAvailability: 'Imposta le date disponibili',
     likeProfiles: 'Metti like a 3 profili',

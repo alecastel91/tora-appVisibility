@@ -1,30 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { isPremiumViewer } from '../../utils/subscription';
 
 /**
- * Activation checklist — five first-session actions with deep links. Completion
- * is derived from data the app already has (no new endpoints); the card
- * disappears once everything is done, or when dismissed.
+ * Activation checklist — a collapsible drawer of first-session actions with
+ * deep links. Completion is derived from data the app already has; the card
+ * disappears for good only when every visible action is done. Collapsing
+ * (the chevron) persists per profile. The Tour Kickstart item only shows for
+ * Premium accounts — it appears ("pops back") after an upgrade.
  */
 const OnboardingChecklist = () => {
   const { t } = useLanguage();
   const { user, likedProfiles, connectedUsers } = useAppContext();
-  const [, force] = useState(0);
-
-  // Settings → Help → "Restore checklist" clears the dismissal and re-shows.
-  useEffect(() => {
-    const restore = () => {
-      if (user?.id) localStorage.removeItem(`tora:checklist-dismissed:${user.id}`);
-      force((n) => n + 1);
-    };
-    window.addEventListener('tora:restore-checklist', restore);
-    return () => window.removeEventListener('tora:restore-checklist', restore);
-  }, [user?.id]);
+  const collapseKey = user?.id ? `tora:checklist-collapsed:${user.id}` : null;
+  const [collapsed, setCollapsed] = useState(() => !!(collapseKey && localStorage.getItem(collapseKey)));
 
   if (!user?.id) return null;
-  const dismissKey = `tora:checklist-dismissed:${user.id}`;
-  if (localStorage.getItem(dismissKey)) return null;
 
   const goTab = (tab) => window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab } }));
   // Navigate to the Profile tab, then open the exact sub-screen the action
@@ -33,8 +25,10 @@ const OnboardingChecklist = () => {
     goTab('profile');
     setTimeout(() => window.dispatchEvent(new CustomEvent(event)), 200);
   };
-  // Land directly on the Tour Kickstart sub-tab (same intent flag ViewProfile uses).
+  // Land directly on the Tour Kickstart sub-tab (same intent flag ViewProfile
+  // uses) — and count the visit immediately.
   const goKickstart = () => {
+    localStorage.setItem(`tora:visited-tour:${user.id}`, '1');
     sessionStorage.setItem('tora:tour-kickstart-intent', '1');
     goTab('tour');
     window.dispatchEvent(new CustomEvent('tora:tour-kickstart'));
@@ -70,31 +64,41 @@ const OnboardingChecklist = () => {
       done: (connectedUsers?.size || 0) >= 1,
       go: () => goTab('search'),
     },
-    {
-      key: 'exploreTours',
-      done: !!localStorage.getItem(`tora:visited-tour:${user.id}`),
-      go: goKickstart,
-    },
+    // Kickstart is Premium-gated in the app — don't send free accounts to a
+    // paywall from their onboarding list.
+    ...(isPremiumViewer(user)
+      ? [{
+          key: 'exploreTours',
+          done: !!localStorage.getItem(`tora:visited-tour:${user.id}`),
+          go: goKickstart,
+        }]
+      : []),
   ];
 
   const doneCount = items.filter((i) => i.done).length;
   if (doneCount === items.length) return null;
 
-  const dismiss = () => {
-    localStorage.setItem(dismissKey, '1');
-    force((n) => n + 1);
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      if (collapseKey) {
+        if (next) localStorage.setItem(collapseKey, '1');
+        else localStorage.removeItem(collapseKey);
+      }
+      return next;
+    });
   };
 
   return (
     <div className="onboarding-checklist">
-      <div className="onboarding-checklist-header">
+      <button type="button" className="onboarding-checklist-header" onClick={toggleCollapsed}>
         <p className="onboarding-checklist-title">{t('onboarding.checklistTitle')}</p>
         <div className="flex items-center gap-2">
           <span className="onboarding-checklist-progress">{doneCount}/{items.length}</span>
-          <button type="button" className="onboarding-checklist-dismiss" aria-label={t('common.close')} onClick={dismiss}>×</button>
+          <span className={`onboarding-checklist-chevron ${collapsed ? '' : 'open'}`} aria-hidden="true">›</span>
         </div>
-      </div>
-      {items.map((item) => (
+      </button>
+      {!collapsed && items.map((item) => (
         <button
           key={item.key}
           type="button"

@@ -657,7 +657,6 @@ const zh = {
     addArtist: '添加你的第一位代理艺人',
     readyTitle: '一切就绪',
     readyBody: '认证你的主页，建立最初的连接，让预订自然到来。欢迎来到 TORA。',
-    restoreChecklist: '恢复入门清单',
     completeProfile: '完善主页（照片+简介）',
     setAvailability: '设置可演出日期',
     likeProfiles: '给 3 个主页点赞',

@@ -657,7 +657,6 @@ const en = {
     addArtist: 'Add your first represented artist',
     readyTitle: 'You\'re all set',
     readyBody: 'Verify your profile, make your first connections, and let the bookings come. Welcome to TORA.',
-    restoreChecklist: 'Restore get-started checklist',
     completeProfile: 'Complete your profile (photo + bio)',
     setAvailability: 'Set your available dates',
     likeProfiles: 'Like 3 profiles',

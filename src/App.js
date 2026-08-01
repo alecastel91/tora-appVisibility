@@ -75,8 +75,9 @@ function App() {
     setActiveTab(tab);
     setMountedTabs((prev) => (prev.includes(tab) ? prev : [...prev, tab]));
     // Activation checklist: "explore Tour Kickstart" completes on first visit.
-    if (tab === 'tour' && accountUser?.id) {
-      localStorage.setItem(`tora:visited-tour:${accountUser.id}`, '1');
+    // Keyed by the ACTIVE PROFILE id — the same key the checklist reads.
+    if (tab === 'tour' && user?.id) {
+      localStorage.setItem(`tora:visited-tour:${user.id}`, '1');
     }
     closeAllOverlays();
   };
@@ -870,18 +871,6 @@ function App() {
                 onClick={() => { setShowSettings(false); setShowGettingStarted(true); }}
               >
                 {t('onboarding.reopen')}
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline btn-full-width"
-                style={{ marginTop: '10px' }}
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('tora:restore-checklist'));
-                  setShowSettings(false);
-                  switchTab('news');
-                }}
-              >
-                {t('onboarding.restoreChecklist')}
               </button>
             </div>
 
