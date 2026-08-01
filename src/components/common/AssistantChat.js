@@ -8,6 +8,16 @@ import { useAppContext } from '../../contexts/AppContext';
  * grounded on the backend's app guide. Self-hides when the backend reports
  * the feature unconfigured (503), same pattern as translation.
  */
+// Minimal safe renderer for the assistant's limited formatting: preserves
+// line structure (pre-wrap does the rest) and turns **text** into <strong>.
+// No HTML injection — everything stays React text nodes.
+const renderAssistantText = (text) =>
+  String(text).split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**')
+      ? <strong key={i}>{part.slice(2, -2)}</strong>
+      : part
+  );
+
 const AssistantChat = () => {
   const { t } = useLanguage();
   const { user } = useAppContext();
@@ -48,7 +58,7 @@ const AssistantChat = () => {
     setInput('');
     setBusy(true);
     try {
-      const res = await apiService.assistantChat(next.slice(-12));
+      const res = await apiService.assistantChat(next.slice(-12), user?.id);
       setMessages((prev) => [...prev, { role: 'assistant', content: res.reply }]);
     } catch (error) {
       const status = error.response?.status;
@@ -80,7 +90,7 @@ const AssistantChat = () => {
               )}
               {messages.map((m, i) => (
                 <div key={i} className={`assistant-msg ${m.role === 'user' ? 'assistant-msg-user' : 'assistant-msg-bot'}`}>
-                  {m.content}
+                  {m.role === 'assistant' ? renderAssistantText(m.content) : m.content}
                 </div>
               ))}
               {busy && <div className="assistant-msg assistant-msg-bot assistant-typing">···</div>}

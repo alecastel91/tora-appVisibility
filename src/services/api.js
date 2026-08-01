@@ -1125,11 +1125,11 @@ class ApiService {
   }
 
   // TORA ASSISTANT
-  async assistantChat(messages) {
+  async assistantChat(messages, profileId) {
     const response = await fetch(`${API_URL}/assistant/chat`, {
       method: 'POST',
       headers: this.getHeaders(),
-      body: JSON.stringify({ messages })
+      body: JSON.stringify({ messages, profileId })
     });
 
     return this.handleResponse(response);
