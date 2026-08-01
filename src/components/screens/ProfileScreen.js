@@ -348,6 +348,21 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
     setShowBetaFeedback(false);
   };
 
+  // Onboarding-checklist deep links: open Edit Profile / the Manage calendar
+  // directly (the checklist first navigates to the Profile tab, then fires).
+  const [manageInitialTab, setManageInitialTab] = useState(null);
+  useEffect(() => {
+    const openEdit = () => { closeSubScreens(); setShowEditProfile(true); };
+    const openCalendar = () => { closeSubScreens(); setManageInitialTab('calendar'); setShowManageProfile(true); };
+    window.addEventListener('tora:open-edit-profile', openEdit);
+    window.addEventListener('tora:open-manage-calendar', openCalendar);
+    return () => {
+      window.removeEventListener('tora:open-edit-profile', openEdit);
+      window.removeEventListener('tora:open-manage-calendar', openCalendar);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleDeleteProfile = async () => {
     if (!profileToDelete) return;
 
@@ -1173,7 +1188,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
 
   if (showManageProfile) {
     return renderSplit(
-      <ManageProfileScreen onClose={() => setShowManageProfile(false)} onSwitchTab={onSwitchTab} onOpenPremium={onOpenPremium} />
+      <ManageProfileScreen onClose={() => { setShowManageProfile(false); setManageInitialTab(null); }} onSwitchTab={onSwitchTab} onOpenPremium={onOpenPremium} initialTab={manageInitialTab} />
     );
   }
 

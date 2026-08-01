@@ -668,6 +668,7 @@ const es = {
     send: 'Enviar',
     error: 'Algo salió mal, inténtalo de nuevo.',
     limitReached: 'Has llegado al límite de preguntas de hoy. ¡Vuelve mañana!',
+    unavailable: 'El asistente no está disponible ahora mismo; inténtalo más tarde.',
   },
   tour: {
     imInterested: 'Me interesa',
@@ -897,7 +898,7 @@ const es = {
     adminAccount: "Cuenta de administrador",
     rooms: 'Salas',
     venueGalleryTitle: 'Local',
-    pastEventsTitle: 'Eventos pasados',
+    pastEventsTitle: 'Flyers de eventos pasados',
     uploadFailed: 'No se pudo subir la imagen. Inténtalo de nuevo.',
     deleteFailed: 'No se pudo eliminar el perfil. Inténtalo de nuevo.',
     manageLabel: 'Gestionar',

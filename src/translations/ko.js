@@ -668,6 +668,7 @@ const ko = {
     send: '보내기',
     error: '문제가 발생했습니다. 다시 시도해 주세요.',
     limitReached: '오늘의 질문 한도에 도달했습니다. 내일 다시 만나요!',
+    unavailable: '어시스턴트를 지금은 사용할 수 없습니다. 나중에 다시 시도해 주세요.',
   },
   tour: {
     imInterested: '관심 있어요',
@@ -897,7 +898,7 @@ const ko = {
     adminAccount: "관리자 계정",
     rooms: '룸',
     venueGalleryTitle: '베뉴',
-    pastEventsTitle: '지난 이벤트',
+    pastEventsTitle: '지난 이벤트 플라이어',
     uploadFailed: '이미지를 업로드하지 못했습니다. 다시 시도해 주세요.',
     deleteFailed: '프로필을 삭제하지 못했습니다. 다시 시도해 주세요.',
     manageLabel: '관리',

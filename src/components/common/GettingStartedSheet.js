@@ -38,7 +38,7 @@ const GettingStartedSheet = ({ open, onClose }) => {
     <div className="onboarding-overlay">
       <div className="onboarding-sheet">
         <div className="onboarding-top">
-          <span className="onboarding-brand">TORA</span>
+          <img src="/tora_logo.png" alt="TORA" className="onboarding-brand-logo" />
           <button type="button" className="onboarding-skip" onClick={onClose}>
             {t('onboarding.skip')}
           </button>

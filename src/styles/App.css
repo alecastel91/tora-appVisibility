@@ -14185,26 +14185,6 @@ body.beta-env #root {
 }
 
 /* ===== TORA Assistant (concierge chat) ===== */
-.assistant-fab {
-  position: fixed;
-  right: 16px;
-  /* stacks above the beta feedback FAB (bottom 92px + 44px + 12px gap) */
-  bottom: 148px;
-  z-index: var(--z-fab);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #101015;
-  border: 1px solid rgba(255, 51, 102, 0.5);
-  color: #FF3366;
-  cursor: pointer;
-  box-shadow: 0 0 14px rgba(255, 51, 102, 0.25);
-  transition: transform 0.15s, border-color 0.15s;
-}
-.assistant-fab:hover { border-color: var(--primary-pink); transform: scale(1.05); }
 
 .assistant-overlay {
   position: fixed;
@@ -14305,12 +14285,10 @@ body.beta-env #root {
   align-items: center;
   justify-content: space-between;
 }
-.onboarding-brand {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: 0.14em;
-  color: #fff;
+.onboarding-brand-logo {
+  height: 24px;
+  width: auto;
+  display: block;
 }
 .onboarding-skip {
   background: none;

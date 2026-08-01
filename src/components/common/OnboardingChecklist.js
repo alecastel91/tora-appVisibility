@@ -17,17 +17,23 @@ const OnboardingChecklist = () => {
   if (localStorage.getItem(dismissKey)) return null;
 
   const goTab = (tab) => window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab } }));
+  // Navigate to the Profile tab, then open the exact sub-screen the action
+  // needs (small delay so the mounted ProfileScreen receives the event).
+  const goProfileThen = (event) => {
+    goTab('profile');
+    setTimeout(() => window.dispatchEvent(new CustomEvent(event)), 200);
+  };
 
   const items = [
     {
       key: 'completeProfile',
       done: !!(user.avatar && user.bio),
-      go: () => goTab('profile'),
+      go: () => goProfileThen('tora:open-edit-profile'),
     },
     {
       key: 'setAvailability',
       done: (user.availableDates || []).length > 0,
-      go: () => goTab('profile'),
+      go: () => goProfileThen('tora:open-manage-calendar'),
     },
     {
       key: 'likeProfiles',

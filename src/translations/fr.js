@@ -668,6 +668,7 @@ const fr = {
     send: 'Envoyer',
     error: 'Une erreur s\'est produite — réessayez.',
     limitReached: 'Vous avez atteint la limite de questions du jour — à demain !',
+    unavailable: 'L\'assistant n\'est pas disponible pour le moment — réessayez plus tard.',
   },
   tour: {
     imInterested: "Ça m'intéresse",
@@ -897,7 +898,7 @@ const fr = {
     adminAccount: "Compte administrateur",
     rooms: 'Salles',
     venueGalleryTitle: 'Lieu',
-    pastEventsTitle: 'Événements passés',
+    pastEventsTitle: 'Flyers d\'événements passés',
     uploadFailed: "Échec du téléversement de l'image. Réessayez.",
     deleteFailed: 'Échec de la suppression du profil. Réessayez.',
     manageLabel: 'Gérer',

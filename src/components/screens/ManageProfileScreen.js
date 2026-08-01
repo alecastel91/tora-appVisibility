@@ -15,7 +15,7 @@ import { appAlert, appConfirm } from '../../utils/dialogs';
 import LockOverlay from '../common/LockOverlay';
 import { isPremiumViewer } from '../../utils/subscription';
 
-const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = () => {} }) => {
+const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = () => {}, initialTab = null }) => {
   const { user, preferredCurrency, reloadProfileData } = useAppContext();
   const { t } = useLanguage();
   // Free tier sees Dashboard + Calendar as blurred teasers that open
@@ -42,7 +42,7 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
       </button>
     </div>
   );
-  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, calendar, documents
+  const [activeTab, setActiveTab] = useState(initialTab || 'dashboard'); // dashboard, calendar, documents
   const [upcomingGigs, setUpcomingGigs] = useState(null);
   const [ytdRevenue, setYtdRevenue] = useState(null);
   const [revenueEvents, setRevenueEvents] = useState([]); // [{date, amount}] in preferred currency

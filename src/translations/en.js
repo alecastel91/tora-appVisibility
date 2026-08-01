@@ -668,6 +668,7 @@ const en = {
     send: 'Send',
     error: 'Sorry, something went wrong — try again.',
     limitReached: 'You\'ve reached today\'s question limit — back tomorrow!',
+    unavailable: 'The assistant isn\'t available right now — please try again later.',
   },
   tour: {
     imInterested: "I'm interested",
@@ -899,7 +900,7 @@ const en = {
     adminAccount: "Admin Account",
     rooms: 'Rooms',
     venueGalleryTitle: 'Venue',
-    pastEventsTitle: 'Past Events',
+    pastEventsTitle: 'Past Event Flyers',
     uploadFailed: 'Failed to upload image. Please try again.',
     deleteFailed: 'Failed to delete profile. Please try again.',
     manageLabel: 'Manage',

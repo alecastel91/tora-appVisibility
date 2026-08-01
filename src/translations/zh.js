@@ -668,6 +668,7 @@ const zh = {
     send: '发送',
     error: '出了点问题，请重试。',
     limitReached: '已达今日提问上限，明天再来吧！',
+    unavailable: '助手当前不可用，请稍后再试。',
   },
   tour: {
     imInterested: '我感兴趣',
@@ -897,7 +898,7 @@ const zh = {
     adminAccount: "管理员账户",
     rooms: '厅数',
     venueGalleryTitle: '场地',
-    pastEventsTitle: '往期活动',
+    pastEventsTitle: '往期活动海报',
     uploadFailed: '图片上传失败。请重试。',
     deleteFailed: '档案删除失败。请重试。',
     manageLabel: '管理',

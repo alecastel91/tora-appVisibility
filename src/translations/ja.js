@@ -668,6 +668,7 @@ const ja = {
     send: '送信',
     error: 'エラーが発生しました。もう一度お試しください。',
     limitReached: '本日の質問上限に達しました。また明日どうぞ！',
+    unavailable: 'アシスタントは現在利用できません。後でもう一度お試しください。',
   },
   tour: {
     imInterested: '興味を示す',
@@ -897,7 +898,7 @@ const ja = {
     adminAccount: "管理者アカウント",
     rooms: 'フロア',
     venueGalleryTitle: '会場',
-    pastEventsTitle: '過去のイベント',
+    pastEventsTitle: '過去イベントのフライヤー',
     uploadFailed: '画像のアップロードに失敗しました。もう一度お試しください。',
     deleteFailed: 'プロフィールの削除に失敗しました。もう一度お試しください。',
     manageLabel: '管理',

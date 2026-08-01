@@ -668,6 +668,7 @@ const it = {
     send: 'Invia',
     error: 'Qualcosa è andato storto — riprova.',
     limitReached: 'Hai raggiunto il limite di domande di oggi — torna domani!',
+    unavailable: 'L\'assistente non è disponibile al momento — riprova più tardi.',
   },
   tour: {
     imInterested: 'Mi interessa',
@@ -897,7 +898,7 @@ const it = {
     adminAccount: "Account amministratore",
     rooms: 'Sale',
     venueGalleryTitle: 'Locale',
-    pastEventsTitle: 'Eventi passati',
+    pastEventsTitle: 'Flyer degli eventi passati',
     uploadFailed: "Caricamento dell'immagine non riuscito. Riprova.",
     deleteFailed: 'Eliminazione del profilo non riuscita. Riprova.',
     manageLabel: 'Gestisci',

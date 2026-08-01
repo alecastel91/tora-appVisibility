@@ -668,6 +668,7 @@ const pt = {
     send: 'Enviar',
     error: 'Algo correu mal — tente novamente.',
     limitReached: 'Atingiu o limite de perguntas de hoje — volte amanhã!',
+    unavailable: 'O assistente não está disponível agora — tente novamente mais tarde.',
   },
   tour: {
     imInterested: 'Tenho interesse',
@@ -897,7 +898,7 @@ const pt = {
     adminAccount: "Conta de administrador",
     rooms: 'Salas',
     venueGalleryTitle: 'Espaço',
-    pastEventsTitle: 'Eventos passados',
+    pastEventsTitle: 'Flyers de eventos passados',
     uploadFailed: 'Não foi possível carregar a imagem. Tenta novamente.',
     deleteFailed: 'Não foi possível eliminar o perfil. Tenta novamente.',
     manageLabel: 'Gerir',

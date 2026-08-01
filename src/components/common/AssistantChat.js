@@ -19,6 +19,13 @@ const AssistantChat = () => {
   const [limitHit, setLimitHit] = useState(false);
   const bodyRef = useRef(null);
 
+  // Opened from the header icon (between notifications and badges).
+  useEffect(() => {
+    const openIt = () => setOpen(true);
+    window.addEventListener('tora:open-assistant', openIt);
+    return () => window.removeEventListener('tora:open-assistant', openIt);
+  }, []);
+
   // Per-user session transcript so reopening keeps context (session only).
   const storeKey = user?.id ? `tora:assistant:${user.id}` : null;
   useEffect(() => {
@@ -45,7 +52,7 @@ const AssistantChat = () => {
       setMessages((prev) => [...prev, { role: 'assistant', content: res.reply }]);
     } catch (error) {
       const status = error.response?.status;
-      if (status === 503) { setUnavailable(true); setOpen(false); return; }
+      if (status === 503) { setUnavailable(true); return; }
       if (status === 429) { setLimitHit(true); return; }
       setMessages((prev) => [...prev, { role: 'assistant', content: t('assistant.error') }]);
     } finally {
@@ -53,23 +60,10 @@ const AssistantChat = () => {
     }
   };
 
-  if (!user || unavailable) return null;
+  if (!user) return null;
 
   return (
     <>
-      <button
-        type="button"
-        className="assistant-fab"
-        aria-label={t('assistant.title')}
-        onClick={() => setOpen(true)}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-          <path d="M9.5 9a2.5 2.5 0 0 1 4.86.82c0 1.67-2.5 2.5-2.5 2.5" />
-          <circle cx="11.9" cy="15.5" r="0.4" fill="currentColor" />
-        </svg>
-      </button>
-
       {open && (
         <div className="assistant-overlay" onClick={() => setOpen(false)}>
           <div className="assistant-sheet" onClick={(e) => e.stopPropagation()}>
@@ -91,6 +85,7 @@ const AssistantChat = () => {
               ))}
               {busy && <div className="assistant-msg assistant-msg-bot assistant-typing">···</div>}
               {limitHit && <div className="assistant-msg assistant-msg-bot">{t('assistant.limitReached')}</div>}
+              {unavailable && <div className="assistant-msg assistant-msg-bot">{t('assistant.unavailable')}</div>}
             </div>
             <div className="assistant-input-row">
               <input
@@ -98,11 +93,11 @@ const AssistantChat = () => {
                 className="form-input"
                 placeholder={t('assistant.placeholder')}
                 value={input}
-                disabled={busy || limitHit}
+                disabled={busy || limitHit || unavailable}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
               />
-              <button className="btn btn-primary btn-small" disabled={busy || limitHit || !input.trim()} onClick={send}>
+              <button className="btn btn-primary btn-small" disabled={busy || limitHit || unavailable || !input.trim()} onClick={send}>
                 {t('assistant.send')}
               </button>
             </div>
