@@ -6,13 +6,16 @@ import { SearchIcon, HandshakeIcon, PlaneIcon, ProfileIcon, BookingsIcon, StarIc
  * First-login "Getting started" carousel — six swipeable slides that explain
  * the app in the user's language. Reopenable from Settings; skippable always.
  */
+// Final slide adapts to the environment: beta builds close on the tester
+// note; production builds close on the "you're all set" send-off.
+const IS_BETA = import.meta.env.VITE_TORA_ENV === 'beta';
 const SLIDES = [
   { key: 'welcome', Icon: StarIcon },
   { key: 'profile', Icon: ProfileIcon },
   { key: 'discover', Icon: SearchIcon },
   { key: 'book', Icon: BookingsIcon },
   { key: 'tourKickstart', Icon: PlaneIcon },
-  { key: 'beta', Icon: HandshakeIcon },
+  { key: IS_BETA ? 'beta' : 'ready', Icon: HandshakeIcon },
 ];
 
 const GettingStartedSheet = ({ open, onClose }) => {

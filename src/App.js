@@ -871,6 +871,18 @@ function App() {
               >
                 {t('onboarding.reopen')}
               </button>
+              <button
+                type="button"
+                className="btn btn-outline btn-full-width"
+                style={{ marginTop: '10px' }}
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('tora:restore-checklist'));
+                  setShowSettings(false);
+                  switchTab('news');
+                }}
+              >
+                {t('onboarding.restoreChecklist')}
+              </button>
             </div>
 
             <div className="settings-section">

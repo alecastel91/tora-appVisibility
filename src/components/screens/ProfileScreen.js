@@ -354,11 +354,14 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
   useEffect(() => {
     const openEdit = () => { closeSubScreens(); setShowEditProfile(true); };
     const openCalendar = () => { closeSubScreens(); setManageInitialTab('calendar'); setShowManageProfile(true); };
+    const openRoster = () => { closeSubScreens(); setShowRepresentedArtists(true); };
     window.addEventListener('tora:open-edit-profile', openEdit);
     window.addEventListener('tora:open-manage-calendar', openCalendar);
+    window.addEventListener('tora:open-roster', openRoster);
     return () => {
       window.removeEventListener('tora:open-edit-profile', openEdit);
       window.removeEventListener('tora:open-manage-calendar', openCalendar);
+      window.removeEventListener('tora:open-roster', openRoster);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 
@@ -12,6 +12,16 @@ const OnboardingChecklist = () => {
   const { user, likedProfiles, connectedUsers } = useAppContext();
   const [, force] = useState(0);
 
+  // Settings → Help → "Restore checklist" clears the dismissal and re-shows.
+  useEffect(() => {
+    const restore = () => {
+      if (user?.id) localStorage.removeItem(`tora:checklist-dismissed:${user.id}`);
+      force((n) => n + 1);
+    };
+    window.addEventListener('tora:restore-checklist', restore);
+    return () => window.removeEventListener('tora:restore-checklist', restore);
+  }, [user?.id]);
+
   if (!user?.id) return null;
   const dismissKey = `tora:checklist-dismissed:${user.id}`;
   if (localStorage.getItem(dismissKey)) return null;
@@ -23,18 +33,33 @@ const OnboardingChecklist = () => {
     goTab('profile');
     setTimeout(() => window.dispatchEvent(new CustomEvent(event)), 200);
   };
+  // Land directly on the Tour Kickstart sub-tab (same intent flag ViewProfile uses).
+  const goKickstart = () => {
+    sessionStorage.setItem('tora:tour-kickstart-intent', '1');
+    goTab('tour');
+    window.dispatchEvent(new CustomEvent('tora:tour-kickstart'));
+  };
 
+  const isAgent = user.role === 'AGENT';
   const items = [
     {
       key: 'completeProfile',
       done: !!(user.avatar && user.bio),
       go: () => goProfileThen('tora:open-edit-profile'),
     },
-    {
-      key: 'setAvailability',
-      done: (user.availableDates || []).length > 0,
-      go: () => goProfileThen('tora:open-manage-calendar'),
-    },
+    // Agents don't manage their own calendar — their availability lives on the
+    // represented artists, so their activation step is building the roster.
+    isAgent
+      ? {
+          key: 'addArtist',
+          done: (Array.isArray(user.representingArtists) ? user.representingArtists : []).length > 0,
+          go: () => goProfileThen('tora:open-roster'),
+        }
+      : {
+          key: 'setAvailability',
+          done: (user.availableDates || []).length > 0,
+          go: () => goProfileThen('tora:open-manage-calendar'),
+        },
     {
       key: 'likeProfiles',
       done: (likedProfiles?.size || 0) >= 3,
@@ -48,7 +73,7 @@ const OnboardingChecklist = () => {
     {
       key: 'exploreTours',
       done: !!localStorage.getItem(`tora:visited-tour:${user.id}`),
-      go: () => goTab('tour'),
+      go: goKickstart,
     },
   ];
 
