@@ -1521,19 +1521,14 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           {t('tour.gigsConfirmed')}
                         </p>
                       </div>
-                      {/* Market appetite: tap opens the named interested-list */}
-                      <button
-                        type="button"
-                        onClick={() => handleViewInterests(tour)}
-                        className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5 text-left cursor-pointer transition-colors hover:border-infrared/40"
-                      >
+                      <div className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5">
                         <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
                           {tour.interestsCount || 0}
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
                           {t('tour.interestedCount')}
                         </p>
-                      </button>
+                      </div>
                       <div className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5">
                         <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
                           {Math.round(tour.totalRevenue || 0).toLocaleString()}
@@ -1557,6 +1552,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     <div className="flex items-center gap-2 pt-3 border-t border-white/[0.07]">
                       <button className="btn btn-primary btn-small" onClick={() => handleViewTourGigs(tour)}>
                         {t('tour.viewGigs')}
+                      </button>
+                      <button className="btn btn-outline btn-small" onClick={() => handleViewInterests(tour)}>
+                        {t('tour.viewInterested')}
                       </button>
                       <button className="btn btn-outline btn-small" onClick={() => handleEditTour(tour)}>
                         {t('common.edit')}
@@ -1823,7 +1821,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                       <div className="tour-progress">
                         <div className="tour-progress-header">
                           <span className="tour-progress-label">
-                            {t('tour.gigsConfirmedCount', { n: tour.confirmedGigs || 0 })}
+                            {(tour.confirmedGigs || 0) === 1
+                              ? t('tour.gigConfirmedCountOne')
+                              : t('tour.gigsConfirmedCount', { n: tour.confirmedGigs || 0 })}
                           </span>
                         </div>
                         <div className="tour-progress-bar">

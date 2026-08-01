@@ -733,6 +733,8 @@ const ja = {
     noActiveToursHint: 'フィルターを調整するか、後でもう一度ご確認ください',
     unknownArtist: '不明なアーティスト',
     artistRoleFallback: 'アーティスト',
+    gigConfirmedCountOne: '1件のギグ確定',
+    viewInterested: '興味ありを見る',
     gigsConfirmedCount: '{{n}}件のギグ確定',
     feeRangeLabel: '出演料範囲：',
     genresLabel: 'ジャンル：',

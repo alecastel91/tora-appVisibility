@@ -733,6 +733,8 @@ const fr = {
     noActiveToursHint: "Essayez d'ajuster les filtres ou revenez plus tard",
     unknownArtist: 'Artiste inconnu',
     artistRoleFallback: 'Artiste',
+    gigConfirmedCountOne: '1 date confirmée',
+    viewInterested: 'Voir les intéressés',
     gigsConfirmedCount: '{{n}} dates confirmées',
     feeRangeLabel: 'Fourchette de cachet :',
     genresLabel: 'Genres :',

@@ -733,6 +733,8 @@ const ko = {
     noActiveToursHint: '필터를 조정하거나 나중에 다시 확인해 보세요',
     unknownArtist: '알 수 없는 아티스트',
     artistRoleFallback: '아티스트',
+    gigConfirmedCountOne: '확정 공연 1건',
+    viewInterested: '관심 보기',
     gigsConfirmedCount: '확정 공연 {{n}}건',
     feeRangeLabel: '개런티 범위:',
     genresLabel: '장르:',

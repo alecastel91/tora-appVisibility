@@ -733,6 +733,8 @@ const zh = {
     noActiveToursHint: '尝试调整筛选条件，或稍后再来',
     unknownArtist: '未知艺人',
     artistRoleFallback: '艺人',
+    gigConfirmedCountOne: '1场演出已确认',
+    viewInterested: '查看感兴趣',
     gigsConfirmedCount: '{{n}}场演出已确认',
     feeRangeLabel: '演出费区间：',
     genresLabel: '风格：',
