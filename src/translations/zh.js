@@ -780,7 +780,6 @@ const zh = {
     proposalDeclined: '提案已拒绝',
     viewSentProposal: '查看已发送的提案',
     makeAnOffer: '发送报价',
-    viewArtist: '查看艺人',
     tourKickstart: '巡演启动',
     agentsNotAvailable: '此功能面向艺人、主办方和场地开放',
     calendarMatches: '日历匹配',

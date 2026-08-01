@@ -41,19 +41,24 @@ const OnboardingChecklist = () => {
       done: !!(user.avatar && user.bio),
       go: () => goProfileThen('tora:open-edit-profile'),
     },
-    // Agents don't manage their own calendar — their availability lives on the
-    // represented artists, so their activation step is building the roster.
-    isAgent
-      ? {
+    // Agents don't manage their own calendar — their activation step is
+    // building the roster. The calendar itself lives behind the Premium
+    // Manage screen, so for FREE non-agents the item is omitted entirely
+    // (a checklist must never deep-link into a paywall, and an
+    // uncompletable item would keep the card alive forever).
+    ...(isAgent
+      ? [{
           key: 'addArtist',
           done: (Array.isArray(user.representingArtists) ? user.representingArtists : []).length > 0,
           go: () => goProfileThen('tora:open-roster'),
-        }
-      : {
-          key: 'setAvailability',
-          done: (user.availableDates || []).length > 0,
-          go: () => goProfileThen('tora:open-manage-calendar'),
-        },
+        }]
+      : isPremiumViewer(user)
+        ? [{
+            key: 'setAvailability',
+            done: (user.availableDates || []).length > 0,
+            go: () => goProfileThen('tora:open-manage-calendar'),
+          }]
+        : []),
     {
       key: 'likeProfiles',
       done: (likedProfiles?.size || 0) >= 3,

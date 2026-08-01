@@ -286,8 +286,10 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
 
   return (
     <div className="screen active news-screen px-5 pt-6 pb-24" onClick={() => menuFor && setMenuFor(null)}>
-      {/* Activation checklist — first-session guidance; hides once complete */}
-      <OnboardingChecklist />
+      {/* Activation checklist — first-session guidance; hides once complete.
+          Keyed by profile so a profile switch remounts it (collapse state and
+          items are per-profile). */}
+      <OnboardingChecklist key={user?.id || 'anon'} />
       {/* composer */}
       <div className="mb-5 rounded-2xl border border-white/10 bg-[#0c0c11] p-4">
         <div className="flex gap-3">

@@ -780,7 +780,6 @@ const ko = {
     proposalDeclined: '제안 거절됨',
     viewSentProposal: '보낸 제안 보기',
     makeAnOffer: '오퍼 보내기',
-    viewArtist: '아티스트 보기',
     tourKickstart: '투어 킥스타트',
     agentsNotAvailable: '이 기능은 아티스트, 프로모터, 베뉴만 사용할 수 있습니다',
     calendarMatches: '캘린더 매치',

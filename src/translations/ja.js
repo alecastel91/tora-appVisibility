@@ -780,7 +780,6 @@ const ja = {
     proposalDeclined: '提案が辞退されました',
     viewSentProposal: '送信済み提案を見る',
     makeAnOffer: 'オファーを送る',
-    viewArtist: 'アーティストを見る',
     tourKickstart: 'ツアーキックスタート',
     agentsNotAvailable: 'この機能はアーティスト・プロモーター・会場向けです',
     calendarMatches: 'カレンダーマッチ',

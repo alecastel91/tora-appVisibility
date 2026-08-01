@@ -780,7 +780,6 @@ const en = {
     proposalDeclined: 'Proposal Declined',
     viewSentProposal: 'View Sent Proposal',
     makeAnOffer: 'Make an Offer',
-    viewArtist: 'View Artist',
     tourKickstart: 'Tour Kickstart',
     agentsNotAvailable: 'This feature is available for Artists, Promoters, and Venues',
     calendarMatches: 'Calendar Matches',

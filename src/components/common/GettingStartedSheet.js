@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { SearchIcon, HandshakeIcon, PlaneIcon, ProfileIcon, BookingsIcon, StarIcon } from '../../utils/icons';
 
@@ -22,6 +22,16 @@ const GettingStartedSheet = ({ open, onClose }) => {
   const { t } = useLanguage();
   const [index, setIndex] = useState(0);
   const trackRef = useRef(null);
+
+  // Reopening recreates the track at scrollLeft 0 while `index` kept its old
+  // value — the dots and CTA would desync from the visible slide (a stale
+  // "Let's go" would close the sheet the user just opened). Reset on open.
+  useEffect(() => {
+    if (open) {
+      setIndex(0);
+      if (trackRef.current) trackRef.current.scrollTo({ left: 0 });
+    }
+  }, [open]);
 
   if (!open) return null;
 

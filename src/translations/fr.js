@@ -780,7 +780,6 @@ const fr = {
     proposalDeclined: 'Proposition refusée',
     viewSentProposal: 'Voir la proposition envoyée',
     makeAnOffer: 'Faire une offre',
-    viewArtist: "Voir l'artiste",
     tourKickstart: 'Tour Kickstart',
     agentsNotAvailable: 'Cette fonctionnalité est disponible pour les artistes, promoteurs et salles',
     calendarMatches: 'Calendar Matchs',
