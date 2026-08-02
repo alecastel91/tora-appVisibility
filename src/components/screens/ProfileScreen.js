@@ -25,6 +25,7 @@ import ArtistRosterGrid from '../common/ArtistRosterGrid';
 import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import AvatarCropModal from '../common/AvatarCropModal';
 import HighlightsList from '../common/HighlightsList';
+import RepresentationSection from '../common/RepresentationSection';
 import { raProfileUrl } from '../../utils/urls';
 import { networkSectionsForRole } from '../../utils/networkSections';
 
@@ -711,6 +712,13 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         </div>
       )}
 
+      {/* Who represents me — one card per agent, each opening their profile. */}
+      <RepresentationSection
+        profiles={ownEnriched?.representedByProfiles}
+        fallbackEntries={user?.representedBy}
+        onOpenProfile={(p) => { closeSubScreens(); setViewingArtistProfile(p); }}
+      />
+
       {/* Network strips — counterparts from completed TORA deals */}
       {networkSections.map(([key, items, titleKey]) => (
         items.length > 0 && (
@@ -874,24 +882,6 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         </div>
       </div>
 
-      {/* Represented By Badge */}
-      {(() => {
-        const repArray = Array.isArray(user?.representedBy)
-          ? user.representedBy
-          : (user?.representedBy ? [user.representedBy] : []);
-        const agentNames = repArray
-          .map(a => a.name || a.agentName)
-          .filter(Boolean);
-        if (agentNames.length === 0) return null;
-        return (
-          <div className="flex justify-center mb-4">
-            <div className="inline-flex items-center gap-2 text-xs text-role-agent/90 font-tech">
-              <span className="inline-flex [&>svg]:w-4 [&>svg]:h-4"><HandshakeIcon /></span>
-              {t('profile.representedBy')} {agentNames.join(', ')}
-            </div>
-          </div>
-        );
-      })()}
       </div>
 
       {/* Likes List Modal */}

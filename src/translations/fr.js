@@ -954,6 +954,7 @@ const fr = {
     events: 'ÉVÉNEMENTS',
     viewUpcomingEvents: 'Voir les prochains événements',
     representedBy: 'Représenté par',
+    representedByTitle: 'Représenté par',
     likesGiven: 'Likes donnés',
     likedByLabel: 'Aimé par',
     searchLimitedTo: 'Recherche limitée à',

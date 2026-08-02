@@ -954,6 +954,7 @@ const ko = {
     events: '이벤트',
     viewUpcomingEvents: '다가오는 이벤트 보기',
     representedBy: '소속 에이전트',
+    representedByTitle: '소속 에이전트',
     likesGiven: '보낸 좋아요',
     likedByLabel: '받은 좋아요',
     searchLimitedTo: '검색 범위 제한:',

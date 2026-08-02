@@ -956,6 +956,7 @@ const en = {
     events: 'EVENTS',
     viewUpcomingEvents: 'View Upcoming Events',
     representedBy: 'Represented by',
+    representedByTitle: 'Represented by',
     likesGiven: 'Likes',
     likedByLabel: 'Liked by',
     searchLimitedTo: 'Search limited to'

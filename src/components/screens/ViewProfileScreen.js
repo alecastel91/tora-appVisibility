@@ -17,6 +17,7 @@ import PhotoGallery from '../common/PhotoGallery';
 import ArtistRosterGrid from '../common/ArtistRosterGrid';
 import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import HighlightsList from '../common/HighlightsList';
+import RepresentationSection from '../common/RepresentationSection';
 import { isPremiumViewer } from '../../utils/subscription';
 import { networkSectionsForRole } from '../../utils/networkSections';
 import { RA_LOGO_WHITE } from '../../utils/brandAssets';
@@ -502,30 +503,6 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
         </div>
         
         {/* Stats */}
-        {/* Represented By Badge */}
-        {(() => {
-          const repArray = Array.isArray(profile.representedBy)
-            ? profile.representedBy
-            : (profile.representedBy ? [profile.representedBy] : []);
-          const agentNames = repArray
-            .map(a => a.name || a.agentName)
-            .filter(Boolean);
-          if (agentNames.length === 0) return null;
-          const firstAgent = repArray.find(a => (a.name || a.agentName) && (a.agentId || a.profileId || a.id));
-          const agentId = firstAgent && (firstAgent.agentId || firstAgent.profileId || firstAgent.id);
-          return (
-            <div className="represented-by-container">
-              <button
-                type="button"
-                className="represented-by-badge bg-transparent border-none p-0 cursor-pointer hover:underline"
-                onClick={() => agentId && setNestedProfile({ id: agentId, name: firstAgent.name || firstAgent.agentName, role: 'AGENT' })}
-              >
-                <span className="represented-icon"><HandshakeIcon /></span>
-                {t('profile.representedBy')} {agentNames.join(', ')}
-              </button>
-            </div>
-          );
-        })()}
 
         {/* Action Buttons */}
         <div className="profile-actions-bottom" style={{ marginBottom: '18px' }}>
@@ -666,6 +643,13 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
             )}
           </div>
         )}
+
+        {/* Who represents this artist — one card per agent, each addressable. */}
+        <RepresentationSection
+          profiles={profile.representedByProfiles}
+          fallbackEntries={profile.representedBy}
+          onOpenProfile={(p) => setNestedProfile({ id: p.id, name: p.name, role: p.role || 'AGENT' })}
+        />
 
         {/* Past highlights — free-text career credits (text-styled, distinct
             from the verified network strips) */}

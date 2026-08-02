@@ -954,6 +954,7 @@ const ja = {
     events: 'イベント',
     viewUpcomingEvents: '今後のイベントを見る',
     representedBy: '所属',
+    representedByTitle: 'マネジメント',
     likesGiven: 'いいね済み',
     likedByLabel: 'いいねされた',
     searchLimitedTo: '検索範囲',

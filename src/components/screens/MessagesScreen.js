@@ -17,13 +17,26 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
   const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
 
   // Function to fetch all data
+  // Accepting a request fires two refreshes almost at once: the handler's own,
+  // and the one the server's realtime broadcast triggers. A plain in-flight
+  // guard silently dropped whichever arrived second — usually the one that
+  // would have shown the newly-opened conversation, so the list only caught up
+  // on a page refresh. Coalesce instead: remember that a refresh was asked for
+  // and re-run once the current one lands, so the last state always wins.
+  const inFlightRef = React.useRef(false);
+  const refetchQueuedRef = React.useRef(false);
+
   const fetchData = async () => {
     if (!user || !user.id) {
       setLoading(false);
       return;
     }
 
-    if (loading) return; // Prevent duplicate fetches
+    if (inFlightRef.current) {
+      refetchQueuedRef.current = true;
+      return;
+    }
+    inFlightRef.current = true;
 
     try {
       setLoading(true);
@@ -41,6 +54,11 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
       console.error('Error fetching messages data:', error);
     } finally {
       setLoading(false);
+      inFlightRef.current = false;
+      if (refetchQueuedRef.current) {
+        refetchQueuedRef.current = false;
+        fetchData();
+      }
     }
   };
 

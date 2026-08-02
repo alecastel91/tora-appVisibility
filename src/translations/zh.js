@@ -954,6 +954,7 @@ const zh = {
     events: '活动',
     viewUpcomingEvents: '查看即将举行的活动',
     representedBy: '经纪方',
+    representedByTitle: '代理',
     likesGiven: '已赞',
     likedByLabel: '获赞',
     searchLimitedTo: '搜索范围限于',
