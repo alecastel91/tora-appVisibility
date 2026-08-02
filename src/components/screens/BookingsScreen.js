@@ -10,6 +10,7 @@ import ShareDocumentsModal from '../common/ShareDocumentsModal';
 import PdfViewerModal from '../common/PdfViewerModal';
 import EventLogisticsDetails from '../common/EventLogisticsDetails';
 import { deriveSignerCapacity, deriveRecipientName, isArtistSideForDeal } from '../../utils/contractSigner';
+import { toRepEntries, repEntryId, repEntryName, findRepEntry } from '../../utils/representation';
 import { DOC_CATEGORIES, categoryStatus } from '../../utils/documentCategories';
 import { summarizeDealPayment, dealDeadlines } from '../../utils/paymentSummary';
 import { getAuthedBackendUrl, buildPaymentProofUrl } from '../../utils/urls';
@@ -589,9 +590,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
     //   agentReadOnly — AGENT viewer of an ARTIST-DIRECT deal: see for visibility, but the
     //     artist is in charge; hide all workflow controls.
     //   hideWorkflow — either of the above hide-conditions applies.
-    const artistRepresentedBy = Array.isArray(deal.artist?.representedBy)
-      ? deal.artist.representedBy
-      : (deal.artist?.representedBy ? [deal.artist.representedBy] : []);
+    const artistRepresentedBy = toRepEntries(deal.artist?.representedBy);
     const isArtistViewerViaAgent = !!deal.bookedArtistId && currentUser.role === 'ARTIST';
     // Booker only sees "via agent" when the deal itself was agent-led
     // (bookedArtistId set). An artist-direct booking with an artist who
@@ -612,26 +611,29 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
     // runs this deal (`deal.agentId`). Name that one; only fall back to
     // listing every agent on legacy deals that predate the column.
     const viewerAgentPool = isArtistViewerViaAgent
-      ? (Array.isArray(currentUser.representedBy)
-          ? currentUser.representedBy
-          : (currentUser.representedBy ? [currentUser.representedBy] : []))
+      ? toRepEntries(currentUser.representedBy)
       : artistRepresentedBy;
-    const dealAgent = deal.agentId
-      ? viewerAgentPool.find(a => (a.profileId || a.id) === deal.agentId) || { profileId: deal.agentId }
-      : null;
+    const dealAgentEntry = findRepEntry(viewerAgentPool, deal.agentId);
+    // Naming rule, in order: the deal's agent when we can name them; the whole
+    // pool only on legacy deals that carry no agentId (there, any of them
+    // genuinely might be running it); otherwise a generic label — listing
+    // every agent for a deal we KNOW belongs to one of them would name
+    // co-agents who have no mandate on it.
     const agentName = !isViaAgent
       ? null
-      : (dealAgent?.name || dealAgent?.agentName
-          || viewerAgentPool.map(a => a.name || a.agentName).filter(Boolean).join(', ')
-          || 'agent');
+      : (repEntryName(dealAgentEntry)
+          || (deal.agentId
+                ? t('bookings.agentGeneric')
+                : viewerAgentPool.map(repEntryName).filter(Boolean).join(', '))
+          || t('bookings.agentGeneric'));
 
     // The booker's "Message" CTA should route to whoever is leading the
     // negotiation — the deal's own agent, not an arbitrary co-agent.
-    const primaryAgent = isBookerViewerViaAgent ? (dealAgent || artistRepresentedBy[0]) : null;
-    const messageTarget = primaryAgent
+    const primaryAgentId = deal.agentId || (isBookerViewerViaAgent ? repEntryId(artistRepresentedBy[0]) : null);
+    const messageTarget = (isBookerViewerViaAgent && primaryAgentId)
       ? {
-          id: primaryAgent.profileId,
-          name: primaryAgent.name || agentName,
+          id: primaryAgentId,
+          name: repEntryName(dealAgentEntry) || agentName,
           role: 'AGENT',
         }
       : otherParty;

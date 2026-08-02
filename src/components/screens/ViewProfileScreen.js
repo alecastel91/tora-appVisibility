@@ -18,6 +18,7 @@ import ArtistRosterGrid from '../common/ArtistRosterGrid';
 import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import HighlightsList from '../common/HighlightsList';
 import RepresentationSection from '../common/RepresentationSection';
+import { toRepEntries, repEntryId, repEntryName, findRepEntry } from '../../utils/representation';
 import { isPremiumViewer } from '../../utils/subscription';
 import { networkSectionsForRole } from '../../utils/networkSections';
 import { RA_LOGO_WHITE } from '../../utils/brandAssets';
@@ -157,14 +158,8 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
     if (!hasPendingRequest) {
       console.log('profile.representedBy:', profile.representedBy);
 
-      // Check if profile has a valid representedBy agent (now an array)
-      const representedByArray = Array.isArray(profile.representedBy)
-        ? profile.representedBy
-        : (profile.representedBy ? [profile.representedBy] : []);
-
-      const hasValidAgent = representedByArray.some(a =>
-        (a.name || a.agentName) && (a.agentId || a.profileId || a.id)
-      );
+      const representedByArray = toRepEntries(profile.representedBy);
+      const hasValidAgent = representedByArray.some(a => repEntryName(a) && repEntryId(a));
 
       console.log('hasValidAgent:', hasValidAgent);
 
@@ -194,13 +189,9 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
       // Show success feedback
       let targetName = profile.name;
       if (type === 'AGENT' && artistContext) {
-        const repArray = Array.isArray(artistContext.representedBy)
-          ? artistContext.representedBy
-          : (artistContext.representedBy ? [artistContext.representedBy] : []);
         // An artist can have several agents — name the one actually being
         // contacted, not whichever happens to sit first in the array.
-        const target = repArray.find((a) => (a.profileId || a.id) === targetProfileId);
-        targetName = target?.name || target?.agentName || 'Agent';
+        targetName = repEntryName(findRepEntry(artistContext.representedBy, targetProfileId)) || 'Agent';
       }
       appAlert(t('search.connectionRequestSent', { name: targetName }));
     } catch (error) {

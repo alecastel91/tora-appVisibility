@@ -2,6 +2,7 @@ import React from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { HandshakeIcon } from '../../utils/icons';
 import ProfileMiniGrid from './ProfileMiniGrid';
+import { toRepEntries, repEntryName } from '../../utils/representation';
 
 // Who represents this artist.
 //
@@ -17,12 +18,10 @@ const RepresentationSection = ({ profiles, fallbackEntries, onOpenProfile }) => 
   const { t } = useLanguage();
 
   const cards = Array.isArray(profiles) ? profiles.filter((p) => p && p.id) : [];
-  const entries = Array.isArray(fallbackEntries)
-    ? fallbackEntries
-    : (fallbackEntries ? [fallbackEntries] : []);
+  const entries = toRepEntries(fallbackEntries);
 
   if (cards.length === 0) {
-    const names = entries.map((a) => a.name || a.agentName).filter(Boolean);
+    const names = entries.map(repEntryName).filter(Boolean);
     if (names.length === 0) return null;
     return (
       <div className="mb-5 text-left">

@@ -174,6 +174,7 @@ const ja = {
     forArtist: '{{name}}のため',
     viaAgent: '{{name}}経由 · エージェント',
     viaArtistDirect: '{{name}}経由 · アーティスト直接',
+    agentGeneric: 'エージェント',
     managedByAgent: 'このブッキングはあなたのエージェントが管理しています。',
     managedByAgentNamed: 'このブッキングはあなたのエージェント（{{name}}）が管理しています。',
     waitingCountersign: '{{name}}の署名待ち',

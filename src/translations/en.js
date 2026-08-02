@@ -174,6 +174,7 @@ const en = {
     forArtist: 'for {{name}}',
     viaAgent: 'via {{name}} · Agent',
     viaArtistDirect: 'via {{name}} · Artist-direct',
+    agentGeneric: 'their agent',
     managedByAgent: 'This booking is managed by your agent.',
     managedByAgentNamed: 'This booking is managed by your agent ({{name}}).',
     waitingCountersign: 'Waiting for {{name}} to countersign',

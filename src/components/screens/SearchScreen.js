@@ -12,6 +12,7 @@ import LoadingGlobe from '../common/LoadingGlobe';
 import LimitReachedModal from '../common/LimitReachedModal';
 import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import { isPremiumViewer } from '../../utils/subscription';
+import { toRepEntries, repEntryId, repEntryName, findRepEntry } from '../../utils/representation';
 // The globe pulls in d3-geo + a world topojson (~150KB) — only load it when the
 // user actually switches to the globe view (matches the PdfViewer lazy pattern).
 const SearchGlobe = lazy(() => import('../common/SearchGlobe'));
@@ -295,14 +296,8 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
     if (!sentRequests.has(profileId)) {
       setSelectedProfile(profile);
 
-      // Check if profile has valid representedBy data (now an array)
-      const representedByArray = Array.isArray(profile.representedBy)
-        ? profile.representedBy
-        : (profile.representedBy ? [profile.representedBy] : []);
-
-      const hasValidAgent = representedByArray.some(a =>
-        (a.name || a.agentName) && (a.agentId || a.profileId || a.id)
-      );
+      const representedByArray = toRepEntries(profile.representedBy);
+      const hasValidAgent = representedByArray.some(a => repEntryName(a) && repEntryId(a));
 
       console.log('hasValidAgent:', hasValidAgent);
       console.log('  profile.representedBy:', profile.representedBy);
@@ -327,13 +322,9 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
       // Show success feedback
       let targetName = selectedProfile.name;
       if (type === 'AGENT' && artistContext) {
-        const repArray = Array.isArray(artistContext.representedBy)
-          ? artistContext.representedBy
-          : (artistContext.representedBy ? [artistContext.representedBy] : []);
         // An artist can have several agents — name the one actually being
         // contacted, not whichever happens to sit first in the array.
-        const target = repArray.find((a) => (a.profileId || a.id) === targetProfileId);
-        targetName = target?.name || target?.agentName || t('search.agent');
+        targetName = repEntryName(findRepEntry(artistContext.representedBy, targetProfileId)) || t('search.agent');
       }
       appAlert(t('search.connectionRequestSent', { name: targetName }));
     } catch (error) {
