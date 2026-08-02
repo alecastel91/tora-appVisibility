@@ -601,11 +601,17 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       artistRepresentedBy.length > 0;
     const isViaAgent = isArtistViewerViaAgent || isBookerViewerViaAgent;
     const delegateToAgent = isArtistViewerViaAgent;
+    // Roster awareness: the server already decided this agent isn't running
+    // the deal and stripped its commercials (limitedVisibility). The legacy
+    // clause still covers artist-direct rows served before that flag existed.
+    const limitedView = deal.limitedVisibility === true;
     const agentReadOnly =
-      currentUser.role === 'AGENT' &&
-      deal.artistId !== currentUser.id &&
-      deal.venueId !== currentUser.id &&
-      !deal.bookedArtistId;
+      limitedView || (
+        currentUser.role === 'AGENT' &&
+        deal.artistId !== currentUser.id &&
+        deal.venueId !== currentUser.id &&
+        !deal.bookedArtistId
+      );
     const hideWorkflow = delegateToAgent || agentReadOnly;
     // An artist can have several — often regional — agents, but exactly one
     // runs this deal (`deal.agentId`). Name that one; only fall back to
@@ -694,7 +700,16 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               <p className="party-via-agent">{t('bookings.viaAgent', { name: agentName })}</p>
             )}
             {agentReadOnly && (
-              <p className="party-via-agent">{t('bookings.viaArtistDirect', { name: deal.artist?.name || t('chat.theArtistSide') })}</p>
+              <>
+                <p className="party-via-agent">
+                  {limitedView && deal.bookedArtistId
+                    ? t('bookings.viaOtherAgent', { name: deal.artist?.name || t('chat.theArtistSide') })
+                    : t('bookings.viaArtistDirect', { name: deal.artist?.name || t('chat.theArtistSide') })}
+                </p>
+                {limitedView && (
+                  <p className="party-via-agent text-white/35">{t('bookings.limitedViewNote')}</p>
+                )}
+              </>
             )}
             <p className="party-location">
               {deal.city && deal.country ? `${deal.city}, ${deal.country}` : otherParty.location}

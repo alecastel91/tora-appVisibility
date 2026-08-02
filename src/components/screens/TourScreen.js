@@ -1140,6 +1140,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                 />
               </div>
               <small className="form-hint">{t('tour.minRevenueHint')}</small>
+              <small className="form-hint block text-white/35">{t('tour.minRevenuePrivateNote')}</small>
             </div>
 
 
@@ -1323,6 +1324,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                 />
               </div>
               <small className="form-hint">{t('tour.minRevenueHintShort')}</small>
+              <small className="form-hint block text-white/35">{t('tour.minRevenuePrivateNote')}</small>
             </div>
 
 
@@ -1817,7 +1819,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                       </span>
                     </div>
                     <div className="tour-card-body">
-                      {/* Revenue Progress Bar */}
+                      {/* Booking traction. Deliberately NOT the revenue
+                          progress bar the owner sees: how much the tour still
+                          needs to earn is the owner's planning figure, and it
+                          would tell a promoter exactly how much leverage they
+                          have. Confirmed shows are the honest public signal. */}
                       <div className="tour-progress">
                         <div className="tour-progress-header">
                           <span className="tour-progress-label">
@@ -1825,15 +1831,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                               ? t('tour.gigConfirmedCountOne')
                               : t('tour.gigsConfirmedCount', { n: tour.confirmedGigs || 0 })}
                           </span>
-                        </div>
-                        <div className="tour-progress-bar">
-                          <div
-                            className="tour-progress-fill"
-                            style={{ width: `${Math.min(100, ((tour.totalRevenue || 0) / (tour.minRevenue || 1)) * 100)}%` }}
-                          />
-                        </div>
-                        <div className="tour-progress-percentage">
-                          {Math.round(((tour.totalRevenue || 0) / (tour.minRevenue || 1)) * 100)}%
                         </div>
                       </div>
 
