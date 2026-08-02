@@ -412,6 +412,12 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         to: user.id,
         text: `📎 ${document.title}`,
         isSystemMessage: false,
+        // Whose library this doc came from. The backend auto-fills active
+        // deals from a shared doc, and without this an agent's share would
+        // fan out across their WHOLE roster (into other artists' bookings).
+        onBehalfOfArtistId: currentUser.role === 'AGENT'
+          ? (selectedArtistForDocs?.profileId || selectedArtistForDocs?.id || null)
+          : currentUser.id,
         documentAttachment: {
           id: document.id,
           title: document.title,

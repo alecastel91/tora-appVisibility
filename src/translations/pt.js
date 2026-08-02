@@ -174,6 +174,8 @@ const pt = {
     forArtist: 'para {{name}}',
     viaAgent: 'via {{name}} · Agente',
     viaArtistDirect: 'via {{name}} · Direto',
+    managedByAgent: 'Esta reserva é gerida pelo teu agente.',
+    managedByAgentNamed: 'Esta reserva é gerida pelo teu agente ({{name}}).',
     waitingCountersign: 'À espera da contra-assinatura de {{name}}',
     artistLabel: 'Artista:',
     offerCount: '{{n}} proposta',

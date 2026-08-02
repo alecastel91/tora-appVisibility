@@ -174,6 +174,8 @@ const ko = {
     forArtist: '{{name}} 님을 위한',
     viaAgent: '{{name}} 경유 · 에이전트',
     viaArtistDirect: '{{name}} 경유 · 직접',
+    managedByAgent: '이 부킹은 담당 에이전트가 관리합니다.',
+    managedByAgentNamed: '이 부킹은 담당 에이전트({{name}})가 관리합니다.',
     waitingCountersign: '{{name}} 님의 서명 대기 중',
     artistLabel: '아티스트:',
     offerCount: '오퍼 {{n}}건',

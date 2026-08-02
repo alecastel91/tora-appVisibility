@@ -330,7 +330,10 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
         const repArray = Array.isArray(artistContext.representedBy)
           ? artistContext.representedBy
           : (artistContext.representedBy ? [artistContext.representedBy] : []);
-        targetName = repArray[0]?.name || repArray[0]?.agentName || t('search.agent');
+        // An artist can have several agents — name the one actually being
+        // contacted, not whichever happens to sit first in the array.
+        const target = repArray.find((a) => (a.profileId || a.id) === targetProfileId);
+        targetName = target?.name || target?.agentName || t('search.agent');
       }
       appAlert(t('search.connectionRequestSent', { name: targetName }));
     } catch (error) {

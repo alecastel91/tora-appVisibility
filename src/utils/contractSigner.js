@@ -2,16 +2,27 @@
 // authoritative signerCapacity at submit time; the values here just drive the
 // modal copy so the user sees the same wording.
 
+// An artist can have several — often regional — agents, but only ONE runs a
+// given deal (`deal.agentId`, persisted at creation). Where it's set, a
+// co-agent is not on this deal's artist side. Legacy deals predate the column
+// and carry no agentId; there we fall back to "any agent of the artist", which
+// is what the backend does too, so the UI never offers an action the server
+// will refuse (and never hides one it would allow).
+function isDealAgent(deal, profile) {
+  if (profile.role !== 'AGENT') return false;
+  if (deal.agentId) return deal.agentId === profile.id;
+  if (!deal.bookedArtistId) return false; // artist-direct: no agent acts
+  const artists = profile.representingArtists || [];
+  return artists.some((a) => (a.profileId || a.id) === deal.artistId);
+}
+
 export function deriveSignerCapacity(deal, profile) {
   if (!deal || !profile) return null;
   if (deal.venueId === profile.id) return 'As Venue/Promoter';
   if (deal.artistId === profile.id || deal.bookedArtistId === profile.id) return 'As Artist';
-  if (profile.role === 'AGENT') {
-    const artists = profile.representingArtists || [];
-    if (artists.some((a) => (a.profileId || a.id) === deal.artistId)) {
-      const artistName = deal.artist?.name || deal.bookedArtistName || 'the artist';
-      return `As Agent on behalf of ${artistName}`;
-    }
+  if (isDealAgent(deal, profile)) {
+    const artistName = deal.artist?.name || deal.bookedArtistName || 'the artist';
+    return `As Agent (${profile.name}) on behalf of ${artistName}`;
   }
   return null;
 }
@@ -28,9 +39,5 @@ export function deriveRecipientName(deal, profile) {
 export function isArtistSideForDeal(deal, profile) {
   if (!deal || !profile) return false;
   if (profile.id === deal.artistId || profile.id === deal.bookedArtistId) return true;
-  if (profile.role === 'AGENT') {
-    const artists = profile.representingArtists || [];
-    return artists.some((a) => (a.profileId || a.id) === deal.artistId);
-  }
-  return false;
+  return isDealAgent(deal, profile);
 }

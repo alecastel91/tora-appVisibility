@@ -174,6 +174,8 @@ const zh = {
     forArtist: '为{{name}}',
     viaAgent: '经由{{name}} · 经纪人',
     viaArtistDirect: '经由{{name}} · 直接',
+    managedByAgent: '此预订由您的经纪人管理。',
+    managedByAgentNamed: '此预订由您的经纪人（{{name}}）管理。',
     waitingCountersign: '等待{{name}}会签',
     artistLabel: '艺人：',
     offerCount: '{{n}}个报价',

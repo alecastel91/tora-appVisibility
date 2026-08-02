@@ -608,17 +608,26 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       deal.venueId !== currentUser.id &&
       !deal.bookedArtistId;
     const hideWorkflow = delegateToAgent || agentReadOnly;
+    // An artist can have several — often regional — agents, but exactly one
+    // runs this deal (`deal.agentId`). Name that one; only fall back to
+    // listing every agent on legacy deals that predate the column.
+    const viewerAgentPool = isArtistViewerViaAgent
+      ? (Array.isArray(currentUser.representedBy)
+          ? currentUser.representedBy
+          : (currentUser.representedBy ? [currentUser.representedBy] : []))
+      : artistRepresentedBy;
+    const dealAgent = deal.agentId
+      ? viewerAgentPool.find(a => (a.profileId || a.id) === deal.agentId) || { profileId: deal.agentId }
+      : null;
     const agentName = !isViaAgent
       ? null
-      : isArtistViewerViaAgent
-        ? (Array.isArray(currentUser.representedBy)
-            ? (currentUser.representedBy.map(a => a.name || a.agentName).filter(Boolean).join(', ') || 'agent')
-            : (currentUser.representedBy?.name || 'agent'))
-        : (artistRepresentedBy.map(a => a.name || a.agentName).filter(Boolean).join(', ') || 'agent');
+      : (dealAgent?.name || dealAgent?.agentName
+          || viewerAgentPool.map(a => a.name || a.agentName).filter(Boolean).join(', ')
+          || 'agent');
 
     // The booker's "Message" CTA should route to whoever is leading the
-    // negotiation. When the artist has an agent, that's the agent.
-    const primaryAgent = isBookerViewerViaAgent ? artistRepresentedBy[0] : null;
+    // negotiation — the deal's own agent, not an arbitrary co-agent.
+    const primaryAgent = isBookerViewerViaAgent ? (dealAgent || artistRepresentedBy[0]) : null;
     const messageTarget = primaryAgent
       ? {
           id: primaryAgent.profileId,
@@ -1360,7 +1369,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   <line x1="12" y1="16" x2="12" y2="12"></line>
                   <line x1="12" y1="8" x2="12" y2="8"></line>
                 </svg>
-                <span>This booking is managed by your agent{agentName ? ` (${agentName})` : ''}.</span>
+                <span>{agentName ? t('bookings.managedByAgentNamed', { name: agentName }) : t('bookings.managedByAgent')}</span>
               </div>
             )}
 
