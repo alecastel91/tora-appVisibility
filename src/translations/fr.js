@@ -780,7 +780,6 @@ const fr = {
     gigConfirmedCountOne: '1 date confirmée',
     viewInterested: 'Voir les intéressés',
     gigsConfirmedCount: '{{n}} dates confirmées',
-    stopsPlanned: '{{n}} étapes prévues',
     feeRangeLabel: 'Fourchette de cachet :',
     genresLabel: 'Genres :',
     proposalAccepted: 'Proposition acceptée',

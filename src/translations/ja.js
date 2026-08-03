@@ -780,7 +780,6 @@ const ja = {
     gigConfirmedCountOne: '1件のギグ確定',
     viewInterested: '興味ありを見る',
     gigsConfirmedCount: '{{n}}件のギグ確定',
-    stopsPlanned: '予定{{n}}都市',
     feeRangeLabel: '出演料範囲：',
     genresLabel: 'ジャンル：',
     proposalAccepted: '提案が承認されました',

@@ -780,7 +780,6 @@ const zh = {
     gigConfirmedCountOne: '1场演出已确认',
     viewInterested: '查看感兴趣',
     gigsConfirmedCount: '{{n}}场演出已确认',
-    stopsPlanned: '计划 {{n}} 站',
     feeRangeLabel: '演出费区间：',
     genresLabel: '风格：',
     proposalAccepted: '提案已接受',

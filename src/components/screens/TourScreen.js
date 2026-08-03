@@ -1830,12 +1830,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           number nobody outside can see. */}
                       {(() => {
                         const booked = tour.confirmedGigs || 0;
-                        const planned = Array.isArray(tour.targetCities) ? tour.targetCities.length : 0;
-                        // Always keep headroom past the last booked show: a bar
-                        // that fills exactly reads as "tour complete, nothing
-                        // left to pitch for", which is the opposite of what a
-                        // promoter browsing this card should conclude.
-                        const segments = Math.min(14, Math.max(planned, booked + 2, 4));
+                        // One segment per booked show, always with headroom past
+                        // the last one: a bar that fills exactly reads as "tour
+                        // complete, nothing left to pitch for", the opposite of
+                        // what a promoter browsing this card should conclude.
+                        const segments = Math.min(14, Math.max(booked + 2, 4));
                         return (
                           <div className="tour-progress">
                             <div className="tour-progress-header">
@@ -1844,11 +1843,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                                   ? t('tour.gigConfirmedCountOne')
                                   : t('tour.gigsConfirmedCount', { n: booked })}
                               </span>
-                              {planned > 0 && (
-                                <span className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-tech">
-                                  {t('tour.stopsPlanned', { n: planned })}
-                                </span>
-                              )}
                             </div>
                             <div className="flex gap-1" aria-hidden="true">
                               {Array.from({ length: segments }, (_, i) => (

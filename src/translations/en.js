@@ -780,7 +780,6 @@ const en = {
     gigConfirmedCountOne: '1 gig confirmed',
     viewInterested: 'View Interested',
     gigsConfirmedCount: '{{n}} gigs confirmed',
-    stopsPlanned: '{{n}} stops planned',
     feeRangeLabel: 'Fee Range:',
     genresLabel: 'Genres:',
     proposalAccepted: 'Proposal Accepted',
