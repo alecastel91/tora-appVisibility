@@ -780,6 +780,7 @@ const ko = {
     gigConfirmedCountOne: '확정 공연 1건',
     viewInterested: '관심 보기',
     gigsConfirmedCount: '확정 공연 {{n}}건',
+    stopsPlanned: '{{n}}개 도시 예정',
     feeRangeLabel: '개런티 범위:',
     genresLabel: '장르:',
     proposalAccepted: '제안 수락됨',

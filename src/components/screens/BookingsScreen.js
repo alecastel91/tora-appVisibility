@@ -700,16 +700,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               <p className="party-via-agent">{t('bookings.viaAgent', { name: agentName })}</p>
             )}
             {agentReadOnly && (
-              <>
-                <p className="party-via-agent">
-                  {limitedView && deal.bookedArtistId
-                    ? t('bookings.viaOtherAgent', { name: deal.artist?.name || t('chat.theArtistSide') })
-                    : t('bookings.viaArtistDirect', { name: deal.artist?.name || t('chat.theArtistSide') })}
-                </p>
-                {limitedView && (
-                  <p className="party-via-agent text-white/35">{t('bookings.limitedViewNote')}</p>
-                )}
-              </>
+              <p className="party-via-agent">
+                {limitedView && deal.bookedArtistId
+                  ? t('bookings.viaOtherAgent', { name: deal.artist?.name || t('chat.theArtistSide') })
+                  : t('bookings.viaArtistDirect', { name: deal.artist?.name || t('chat.theArtistSide') })}
+              </p>
             )}
             <p className="party-location">
               {deal.city && deal.country ? `${deal.city}, ${deal.country}` : otherParty.location}
@@ -777,6 +772,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
 
         {isExpanded && (
           <>
+            {limitedView && (
+              <p className="mb-3 text-[11px] leading-relaxed text-white/35">
+                {t('bookings.limitedViewNote')}
+              </p>
+            )}
             {(deal.eventName || deal.performanceType) && (
               <div className="flex items-center gap-2.5 mb-2">
                 <h3 className="m-0 text-[16px] font-semibold font-space-grotesk tracking-[-0.01em] text-white truncate">
@@ -1392,8 +1392,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
 
             {/* Standalone Message button — for ACCEPTED + workflow-visible
                 cards Message lives inside .workflow-actions instead, so this
-                only renders when that row isn't on screen. */}
-            {(hideWorkflow || deal.status !== 'ACCEPTED') && (
+                only renders when that row isn't on screen. Never on a
+                limited card: that agent isn't running this booking, and
+                messaging the promoter/venue about it would cut across
+                whoever is. */}
+            {!limitedView && (hideWorkflow || deal.status !== 'ACCEPTED') && (
               <button
                 className="btn btn-outline btn-chat"
                 onClick={() => onOpenChat && onOpenChat(messageTarget)}

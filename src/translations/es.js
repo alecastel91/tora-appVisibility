@@ -780,6 +780,7 @@ const es = {
     gigConfirmedCountOne: '1 actuación confirmada',
     viewInterested: 'Ver interesados',
     gigsConfirmedCount: '{{n}} actuaciones confirmadas',
+    stopsPlanned: '{{n}} paradas previstas',
     feeRangeLabel: 'Rango de caché:',
     genresLabel: 'Géneros:',
     proposalAccepted: 'Propuesta aceptada',

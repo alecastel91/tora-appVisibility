@@ -1823,16 +1823,44 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           progress bar the owner sees: how much the tour still
                           needs to earn is the owner's planning figure, and it
                           would tell a promoter exactly how much leverage they
-                          have. Confirmed shows are the honest public signal. */}
-                      <div className="tour-progress">
-                        <div className="tour-progress-header">
-                          <span className="tour-progress-label">
-                            {(tour.confirmedGigs || 0) === 1
-                              ? t('tour.gigConfirmedCountOne')
-                              : t('tour.gigsConfirmedCount', { n: tour.confirmedGigs || 0 })}
-                          </span>
-                        </div>
-                      </div>
+                          have. Confirmed shows are the honest public signal —
+                          drawn as one segment per booked show against the
+                          stops the artist is targeting, so the visual counts
+                          real things rather than implying a percentage of a
+                          number nobody outside can see. */}
+                      {(() => {
+                        const booked = tour.confirmedGigs || 0;
+                        const planned = Array.isArray(tour.targetCities) ? tour.targetCities.length : 0;
+                        // Segments track real stops; only an untouched tour falls back to a
+                        // neutral empty bar.
+                        const segments = Math.min(12, Math.max(planned, booked) || 4);
+                        return (
+                          <div className="tour-progress">
+                            <div className="tour-progress-header">
+                              <span className="tour-progress-label">
+                                {booked === 1
+                                  ? t('tour.gigConfirmedCountOne')
+                                  : t('tour.gigsConfirmedCount', { n: booked })}
+                              </span>
+                              {planned > 0 && (
+                                <span className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-tech">
+                                  {t('tour.stopsPlanned', { n: planned })}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex gap-1" aria-hidden="true">
+                              {Array.from({ length: segments }, (_, i) => (
+                                <span
+                                  key={i}
+                                  className={`h-1.5 flex-1 rounded-full transition-colors ${
+                                    i < booked ? 'bg-infrared' : 'bg-white/10'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       <div className="tour-stats-row">
                         {(tour.feeExpectation || tour.priceOnRequest) && (
