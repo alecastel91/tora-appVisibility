@@ -1831,9 +1831,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                       {(() => {
                         const booked = tour.confirmedGigs || 0;
                         const planned = Array.isArray(tour.targetCities) ? tour.targetCities.length : 0;
-                        // Segments track real stops; only an untouched tour falls back to a
-                        // neutral empty bar.
-                        const segments = Math.min(12, Math.max(planned, booked) || 4);
+                        // Always keep headroom past the last booked show: a bar
+                        // that fills exactly reads as "tour complete, nothing
+                        // left to pitch for", which is the opposite of what a
+                        // promoter browsing this card should conclude.
+                        const segments = Math.min(14, Math.max(planned, booked + 2, 4));
                         return (
                           <div className="tour-progress">
                             <div className="tour-progress-header">
