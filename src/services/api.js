@@ -1124,6 +1124,17 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // Full up: stop taking proposals without cancelling the tour. Promoters keep
+  // seeing it and can still register interest.
+  async setTourOffersClosed(tourId, closed) {
+    const response = await fetch(`${API_URL}/tours/${tourId}/close-offers`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ closed }),
+    });
+    return this.handleResponse(response);
+  }
+
   // TORA ASSISTANT
   async assistantChat(messages, profileId) {
     const response = await fetch(`${API_URL}/assistant/chat`, {

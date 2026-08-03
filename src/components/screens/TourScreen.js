@@ -117,6 +117,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   // Tour Kickstart state
   const [showCreateTourModal, setShowCreateTourModal] = useState(false);
   const [myTours, setMyTours] = useState([]);
+  const [tourActionBusy, setTourActionBusy] = useState(null);
   const [toursLoading, setToursLoading] = useState(true);
   const [allTours, setAllTours] = useState([]); // For promoters/venues
   const [tourZoneFilter, setTourZoneFilter] = useState('all');
@@ -775,6 +776,20 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   };
 
   // Handle Edit Tour
+  // Full up: stop taking proposals without cancelling the tour.
+  const handleToggleTourOffers = async (tour) => {
+    const next = !tour.closedToOffers;
+    setTourActionBusy(tour.id);
+    try {
+      await apiService.setTourOffersClosed(tour.id, next);
+      setMyTours((prev) => prev.map((x) => (x.id === tour.id ? { ...x, closedToOffers: next } : x)));
+    } catch (error) {
+      appAlert(error.message || t('tour.updateFailed'));
+    } finally {
+      setTourActionBusy(null);
+    }
+  };
+
   const handleEditTour = (tour) => {
     setSelectedTour(tour);
     setTourForm({
@@ -1562,6 +1577,15 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                         {t('common.edit')}
                       </button>
                       <button
+                        className="btn btn-outline btn-small"
+                        disabled={tourActionBusy === tour.id}
+                        onClick={() => handleToggleTourOffers(tour)}
+                      >
+                        {tourActionBusy === tour.id
+                          ? '...'
+                          : (tour.closedToOffers ? t('tour.reopenToOffers') : t('tour.closeToOffers'))}
+                      </button>
+                      <button
                         className="ml-auto bg-transparent border-none cursor-pointer text-[10px] uppercase tracking-[0.1em]
                                    font-tech text-white/35 hover:text-role-venue transition-colors"
                         onClick={() => handleDeleteTour(tour)}
@@ -1895,6 +1919,13 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           {tour.myProposal.status === 'ACCEPTED' ? `✓ ${t('tour.proposalAccepted')}` :
                            tour.myProposal.status === 'DECLINED' ? t('tour.proposalDeclined') :
                            t('tour.viewSentProposal')}
+                        </button>
+                      ) : tour.closedToOffers ? (
+                        // Full: the artist side stopped taking offers. The tour
+                        // stays listed and interest stays open, so a promoter
+                        // can still put their hand up for the next run.
+                        <button className="btn btn-secondary btn-small" style={{ flex: 1 }} disabled>
+                          {t('tour.fullyBooked')}
                         </button>
                       ) : (
                         // No proposal sent yet
