@@ -1522,30 +1522,54 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           {tour.zone && tour.country ? ` · ${tour.zone}` : ''}
                         </p>
                       </div>
-                      <span className={`shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full border text-[9px]
-                                        font-semibold uppercase tracking-[0.15em] font-tech ${statusPill}`}>
-                        {tourStatusLabel(tour.status)}
-                      </span>
+                      <div className="shrink-0 flex flex-col items-end gap-1">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-[9px]
+                                          font-semibold uppercase tracking-[0.15em] font-tech ${statusPill}`}>
+                          {tourStatusLabel(tour.status)}
+                        </span>
+                        {/* Closed to offers is a state of a LIVE tour, so it
+                            reads alongside the status rather than replacing it. */}
+                        {tour.closedToOffers && tour.status === 'ACTIVE' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full border border-white/20
+                                           text-white/55 text-[9px] font-semibold uppercase tracking-[0.15em] font-tech">
+                            {t('tour.fullyBooked')}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Console: gigs + interest + revenue tiles */}
                     <div className="grid grid-cols-3 gap-2.5 mb-3">
-                      <div className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5">
+                      {/* The two counts ARE the way in to their lists — a
+                          separate "View gigs" / "View interested" button pair
+                          restated the same numbers and pushed the action row
+                          to five CTAs, which wrapped and clipped. */}
+                      <button
+                        type="button"
+                        onClick={() => handleViewTourGigs(tour)}
+                        className="text-left rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5
+                                   transition-colors hover:border-infrared/40 cursor-pointer"
+                      >
                         <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
                           {tour.confirmedGigs || 0}
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
                           {t('tour.gigsConfirmed')}
                         </p>
-                      </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5">
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleViewInterests(tour)}
+                        className="text-left rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5
+                                   transition-colors hover:border-infrared/40 cursor-pointer"
+                      >
                         <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
                           {tour.interestsCount || 0}
                         </p>
                         <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
                           {t('tour.interestedCount')}
                         </p>
-                      </div>
+                      </button>
                       <div className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5">
                         <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
                           {Math.round(tour.totalRevenue || 0).toLocaleString()}
@@ -1565,29 +1589,30 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                       <span className="shrink-0 text-[10px] text-white/50 font-tech">{pct}%</span>
                     </div>
 
-                    {/* Actions: primary → neutral → quiet danger */}
-                    <div className="flex items-center gap-2 pt-3 border-t border-white/[0.07]">
-                      <button className="btn btn-primary btn-small" onClick={() => handleViewTourGigs(tour)}>
-                        {t('tour.viewGigs')}
-                      </button>
-                      <button className="btn btn-outline btn-small" onClick={() => handleViewInterests(tour)}>
-                        {t('tour.viewInterested')}
-                      </button>
-                      <button className="btn btn-outline btn-small" onClick={() => handleEditTour(tour)}>
+                    {/* Actions: the two things you DO to a tour, then the
+                        quiet destructive one. Labels stay on one line; the row
+                        wraps rather than clipping on a narrow phone. */}
+                    <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-white/[0.07]">
+                      <button
+                        className="btn btn-outline btn-small whitespace-nowrap"
+                        onClick={() => handleEditTour(tour)}
+                      >
                         {t('common.edit')}
                       </button>
-                      <button
-                        className="btn btn-outline btn-small"
-                        disabled={tourActionBusy === tour.id}
-                        onClick={() => handleToggleTourOffers(tour)}
-                      >
-                        {tourActionBusy === tour.id
-                          ? '...'
-                          : (tour.closedToOffers ? t('tour.reopenToOffers') : t('tour.closeToOffers'))}
-                      </button>
+                      {tour.status === 'ACTIVE' && (
+                        <button
+                          className={`btn btn-small whitespace-nowrap ${tour.closedToOffers ? 'btn-primary' : 'btn-outline'}`}
+                          disabled={tourActionBusy === tour.id}
+                          onClick={() => handleToggleTourOffers(tour)}
+                        >
+                          {tourActionBusy === tour.id
+                            ? '...'
+                            : (tour.closedToOffers ? t('tour.reopenToOffers') : t('tour.closeToOffers'))}
+                        </button>
+                      )}
                       <button
                         className="ml-auto bg-transparent border-none cursor-pointer text-[10px] uppercase tracking-[0.1em]
-                                   font-tech text-white/35 hover:text-role-venue transition-colors"
+                                   font-tech text-white/35 hover:text-role-venue transition-colors whitespace-nowrap"
                         onClick={() => handleDeleteTour(tour)}
                       >
                         {t('tour.cancelTour')}
