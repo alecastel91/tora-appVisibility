@@ -65,4 +65,23 @@ export const subscribeToDeals = (profileId, onDealUpdate) => {
   };
 };
 
+// Tours are browsed, not addressed, so there is no per-profile channel:
+// one `tours` channel carries state changes that other people's open screens
+// need to reflect (right now, whether a tour still takes offers). Must match
+// the backend's TOURS_CHANNEL.
+export const TOURS_CHANNEL = 'tours';
+
+export const subscribeToTours = (onTourUpdate) => {
+  const channel = supabase
+    .channel(TOURS_CHANNEL)
+    .on('broadcast', { event: 'tour_update' }, (payload) => {
+      onTourUpdate(payload.payload);
+    })
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+};
+
 export default supabase;

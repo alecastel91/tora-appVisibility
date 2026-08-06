@@ -3,6 +3,7 @@ import { CURRENCY_OPTIONS, CURRENCY_OPTIONS_WITH_SYMBOL } from '../common/Curren
 import ReactDOM from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { subscribeToTours } from '../../services/realtime';
 import ViewProfileScreen from './ViewProfileScreen';
 import MakeOfferModal from '../common/MakeOfferModal';
 import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon, HeartIcon } from '../../utils/icons';
@@ -118,8 +119,23 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const [showCreateTourModal, setShowCreateTourModal] = useState(false);
   const [myTours, setMyTours] = useState([]);
   const [tourActionBusy, setTourActionBusy] = useState(null);
+
   const [toursLoading, setToursLoading] = useState(true);
   const [allTours, setAllTours] = useState([]); // For promoters/venues
+  // A tour closing (or reopening) has to land on everyone else's open screen:
+  // otherwise a promoter fills in a proposal against a card that stopped
+  // taking them and only finds out on submit. The payload carries the new
+  // state, so both lists patch in place — no refetch.
+  useEffect(() => {
+    const unsubscribe = subscribeToTours(({ tourId, closedToOffers, status }) => {
+      const patch = (list) => list.map((x) => (
+        x.id === tourId ? { ...x, closedToOffers, status: status ?? x.status } : x
+      ));
+      setAllTours(patch);
+      setMyTours(patch);
+    });
+    return unsubscribe;
+  }, []);
   const [tourZoneFilter, setTourZoneFilter] = useState('all');
   const [tourGenreFilter, setTourGenreFilter] = useState([]); // Array for multi-select
   const [showGenreDropdown, setShowGenreDropdown] = useState(false);
@@ -1879,11 +1895,15 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           number nobody outside can see. */}
                       {(() => {
                         const booked = tour.confirmedGigs || 0;
-                        // One segment per booked show, always with headroom past
-                        // the last one: a bar that fills exactly reads as "tour
-                        // complete, nothing left to pitch for", the opposite of
-                        // what a promoter browsing this card should conclude.
-                        const segments = Math.min(14, Math.max(booked + 2, 4));
+                        // Five slots to start with, and a fresh one appears as
+                        // soon as the last is taken — so an open tour always
+                        // reads as "there is still room", never as finished.
+                        // A tour CLOSED to offers is the one case that should
+                        // read as full: the slots collapse to what was booked
+                        // and the bar completes.
+                        const segments = tour.closedToOffers
+                          ? Math.max(booked, 1)
+                          : Math.min(14, Math.max(5, booked + 1));
                         return (
                           <div className="tour-progress">
                             <div className="tour-progress-header">

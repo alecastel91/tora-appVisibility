@@ -15,6 +15,7 @@ import EventLogisticsDetails from '../common/EventLogisticsDetails';
 import { deriveSignerCapacity, deriveRecipientName, isArtistSideForDeal } from '../../utils/contractSigner';
 import { DOC_CATEGORIES, DOC_CATEGORY_KEYS, BROADCAST_DOC_CATEGORY_KEYS, labelForCategory } from '../../utils/documentCategories';
 import { getAuthedBackendUrl } from '../../utils/urls';
+import { PlaneIcon } from '../../utils/icons';
 import { roleLabel, getAvatarClass } from '../../utils/roles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { dealDeadlines } from '../../utils/paymentSummary';
@@ -1163,6 +1164,49 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                         onClick={() => handleViewRepresentation(msg.connectionRequestId)}
                       >
                         {t('roster.view')}
+                      </button>
+                    </div>
+                    <span className="message-timestamp">{formatMessageTime(msg.timestamp)}</span>
+                  </div>
+                );
+              })()
+            ) : msg.documentAttachment && msg.documentAttachment.category === 'tourInvite' ? (
+              // Invitation to make an offer on a tour. Same card idiom as an
+              // offer, so it reads as something to act on rather than as a
+              // line of chat — and it carries the way to the tour itself.
+              (() => {
+                const invite = msg.documentAttachment;
+                const fmt = (d) => new Date(d).toLocaleDateString(t('dateFormat.locale'), {
+                  day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+                });
+                return (
+                  <div className={`message-with-timestamp ${msg.isMe ? 'card-sent' : 'card-received'}`}>
+                    <div className="offer-card-message">
+                      <div className="offer-card-content">
+                        <div className="offer-card-icon">
+                          <PlaneIcon />
+                        </div>
+                        <div className="offer-card-text">
+                          <p className="offer-card-name">
+                            {t('tour.tourTitle', { location: invite.destination })}
+                          </p>
+                          <p className="offer-card-action">
+                            {msg.isMe ? t('chat.youInvitedToOffer') : t('chat.invitedYouToOffer')}
+                          </p>
+                          {invite.startDate && invite.endDate && (
+                            <p className="offer-card-action text-white/40">
+                              {fmt(invite.startDate)} – {fmt(invite.endDate)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-outline btn-view-offer"
+                        onClick={() => window.dispatchEvent(
+                          new CustomEvent('tora:navigate-tab', { detail: { tab: 'tour' } })
+                        )}
+                      >
+                        {t('chat.viewTour')}
                       </button>
                     </div>
                     <span className="message-timestamp">{formatMessageTime(msg.timestamp)}</span>
