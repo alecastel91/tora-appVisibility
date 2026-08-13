@@ -18,6 +18,15 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
   const [vouches, setVouches] = useState({ pending: [], answered: [] });
   const [vouchBusy, setVouchBusy] = useState(null);
   const [activeTab, setActiveTab] = useState('messages'); // 'messages' or 'requests'
+
+  // A notification whose subject lives on the Requests sub-tab has to land
+  // there; opening the Messages tab alone shows a conversation list the item
+  // will never be in.
+  useEffect(() => {
+    const onSubtab = (e) => { if (e.detail?.subtab) setActiveTab(e.detail.subtab); };
+    window.addEventListener('tora:messages-subtab', onSubtab);
+    return () => window.removeEventListener('tora:messages-subtab', onSubtab);
+  }, []);
   const [loading, setLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
 
@@ -65,7 +74,12 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
         apiService.getReceivedRequests(user.id),
         // Only artists are ever asked to vouch; skip the call for everyone else.
         user.role === 'ARTIST'
-          ? apiService.getReceivedVouches(user.id).catch(() => ({ vouches: [], answered: [] }))
+          ? apiService.getReceivedVouches(user.id).catch((err) => {
+              // Not fatal to the rest of the screen, but it must not read as
+              // "nothing to answer" — an agent would wait out the full TTL.
+              console.error('Failed to load vouch requests:', err);
+              return { vouches: [], answered: [], failed: true };
+            })
           : Promise.resolve({ vouches: [], answered: [] }),
       ]);
 
@@ -292,14 +306,14 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
               <div className="flex gap-2 mt-3">
                 <button
                   className="btn btn-sm btn-primary flex-1"
-                  disabled={vouchBusy === v.id}
+                  disabled={!!vouchBusy}
                   onClick={() => answerVouch(v.id, true)}
                 >
                   {vouchBusy === v.id ? '...' : t('verify.vouchConfirm')}
                 </button>
                 <button
                   className="btn btn-sm btn-outline flex-1"
-                  disabled={vouchBusy === v.id}
+                  disabled={!!vouchBusy}
                   onClick={() => answerVouch(v.id, false)}
                 >
                   {t('verify.vouchDecline')}
@@ -319,7 +333,7 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
                 </span>
                 <button
                   className="btn btn-sm btn-outline shrink-0"
-                  disabled={vouchBusy === v.id}
+                  disabled={!!vouchBusy}
                   onClick={() => answerVouch(v.id, v.status !== 'CONFIRMED')}
                 >
                   {vouchBusy === v.id

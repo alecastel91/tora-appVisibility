@@ -3,6 +3,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import apiService from '../../services/api';
 import { getAvatarClass } from '../../utils/roles';
+import { requiredEmailDomain } from '../../utils/emailDomain';
 
 /**
  * How an agency verifies. Instagram is not offered here: a handle costs a
@@ -29,18 +30,10 @@ const AgentVerificationPanel = ({ onClose, onVerified }) => {
   const [results, setResults] = useState(null);
   const [asked, setAsked] = useState(null);
 
-  // The domain the work email has to sit at — derived from the website already
-  // on the profile, so the requirement is visible before anything is typed.
-  const websiteDomain = (() => {
-    const raw = (user?.website || '').trim().toLowerCase();
-    if (!raw) return null;
-    const host = raw
-      .replace(/^[a-z][a-z0-9+.-]*:\/\//, '')
-      .split(/[/?#]/)[0]
-      .split(':')[0]
-      .replace(/^www\./, '');
-    return host.includes('.') ? host : null;
-  })();
+  // The domain the work email has to sit at, shown before anything is typed.
+  // Computed with the same registrable-domain rule the server matches on, so
+  // the sentence in the UI is exactly the requirement that will be enforced.
+  const websiteDomain = requiredEmailDomain(user?.website);
 
   const sendCode = async () => {
     if (busy || !email.trim()) return;
@@ -78,14 +71,10 @@ const AgentVerificationPanel = ({ onClose, onVerified }) => {
     setBusy(true);
     setError(null);
     try {
-      const res = await apiService.searchProfiles({
-        name: query.trim(),
-        roles: 'ARTIST',
-        activeProfileId: user.id,
-      });
-      setResults(res.profiles || []);
+      const res = await apiService.searchVouchCandidates(user.id, query.trim());
+      setResults(res.artists || []);
     } catch (e) {
-      setError(e.message || t('search.searchFailed'));
+      setError(e.message || t('verify.vouchSearchFailed'));
     } finally {
       setBusy(false);
     }
@@ -247,19 +236,17 @@ const AgentVerificationPanel = ({ onClose, onVerified }) => {
                   onKeyDown={(e) => { if (e.key === 'Enter') searchArtists(); }}
                 />
                 <button type="button" className="btn btn-outline" disabled={busy || !query.trim()} onClick={searchArtists}>
-                  {busy ? '...' : t('search.search')}
+                  {busy ? '...' : t('verify.vouchSearchAction')}
                 </button>
               </div>
 
               {results && results.length === 0 && (
-                <p className="text-[12.5px] text-white/40 m-0">{t('verify.vouchNoResults')}</p>
+                <p className="text-[12.5px] text-white/40 m-0">{t('verify.vouchNoEligible')}</p>
               )}
 
               {results && results.length > 0 && (
                 <div className="flex flex-col gap-2 max-h-[240px] overflow-y-auto">
-                  {results.map((artist) => {
-                    const verified = artist.verifyStatus === 'VERIFIED';
-                    return (
+                  {results.map((artist) => (
                       <div
                         key={artist.id}
                         className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/30 p-2.5"
@@ -273,21 +260,22 @@ const AgentVerificationPanel = ({ onClose, onVerified }) => {
                         )}
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-[13px] text-white">{artist.name}</span>
-                          <span className="block text-[11px] text-white/35">
-                            {verified ? t('verify.vouchEligible') : t('verify.vouchNotVerified')}
-                          </span>
+                          {(artist.city || artist.country) && (
+                            <span className="block truncate text-[11px] text-white/35">
+                              {[artist.city, artist.country].filter(Boolean).join(', ')}
+                            </span>
+                          )}
                         </span>
                         <button
                           type="button"
                           className="btn btn-primary btn-small shrink-0"
-                          disabled={busy || !verified}
+                          disabled={busy}
                           onClick={() => askArtist(artist)}
                         >
                           {t('verify.vouchAsk')}
                         </button>
                       </div>
-                    );
-                  })}
+                  ))}
                 </div>
               )}
 

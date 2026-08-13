@@ -3,6 +3,15 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useAppContext } from '../../contexts/AppContext';
 
 // Notification type → which tab to navigate to when the user clicks the row.
+// Types whose target sits on a sub-tab, not the tab's default view. Without
+// this a vouch request lands on the conversation list, where it does not
+// appear at all — there is no chat thread for it.
+const TYPE_TO_SUBTAB = {
+  VERIFICATION_VOUCH_REQUEST: 'requests',
+  CONNECTION_REQUEST: 'requests',
+  REPRESENTATION_REQUEST: 'requests',
+};
+
 const TYPE_TO_TAB = {
   // Booking workflow
   OFFER_RECEIVED: 'bookings',
@@ -65,6 +74,10 @@ const NotificationDropdown = ({ onClose, onClearNotifications, onSwitchTab }) =>
     const tab = TYPE_TO_TAB[notif.type];
     if (tab && onSwitchTab) {
       onSwitchTab(tab);
+      const subtab = TYPE_TO_SUBTAB[notif.type];
+      if (subtab) {
+        window.dispatchEvent(new CustomEvent('tora:messages-subtab', { detail: { subtab } }));
+      }
     }
     if (onClose) onClose();
   };

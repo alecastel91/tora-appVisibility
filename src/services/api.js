@@ -721,6 +721,16 @@ class ApiService {
   }
 
   // --- Agent verification: an artist who already knows them ----------------
+  // Purpose-built: only artists eligible to vouch, no premium-search location
+  // rules (the artist an agent needs is usually in another market).
+  async searchVouchCandidates(profileId, q) {
+    const response = await fetch(
+      `${API_URL}/verification/vouch/candidates?profileId=${encodeURIComponent(profileId)}&q=${encodeURIComponent(q)}`,
+      { method: 'GET', headers: this.getHeaders() }
+    );
+    return this.handleResponse(response);
+  }
+
   async requestVouch(profileId, artistProfileId, message) {
     const response = await fetch(`${API_URL}/verification/vouch/request`, {
       method: 'POST',
