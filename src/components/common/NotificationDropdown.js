@@ -19,6 +19,11 @@ const TYPE_TO_TAB = {
   VENUE_EVENT_REQUEST: 'bookings',
   VENUE_EVENT_CONFIRMED: 'bookings',
   VENUE_EVENT_DECLINED: 'bookings',
+  // Verification: an agency asking this artist to confirm they know them, and
+  // the outcomes on the agency's own side. All answered from the Requests tab.
+  VERIFICATION_VOUCH_REQUEST: 'messages',
+  VERIFICATION_APPROVED: 'profile',
+  VERIFICATION_REVOKED: 'profile',
   // Connections / messaging
   CONNECTION_REQUEST: 'messages',
   CONNECTION_ACCEPTED: 'messages',

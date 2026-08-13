@@ -5,6 +5,7 @@ import apiService from '../../services/api';
 import { subscribeToInbox } from '../../services/realtime';
 import LoadingGlobe from '../common/LoadingGlobe';
 import { getAvatarClass } from '../../utils/roles';
+import { appAlert } from '../../utils/dialogs';
 import CountBadge from '../common/CountBadge';
 
 const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
@@ -12,6 +13,10 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
   const { t } = useLanguage();
   const [conversations, setConversations] = useState([]);
   const [connectionRequests, setConnectionRequests] = useState([]);
+  // Agencies asking this artist to confirm they know them, plus what was
+  // recently answered — so a mis-tap is findable and reversible.
+  const [vouches, setVouches] = useState({ pending: [], answered: [] });
+  const [vouchBusy, setVouchBusy] = useState(null);
   const [activeTab, setActiveTab] = useState('messages'); // 'messages' or 'requests'
   const [loading, setLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false); // Track if data is loaded
@@ -25,6 +30,19 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
   // and re-run once the current one lands, so the last state always wins.
   const inFlightRef = React.useRef(false);
   const refetchQueuedRef = React.useRef(false);
+
+  const answerVouch = async (vouchId, confirm) => {
+    if (vouchBusy) return;
+    setVouchBusy(vouchId);
+    try {
+      await apiService.respondToVouch(vouchId, confirm);
+      await fetchData();
+    } catch (error) {
+      appAlert(error.message || t('verify.vouchAnswerFailed'));
+    } finally {
+      setVouchBusy(null);
+    }
+  };
 
   const fetchData = async () => {
     if (!user || !user.id) {
@@ -42,13 +60,18 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
       setLoading(true);
 
       // OPTIMIZED: Fetch both in parallel
-      const [convos, requestsData] = await Promise.all([
+      const [convos, requestsData, vouchData] = await Promise.all([
         getConversations(),
-        apiService.getReceivedRequests(user.id)
+        apiService.getReceivedRequests(user.id),
+        // Only artists are ever asked to vouch; skip the call for everyone else.
+        user.role === 'ARTIST'
+          ? apiService.getReceivedVouches(user.id).catch(() => ({ vouches: [], answered: [] }))
+          : Promise.resolve({ vouches: [], answered: [] }),
       ]);
 
       setConversations(convos);
       setConnectionRequests(requestsData.requests || []);
+      setVouches({ pending: vouchData.vouches || [], answered: vouchData.answered || [] });
       setDataLoaded(true);
     } catch (error) {
       console.error('Error fetching messages data:', error);
@@ -174,7 +197,7 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
         <TabButton
           id="requests"
           label={t('messages.requests')}
-          count={connectionRequests.length}
+          count={connectionRequests.length + vouches.pending.length}
           icon={(
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -247,9 +270,67 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
             <p className="text-center text-sm text-white/40 py-16">{t('messages.noMessages')}</p>
           )
         ) : (
-          // Requests Tab
-          connectionRequests.length > 0 ? (
-            connectionRequests.map(request => (
+          // Requests Tab — vouch requests, connection/representation requests,
+          // then anything recently answered that can still be reversed.
+          <>
+          {vouches.pending.map((v) => (
+            <div key={v.id} className="rounded-2xl border border-white/10 bg-[#0a0a0e] p-3.5">
+              <div className="flex items-center gap-3">
+                {v.agent?.avatar ? (
+                  <img src={v.agent.avatar} alt={v.agent.name} className="w-10 h-10 rounded-xl object-cover" />
+                ) : (
+                  <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-base font-bold text-white ${getAvatarClass('AGENT')}`}>
+                    {(v.agent?.name || '?').charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="m-0 truncate text-sm font-semibold text-white">{v.agent?.name}</p>
+                  <p className="m-0 text-xs text-white/50">{t('verify.vouchQuestion')}</p>
+                </div>
+              </div>
+              <p className="mt-2.5 mb-0 text-[12px] leading-relaxed text-white/40">{t('verify.vouchExplainer')}</p>
+              <div className="flex gap-2 mt-3">
+                <button
+                  className="btn btn-sm btn-primary flex-1"
+                  disabled={vouchBusy === v.id}
+                  onClick={() => answerVouch(v.id, true)}
+                >
+                  {vouchBusy === v.id ? '...' : t('verify.vouchConfirm')}
+                </button>
+                <button
+                  className="btn btn-sm btn-outline flex-1"
+                  disabled={vouchBusy === v.id}
+                  onClick={() => answerVouch(v.id, false)}
+                >
+                  {t('verify.vouchDecline')}
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {vouches.answered.map((v) => (
+            <div key={v.id} className="rounded-2xl border border-white/[0.07] bg-[#08080b] p-3.5">
+              <div className="flex items-center gap-3">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] text-white/70">{v.agent?.name}</span>
+                  <span className="block text-[11px] text-white/35">
+                    {v.status === 'CONFIRMED' ? t('verify.vouchYouConfirmed') : t('verify.vouchYouDeclined')}
+                  </span>
+                </span>
+                <button
+                  className="btn btn-sm btn-outline shrink-0"
+                  disabled={vouchBusy === v.id}
+                  onClick={() => answerVouch(v.id, v.status !== 'CONFIRMED')}
+                >
+                  {vouchBusy === v.id
+                    ? '...'
+                    : (v.status === 'CONFIRMED' ? t('verify.vouchWithdraw') : t('verify.vouchUndo'))}
+                </button>
+              </div>
+            </div>
+          ))}
+
+            {connectionRequests.map(request => (
               <div
                 key={request.requestId}
                 className="rounded-2xl border border-white/10 bg-[#0a0a0e] p-3.5 cursor-pointer
@@ -304,10 +385,12 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
                   </button>
                 </div>
               </div>
-            ))
-          ) : (
-            <p className="text-center text-sm text-white/40 py-16">{t('messages.noPendingRequests')}</p>
-          )
+            ))}
+
+            {connectionRequests.length === 0 && vouches.pending.length === 0 && vouches.answered.length === 0 && (
+              <p className="text-center text-sm text-white/40 py-16">{t('messages.noPendingRequests')}</p>
+            )}
+          </>
         )}
       </div>
     </div>

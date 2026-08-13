@@ -701,6 +701,54 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // --- Agent verification: work email at the agency's own domain -----------
+  async startEmailVerification(profileId, email) {
+    const response = await fetch(`${API_URL}/verification/email/start`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId, email }),
+    });
+    return this.handleResponse(response);
+  }
+
+  async confirmEmailVerification(profileId, code) {
+    const response = await fetch(`${API_URL}/verification/email/confirm`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId, code }),
+    });
+    return this.handleResponse(response);
+  }
+
+  // --- Agent verification: an artist who already knows them ----------------
+  async requestVouch(profileId, artistProfileId, message) {
+    const response = await fetch(`${API_URL}/verification/vouch/request`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId, artistProfileId, message }),
+    });
+    return this.handleResponse(response);
+  }
+
+  async getReceivedVouches(profileId) {
+    const response = await fetch(
+      `${API_URL}/verification/vouch/received?profileId=${encodeURIComponent(profileId)}`,
+      { method: 'GET', headers: this.getHeaders() }
+    );
+    return this.handleResponse(response);
+  }
+
+  // confirm=false both declines a pending request AND withdraws a previous
+  // confirmation — the artist can change their mind either way.
+  async respondToVouch(vouchId, confirm) {
+    const response = await fetch(`${API_URL}/verification/vouch/${vouchId}/respond`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ confirm }),
+    });
+    return this.handleResponse(response);
+  }
+
   async getUnreadCount(profileId) {
     const response = await fetch(`${API_URL}/messages/unread-count?profileId=${profileId}`, {
       method: 'GET',

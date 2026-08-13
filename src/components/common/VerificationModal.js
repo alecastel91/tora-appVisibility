@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import apiService from '../../services/api';
+import AgentVerificationPanel from './AgentVerificationPanel';
 
 /**
  * The verification screen: issue the code, DM it to @tora.verify, mark sent.
@@ -67,7 +68,12 @@ const VerificationModal = ({ onClose, contextMessage }) => {
           <p className="text-sm text-infrared/90 text-center mt-3 mb-0">{contextMessage}</p>
         )}
 
-        {!user?.instagram?.trim() && status !== 'PENDING_REVIEW' ? (
+        {user?.role === 'AGENT' ? (
+          // Agencies don't verify by Instagram — a handle proves little about
+          // an agency, and an easy weak path means the strong one is never
+          // used. Work-email domain proof, or an artist who knows them.
+          <AgentVerificationPanel onClose={onClose} onVerified={() => setStatus('VERIFIED')} />
+        ) : !user?.instagram?.trim() && status !== 'PENDING_REVIEW' ? (
           <div className="mt-5 text-center">
             <p className="text-sm leading-relaxed text-white/70 m-0">
               {t('verify.addInstagramFirst')}
