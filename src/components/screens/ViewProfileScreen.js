@@ -460,7 +460,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
           <div className="profile-name-role-container">
             <h2 className="profile-name">
               {profile.name}
-              {profile.verifyStatus === 'VERIFIED' && <VerifiedBadge size={18} className="ml-2" />}
+              {profile.verifyStatus === 'VERIFIED' && <VerifiedBadge size={18} className="ml-2" channel={profile.verifyChannel} />}
             </h2>
           </div>
           {profile.role === 'AGENT' && profile.agencyName && (

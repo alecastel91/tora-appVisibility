@@ -2,9 +2,17 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-// Verified identity seal. Tap opens the explainer with the deliberately
-// modest claim: we verified Instagram control, nothing more.
-const VerifiedBadge = ({ size = 16, className = '' }) => {
+// Verified identity seal. Tap opens the explainer, whose claim stays
+// deliberately modest — and has to name the proof that ACTUALLY passed:
+// telling a promoter an agency confirmed an Instagram account when it proved
+// a company domain (or was confirmed by an artist) is simply false.
+const EXPLAINER_BY_CHANNEL = {
+  email_domain: 'verify.badgeExplainerDomain',
+  artist_vouch: 'verify.badgeExplainerVouch',
+  instagram_dm: 'verify.badgeExplainer',
+};
+
+const VerifiedBadge = ({ size = 16, className = '', channel = null }) => {
   const { t } = useLanguage();
   const [showExplainer, setShowExplainer] = useState(false);
 
@@ -40,7 +48,7 @@ const VerifiedBadge = ({ size = 16, className = '' }) => {
               <h3 className="m-0 text-[15px] font-semibold text-white font-space-grotesk uppercase tracking-[0.08em]">{t('verify.badgeTitle')}</h3>
             </div>
             <p className="m-0 text-sm leading-relaxed text-white/70">
-              {t('verify.badgeExplainer')}
+              {t(EXPLAINER_BY_CHANNEL[channel] || 'verify.badgeExplainerGeneric')}
             </p>
             <button
               type="button"

@@ -543,7 +543,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
 
         <h2 className="text-3xl font-bold text-white font-space-grotesk tracking-[-0.02em] leading-none mb-1.5">
           {user?.name || t('profile.yourName')}
-          {user?.verifyStatus === 'VERIFIED' && <VerifiedBadge size={18} className="ml-2" />}
+          {user?.verifyStatus === 'VERIFIED' && <VerifiedBadge size={18} className="ml-2" channel={user?.verifyChannel} />}
         </h2>
         <p className="flex items-center justify-center gap-1.5 text-[13px] text-white/60 mb-2 font-tech [&>svg]:w-3.5 [&>svg]:h-3.5">
           <LocationIcon />{user?.location || t('profile.addLocation')}
@@ -686,7 +686,9 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
             <p className="text-xs text-white/50 mt-0.5 m-0">
               {user?.verifyStatus === 'PENDING_REVIEW'
                 ? t('verify.inReviewDesc')
-                : t('verify.verifyDesc')}
+                : user?.role === 'AGENT'
+                  ? t('verify.verifyDescAgent')
+                  : t('verify.verifyDesc')}
             </p>
           </div>
           <span className="shrink-0 px-4 py-2 rounded-lg bg-infrared text-white text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
