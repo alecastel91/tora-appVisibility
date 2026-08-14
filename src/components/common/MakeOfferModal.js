@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CURRENCY_OPTIONS } from './CurrencyOptions';
 import ReactDOM from 'react-dom';
 import { appAlert } from '../../utils/dialogs';
+import { isVerificationGate } from '../../utils/errors';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
 import CitySearch from './CitySearch';
@@ -395,7 +396,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
       const code = err.response?.data?.code;
       // OFFER_LIMIT / VERIFICATION_REQUIRED are handled by the global
       // dialogs (api.js events) — no second error inside the modal.
-      if (code !== 'OFFER_LIMIT' && code !== 'VERIFICATION_REQUIRED') {
+      if (code !== 'OFFER_LIMIT' && !isVerificationGate(err)) {
         setError(err.message || t('offer.createFailed'));
       }
       setLoading(false);

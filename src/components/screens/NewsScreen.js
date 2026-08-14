@@ -3,6 +3,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
 import { getAvatarClass } from '../../utils/roles';
+import { isVerificationGate } from '../../utils/errors';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { HeartIcon, MessageIcon, PlaneIcon, HandshakeIcon, ImageIcon, CloseIcon } from '../../utils/icons';
 import { downscaleImageToDataUrl } from '../../utils/image';
@@ -167,7 +168,7 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
       setDraft('');
       setDraftImage(null);
     } catch (e) {
-      if (e?.response?.data?.code !== 'VERIFICATION_REQUIRED') appAlert(e.message || t('news.postFailed'));
+      if (!isVerificationGate(e)) appAlert(e.message || t('news.postFailed'));
     } finally {
       setPosting(false);
     }
@@ -229,7 +230,7 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
       setCommentDrafts((prev) => ({ ...prev, [post.id]: '' }));
       setPosts((prev) => prev.map((p) => p.id === post.id ? { ...p, commentsCount: p.commentsCount + 1 } : p));
     } catch (e) {
-      if (e?.response?.data?.code !== 'VERIFICATION_REQUIRED') appAlert(e.message || t('news.commentFailed'));
+      if (!isVerificationGate(e)) appAlert(e.message || t('news.commentFailed'));
     }
   };
 

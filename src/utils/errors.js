@@ -7,8 +7,3 @@
 export function isVerificationGate(error) {
   return error?.response?.data?.code === 'VERIFICATION_REQUIRED';
 }
-
-/** The gate's own message, when a call site wants to show it inline. */
-export function gateMessage(error) {
-  return error?.response?.data?.error || null;
-}
