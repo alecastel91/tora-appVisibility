@@ -1170,6 +1170,36 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   </div>
                 );
               })()
+            ) : msg.documentAttachment && msg.documentAttachment.category === 'verificationVouch' ? (
+              // An artist confirming an agency is a fact about the two of
+              // them, so it stays in their thread rather than living only as
+              // a notification that scrolls away.
+              (() => {
+                const v = msg.documentAttachment;
+                return (
+                  <div className={`message-with-timestamp ${msg.isMe ? 'card-sent' : 'card-received'}`}>
+                    <div className="offer-card-message">
+                      <div className="offer-card-content">
+                        <div className="offer-card-icon accepted-offer-icon">
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="9 12 11 14 15 10"></polyline>
+                          </svg>
+                        </div>
+                        <div className="offer-card-text">
+                          <p className="offer-card-name">{v.agentName}</p>
+                          <p className="offer-card-action">
+                            {msg.isMe
+                              ? t('verify.vouchCardYouConfirmed', { name: v.agentName })
+                              : t('verify.vouchCardConfirmedYou', { name: v.artistName })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <span className="message-timestamp">{formatMessageTime(msg.timestamp)}</span>
+                  </div>
+                );
+              })()
             ) : msg.documentAttachment && msg.documentAttachment.category === 'tourInvite' ? (
               // Invitation to make an offer on a tour. Same card idiom as an
               // offer, so it reads as something to act on rather than as a

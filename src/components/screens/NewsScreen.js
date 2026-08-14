@@ -6,7 +6,6 @@ import { getAvatarClass } from '../../utils/roles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { HeartIcon, MessageIcon, PlaneIcon, HandshakeIcon, ImageIcon, CloseIcon } from '../../utils/icons';
 import { downscaleImageToDataUrl } from '../../utils/image';
-import OnboardingChecklist from '../common/OnboardingChecklist';
 
 const ROLE_LABEL_KEY = { ARTIST: 'editProfile.artist', AGENT: 'editProfile.agent', PROMOTER: 'editProfile.promoter', VENUE: 'editProfile.venue' };
 
@@ -286,10 +285,6 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
 
   return (
     <div className="screen active news-screen px-5 pt-6 pb-24" onClick={() => menuFor && setMenuFor(null)}>
-      {/* Activation checklist — first-session guidance; hides once complete.
-          Keyed by profile so a profile switch remounts it (collapse state and
-          items are per-profile). */}
-      <OnboardingChecklist key={user?.id || 'anon'} />
       {/* composer */}
       <div className="mb-5 rounded-2xl border border-white/10 bg-[#0c0c11] p-4">
         <div className="flex gap-3">

@@ -23,7 +23,15 @@ const RepresentedArtistsScreen = ({ onClose, onSwitchTab }) => {
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const representedArtists = user?.representingArtists || [];
+  // The roster JSONB is a SNAPSHOT taken when representation was accepted, so
+  // an artist who has since renamed still shows their old name here while the
+  // tap-through (keyed on profileId) opens the right profile — which is how
+  // "aloetic" appeared for a profile called Vela. GET /profiles/:id already
+  // merges each artist's current identity, so use that as the source of truth
+  // and keep the snapshot only until it arrives.
+  const [hydratedRoster, setHydratedRoster] = useState(null);
+  const snapshotRoster = user?.representingArtists || [];
+  const representedArtists = hydratedRoster || snapshotRoster;
   const [removingArtistId, setRemovingArtistId] = useState(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const usage = rosterUsage(user);
@@ -35,23 +43,25 @@ const RepresentedArtistsScreen = ({ onClose, onSwitchTab }) => {
   const [avatarMap, setAvatarMap] = useState({});
 
   useEffect(() => {
-    if (representedArtists.length === 0) return undefined;
+    if (!user?.id || snapshotRoster.length === 0) return undefined;
     let cancelled = false;
-    Promise.all(
-      representedArtists.map((a) => {
-        const artistId = a.profileId || a.id;
-        if (a.avatar) return Promise.resolve({ artistId, avatar: a.avatar });
-        return apiService.getProfile(artistId)
-          .then((p) => ({ artistId, avatar: p?.avatar || null }))
-          .catch(() => ({ artistId, avatar: null }));
+    // One request for the whole roster, instead of one per artist for avatars
+    // alone — and it carries current names and locations too.
+    apiService.getProfile(user.id)
+      .then((p) => {
+        if (cancelled) return;
+        const live = (p?.profile || p)?.representingArtists;
+        if (Array.isArray(live)) {
+          setHydratedRoster(live);
+          setAvatarMap(Object.fromEntries(
+            live.map((a) => [a.profileId || a.id, a.avatar || null])
+          ));
+        }
       })
-    ).then((results) => {
-      if (cancelled) return;
-      setAvatarMap(Object.fromEntries(results.map((r) => [r.artistId, r.avatar])));
-    });
+      .catch(() => { /* snapshot still renders — names may be stale, links are not */ });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [representedArtists.length, refreshKey]);
+  }, [user?.id, snapshotRoster.length, refreshKey]);
 
   useEffect(() => {
     if (!user?.id || user.role !== 'AGENT' || representedArtists.length === 0) return undefined;

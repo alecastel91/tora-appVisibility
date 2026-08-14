@@ -25,6 +25,7 @@ import ArtistRosterGrid from '../common/ArtistRosterGrid';
 import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import AvatarCropModal from '../common/AvatarCropModal';
 import HighlightsList from '../common/HighlightsList';
+import OnboardingChecklist from '../common/OnboardingChecklist';
 import RepresentationSection from '../common/RepresentationSection';
 import { raProfileUrl } from '../../utils/urls';
 import { networkSectionsForRole } from '../../utils/networkSections';
@@ -671,6 +672,12 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
           onClick={() => setShowProfileSwitcher(true)}
         />
       </div>
+
+      {/* Activation checklist — first-session guidance; hides once complete.
+          Lives on the profile rather than in the feed: it is about setting
+          YOUR account up, and the feed is where you read about other people.
+          Keyed by profile so switching remounts it (state is per-profile). */}
+      <OnboardingChecklist key={user?.id || 'anon'} />
 
       {/* Verification nudge — non-blocking, opens the code screen */}
       {user?.verifyStatus !== 'VERIFIED' && (
