@@ -82,6 +82,22 @@ function App() {
     closeAllOverlays();
   };
 
+  // Open a conversation AND land on the Messages tab.
+  //
+  // Callers used to do this as two calls — onOpenChat(profile) then
+  // onNavigateToMessages() — which quietly cancelled itself: switchTab runs
+  // closeAllOverlays, so the second call wiped the chat the first had just
+  // opened and the user arrived at the conversation list instead. Doing both
+  // here makes the order explicit (clear, then set) and gives the three
+  // screens one thing to call.
+  const openChatInMessages = (profile) => {
+    if (!profile) return;
+    closeAllOverlays();
+    setActiveTab('messages');
+    setMountedTabs((prev) => (prev.includes('messages') ? prev : [...prev, 'messages']));
+    setActiveChatUser(profile);
+  };
+
   // Overlays belong to the context they were opened in — closed on tab
   // navigation and on logout (a stale overlay otherwise survives re-login).
   const closeAllOverlays = () => {
@@ -455,10 +471,10 @@ function App() {
 
   const tabScreens = {
     profile: <ProfileScreen onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} onSwitchTab={switchTab} />,
-    search: <SearchScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => switchTab('messages')} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} />,
+    search: <SearchScreen onOpenChat={openChatInMessages} onNavigateToMessages={() => switchTab('messages')} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} />,
     news: <NewsScreen onOpenProfile={(profile) => setViewingProfile(profile)} onOpenPremium={() => setShowPremium(true)} />,
-    tour: <TourScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => switchTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} isActive={activeTab === 'tour'} />,
-    bookings: <BookingsScreen onOpenChat={setActiveChatUser} onNavigateToMessages={() => switchTab('messages')} isActive={activeTab === 'bookings'} onActionCountChange={setBookingsActionCount} />,
+    tour: <TourScreen onOpenChat={openChatInMessages} onNavigateToMessages={() => switchTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} isActive={activeTab === 'tour'} />,
+    bookings: <BookingsScreen onOpenChat={openChatInMessages} onNavigateToMessages={() => switchTab('messages')} isActive={activeTab === 'bookings'} onActionCountChange={setBookingsActionCount} />,
     // chatOpen (not a key remount): MessagesScreen refetches once when a
     // chat closes, to pick up read-state changes. A key here remounted the
     // permanently-mounted screen twice per chat session.
@@ -617,10 +633,7 @@ function App() {
           <ViewProfileScreen
             profile={viewingProfile}
             onClose={() => setViewingProfile(null)}
-            onOpenChat={(user) => {
-              setViewingProfile(null);
-              setActiveChatUser(user);
-            }}
+            onOpenChat={openChatInMessages}
           />
         )}
         <TabBar activeTab={activeTab} onTabChange={switchTab} unreadMessagesCount={unreadMessagesCount} unreadProposalsCount={unreadProposalsCount} bookingsHasDot={bookingsActionCount > 0 && activeTab !== 'bookings'} />

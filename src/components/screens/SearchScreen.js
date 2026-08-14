@@ -356,13 +356,10 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
   };
 
   const handleMessage = (profile) => {
-    // Open chat and navigate to messages tab
-    if (onOpenChat) {
-      onOpenChat(profile);
-    }
-    if (onNavigateToMessages) {
-      onNavigateToMessages();
-    }
+    // onOpenChat lands on the Messages tab itself. Calling
+    // onNavigateToMessages as well used to undo it — tab navigation closes
+    // overlays, including the chat just opened.
+    if (onOpenChat) onOpenChat(profile);
   };
 
   const handleReview = async (profile) => {
