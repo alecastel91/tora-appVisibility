@@ -888,7 +888,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
           <div className="metric-icon"><CalendarIcon /></div>
           <div className="metric-value">
             {upcomingGigs === null ? '...' : upcomingGigs}
-            {gigsError && <span style={{ fontSize: '12px', color: '#999' }}>*</span>}
+            {gigsError && <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.45)' }}>*</span>}
           </div>
           <div className="metric-label">{t('manageArtist.upcomingBookings')}</div>
         </div>
@@ -1911,7 +1911,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
             />
             <p style={{
               fontSize: '11px',
-              color: '#666',
+              color: 'rgba(255,255,255,0.35)',
               marginTop: '4px',
               fontStyle: 'italic'
             }}>
@@ -1937,7 +1937,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
             </select>
             <p style={{
               fontSize: '11px',
-              color: '#666',
+              color: 'rgba(255,255,255,0.35)',
               marginTop: '4px',
               fontStyle: 'italic'
             }}>
@@ -2073,7 +2073,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
             />
             <p style={{
               fontSize: '11px',
-              color: '#888',
+              color: 'rgba(255,255,255,0.4)',
               marginTop: '4px',
               lineHeight: '1.4'
             }}>
@@ -2093,7 +2093,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
                 />
                 <p style={{
                   fontSize: '11px',
-                  color: '#888',
+                  color: 'rgba(255,255,255,0.4)',
                   marginTop: '4px',
                   lineHeight: '1.4'
                 }}>
@@ -2387,7 +2387,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
             />
             <p style={{
               fontSize: '11px',
-              color: '#666',
+              color: 'rgba(255,255,255,0.35)',
               marginTop: '4px',
               fontStyle: 'italic'
             }}>
@@ -2413,7 +2413,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
             </select>
             <p style={{
               fontSize: '11px',
-              color: '#666',
+              color: 'rgba(255,255,255,0.35)',
               marginTop: '4px',
               fontStyle: 'italic'
             }}>
@@ -2549,7 +2549,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
             />
             <p style={{
               fontSize: '11px',
-              color: '#888',
+              color: 'rgba(255,255,255,0.4)',
               marginTop: '4px',
               lineHeight: '1.4'
             }}>
@@ -2569,7 +2569,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
                 />
                 <p style={{
                   fontSize: '11px',
-                  color: '#888',
+                  color: 'rgba(255,255,255,0.4)',
                   marginTop: '4px',
                   lineHeight: '1.4'
                 }}>

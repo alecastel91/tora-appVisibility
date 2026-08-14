@@ -130,13 +130,13 @@ const AddContractModal = ({
           <form onSubmit={handleSubmit}>
             {existingContracts.length > 0 && (
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '10px', fontSize: '13px', fontWeight: '600', color: '#bbb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <label style={{ display: 'block', marginBottom: '10px', fontSize: '13px', fontWeight: '600', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   {t('docs.fromYourLibrary')}
                 </label>
                 <div style={{
                   maxHeight: '220px', overflowY: 'auto',
                   border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                  backgroundColor: '#0a0a0e',
                 }}>
                   {existingContracts.map((contract, index) => {
                     const isSelected = selectedExistingContract?.id === contract.id;
@@ -179,7 +179,7 @@ const AddContractModal = ({
             )}
 
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '10px', fontSize: '13px', fontWeight: '600', color: '#bbb', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', marginBottom: '10px', fontSize: '13px', fontWeight: '600', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {existingContracts.length > 0 ? t('docs.orUploadNew') : t('docs.uploadAPdf')}
               </label>
 
@@ -208,7 +208,7 @@ const AddContractModal = ({
                 style={{
                   border: `2px dashed ${isDragging ? '#FF3366' : 'rgba(255, 255, 255, 0.2)'}`,
                   borderRadius: '8px', padding: '24px', textAlign: 'center',
-                  backgroundColor: isDragging ? 'rgba(255, 51, 102, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                  backgroundColor: isDragging ? 'rgba(255, 51, 102, 0.08)' : '#0a0a0e',
                   transition: 'all 0.2s',
                 }}
               >
@@ -219,7 +219,7 @@ const AddContractModal = ({
                       <polyline points="14 2 14 8 20 8"></polyline>
                     </svg>
                     <p style={{ fontSize: '13px', fontWeight: '600', marginBottom: '2px' }}>{selectedFile.name}</p>
-                    <p style={{ fontSize: '11px', color: '#999' }}>{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="text-[11px] text-white/40">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
                     <button
                       type="button"
                       onClick={() => { setSelectedFile(null); setTitle(''); }}
@@ -240,13 +240,13 @@ const AddContractModal = ({
                       {t('docs.browseFiles')}
                       <input type="file" accept="application/pdf" onChange={(e) => e.target.files[0] && handleFileSelect(e.target.files[0])} style={{ display: 'none' }} disabled={isSubmitting} />
                     </label>
-                    <p style={{ fontSize: '11px', color: '#666', marginTop: '10px' }}>{t('docs.pdfOnlyMax')}</p>
+                    <p className="mt-2.5 text-[11px] text-white/35">{t('docs.pdfOnlyMax')}</p>
                   </>
                 )}
               </div>
             </div>
 
-            <div style={{ padding: '10px 12px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '6px', fontSize: '11px', color: '#888', lineHeight: '1.5' }}>
+            <div className="rounded-xl border border-white/10 bg-[#0a0a0e] px-3 py-2.5 text-[11px] leading-relaxed text-white/45">
               {t('docs.uploadPrivacyNote')}
             </div>
 

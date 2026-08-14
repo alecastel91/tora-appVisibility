@@ -259,6 +259,7 @@ const ko = {
 
   contract: {
     loadingContract: '계약서 불러오는 중...',
+    signatureLabel: '서명 *',
     reviewFirst: '서명하기 전에 계약서를 열어 확인해 주세요',
     enterLegalName: '법적 성명을 입력해 주세요',
     mustConsent: '이 계약서에 서명하려면 동의가 필요합니다',

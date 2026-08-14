@@ -104,8 +104,8 @@ const WorkflowTimeline = ({ deal, onViewPaymentDetails }) => {
       {showPaymentBar && (
         <div style={{ marginTop: '14px', padding: '12px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px', fontSize: '12px' }}>
-            <span style={{ color: '#bbb', fontWeight: 600 }}>{t('bookings.paymentProgress')}</span>
-            <span style={{ color: '#888' }}>
+            <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>{t('bookings.paymentProgress')}</span>
+            <span style={{ color: 'rgba(255,255,255,0.4)' }}>
               {confirmedDeposit} {currency} confirmed of {totalFee} {currency} ({confirmedPct}%)
             </span>
           </div>
@@ -125,7 +125,7 @@ const WorkflowTimeline = ({ deal, onViewPaymentDetails }) => {
               transition: 'width 0.3s ease',
             }} />
           </div>
-          <div style={{ marginTop: '6px', fontSize: '11px', color: '#888', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+          <div style={{ marginTop: '6px', fontSize: '11px', color: 'rgba(255,255,255,0.4)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
             {pendingConfirmation > 0 && (
               <span><strong style={{ color: 'rgba(80,200,120,0.85)' }}>{pendingConfirmation} {currency}</strong> awaiting confirmation</span>
             )}

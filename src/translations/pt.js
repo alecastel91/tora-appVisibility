@@ -259,6 +259,7 @@ const pt = {
 
   contract: {
     loadingContract: 'A carregar contrato...',
+    signatureLabel: 'Assinatura *',
     reviewFirst: 'Abre e lê o contrato antes de assinar',
     enterLegalName: 'Introduz o teu nome legal completo',
     mustConsent: 'Tens de dar o teu consentimento para assinar este contrato',

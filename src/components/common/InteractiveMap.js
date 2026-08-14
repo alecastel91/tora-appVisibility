@@ -120,16 +120,20 @@ const InteractiveMap = ({ onCountryClick, selectedCountries = [], searchResults 
   };
 
   const getZoneColor = (zone) => {
+    // Zone hues drawn from the brand's own range rather than the pastel set
+    // this used (mint, pink, plum), which belonged to no part of TORA.
+    // Distinguishable from each other, and none of them competes with the
+    // infrared accent that means "act on this".
     const colors = {
-      'North America': '#FF6B6B',
-      'South America': '#4ECDC4',
-      'Europe': '#45B7D1',
-      'Middle East': '#FFA07A',
-      'Africa': '#98D8C8',
-      'Asia': '#FFB6C1',
-      'Oceania': '#DDA0DD'
+      'North America': '#FF3366',
+      'South America': '#FFB800',
+      'Europe': '#667EEA',
+      'Middle East': '#FF8A5B',
+      'Africa': '#43E97B',
+      'Asia': '#00C8D6',
+      'Oceania': '#A78BFA',
     };
-    return colors[zone] || '#888';
+    return colors[zone] || 'rgba(255,255,255,0.4)';
   };
 
   return (

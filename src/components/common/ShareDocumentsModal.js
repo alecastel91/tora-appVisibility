@@ -68,7 +68,7 @@ const ShareDocumentsModal = ({ isOpen, deal, currentUser, onClose, onDealUpdated
                             padding: '3px 8px',
                             borderRadius: '12px',
                             background: 'rgba(255,255,255,0.06)',
-                            color: '#888',
+                            color: 'rgba(255,255,255,0.4)',
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em',
                             fontWeight: 600,

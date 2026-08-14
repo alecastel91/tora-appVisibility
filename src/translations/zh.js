@@ -259,6 +259,7 @@ const zh = {
 
   contract: {
     loadingContract: '正在加载合同...',
+    signatureLabel: '签名 *',
     reviewFirst: '请先打开并阅读合同再签署',
     enterLegalName: '请输入你的法定全名',
     mustConsent: '签署此合同需要你的同意',

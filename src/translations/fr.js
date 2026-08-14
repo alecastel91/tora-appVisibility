@@ -259,6 +259,7 @@ const fr = {
 
   contract: {
     loadingContract: 'Chargement du contrat...',
+    signatureLabel: 'Signature *',
     reviewFirst: 'Ouvrez et lisez le contrat avant de signer',
     enterLegalName: 'Saisissez votre nom légal complet',
     mustConsent: 'Vous devez donner votre consentement pour signer ce contrat',

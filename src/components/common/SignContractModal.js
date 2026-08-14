@@ -143,7 +143,7 @@ const SignContractModal = ({
                     ? `Contract for ${recipientName || 'the other party'}`
                     : `Contract from ${senderName}`}
                 </p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#999' }}>
+                <p className="m-0 mt-1 text-xs text-white/45">
                   {isSendAndSign
                     ? t('contract.signFirstNote')
                     : t('contract.reviewBeforeSigning')}
@@ -175,7 +175,7 @@ const SignContractModal = ({
               Open Contract (PDF){!isSendAndSign && hasViewedContract ? ' ✓' : ''}
             </button>
             {!isSendAndSign && !hasViewedContract && (
-              <p style={{ margin: '6px 0 0 0', fontSize: '11px', color: '#888' }}>
+              <p className="m-0 mt-1.5 text-[11px] text-white/40">
                 {openClicked
                   ? t('contract.waitingForLoad')
                   : 'You must open and review the contract before signing.'}
@@ -210,12 +210,15 @@ const SignContractModal = ({
 
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500' }}>
-                Signature *
+                {t('contract.signatureLabel')}
               </label>
               <div ref={drawWrapRef}>
+                {/* Deliberately white with dark ink: this image is embedded
+                    in the signed PDF and the Certificate of Completion, where
+                    it has to read on a light page — not in the app's palette. */}
                 <div style={{
                   backgroundColor: '#fff',
-                  borderRadius: '6px',
+                  borderRadius: '12px',
                   border: '1px solid rgba(255,255,255,0.15)',
                   overflow: 'hidden',
                 }}>
@@ -232,7 +235,7 @@ const SignContractModal = ({
                   />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
-                  <span style={{ fontSize: '11px', color: '#888' }}>
+                  <span className="text-[11px] text-white/40">
                     {t('contract.signHint')}
                   </span>
                   <button
@@ -241,7 +244,7 @@ const SignContractModal = ({
                     disabled={isSubmitting}
                     style={{
                       background: 'transparent',
-                      color: '#aaa',
+                      color: 'rgba(255,255,255,0.5)',
                       border: '1px solid rgba(255,255,255,0.15)',
                       borderRadius: '4px',
                       padding: '4px 12px',
@@ -294,10 +297,10 @@ const SignContractModal = ({
             <div style={{
               marginBottom: '20px',
               padding: '10px',
-              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+              backgroundColor: '#0a0a0e',
               borderRadius: '6px',
               fontSize: '11px',
-              color: '#666',
+              color: 'rgba(255,255,255,0.45)',
               lineHeight: '1.4'
             }}>
               <strong>{t('contract.securityNoteTitle')}</strong> {t('contract.securityNote')}

@@ -44,7 +44,7 @@ const ResetPasswordScreen = ({ token, onBackToLogin }) => {
           <button
             type="button"
             onClick={onBackToLogin}
-            className="w-full px-8 py-4 bg-[#1a1a1a] text-white text-sm font-bold uppercase tracking-widest rounded-xs border border-white/15 cursor-pointer transition-all duration-300 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full py-3.5 bg-infrared/[0.08] border border-infrared/45 rounded-xl text-white text-[11px] font-semibold uppercase tracking-[0.15em] font-tech cursor-pointer transition-all duration-300 hover:bg-infrared/15 hover:border-infrared/70 active:scale-[0.98]"
           >
             {t('auth.goToLogin')}
           </button>
@@ -68,7 +68,7 @@ const ResetPasswordScreen = ({ token, onBackToLogin }) => {
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-3.5 bg-black border border-[#333333] rounded-lg text-white text-[15px] font-rajdhani tracking-[0.1em] placeholder:text-[#666666] focus:outline-none focus:border-primary-pink transition-all duration-200 ease-in-out"
+              className="w-full px-4 py-3 bg-[#0a0a0e] border border-white/10 rounded-xl text-white text-sm placeholder:text-white/35 focus:outline-none focus:border-infrared/60 focus:bg-[#0c0c11] transition-colors duration-300"
             />
           </div>
 
@@ -82,14 +82,14 @@ const ResetPasswordScreen = ({ token, onBackToLogin }) => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="w-full px-4 py-3.5 bg-black border border-[#333333] rounded-lg text-white text-[15px] font-rajdhani tracking-[0.1em] placeholder:text-[#666666] focus:outline-none focus:border-primary-pink transition-all duration-200 ease-in-out"
+              className="w-full px-4 py-3 bg-[#0a0a0e] border border-white/10 rounded-xl text-white text-sm placeholder:text-white/35 focus:outline-none focus:border-infrared/60 focus:bg-[#0c0c11] transition-colors duration-300"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-8 py-4 bg-[#1a1a1a] text-white text-sm font-bold uppercase tracking-widest rounded-xs border border-white/15 cursor-pointer transition-all duration-300 hover:border-white/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3.5 bg-infrared/[0.08] border border-infrared/45 rounded-xl text-white text-[11px] font-semibold uppercase tracking-[0.15em] font-tech cursor-pointer transition-all duration-300 hover:bg-infrared/15 hover:border-infrared/70 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? t('auth.resetting') : t('auth.resetPassword')}
           </button>

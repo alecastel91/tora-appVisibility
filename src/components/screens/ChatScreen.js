@@ -1408,7 +1408,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       paddingTop: '10px',
                       borderTop: '1px solid rgba(255,255,255,0.08)',
                     }}>
-                      <span style={{ fontSize: '11px', color: '#888', marginRight: 'auto' }}>
+                      <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginRight: 'auto' }}>
                         {t('chat.documentsPending')}
                       </span>
                       <button
@@ -1607,7 +1607,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                           paddingTop: '10px',
                           borderTop: '1px solid rgba(255,255,255,0.08)',
                         }}>
-                          <span style={{ fontSize: '11px', color: '#888', marginRight: 'auto' }}>
+                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginRight: 'auto' }}>
                             {t('chat.contractPending')}
                           </span>
                           <button
@@ -2245,14 +2245,14 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
                 if (isFullySigned) {
                   return (
-                    <span style={{ color: '#888', fontSize: '13px', textAlign: 'center', width: '100%' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', textAlign: 'center', width: '100%' }}>
                       {t('chat.contractFullySignedNotice')}
                     </span>
                   );
                 }
                 if (isSentOrLater) {
                   return (
-                    <span style={{ color: '#888', fontSize: '13px', textAlign: 'center', width: '100%' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', textAlign: 'center', width: '100%' }}>
                       {onArtistSide
                         ? t('chat.contractSentWaiting', { name: otherName })
                         : t('chat.contractAwaitingSignature')}
@@ -2307,7 +2307,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     </button>
                   </>
                 ) : (
-                  <span style={{ color: '#888', fontSize: '13px', textAlign: 'center', width: '100%' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', textAlign: 'center', width: '100%' }}>
                     {t('chat.waitingForContractArtistSide')}
                   </span>
                 );
@@ -2789,7 +2789,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 )}
                 {!selectedRepresentationRequest.message && (
                   <div className="offer-detail-row">
-                    <span className="detail-value representation-no-message" style={{ textAlign: 'center', color: '#888' }}>
+                    <span className="detail-value representation-no-message" style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
                       {t('chat.noMessageIncluded')}
                     </span>
                   </div>
@@ -2871,11 +2871,11 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               <div className="modal-body">
                 {needsArtistSelector && (
                   <div>
-                    <p style={{ fontSize: '14px', marginBottom: '16px', color: '#999' }}>
+                    <p style={{ fontSize: '14px', marginBottom: '16px', color: 'rgba(255,255,255,0.45)' }}>
                       {t('chat.selectArtistForDocs')}
                     </p>
                     {(currentUser.representingArtists || []).length === 0 ? (
-                      <p style={{ fontSize: '13px', color: '#888' }}>
+                      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
                         {t('chat.noRepresentedArtistsYet')} <strong>{t('chat.representedArtistsPath')}</strong>.
                       </p>
                     ) : (
@@ -2897,7 +2897,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                             onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
                           >
                             <div style={{ fontSize: '15px', fontWeight: 600 }}>{artist.name}</div>
-                            <div style={{ fontSize: '12px', color: '#888' }}>{artist.location}</div>
+                            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>{artist.location}</div>
                           </div>
                         ))}
                       </div>
@@ -2906,13 +2906,13 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 )}
 
                 {loadingArtistDocs && (
-                  <p style={{ fontSize: '13px', color: '#888', textAlign: 'center', padding: '20px' }}>{t('chat.loading')}</p>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '20px' }}>{t('chat.loading')}</p>
                 )}
 
                 {!needsArtistSelector && !loadingArtistDocs && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     {currentUser.role === 'AGENT' && selectedArtistForDocs && (
-                      <div style={{ fontSize: '12px', color: '#888' }}>
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
                         {t('chat.sharingOnBehalfOf')} <strong style={{ color: '#fff' }}>{selectedArtistForDocs.name}</strong> · <button onClick={() => setSelectedArtistForDocs(null)} style={{ background: 'transparent', border: 'none', color: '#FF3366', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>{t('chat.change')}</button>
                       </div>
                     )}

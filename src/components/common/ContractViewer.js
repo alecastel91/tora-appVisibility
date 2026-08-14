@@ -61,7 +61,7 @@ const ContractViewer = ({ isOpen, onClose, contractUrl, dealId, onTrackView }) =
         <div style={{
           flex: 1,
           position: 'relative',
-          backgroundColor: '#1a1a1a',
+          backgroundColor: '#08080b',
           borderRadius: '0 0 12px 12px',
           overflow: 'hidden'
         }}>
@@ -84,7 +84,7 @@ const ContractViewer = ({ isOpen, onClose, contractUrl, dealId, onTrackView }) =
                 animation: 'spin 1s linear infinite',
                 margin: '0 auto 12px'
               }}></div>
-              <p style={{ color: '#999', fontSize: '14px' }}>{t('contract.loadingContract')}</p>
+              <p className="text-sm text-white/40">{t('contract.loadingContract')}</p>
             </div>
           )}
 

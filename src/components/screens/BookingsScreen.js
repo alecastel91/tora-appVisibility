@@ -694,7 +694,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                 artist and the viewer isn't that artist. Agents viewing their
                 roster need this to tell their bookings apart at a glance. */}
             {deal.bookedArtistId && deal.bookedArtistName && deal.bookedArtistId !== currentUser.id && (
-              <p className="party-via-agent" style={{ color: '#bbb' }}>{t('bookings.forArtist', { name: deal.bookedArtistName })}</p>
+              <p className="party-via-agent" style={{ color: 'rgba(255,255,255,0.55)' }}>{t('bookings.forArtist', { name: deal.bookedArtistName })}</p>
             )}
             {isViaAgent && agentName && (
               <p className="party-via-agent">{t('bookings.viaAgent', { name: agentName })}</p>
@@ -929,7 +929,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                     = {} (fresh ACCEPTED deal) has no .status set yet — treat
                     it the same as NOT_SENT. */}
                 {(!deal.contract || !deal.contract.status || deal.contract.status === 'NOT_SENT') && !isArtistSideForDeal(deal, currentUser) && (
-                  <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: '#888' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>
                     {t('chat.waitingForContractArtistSide')}
                   </p>
                 )}
@@ -1013,7 +1013,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {!isFullySigned && (
-                          <span style={{ fontSize: '12px', color: '#888' }}>
+                          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
                             {t('bookings.waitingCountersign', { name: otherPartyName })}
                           </span>
                         )}
@@ -1182,7 +1182,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                       const palette = status === 'shared'
                         ? { bg: 'rgba(80,200,120,0.15)', fg: 'rgba(80,200,120,1)', symbol: '✓' }
                         : status === 'skipped'
-                          ? { bg: 'rgba(255,255,255,0.06)', fg: '#888', symbol: '—' }
+                          ? { bg: 'rgba(255,255,255,0.06)', fg: 'rgba(255,255,255,0.4)', symbol: '—' }
                           : { bg: 'rgba(255,165,0,0.12)', fg: 'rgba(255,165,0,1)', symbol: '·' };
                       const pillContent = (
                         <>
@@ -1746,14 +1746,14 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                 borderRadius: '8px',
                 backgroundColor: 'rgba(255,255,255,0.02)',
               }}>
-                <label style={{ display: 'block', fontSize: '12px', color: '#aaa', marginBottom: '8px', fontWeight: 600 }}>
-                  Proof of payment * <span style={{ color: '#666', fontWeight: 400 }}>(PDF or image, max 10MB)</span>
+                <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', fontWeight: 600 }}>
+                  Proof of payment * <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 400 }}>(PDF or image, max 10MB)</span>
                 </label>
                 {paymentProofFile ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                     <div style={{ fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       <strong>{paymentProofFile.name}</strong>
-                      <span style={{ color: '#888', marginLeft: '6px', fontSize: '11px' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.4)', marginLeft: '6px', fontSize: '11px' }}>
                         ({(paymentProofFile.size / 1024 / 1024).toFixed(2)} MB)
                       </span>
                     </div>
@@ -1792,7 +1792,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   padding: '14px',
                   backgroundColor: 'rgba(255,255,255,0.02)',
                 }}>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#aaa', marginBottom: '8px', fontWeight: 600 }}>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginBottom: '8px', fontWeight: 600 }}>
                     Deposit transferred ({selectedDealForWorkflow.currency || 'USD'} · total fee {selectedDealForWorkflow.currentFee})
                   </label>
                   <input
@@ -2045,7 +2045,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               <div style={{ fontSize: '13px', fontWeight: 600 }}>
                 {label} · {amount} {currency}
               </div>
-              <div style={{ fontSize: '11px', color: '#888' }}>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
                 {date ? new Date(date).toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
               </div>
               {confirmedAt && (
@@ -2082,7 +2082,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                 <h3>{t('bookings.payments')}</h3>
               </div>
               <div className="delete-modal-content">
-                <p style={{ fontSize: '13px', color: '#aaa', marginBottom: '16px' }}>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginBottom: '16px' }}>
                   Confirmed received: <strong style={{ color: '#fff' }}>{totalConfirmed} {currency}</strong>
                   {totalFee > 0 && <> of <strong style={{ color: '#fff' }}>{totalFee} {currency}</strong></>}
                   {totalMarked > totalConfirmed && (
@@ -2163,7 +2163,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               borderRadius: 0,
             }}
           >
-            <div className="modal-header" style={{ padding: '12px 16px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: '#1a1a1a', zIndex: 1 }}>
+            <div className="modal-header" style={{ padding: '12px 16px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: '#0c0c11', borderBottom: '1px solid rgba(255,255,255,0.1)', zIndex: 1 }}>
               <h3 style={{ margin: 0, fontSize: '15px' }}>{t('bookings.proofOfPayment')}</h3>
               <button className="modal-close" onClick={() => setProofImageUrl(null)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -2171,10 +2171,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                 </svg>
               </button>
             </div>
-            <div style={{ flex: 1, overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1a1a1a', padding: '16px' }}>
+            <div style={{ flex: 1, overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#08080b', padding: '16px' }}>
               <img
                 src={proofImageUrl}
-                alt="Proof of payment"
+                alt={t('bookings.proofOfPayment')}
                 style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
@@ -2184,7 +2184,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               />
               <div style={{ display: 'none', color: '#ff6b6b', textAlign: 'center', maxWidth: '420px' }}>
                 <p style={{ marginBottom: '8px' }}>{t('bookings.imageLoadFailed')}</p>
-                <p style={{ fontSize: '12px', color: '#888' }}>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
                   Open in a new tab to see browser-level details:&nbsp;
                   <a href={proofImageUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#FF3366' }}>direct link</a>
                 </p>
@@ -2217,10 +2217,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   ⚠️ This will remove the contract from the booking. The other party will be notified.
                 </p>
               </div>
-              <p style={{ marginBottom: '16px', fontSize: '14px', color: '#ccc' }}>
+              <p style={{ marginBottom: '16px', fontSize: '14px', color: 'rgba(255,255,255,0.6)' }}>
                 Are you sure you want to withdraw the contract for <strong>{dealToWithdraw.eventName || 'this event'}</strong>?
               </p>
-              <p style={{ fontSize: '13px', color: '#999', marginBottom: 0 }}>
+              <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.45)', marginBottom: 0 }}>
                 {t('bookings.withdrawNotice')}
               </p>
             </div>

@@ -682,7 +682,7 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
             <div className="section-header">
               <div>
                 <h3><FileIcon /> {t('manage.documents')}</h3>
-                <p style={{ color: '#888', fontSize: '13px', margin: '4px 0 0 0' }}>
+                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', margin: '4px 0 0 0' }}>
                   {t('manage.documentsHint')}
                 </p>
               </div>
@@ -708,7 +708,7 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
               <div style={{
                 padding: '40px 24px',
                 textAlign: 'center',
-                color: '#888'
+                color: 'rgba(255,255,255,0.4)'
               }}>
                 <FileIcon style={{ width: '48px', height: '48px', margin: '0 auto 16px', opacity: 0.5 }} />
                 <p style={{ marginBottom: '16px' }}>{t('manage.noDocumentsYet')}</p>
@@ -746,7 +746,7 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
                         )}
                         {doc.addedDate && (
                           <div style={{
-                            color: '#666',
+                            color: 'rgba(255,255,255,0.35)',
                             fontSize: '12px'
                           }}>
                             {t('manage.addedDate', { date: new Date(doc.addedDate).toLocaleDateString() })}

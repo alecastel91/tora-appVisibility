@@ -438,7 +438,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
                     border: '1px solid rgba(255, 51, 102, 0.3)',
                     borderRadius: '8px',
                     fontSize: '14px',
-                    color: '#ccc'
+                    color: 'rgba(255,255,255,0.6)'
                   }}>
                     {t('findArtist.connectionRequirement')}
                   </div>

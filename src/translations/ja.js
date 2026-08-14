@@ -259,6 +259,7 @@ const ja = {
 
   contract: {
     loadingContract: '契約書を読み込み中...',
+    signatureLabel: '署名 *',
     reviewFirst: '署名する前に契約書を開いて確認してください',
     enterLegalName: '正式な氏名を入力してください',
     mustConsent: '署名には同意が必要です',
