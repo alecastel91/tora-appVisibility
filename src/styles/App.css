@@ -109,7 +109,8 @@
 }
 
 .form-input::placeholder {
-  color: #666666;
+  /* Matches .chat-input::placeholder, which was already on the system. */
+  color: rgba(255, 255, 255, 0.3);
   font-weight: 400;
 }
 

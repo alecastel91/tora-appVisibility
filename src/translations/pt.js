@@ -708,6 +708,7 @@ const pt = {
     readyTitle: 'Tudo pronto',
     readyBody: 'Verifique o seu perfil, faça as primeiras conexões e deixe os bookings chegarem. Bem-vindo ao TORA.',
     completeProfile: 'Complete o seu perfil (foto + bio)',
+    verifyAccount: 'Verifica a tua conta',
     setAvailability: 'Defina as datas disponíveis',
     likeProfiles: 'Curta 3 perfis',
     makeConnection: 'Faça a sua primeira conexão',

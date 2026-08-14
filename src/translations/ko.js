@@ -708,6 +708,7 @@ const ko = {
     readyTitle: '준비 완료',
     readyBody: '프로필을 인증하고 첫 연결을 만들면 부킹이 찾아옵니다. TORA에 오신 것을 환영합니다.',
     completeProfile: '프로필 완성 (사진+소개)',
+    verifyAccount: '계정 인증하기',
     setAvailability: '공연 가능 날짜 설정',
     likeProfiles: '프로필 3개에 좋아요',
     makeConnection: '첫 연결 만들기',

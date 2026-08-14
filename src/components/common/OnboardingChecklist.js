@@ -41,6 +41,16 @@ const OnboardingChecklist = () => {
       done: !!(user.avatar && user.bio),
       go: () => goProfileThen('tora:open-edit-profile'),
     },
+    // First on the list after the profile itself: nothing else on TORA can be
+    // initiated until this is done, so leaving it implicit made the other
+    // items look broken rather than locked.
+    {
+      key: 'verifyAccount',
+      done: user.verifyStatus === 'VERIFIED',
+      go: () => window.dispatchEvent(new CustomEvent('tora:verification-required', {
+        detail: { code: 'VERIFICATION_REQUIRED' },
+      })),
+    },
     // Agents don't manage their own calendar — their activation step is
     // building the roster. The calendar itself lives behind the Premium
     // Manage screen, so for FREE non-agents the item is omitted entirely

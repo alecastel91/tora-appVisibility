@@ -708,6 +708,7 @@ const it = {
     readyTitle: 'Tutto pronto',
     readyBody: 'Verifica il tuo profilo, crea le prime connessioni e lascia che i booking arrivino. Benvenuto su TORA.',
     completeProfile: 'Completa il tuo profilo (foto + bio)',
+    verifyAccount: 'Verifica il tuo account',
     setAvailability: 'Imposta le date disponibili',
     likeProfiles: 'Metti like a 3 profili',
     makeConnection: 'Crea la tua prima connessione',

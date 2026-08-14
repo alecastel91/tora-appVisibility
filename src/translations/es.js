@@ -708,6 +708,7 @@ const es = {
     readyTitle: 'Todo listo',
     readyBody: 'Verifica tu perfil, haz tus primeras conexiones y deja que lleguen las contrataciones. Bienvenido a TORA.',
     completeProfile: 'Completa tu perfil (foto + bio)',
+    verifyAccount: 'Verifica tu cuenta',
     setAvailability: 'Define tus fechas disponibles',
     likeProfiles: 'Da like a 3 perfiles',
     makeConnection: 'Haz tu primera conexión',

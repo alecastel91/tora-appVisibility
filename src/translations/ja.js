@@ -708,6 +708,7 @@ const ja = {
     readyTitle: '準備完了',
     readyBody: 'プロフィールを認証し、最初のつながりを作って、ブッキングを待ちましょう。TORAへようこそ。',
     completeProfile: 'プロフィールを完成（写真+自己紹介）',
+    verifyAccount: 'アカウントを認証する',
     setAvailability: '出演可能日を設定',
     likeProfiles: '3件のプロフィールにいいね',
     makeConnection: '最初のつながりを作る',

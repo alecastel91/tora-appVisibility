@@ -448,12 +448,7 @@ const EditProfileScreen = ({ onClose }) => {
               onChange={(e) => setEditedUser({ ...editedUser, mixtape: e.target.value })}
               placeholder="https://soundcloud.com/..."
             />
-            <p style={{
-              fontSize: '11px',
-              color: '#888',
-              marginTop: '4px',
-              lineHeight: '1.4'
-            }}>
+            <p className="mt-1 text-[11px] leading-relaxed text-white/40">
               {t('editProfile.shareLinkHint')}
             </p>
           </div>
@@ -467,12 +462,7 @@ const EditProfileScreen = ({ onClose }) => {
                 onChange={(e) => setEditedUser({ ...editedUser, spotify: e.target.value })}
                 placeholder="https://open.spotify.com/artist/..."
               />
-              <p style={{
-                fontSize: '11px',
-                color: '#888',
-                marginTop: '4px',
-                lineHeight: '1.4'
-              }}>
+              <p className="mt-1 text-[11px] leading-relaxed text-white/40">
                 {t('editProfile.shareLinkHint')}
               </p>
             </div>

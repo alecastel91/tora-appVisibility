@@ -49,8 +49,13 @@
 
   /* Text Colors */
   --text-white: #FFFFFF;
-  --text-gray: #999999;
-  --text-gray-light: #666666;
+  /* Secondary and muted text. These were the last pre-restyle values left in
+     the palette: a flat #999 on a near-black ground reads as washed-out grey
+     rather than as quiet white, which is why every form label in the app
+     still looked like the old style. Snapped to the system's white-alpha
+     scale (the Tailwind side uses text-white/70 and text-white/40). */
+  --text-gray: rgba(255, 255, 255, 0.7);
+  --text-gray-light: rgba(255, 255, 255, 0.4);
   --text-light: rgba(255, 255, 255, 0.75);
   
   /* Role Colors (canonical) */
