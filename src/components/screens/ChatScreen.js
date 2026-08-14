@@ -1924,6 +1924,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   </button>
                 </div>
               )}
+              {/* The other side cannot reply until they verify. Better said
+                  here than discovered by silence — and it is the sender who
+                  needs to know, since nothing they do will produce an answer. */}
+              {user?.verifyStatus && user.verifyStatus !== 'VERIFIED' && (
+                <p className="mx-4 mb-2 rounded-xl border border-white/10 bg-[#0c0c11] px-3 py-2
+                              text-[11.5px] leading-relaxed text-white/45">
+                  {t('chat.recipientUnverified', { name: user.name })}
+                </p>
+              )}
               <div className="chat-input-container">
                 <div className="chat-input-wrapper">
                   <button

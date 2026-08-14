@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { appAlert } from '../../utils/dialogs';
+import { isVerificationGate } from '../../utils/errors';
 import { useAppContext } from '../../contexts/AppContext';
 import { BookingsIcon, GlobeIcon, LinkIcon, HeartIcon, HandshakeIcon, LocationIcon } from '../../utils/icons';
 import ConnectionChoiceModal from '../common/ConnectionChoiceModal';
@@ -246,7 +247,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
         setLikeLimitData({ limit, tier });
         setShowLikeLimitModal(true);
       } else {
-        appAlert(t('search.failedToLike'));
+        if (!isVerificationGate(error)) appAlert(t('search.failedToLike'));
       }
     }
   };

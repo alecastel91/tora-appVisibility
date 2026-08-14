@@ -2875,7 +2875,10 @@
   height: calc(100vh - 120px) !important;
   max-height: calc(100vh - 120px);
   min-height: 0 !important;
-  background: var(--bg-black);
+  /* Transparent like every other .screen: the ambient depth lives on
+     .app-container, and painting an opaque panel over it made this screen read
+     as a different, flatter surface than the rest of the app. */
+  background: transparent;
   padding: 0;
   overflow: hidden;
 }

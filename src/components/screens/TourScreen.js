@@ -7,6 +7,7 @@ import { subscribeToTours } from '../../services/realtime';
 import ViewProfileScreen from './ViewProfileScreen';
 import MakeOfferModal from '../common/MakeOfferModal';
 import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon, HeartIcon } from '../../utils/icons';
+import { isVerificationGate } from '../../utils/errors';
 import apiService from '../../services/api';
 import LoadingGlobe from '../common/LoadingGlobe';
 import { citiesByCountry, countriesByZone, genresList } from '../../data/profiles';
@@ -778,7 +779,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       }
     } catch (error) {
       console.error('Error creating tour:', error);
-      appAlert(error.message || t('tour.createTourFailed'));
+      if (!isVerificationGate(error)) appAlert(error.message || t('tour.createTourFailed'));
     } finally {
       setTourBusy(false);
     }
@@ -1024,7 +1025,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     } catch (error) {
       console.error('Error toggling tour interest:', error);
       patch(!turningOn, turningOn ? -1 : 1);
-      appAlert(t('tour.interestFailed'));
+      if (!isVerificationGate(error)) appAlert(t('tour.interestFailed'));
     }
   };
 

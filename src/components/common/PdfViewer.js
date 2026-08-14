@@ -3,11 +3,15 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { useLanguage } from '../../contexts/LanguageContext';
+// `new URL('pdfjs-dist/...', import.meta.url)` does NOT resolve bare package
+// specifiers in Vite — it produced /src/components/common/pdfjs-dist/... which
+// the dev server answered with index.html (SPA fallback, 200 + text/html).
+// pdf.js then tried to run HTML as its worker and <Document> threw
+// "Something went wrong". `?url` is the pattern Vite resolves properly, in
+// dev and in the build.
+import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString();
+pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
 const PdfViewer = ({ url, onLoaded }) => {
   const { t } = useLanguage();
@@ -32,46 +36,29 @@ const PdfViewer = ({ url, onLoaded }) => {
   return (
     <div
       ref={containerRef}
-      style={{
-        flex: 1,
-        width: '100%',
-        overflow: 'auto',
-        backgroundColor: '#1a1a1a',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '8px 0',
-      }}
+      className="flex-1 w-full overflow-auto flex flex-col items-center py-2 bg-[#08080b]"
     >
       <div
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 5,
-          display: 'flex',
-          gap: '8px',
-          padding: '6px 10px',
-          backgroundColor: 'rgba(20,20,20,0.85)',
-          borderRadius: '20px',
-          marginBottom: '8px',
-          backdropFilter: 'blur(6px)',
-        }}
+        className="sticky top-0 z-[5] flex gap-2 px-2.5 py-1.5 mb-2 rounded-full
+                   border border-white/10 bg-[#101015]/90 backdrop-blur-md"
       >
         <button
           type="button"
           onClick={() => setScale(s => Math.max(0.5, s - 0.25))}
-          style={{ background: 'transparent', color: 'white', border: '1px solid #444', borderRadius: '14px', width: '32px', height: '28px', cursor: 'pointer' }}
+          className="w-8 h-7 rounded-xl border border-white/15 bg-transparent text-white
+                     cursor-pointer transition-colors hover:border-infrared/40"
           aria-label={t('common.zoomOut')}
         >
           −
         </button>
-        <span style={{ color: 'white', fontSize: '12px', alignSelf: 'center', minWidth: '38px', textAlign: 'center' }}>
+        <span className="self-center min-w-[38px] text-center text-xs text-white/70 font-tech tabular-nums">
           {Math.round(scale * 100)}%
         </span>
         <button
           type="button"
           onClick={() => setScale(s => Math.min(3, s + 0.25))}
-          style={{ background: 'transparent', color: 'white', border: '1px solid #444', borderRadius: '14px', width: '32px', height: '28px', cursor: 'pointer' }}
+          className="w-8 h-7 rounded-xl border border-white/15 bg-transparent text-white
+                     cursor-pointer transition-colors hover:border-infrared/40"
           aria-label={t('common.zoomIn')}
         >
           +
@@ -79,7 +66,7 @@ const PdfViewer = ({ url, onLoaded }) => {
       </div>
 
       {error ? (
-        <div style={{ color: '#ff6b6b', padding: '24px', textAlign: 'center' }}>
+        <div className="px-6 py-6 text-center text-sm text-infrared">
           {t('docs.pdfLoadFailed')}
         </div>
       ) : (
@@ -93,10 +80,10 @@ const PdfViewer = ({ url, onLoaded }) => {
             }
           }}
           onLoadError={(e) => setError(e)}
-          loading={<div style={{ color: '#aaa', padding: '24px' }}>Loading…</div>}
+          loading={<div className="px-6 py-6 text-sm text-white/40">{t('common.loading')}</div>}
         >
           {Array.from({ length: numPages || 0 }, (_, i) => (
-            <div key={i + 1} style={{ marginBottom: '8px', boxShadow: '0 2px 12px rgba(0,0,0,0.5)' }}>
+            <div key={i + 1} className="mb-2 shadow-[0_2px_12px_rgba(0,0,0,0.5)]">
               <Page
                 pageNumber={i + 1}
                 width={pageWidth}

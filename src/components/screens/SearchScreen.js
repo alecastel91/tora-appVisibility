@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { appAlert } from '../../utils/dialogs';
+import { isVerificationGate } from '../../utils/errors';
 import { zones, countriesByZone, citiesByCountry, genresList } from '../../data/profiles';
 import { HeartIcon, FilterIcon, SlashCircleIcon, SearchIcon, GlobeIcon, ListIcon } from '../../utils/icons';
 import ViewProfileScreen from './ViewProfileScreen';
@@ -281,8 +282,9 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
         // Show like limit modal
         setLikeLimitData({ limit, tier });
         setShowLikeLimitModal(true);
-      } else {
-        console.log('Not a like limit error, showing generic alert');
+      } else if (!isVerificationGate(error)) {
+        // The gate opens the verification screen by itself; a generic
+        // "try again" on top of it would be both redundant and untrue.
         appAlert(t('search.failedToLike'));
       }
     }
