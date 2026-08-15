@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { appAlert } from '../../utils/dialogs';
+import { appAlert, appConfirm } from '../../utils/dialogs';
 import { isVerificationGate } from '../../utils/errors';
 import { useAppContext } from '../../contexts/AppContext';
 import { BookingsIcon, GlobeIcon, LinkIcon, HeartIcon, HandshakeIcon, LocationIcon } from '../../utils/icons';
@@ -42,6 +42,14 @@ const RAGlyph = () => (
   <img src={RA_LOGO_WHITE} alt="RA" className="w-[22px] h-auto" />
 );
 
+const LockGlyph = () => (
+  <svg className="w-3.5 h-3.5 shrink-0 text-white/30" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
 const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavigateToMessages, onOpenPremium }) => {
   const { t } = useLanguage();
   const { user: currentUser, likedProfiles, toggleLike, sentRequests, receivedRequests, sendConnectionRequest, connectedUsers, removeConnection } = useAppContext();
@@ -64,7 +72,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
   // Active tours for artist profiles (Tour Kickstart entry point, roadmap 6a)
   const [artistTours, setArtistTours] = useState([]);
   const [showTourOffer, setShowTourOffer] = useState(false);
-  const [listModal, setListModal] = useState(null); // 'liked' | 'likes' | 'connections'
+  const [listModal, setListModal] = useState(null); // 'likes' | 'connections'
   const [listData, setListData] = useState({});
   const [likers, setLikers] = useState(null); // eager — powers the liked-by line
   const [showAllGenres, setShowAllGenres] = useState(false);
@@ -91,11 +99,9 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
     // 'likes' renders straight from the eager likers state (caching a copy
     // here could freeze an empty snapshot taken before the fetch resolved).
     if (!listModal || listModal === 'likes' || listData[listModal] || !passedProfile?.id) return;
-    const fetchers = {
-      liked: () => apiService.getProfileLiked(passedProfile.id).then((d) => d.profiles || []),
-      connections: () => apiService.getProfileConnections(passedProfile.id).then((d) => d.profiles || []),
-    };
-    fetchers[listModal]()
+    // Connections only: who someone LIKED is theirs to see, so that column
+    // shows a count and does not open.
+    apiService.getProfileConnections(passedProfile.id).then((d) => d.profiles || [])
       .then((rows) => setListData((prev) => ({ ...prev, [listModal]: rows })))
       .catch(() => setListData((prev) => ({ ...prev, [listModal]: [] })));
   }, [listModal, listData, passedProfile?.id]);
@@ -144,7 +150,58 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
     return null;
   }
 
+  // Outside a FREE member's country and with no existing relationship, the
+  // server sends back only enough to show who is behind the wall. Showing the
+  // person — name, role, city, picture — is the point: an upgrade prompt over
+  // a blank card sells nothing.
+  if (profile.locked) {
+    return (
+      // `active` is load-bearing: .screen is display:none without it, and the
+      // card rendered invisible over the profile underneath.
+      <div className="screen active view-profile-screen relative">
+        <div className="sub-screen-header">
+          <button type="button" className="back-btn" onClick={onClose} aria-label={t('common.back')}>‹</button>
+          <h1>{t('viewProfile.lockedTitle')}</h1>
+        </div>
+        <div className="flex flex-col items-center px-6 py-10 text-center">
+          <div className={`w-24 h-24 rounded-full overflow-hidden flex items-center justify-center text-2xl font-semibold text-white ${getAvatarClass(profile.role)}`}>
+            {profile.avatar
+              ? <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover blur-[6px] scale-110" />
+              : (profile.name || '?').charAt(0).toUpperCase()}
+          </div>
+          <h2 className="mt-4 mb-1 text-lg font-bold text-white font-space-grotesk">{profile.name}</h2>
+          <p className="m-0 text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech">
+            {roleLabel(profile.role, t)}{profile.city ? ` · ${profile.city}` : ''}
+            {profile.country ? `, ${profile.country}` : ''}
+          </p>
+          <p className="mt-6 mb-0 max-w-xs text-sm leading-relaxed text-white/50">
+            {t('viewProfile.lockedBody', { country: profile.country || '' })}
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary mt-6 px-8"
+            onClick={() => onOpenPremium && onOpenPremium()}
+          >
+            {t('search.upgradeNow')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const profileId = profile.id;
+
+  // Client-side echo of the server's country lock, used only to style a row
+  // before it is tapped. It cannot see messages or bookings, so it leans on
+  // the relationships the app already holds — anyone the viewer likes, is
+  // connected to, or has a request with is treated as reachable.
+  const isRowLocked = (row) => {
+    if (!row?.country || !currentUser?.country) return false;
+    if (isPremiumViewer(currentUser)) return false;
+    if (row.country === currentUser.country || row.id === currentUser.id) return false;
+    return !(likedProfiles.has(row.id) || connectedUsers.has(row.id)
+      || sentRequests.has(row.id) || receivedRequests.has(row.id));
+  };
 
   const isLiked = likedProfiles.has(profileId);
   const isRequested = sentRequests.has(profileId);
@@ -526,12 +583,13 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
           </p>
         )}
 
-        {/* Stats — same row as the own profile; every column opens the real list */}
+        {/* Stats — same row as the own profile; likes-given is a count only */}
         <div className="mb-5 grid grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-[#0a0a0e] px-2 py-2.5">
-          <button type="button" onClick={() => setListModal('liked')} className="flex flex-col items-center gap-0.5 px-1 transition-transform hover:scale-[1.03]">
+          {/* Count only — the list of who someone liked stays private to them */}
+          <div className="flex flex-col items-center gap-0.5 px-1">
             <span className="text-lg font-bold text-white font-space-grotesk">{fmtStat(profile.likesGiven)}</span>
             <span className="text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech">{t('profile.likesGiven')}</span>
-          </button>
+          </div>
           <button type="button" onClick={() => setListModal('likes')} className="flex flex-col items-center gap-0.5 px-1 transition-transform hover:scale-[1.03]">
             <span className="text-lg font-bold text-white font-space-grotesk">{fmtStat(profile.likesReceived)}</span>
             <span className="text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech">{t('profile.likedByLabel')}</span>
@@ -883,7 +941,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
         <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/70 p-5" onClick={() => setListModal(null)}>
           <div className="max-w-md w-full max-h-[70vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#131315]/95 backdrop-blur-xl p-5" onClick={(e) => e.stopPropagation()}>
             <h3 className="m-0 mb-4 text-[13px] font-semibold text-white font-space-grotesk uppercase tracking-[0.08em] text-center">
-              {listModal === 'liked' ? t('profile.likesGiven') : listModal === 'likes' ? t('profile.likedByLabel') : t('profile.connections')}
+              {listModal === 'likes' ? t('profile.likedByLabel') : t('profile.connections')}
             </h3>
             {(() => {
               const rows = listModal === 'likes' ? likers : listData[listModal];
@@ -893,22 +951,51 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
               <p className="text-sm text-white/40 text-center m-0">—</p>
             ) : (
               <div className="flex flex-col gap-2">
-                {rows.map((l) => (
-                  <button
-                    key={l.id}
-                    type="button"
-                    onClick={() => { setListModal(null); setNestedProfile(l); }}
-                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0e] px-3 py-2.5 w-full text-left cursor-pointer hover:border-infrared/40 transition-colors"
-                  >
-                    <div className={`w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-white text-sm font-semibold ${getAvatarClass(l.role)}`}>
-                      {l.avatar ? <img src={l.avatar} alt={l.name} className="w-full h-full object-cover" /> : (l.name || '?').charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="m-0 text-sm text-white truncate">{l.name}</p>
-                      <p className="m-0 text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech">{roleLabel(l.role, t)}</p>
-                    </div>
-                  </button>
-                ))}
+                {rows.map((l) => {
+                  // Marked locked before the tap, so the paywall is something
+                  // you can see coming rather than something you walk into.
+                  // The server decides for real — a row we mark locked but who
+                  // the viewer already knows still opens normally.
+                  const locked = isRowLocked(l);
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      onClick={() => {
+                        // Answer the tap where it happened. Opening a whole
+                        // screen only to say "not for you" costs a navigation
+                        // and loses the list they were reading.
+                        if (locked) {
+                          appConfirm(t('viewProfile.lockedBody', { country: l.country || '' }), {
+                            title: t('viewProfile.lockedTitle'),
+                            confirmLabel: t('search.upgradeNow'),
+                          }).then((go) => { if (go && onOpenPremium) { setListModal(null); onOpenPremium(); } });
+                          return;
+                        }
+                        setListModal(null);
+                        setNestedProfile(l);
+                      }}
+                      className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 w-full text-left cursor-pointer transition-colors ${
+                        locked
+                          ? 'border-white/5 bg-[#0a0a0e]/60 hover:border-white/20'
+                          : 'border-white/10 bg-[#0a0a0e] hover:border-infrared/40'
+                      }`}
+                    >
+                      <div className={`w-9 h-9 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-white text-sm font-semibold ${getAvatarClass(l.role)}`}>
+                        {l.avatar
+                          ? <img src={l.avatar} alt={l.name} className={`w-full h-full object-cover ${locked ? 'blur-[3px] scale-110' : ''}`} />
+                          : (l.name || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className={`m-0 text-sm truncate ${locked ? 'text-white/45' : 'text-white'}`}>{l.name}</p>
+                        <p className="m-0 text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech">
+                          {roleLabel(l.role, t)}{locked && l.country ? ` · ${l.country}` : ''}
+                        </p>
+                      </div>
+                      {locked && <LockGlyph />}
+                    </button>
+                  );
+                })}
               </div>
             );
             })()}
