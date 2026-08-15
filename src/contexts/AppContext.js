@@ -255,13 +255,29 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     if (!user?.id) return;
 
+    // Only while the tab is visible: this is a safety net behind the realtime
+    // broadcasts, and a net does not need casting at a screen nobody is
+    // watching. Idle tabs polling round the clock were the bulk of prod
+    // traffic.
     const pollInterval = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
       if (!isLoadingProfileData) {
         reloadProfileData();
       }
     }, 60000);
 
-    return () => clearInterval(pollInterval);
+    // Catch up once on return, so pausing never leaves stale data on screen.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && !isLoadingProfileData) {
+        reloadProfileData();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(pollInterval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 

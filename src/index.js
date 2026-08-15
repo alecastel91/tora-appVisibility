@@ -11,7 +11,11 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
-    tracesSampleRate: 1.0,
+    // 1.0 here traced every background poll from every open tab, which is
+    // what consumed 80% of the span quota in two weeks against 2 errors.
+    // A tenth is plenty for spotting a slow page; errors are not sampled by
+    // this and still arrive in full.
+    tracesSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 1.0,
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 0,
   });

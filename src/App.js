@@ -320,14 +320,30 @@ function App() {
 
     fetchUnreadCount();
 
-    // Refresh every 30 seconds when authenticated
+    // Refresh every 30 seconds when authenticated — but only while the tab is
+    // actually being looked at. A background tab polling around the clock is
+    // work nobody sees: it was the bulk of the traffic on prod, and there is
+    // nothing to update in a view that isn't on screen.
     const interval = setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
       if (isAuthenticated && user && user.id) {
         fetchUnreadCount();
       }
     }, 30000);
 
-    return () => clearInterval(interval);
+    // Coming back to the tab refreshes immediately, so pausing never shows a
+    // stale badge.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && isAuthenticated && user?.id) {
+        fetchUnreadCount();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
     // Depend on ids, not object identities — the AppContext poll republishes
     // `user` and would otherwise restart this effect every cycle.
     // eslint-disable-next-line react-hooks/exhaustive-deps
