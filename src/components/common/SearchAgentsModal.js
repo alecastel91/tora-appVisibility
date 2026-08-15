@@ -29,8 +29,48 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
   const [reviewingRequest, setReviewingRequest] = useState(null);
   const [receivedRequestIds, setReceivedRequestIds] = useState(new Set());
   const [representingAgents, setRepresentingAgents] = useState([]); // Current representing agents (array)
+  // Which of these agencies this artist's own confirmation verified. Comes
+  // from their own profile payload (verifiedByYou) — the raw voucher id stays
+  // private. Drives the extra question when removing one.
+  const [vouchedByMe, setVouchedByMe] = useState(new Set());
+  // The hydrated agency profiles behind the representedBy entries, by id.
+  const [agentProfilesById, setAgentProfilesById] = useState(new Map());
+
+  /**
+   * The agency a "current agent" row is about.
+   *
+   * `representedBy` stores {profileId, name} — an old populated-`agentId`
+   * object is long gone, so reading `agent.agentId` alone left the row
+   * rendering correctly off its name fallback while every click on it did
+   * nothing at all. Prefer the hydrated profile (avatar, city, role), fall
+   * back to the stored name so the row still works if that fetch failed.
+   */
+  const resolveAgent = (entry) => {
+    const embedded = entry?.agentId;
+    if (embedded && typeof embedded === 'object') return embedded;
+    const id = String(embedded || entry?.profileId || entry?.id || '');
+    if (!id) return null;
+    return agentProfilesById.get(id)
+      || { id, name: entry?.name, location: entry?.location };
+  };
 
   // Fetch sent requests on mount (but NOT the full agent list — search only)
+  useEffect(() => {
+    if (!currentArtistId) return undefined;
+    let cancelled = false;
+    apiService.getProfile(currentArtistId)
+      .then((p) => {
+        if (cancelled) return;
+        const reps = (p?.profile || p)?.representedByProfiles;
+        if (Array.isArray(reps)) {
+          setVouchedByMe(new Set(reps.filter((r) => r.verifiedByYou).map((r) => String(r.id))));
+          setAgentProfilesById(new Map(reps.map((r) => [String(r.id), r])));
+        }
+      })
+      .catch(() => { /* rows fall back to the stored name; removal still works */ });
+    return () => { cancelled = true; };
+  }, [currentArtistId]);
+
   useEffect(() => {
     console.log('[SearchAgentsModal] Mounting - fetching request data for artist:', currentArtistId);
     fetchSentRequests();
@@ -300,20 +340,42 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
   const handleCancelRepresentation = async (agent) => {
     const agentId = agent.id;
 
-    // Show confirmation dialog
+    // Whether this artist's own confirmation is what verified the agency. It
+    // changes what the first dialog has to say: someone deciding to remove an
+    // agency they vouched for should learn that their verification is in play
+    // before they commit to anything, not be surprised by a second dialog.
+    const iVouchedForThem = vouchedByMe.has(String(agentId));
+
     const confirmed = await appConfirm(
-      t('findAgent.cancelRepresentationConfirm', { name: agent.name }),
+      t('findAgent.cancelRepresentationConfirm', { name: agent.name })
+        + (iVouchedForThem ? `\n\n${t('findAgent.cancelRepresentationVerifiedNote')}` : ''),
       { danger: true }
     );
 
     if (!confirmed) return;
+
+    // Taking the badge back is a separate decision from ending the work — an
+    // agency you no longer work with may still be a real agency — so it is its
+    // own question, asked here rather than as a standing button in the inbox
+    // where it could be hit by mistake.
+    let alsoUnverify = false;
+    if (iVouchedForThem) {
+      alsoUnverify = await appConfirm(
+        t('findAgent.alsoUnverifyConfirm', { name: agent.name }),
+        {
+          danger: true,
+          confirmLabel: t('findAgent.alsoUnverifyYes'),
+          cancelLabel: t('findAgent.alsoUnverifyNo'),
+        },
+      );
+    }
 
     setSending(true);
     try {
       console.log('[SearchAgentsModal] Cancelling representation with agent:', agentId);
 
       // Call API to cancel representation
-      await apiService.cancelRepresentation({ agentId, currentProfileId: currentArtistId });
+      await apiService.cancelRepresentation({ agentId, currentProfileId: currentArtistId, alsoUnverify });
 
       console.log('[SearchAgentsModal] Representation cancelled successfully');
 
@@ -487,43 +549,42 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
               }}>
                 {representingAgents.length === 1 ? t('findAgent.currentAgent') : t('findAgent.currentAgents')}
               </div>
-              {representingAgents.map((agent, index) => (
-                <div key={agent.agentId?.id || agent.agentId || agent.profileId || index} className="artist-item" style={{ marginBottom: index < representingAgents.length - 1 ? '8px' : '0', gap: '10px' }}>
-                  <div
-                    className="artist-info clickable"
-                    onClick={() => {
-                      const agentData = agent.agentId;
-                      if (agentData) {
-                        handleCardClick(agentData);
-                      }
-                    }}
-                  >
-                    <div className="artist-avatar">
-                      {agent.agentId?.avatar ? (
-                        <img src={agent.agentId.avatar} alt={agent.agentId.name || agent.name} />
-                      ) : (
-                        getInitial(agent.agentId?.name || agent.name || 'A')
-                      )}
+              {representingAgents.map((entry, index) => {
+                const agent = resolveAgent(entry);
+                if (!agent) return null;
+                const location = agent.location
+                  || [agent.city, agent.country].filter(Boolean).join(', ');
+                return (
+                  <div key={agent.id || index} className="artist-item" style={{ marginBottom: index < representingAgents.length - 1 ? '8px' : '0', gap: '10px' }}>
+                    <div
+                      className="artist-info clickable"
+                      onClick={() => handleCardClick(agent)}
+                    >
+                      <div className="artist-avatar">
+                        {agent.avatar ? (
+                          <img src={agent.avatar} alt={agent.name} />
+                        ) : (
+                          getInitial(agent.name || 'A')
+                        )}
+                      </div>
+                      <div className="artist-details">
+                        <h4>{agent.name}</h4>
+                        <p className="artist-location">{location}</p>
+                      </div>
                     </div>
-                    <div className="artist-details">
-                      <h4>{agent.agentId?.name || agent.name}</h4>
-                      <p className="artist-location">{agent.agentId?.location || agent.location}</p>
-                    </div>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      disabled={sending}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelRepresentation(agent);
+                      }}
+                    >
+                      {t('findAgent.remove')}
+                    </button>
                   </div>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const agentData = agent.agentId;
-                      if (agentData) {
-                        handleCancelRepresentation(agentData);
-                      }
-                    }}
-                  >
-                    {t('findAgent.remove')}
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

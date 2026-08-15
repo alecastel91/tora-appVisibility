@@ -249,11 +249,6 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getProfileLiked(profileId) {
-    const response = await fetch(`${API_URL}/profiles/${profileId}/liked`, { headers: this.getHeaders() });
-    return this.handleResponse(response);
-  }
-
   async getProfileConnections(profileId) {
     const response = await fetch(`${API_URL}/profiles/${profileId}/connections`, { headers: this.getHeaders() });
     return this.handleResponse(response);
@@ -664,11 +659,13 @@ class ApiService {
   // when called from the agent side (removing one of their artists). The
   // backend routes to the same handler — it identifies who the caller is
   // from currentProfileId and treats the other field as the counterparty.
-  async cancelRepresentation({ agentId, artistId, currentProfileId }) {
+  // alsoUnverify: when the artist's own confirmation is what verified this
+  // agency, ending the representation can take that back in the same step.
+  async cancelRepresentation({ agentId, artistId, currentProfileId, alsoUnverify }) {
     const response = await fetch(`${API_URL}/connections/cancel-representation`, {
       method: 'POST',
       headers: this.getHeaders(),
-      body: JSON.stringify({ agentId, artistId, currentProfileId })
+      body: JSON.stringify({ agentId, artistId, currentProfileId, alsoUnverify })
     });
     return this.handleResponse(response);
   }

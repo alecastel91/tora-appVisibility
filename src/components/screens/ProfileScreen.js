@@ -3,7 +3,7 @@ import { appAlert } from '../../utils/dialogs';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import Modal from '../common/Modal';
-import { UploadIcon, SwitchIcon, AddIcon, TrashIcon, HandshakeIcon, EditIcon, ListIcon, SearchIcon, LocationIcon, GlobeIcon, LinkIcon } from '../../utils/icons';
+import { UploadIcon, SwitchIcon, AddIcon, TrashIcon, HandshakeIcon, EditIcon, ListIcon, LocationIcon, GlobeIcon, LinkIcon } from '../../utils/icons';
 import EditProfileScreen from './EditProfileScreen';
 import RepresentedArtistsScreen from './RepresentedArtistsScreen';
 import AddProfileScreen from './AddProfileScreen';
@@ -665,7 +665,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
           <ActionCard icon={<GridIcon />} label={t('profile.manageLabel')} onClick={() => { closeSubScreens(); setShowManageProfile(true); }} dot={ownHasActions} />
         )}
         {user?.role === 'ARTIST' && (
-          <ActionCard icon={<SearchIcon />} label={t('profile.findAgentLabel')} onClick={() => { closeSubScreens(); setShowFindAgent(true); }} />
+          <ActionCard icon={<HandshakeIcon />} label={t('profile.findAgentLabel')} onClick={() => { closeSubScreens(); setShowFindAgent(true); }} />
         )}
         <ActionCard
           icon={userProfiles.length > 1 ? <SwitchIcon /> : <AddIcon />}
