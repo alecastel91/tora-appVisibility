@@ -114,20 +114,20 @@ const WorkflowTimeline = ({ deal, onViewPaymentDetails }) => {
             <div style={{
               position: 'absolute', top: 0, left: 0, height: '100%',
               width: `${markedPct}%`,
-              background: 'rgba(80,200,120,0.35)',
+              background: 'rgba(67,233,123,0.35)',
               transition: 'width 0.3s ease',
             }} />
             {/* Confirmed track (darker, sits on top) */}
             <div style={{
               position: 'absolute', top: 0, left: 0, height: '100%',
               width: `${confirmedPct}%`,
-              background: 'linear-gradient(90deg, rgba(80,200,120,1), rgba(80,200,120,0.85))',
+              background: 'linear-gradient(90deg, rgba(67,233,123,1), rgba(67,233,123,0.85))',
               transition: 'width 0.3s ease',
             }} />
           </div>
           <div style={{ marginTop: '6px', fontSize: '11px', color: 'rgba(255,255,255,0.4)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
             {pendingConfirmation > 0 && (
-              <span><strong style={{ color: 'rgba(80,200,120,0.85)' }}>{pendingConfirmation} {currency}</strong> awaiting confirmation</span>
+              <span><strong style={{ color: 'rgba(67,233,123,0.85)' }}>{pendingConfirmation} {currency}</strong> awaiting confirmation</span>
             )}
             {remaining > 0 && (
               <span>· {t('bookings.remainingLabel')} <strong style={{ color: '#fff' }}>{remaining} {currency}</strong></span>

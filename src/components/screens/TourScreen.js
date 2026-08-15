@@ -2165,7 +2165,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                 border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: '12px',
                 padding: '16px',
-                borderLeft: myProposalData.status === 'ACCEPTED' ? '3px solid #4CAF50' :
+                borderLeft: myProposalData.status === 'ACCEPTED' ? '3px solid #43E97B' :
                            myProposalData.status === 'DECLINED' ? '3px solid #f44336' :
                            '3px solid #FFC107'
               }}>
@@ -2185,10 +2185,10 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     fontSize: '11px',
                     fontWeight: '600',
                     textTransform: 'uppercase',
-                    background: myProposalData.status === 'ACCEPTED' ? 'rgba(76, 175, 80, 0.2)' :
+                    background: myProposalData.status === 'ACCEPTED' ? 'rgba(67,233,123,0.2)' :
                                myProposalData.status === 'DECLINED' ? 'rgba(244, 67, 54, 0.2)' :
                                'rgba(255, 193, 7, 0.2)',
-                    color: myProposalData.status === 'ACCEPTED' ? '#4CAF50' :
+                    color: myProposalData.status === 'ACCEPTED' ? '#43E97B' :
                            myProposalData.status === 'DECLINED' ? '#f44336' :
                            '#FFC107',
                     alignSelf: 'flex-start'
@@ -2281,8 +2281,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           </p>
                         </div>
                         <span className="tour-status-badge status-accepted" style={{
-                          background: 'rgba(76, 175, 80, 0.2)',
-                          color: '#4CAF50',
+                          background: 'rgba(67,233,123,0.2)',
+                          color: '#43E97B',
                           padding: '4px 8px',
                           borderRadius: '4px',
                           fontSize: '12px',
@@ -2377,7 +2377,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                       {interest.invitedAt ? (
                         <span style={{
                           fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em',
-                          color: '#4CAF50', border: '1px solid rgba(76,175,80,0.4)',
+                          color: '#43E97B', border: '1px solid rgba(67,233,123,0.4)',
                           borderRadius: '999px', padding: '4px 10px', flexShrink: 0,
                         }}>
                           {t('tour.invited')}

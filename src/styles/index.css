@@ -15,6 +15,17 @@
   --color-role-venue: #F5576C;
   --color-role-promoter: #FFC107;
   --color-role-agent: #43E97B;
+
+  /* Status colours. Deliberately the SAME three values as the roles above
+   * rather than a parallel palette: the app previously carried three greens
+   * (#43E97B, rgb(80,200,120), #4CAF50), three ambers and four reds all
+   * meaning the same thing, so a single booking card could show two different
+   * "done" colours inches apart. Reusing role hues means no new colour enters
+   * the system, and error stays clearly distinct from the infrared accent,
+   * which means "act on this" rather than "something failed". */
+  --color-success: #43E97B;
+  --color-warning: #FFC107;
+  --color-error: #F5576C;
 }
 
 /* App typography: two families only — Space Grotesk (headings, names, display

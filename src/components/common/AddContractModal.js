@@ -251,7 +251,7 @@ const AddContractModal = ({
             </div>
 
             {error && (
-              <div style={{ marginTop: '14px', padding: '10px 12px', backgroundColor: 'rgba(255, 51, 51, 0.1)', border: '1px solid rgba(255, 51, 51, 0.3)', borderRadius: '6px', color: '#ff3333', fontSize: '13px' }}>
+              <div style={{ marginTop: '14px', padding: '10px 12px', backgroundColor: 'rgba(245,87,108,0.1)', border: '1px solid rgba(245,87,108,0.3)', borderRadius: '6px', color: '#F5576C', fontSize: '13px' }}>
                 {error}
               </div>
             )}

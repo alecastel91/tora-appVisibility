@@ -604,7 +604,7 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
                   <div className="text-xl font-semibold text-white">{data.last30}</div>
                   <div className="mt-0.5 text-[10px] uppercase tracking-[0.12em] text-white/40 font-tech">{t(`manage.${key}`)}</div>
                   {delta !== null && (
-                    <div className={`mt-1 text-[10px] ${delta >= 0 ? 'text-[#34e3a0]' : 'text-infrared'}`}>
+                    <div className={`mt-1 text-[10px] ${delta >= 0 ? 'text-[#43E97B]' : 'text-infrared'}`}>
                       {delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(0)}%
                     </div>
                   )}
@@ -764,7 +764,7 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
                       <button
                         className="btn btn-outline btn-sm"
                         onClick={() => handleDeleteDocument(doc.id)}
-                        style={{ color: '#ff4444' }}
+                        style={{ color: '#F5576C' }}
                       >
                         {t('manage.delete')}
                       </button>

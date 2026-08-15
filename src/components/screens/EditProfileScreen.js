@@ -597,7 +597,7 @@ const EditProfileScreen = ({ onClose }) => {
             backgroundColor: 'rgba(220, 53, 69, 0.1)',
             border: '1px solid rgba(220, 53, 69, 0.3)',
             borderRadius: '8px',
-            color: '#dc3545'
+            color: '#F5576C'
           }}>
             {error}
           </div>

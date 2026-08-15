@@ -284,10 +284,10 @@ const SignContractModal = ({
               <div style={{
                 marginBottom: '16px',
                 padding: '10px 12px',
-                backgroundColor: 'rgba(255, 51, 51, 0.1)',
-                border: '1px solid rgba(255, 51, 51, 0.3)',
+                backgroundColor: 'rgba(245,87,108,0.1)',
+                border: '1px solid rgba(245,87,108,0.3)',
                 borderRadius: '6px',
-                color: '#ff3333',
+                color: '#F5576C',
                 fontSize: '13px'
               }}>
                 {error}

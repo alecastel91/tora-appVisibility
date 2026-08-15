@@ -129,7 +129,7 @@ const ShareDocumentsModal = ({ isOpen, deal, currentUser, onClose, onDealUpdated
                       title={sharedEntry?.documentTitle || ''}
                       style={{
                         fontSize: '12px',
-                        color: 'rgba(80,200,120,1)',
+                        color: 'rgba(67,233,123,1)',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -308,7 +308,7 @@ const UploadOnlyPicker = ({ category, actionBusy, profileId, onUploaded }) => {
       <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', margin: '6px 0 0 0' }}>
         Fresh upload per booking — PDF only, max 10 MB.
       </p>
-      {error && <p style={{ fontSize: '11px', color: '#ff6b6b', margin: '6px 0 0 0' }}>{error}</p>}
+      {error && <p style={{ fontSize: '11px', color: '#F5576C', margin: '6px 0 0 0' }}>{error}</p>}
     </div>
   );
 };

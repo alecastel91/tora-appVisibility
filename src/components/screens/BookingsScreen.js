@@ -1037,8 +1037,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                             setShowWithdrawConfirmation(true);
                           }}
                           style={{
-                            borderColor: 'rgba(255, 165, 0, 0.5)',
-                            color: 'rgba(255, 165, 0, 1)',
+                            borderColor: 'rgba(255,193,7,0.5)',
+                            color: 'rgba(255,193,7,1)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px'
@@ -1180,10 +1180,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                       const status = categoryStatus(deal.sharedDocuments, cat.key);
                       const entry = deal.sharedDocuments?.[cat.key];
                       const palette = status === 'shared'
-                        ? { bg: 'rgba(80,200,120,0.15)', fg: 'rgba(80,200,120,1)', symbol: '✓' }
+                        ? { bg: 'rgba(67,233,123,0.15)', fg: 'rgba(67,233,123,1)', symbol: '✓' }
                         : status === 'skipped'
                           ? { bg: 'rgba(255,255,255,0.06)', fg: 'rgba(255,255,255,0.4)', symbol: '—' }
-                          : { bg: 'rgba(255,165,0,0.12)', fg: 'rgba(255,165,0,1)', symbol: '·' };
+                          : { bg: 'rgba(255,193,7,0.12)', fg: 'rgba(255,193,7,1)', symbol: '·' };
                       const pillContent = (
                         <>
                           <span aria-hidden="true">{palette.symbol}</span>
@@ -1742,7 +1742,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               <div style={{
                 marginBottom: '14px',
                 padding: '12px',
-                border: `1px dashed ${paymentProofFile ? 'rgba(80,200,120,0.5)' : 'rgba(255,255,255,0.15)'}`,
+                border: `1px dashed ${paymentProofFile ? 'rgba(67,233,123,0.5)' : 'rgba(255,255,255,0.15)'}`,
                 borderRadius: '8px',
                 backgroundColor: 'rgba(255,255,255,0.02)',
               }}>
@@ -2049,7 +2049,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                 {date ? new Date(date).toLocaleString(undefined, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
               </div>
               {confirmedAt && (
-                <div style={{ fontSize: '10px', color: 'rgba(80,200,120,1)', marginTop: '2px' }}>
+                <div style={{ fontSize: '10px', color: 'rgba(67,233,123,1)', marginTop: '2px' }}>
                   ✓ Receipt confirmed · {new Date(confirmedAt).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
                 </div>
               )}
@@ -2086,7 +2086,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   Confirmed received: <strong style={{ color: '#fff' }}>{totalConfirmed} {currency}</strong>
                   {totalFee > 0 && <> of <strong style={{ color: '#fff' }}>{totalFee} {currency}</strong></>}
                   {totalMarked > totalConfirmed && (
-                    <span style={{ color: 'rgba(80,200,120,0.85)' }}> · {totalMarked - totalConfirmed} {currency} awaiting confirmation</span>
+                    <span style={{ color: 'rgba(67,233,123,0.85)' }}> · {totalMarked - totalConfirmed} {currency} awaiting confirmation</span>
                   )}
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '50dvh', overflowY: 'auto' }}>
@@ -2182,7 +2182,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   if (fallback) fallback.style.display = 'block';
                 }}
               />
-              <div style={{ display: 'none', color: '#ff6b6b', textAlign: 'center', maxWidth: '420px' }}>
+              <div style={{ display: 'none', color: '#F5576C', textAlign: 'center', maxWidth: '420px' }}>
                 <p style={{ marginBottom: '8px' }}>{t('bookings.imageLoadFailed')}</p>
                 <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
                   Open in a new tab to see browser-level details:&nbsp;
@@ -2208,9 +2208,9 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
             <div className="delete-modal-content">
               <div style={{
                 padding: '12px',
-                backgroundColor: 'rgba(255, 165, 0, 0.1)',
+                backgroundColor: 'rgba(255,193,7,0.1)',
                 borderRadius: '6px',
-                border: '1px solid rgba(255, 165, 0, 0.3)',
+                border: '1px solid rgba(255,193,7,0.3)',
                 marginBottom: '16px'
               }}>
                 <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.5' }}>
@@ -2239,8 +2239,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                 onClick={handleWithdrawContract}
                 disabled={actionBusy}
                 style={{
-                  backgroundColor: 'rgba(255, 165, 0, 0.8)',
-                  borderColor: 'rgba(255, 165, 0, 1)'
+                  backgroundColor: 'rgba(255,193,7,0.8)',
+                  borderColor: 'rgba(255,193,7,1)'
                 }}
               >
                 {t('bookings.withdrawContract')}

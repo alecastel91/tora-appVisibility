@@ -193,7 +193,7 @@ const RevenueChart = ({ events = [], currencySymbol = '€' }) => {
         <p className="mb-4 text-center text-xs text-white/45">
           {t('manage.avgPerGig', { amount: fmt(avg) })}
           {delta !== null && (
-            <span className={delta >= 0 ? 'text-[#34e3a0]' : 'text-infrared'}>
+            <span className={delta >= 0 ? 'text-[#43E97B]' : 'text-infrared'}>
               {' '}{delta >= 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(0)}% {t(`manage.vsPrev${period[0].toUpperCase()}${period.slice(1)}`)}
             </span>
           )}

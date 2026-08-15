@@ -1271,7 +1271,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       <div
                         className="offer-card-icon"
                         style={{
-                          color: msg._withdrawn ? 'rgba(255, 165, 0, 1)' : 'rgba(138, 43, 226, 1)',
+                          color: msg._withdrawn ? 'rgba(255,193,7,1)' : 'rgba(138, 43, 226, 1)',
                         }}
                       >
                         {msg._withdrawn ? (
@@ -1356,8 +1356,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                           className="btn btn-outline btn-card-action"
                           style={{
                             flex: 1,
-                            borderColor: 'rgba(255, 165, 0, 0.5)',
-                            color: 'rgba(255, 165, 0, 1)'
+                            borderColor: 'rgba(255,193,7,0.5)',
+                            color: 'rgba(255,193,7,1)'
                           }}
                           onClick={async () => {
                             const comment = prompt(t('chat.modificationPromptDetails'));
@@ -1715,8 +1715,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                               width: '100%',
                               fontWeight: '600',
                               fontSize: '13px',
-                              borderColor: 'rgba(255, 165, 0, 0.5)',
-                              color: 'rgba(255, 165, 0, 1)'
+                              borderColor: 'rgba(255,193,7,0.5)',
+                              color: 'rgba(255,193,7,1)'
                             }}
                             onClick={() => {
                               const comment = prompt(t('chat.modificationPromptDetails'));
@@ -1734,8 +1734,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                               width: '100%',
                               fontWeight: '600',
                               fontSize: '13px',
-                              borderColor: 'rgba(255, 51, 51, 0.5)',
-                              color: 'rgba(255, 51, 51, 1)'
+                              borderColor: 'rgba(245,87,108,0.5)',
+                              color: 'rgba(245,87,108,1)'
                             }}
                             onClick={async () => {
                               if (await appConfirm(t('chat.cancelBookingConfirm'), { danger: true })) {
@@ -1819,8 +1819,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                             width: '100%',
                             fontWeight: '600',
                             fontSize: '13px',
-                            borderColor: 'rgba(255, 165, 0, 0.5)',
-                            color: 'rgba(255, 165, 0, 1)'
+                            borderColor: 'rgba(255,193,7,0.5)',
+                            color: 'rgba(255,193,7,1)'
                           }}
                           onClick={() => {
                             const comment = prompt(t('chat.modificationPromptDetails'));
@@ -1838,8 +1838,8 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                             width: '100%',
                             fontWeight: '600',
                             fontSize: '13px',
-                            borderColor: 'rgba(255, 51, 51, 0.5)',
-                            color: 'rgba(255, 51, 51, 1)'
+                            borderColor: 'rgba(245,87,108,0.5)',
+                            color: 'rgba(245,87,108,1)'
                           }}
                           onClick={async () => {
                             if (await appConfirm(t('chat.cancelBookingConfirm'), { danger: true })) {
