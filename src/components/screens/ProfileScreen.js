@@ -26,6 +26,7 @@ import ProfileMiniGrid from '../common/ProfileMiniGrid';
 import AvatarCropModal from '../common/AvatarCropModal';
 import HighlightsList from '../common/HighlightsList';
 import OnboardingChecklist from '../common/OnboardingChecklist';
+import ProfileListRows from '../common/ProfileListRows';
 import RepresentationSection from '../common/RepresentationSection';
 import { raProfileUrl } from '../../utils/urls';
 import { networkSectionsForRole } from '../../utils/networkSections';
@@ -899,26 +900,11 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         onClose={() => setShowLikesList(false)}
         title={t('profile.profilesYouLiked')}
       >
-        <div className="profiles-list">
-          {likedProfilesList.length > 0 ? (
-            likedProfilesList.map(profile => (
-              <div key={profile.id} className="profile-list-item">
-                {profile.avatar ? (
-                  <img src={profile.avatar} alt={profile.name} />
-                ) : (
-                  <div className="profile-avatar-placeholder">{profile.name.charAt(0)}</div>
-                )}
-                <div className="profile-info">
-                  <h4>{profile.name}</h4>
-                  <span className="profile-role">{roleLabel(profile.role, t)}</span>
-                  <span className="profile-location">{profile.location}</span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>{t('profile.noLikedProfiles')}</p>
-          )}
-        </div>
+        <ProfileListRows
+          profiles={likedProfilesList}
+          emptyText={t('profile.noLikedProfiles')}
+          onOpenProfile={(p) => { closeSubScreens(); setViewingArtistProfile(p); }}
+        />
       </Modal>
 
       {/* Likers List Modal */}
@@ -927,26 +913,11 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         onClose={() => setShowLikersList(false)}
         title={t('profile.profilesThatLikedYou')}
       >
-        <div className="profiles-list">
-          {likerProfilesList.length > 0 ? (
-            likerProfilesList.map(profile => (
-              <div key={profile.id} className="profile-list-item">
-                {profile.avatar ? (
-                  <img src={profile.avatar} alt={profile.name} />
-                ) : (
-                  <div className="profile-avatar-placeholder">{profile.name.charAt(0)}</div>
-                )}
-                <div className="profile-info">
-                  <h4>{profile.name}</h4>
-                  <span className="profile-role">{roleLabel(profile.role, t)}</span>
-                  <span className="profile-location">{profile.location}</span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>{t('profile.noLikersYet')}</p>
-          )}
-        </div>
+        <ProfileListRows
+          profiles={likerProfilesList}
+          emptyText={t('profile.noLikersYet')}
+          onOpenProfile={(p) => { closeSubScreens(); setViewingArtistProfile(p); }}
+        />
       </Modal>
 
       {/* Connections List Modal */}
@@ -955,26 +926,11 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
         onClose={() => setShowConnectionsList(false)}
         title={t('profile.connections')}
       >
-        <div className="profiles-list">
-          {connectionsList.length > 0 ? (
-            connectionsList.map(profile => (
-              <div key={profile.id} className="profile-list-item">
-                {profile.avatar ? (
-                  <img src={profile.avatar} alt={profile.name} />
-                ) : (
-                  <div className="profile-avatar-placeholder">{profile.name.charAt(0)}</div>
-                )}
-                <div className="profile-info">
-                  <h4>{profile.name}</h4>
-                  <span className="profile-role">{roleLabel(profile.role, t)}</span>
-                  <span className="profile-location">{profile.location}</span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>{t('profile.noConnectionsYet')}</p>
-          )}
-        </div>
+        <ProfileListRows
+          profiles={connectionsList}
+          emptyText={t('profile.noConnectionsYet')}
+          onOpenProfile={(p) => { closeSubScreens(); setViewingArtistProfile(p); }}
+        />
       </Modal>
 
       {/* Profile Switcher Modal */}

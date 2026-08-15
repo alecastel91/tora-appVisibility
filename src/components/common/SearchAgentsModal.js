@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { appAlert, appConfirm } from '../../utils/dialogs';
+import { isVerificationGate } from '../../utils/errors';
 import { CloseIcon } from '../../utils/icons';
 import apiService from '../../services/api';
 import ViewProfileScreen from '../screens/ViewProfileScreen';
@@ -278,7 +279,7 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
 
     } catch (error) {
       console.error('Error sending connection request:', error);
-      appAlert(t('findAgent.failedToSendConnection'));
+      if (!isVerificationGate(error)) appAlert(t('findAgent.failedToSendConnection'));
     } finally {
       setSending(false);
     }

@@ -217,7 +217,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
 
       // Only show alert for non-limit errors
       console.error('Connection request failed:', error);
-      appAlert(t('search.failedToSendRequest'));
+      if (!isVerificationGate(error)) appAlert(t('search.failedToSendRequest'));
     } finally {
       setActionBusy(false);
     }
@@ -267,7 +267,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
     } catch (error) {
       console.error('Error toggling tour interest:', error);
       patch(!turningOn, turningOn ? -1 : 1);
-      appAlert(t('tour.interestFailed'));
+      if (!isVerificationGate(error)) appAlert(t('tour.interestFailed'));
     }
   };
 
@@ -307,7 +307,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
       }
 
       // Only show alert for non-limit errors
-      appAlert(t('search.failedToSendRequest'));
+      if (!isVerificationGate(error)) appAlert(t('search.failedToSendRequest'));
     } finally {
       setActionBusy(false);
     }

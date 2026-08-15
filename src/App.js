@@ -1398,11 +1398,19 @@ function App() {
                 <h2>{t('premium.nowPremium')}</h2>
                 <p>{t('premium.welcomeDesc')}</p>
 
+                {/* What you actually unlocked, per role. The comparison table
+                    above this screen has always been role-aware; this list was
+                    a fixed four, so a venue was told "Travel mode enabled" —
+                    a feature that only exists for the artist side. */}
                 <div className="success-features">
-                  <div className="success-feature"><span>✓</span> {t('premium.successGlobalSearch')}</div>
-                  <div className="success-feature"><span>✓</span> {t('premium.successCalendarMatching')}</div>
-                  <div className="success-feature"><span>✓</span> {t('premium.successUnlimitedMessages')}</div>
-                  <div className="success-feature"><span>✓</span> {t('premium.successTravelMode')}</div>
+                  {(user?.role === 'ARTIST' || user?.role === 'AGENT'
+                    ? ['successGlobalSearch', 'successCalendarMatching', 'successTourKickstart',
+                       'successTravelMode', 'successFeePrivacy', 'successPrioritySearch']
+                    : ['successGlobalSearch', 'successCalendarMatching', 'successTourKickstart',
+                       'successTravelAlerts', 'successCalendarPrivacy', 'successPrioritySearch']
+                  ).map((k) => (
+                    <div key={k} className="success-feature"><span>✓</span> {t(`premium.${k}`)}</div>
+                  ))}
                 </div>
 
                 <button

@@ -351,7 +351,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
 
       // Only show alert for non-limit errors
       console.error('Connection request failed:', error);
-      appAlert(t('search.failedToSendRequest'));
+      if (!isVerificationGate(error)) appAlert(t('search.failedToSendRequest'));
     }
   };
 
@@ -461,7 +461,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
         }
 
         // Only show alert for non-limit errors
-        appAlert(t('search.failedToSendRequest'));
+        if (!isVerificationGate(error)) appAlert(t('search.failedToSendRequest'));
       }
     }
   };

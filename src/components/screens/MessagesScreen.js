@@ -5,7 +5,7 @@ import apiService from '../../services/api';
 import { subscribeToInbox } from '../../services/realtime';
 import LoadingGlobe from '../common/LoadingGlobe';
 import { getAvatarClass } from '../../utils/roles';
-import { appAlert } from '../../utils/dialogs';
+import { appAlert, appConfirm } from '../../utils/dialogs';
 import CountBadge from '../common/CountBadge';
 
 const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
@@ -40,8 +40,17 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
   const inFlightRef = React.useRef(false);
   const refetchQueuedRef = React.useRef(false);
 
-  const answerVouch = async (vouchId, confirm) => {
+  const answerVouch = async (vouchId, confirm, { wasConfirmed = false, agentName = '' } = {}) => {
     if (vouchBusy) return;
+    // Taking a confirmation back also removes them as your agent, which ends
+    // their access to your bookings. Too consequential to happen on one tap.
+    if (!confirm && wasConfirmed) {
+      const ok = await appConfirm(
+        t('verify.vouchWithdrawWarning', { name: agentName }),
+        { confirmLabel: t('verify.vouchWithdrawConfirm'), danger: true },
+      );
+      if (!ok) return;
+    }
     setVouchBusy(vouchId);
     try {
       await apiService.respondToVouch(vouchId, confirm);
@@ -334,7 +343,10 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
                 <button
                   className="btn btn-sm btn-outline shrink-0"
                   disabled={!!vouchBusy}
-                  onClick={() => answerVouch(v.id, v.status !== 'CONFIRMED')}
+                  onClick={() => answerVouch(v.id, v.status !== 'CONFIRMED', {
+                    wasConfirmed: v.status === 'CONFIRMED',
+                    agentName: v.agent?.name || '',
+                  })}
                 >
                   {vouchBusy === v.id
                     ? '...'
