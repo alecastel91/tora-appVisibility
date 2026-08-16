@@ -1685,6 +1685,12 @@ const fr = {
       title: 'Un problème avec votre compte ?',
       body: 'Connexion, paiement qui a échoué ou vérification bloquée : seule l’équipe peut les résoudre, pas l’Assistant. Utilisez le bouton de retour ou écrivez à support@torahub.io.',
     },
+    sections: [
+      { id: 'basics', title: 'Commencer ici', chapters: ['start', 'verify'] },
+      { id: 'people', title: 'Personnes et messages', chapters: ['find', 'messages'] },
+      { id: 'work', title: 'Réservations, agents et tournées', chapters: ['bookings', 'agents', 'tours'] },
+      { id: 'more', title: 'Formules, news et aide', chapters: ['premium', 'news', 'account'] },
+    ],
     chapters: [
       {
         id: 'start',

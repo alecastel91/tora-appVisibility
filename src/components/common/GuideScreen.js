@@ -34,6 +34,7 @@ const SearchGlyph = () => (
 const GuideScreen = ({ onClose }) => {
   const { t, language } = useLanguage();
   const [openChapter, setOpenChapter] = useState(null);
+  const [openSection, setOpenSection] = useState(null);
   const [query, setQuery] = useState('');
   const [openEntry, setOpenEntry] = useState(null);
 
@@ -44,6 +45,15 @@ const GuideScreen = ({ onClose }) => {
     return Array.isArray(c) ? c : [];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language]);
+
+  // Macro groups over those chapters. If a locale ever lacks them, every
+  // chapter still reaches the reader as its own group rather than vanishing.
+  const sections = useMemo(() => {
+    const s = t('guide.sections');
+    if (Array.isArray(s) && s.length) return s;
+    return chapters.map((c) => ({ id: c.id, title: c.title, chapters: [c.id] }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language, chapters]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose && onClose(); };
@@ -168,27 +178,63 @@ const GuideScreen = ({ onClose }) => {
                 )}
               </div>
             ) : (
+              // Four groups, collapsed, so the whole index plus the Assistant
+              // fits one screen. Tapping one opens it in place rather than
+              // navigating — the point of the index is seeing the shape of the
+              // thing without leaving it.
               <div className="mt-4 flex flex-col gap-2">
-                {chapters.map((c, i) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => { setOpenChapter(c.id); setOpenEntry(null); }}
-                    className="flex w-full items-center gap-3 rounded-xl border border-white/10 bg-[#0a0a0e]
-                               px-4 py-3.5 text-left cursor-pointer transition-colors hover:border-infrared/40"
-                  >
-                    <span className="w-6 shrink-0 text-[11px] font-tech text-infrared/70 tabular-nums">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm text-white">{c.title}</span>
-                      <span className="block text-[10px] uppercase tracking-[0.15em] text-white/35 font-tech">
-                        {t('guide.entryCount', { n: (c.entries || []).length })}
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-white/25" aria-hidden="true">›</span>
-                  </button>
-                ))}
+                {sections.map((s, i) => {
+                  const open = openSection === s.id;
+                  const inGroup = s.chapters
+                    .map((id) => chapters.find((c) => c.id === id))
+                    .filter(Boolean);
+                  return (
+                    <div key={s.id} className="rounded-xl border border-white/10 bg-[#0a0a0e] overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setOpenSection(open ? null : s.id)}
+                        aria-expanded={open}
+                        className="flex w-full items-center gap-3 px-4 py-3.5 text-left cursor-pointer
+                                   transition-colors hover:bg-white/[0.03]"
+                      >
+                        <span className="w-6 shrink-0 text-[11px] font-tech text-infrared/70 tabular-nums">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm text-white">{s.title}</span>
+                          <span className="block text-[10px] uppercase tracking-[0.15em] text-white/35 font-tech">
+                            {t('guide.entryCount', {
+                              n: inGroup.reduce((n, c) => n + (c.entries || []).length, 0),
+                            })}
+                          </span>
+                        </span>
+                        <ChevronDown open={open} />
+                      </button>
+
+                      {open && (
+                        <div className="border-t border-white/10">
+                          {inGroup.map((c) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => { setOpenChapter(c.id); setOpenEntry(null); }}
+                              className="flex w-full items-center gap-3 px-4 py-3 pl-13 text-left cursor-pointer
+                                         border-b border-white/5 last:border-b-0 transition-colors hover:bg-white/[0.03]"
+                            >
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-[13px] text-white/85">{c.title}</span>
+                                <span className="block text-[10px] uppercase tracking-[0.15em] text-white/30 font-tech">
+                                  {t('guide.entryCount', { n: (c.entries || []).length })}
+                                </span>
+                              </span>
+                              <span className="shrink-0 text-white/25" aria-hidden="true">›</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 

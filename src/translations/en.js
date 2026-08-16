@@ -1697,6 +1697,12 @@ const en = {
       title: 'Something wrong with your account?',
       body: 'Login trouble, a payment gone wrong or verification stuck are things the team has to fix — the Assistant cannot. Use the feedback button, or email support@torahub.io.',
     },
+    sections: [
+      { id: 'basics', title: 'Start here', chapters: ['start', 'verify'] },
+      { id: 'people', title: 'People and messages', chapters: ['find', 'messages'] },
+      { id: 'work', title: 'Bookings, agents and tours', chapters: ['bookings', 'agents', 'tours'] },
+      { id: 'more', title: 'Plans, news and help', chapters: ['premium', 'news', 'account'] },
+    ],
     chapters: [
       {
         id: 'start',

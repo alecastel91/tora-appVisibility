@@ -1685,6 +1685,12 @@ const ja = {
       title: 'アカウントに問題がありますか？',
       body: 'ログイン、決済の不具合、認証が進まないといった問題はチームでの対応が必要で、アシスタントでは解決できません。フィードバックボタンか support@torahub.io までご連絡ください。',
     },
+    sections: [
+      { id: 'basics', title: 'まずはここから', chapters: ['start', 'verify'] },
+      { id: 'people', title: '人とメッセージ', chapters: ['find', 'messages'] },
+      { id: 'work', title: 'ブッキング・エージェント・ツアー', chapters: ['bookings', 'agents', 'tours'] },
+      { id: 'more', title: 'プラン・News・ヘルプ', chapters: ['premium', 'news', 'account'] },
+    ],
     chapters: [
       {
         id: 'start',

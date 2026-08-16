@@ -1685,6 +1685,12 @@ const es = {
       title: '¿Algo va mal con tu cuenta?',
       body: 'El acceso, un pago fallido o una verificación atascada los tiene que resolver el equipo; el Asistente no puede. Usa el botón de feedback o escribe a support@torahub.io.',
     },
+    sections: [
+      { id: 'basics', title: 'Empieza aquí', chapters: ['start', 'verify'] },
+      { id: 'people', title: 'Personas y mensajes', chapters: ['find', 'messages'] },
+      { id: 'work', title: 'Reservas, agentes y tours', chapters: ['bookings', 'agents', 'tours'] },
+      { id: 'more', title: 'Planes, news y ayuda', chapters: ['premium', 'news', 'account'] },
+    ],
     chapters: [
       {
         id: 'start',

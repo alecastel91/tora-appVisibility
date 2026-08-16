@@ -1685,6 +1685,12 @@ const it = {
       title: 'Problemi con il tuo account?',
       body: 'Accesso, pagamenti o verifiche bloccate sono cose che deve risolvere il team: l’Assistente non può. Usa il pulsante di feedback o scrivi a support@torahub.io.',
     },
+    sections: [
+      { id: 'basics', title: 'Inizia da qui', chapters: ['start', 'verify'] },
+      { id: 'people', title: 'Persone e messaggi', chapters: ['find', 'messages'] },
+      { id: 'work', title: 'Prenotazioni, agenti e tour', chapters: ['bookings', 'agents', 'tours'] },
+      { id: 'more', title: 'Piani, news e aiuto', chapters: ['premium', 'news', 'account'] },
+    ],
     chapters: [
       {
         id: 'start',

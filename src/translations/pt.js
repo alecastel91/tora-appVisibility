@@ -1685,6 +1685,12 @@ const pt = {
       title: 'Algo errado com a tua conta?',
       body: 'Problemas de acesso, um pagamento que correu mal ou uma verificação presa só a equipa resolve — o Assistente não. Usa o botão de feedback ou escreve para support@torahub.io.',
     },
+    sections: [
+      { id: 'basics', title: 'Começa aqui', chapters: ['start', 'verify'] },
+      { id: 'people', title: 'Pessoas e mensagens', chapters: ['find', 'messages'] },
+      { id: 'work', title: 'Reservas, agentes e tours', chapters: ['bookings', 'agents', 'tours'] },
+      { id: 'more', title: 'Planos, news e ajuda', chapters: ['premium', 'news', 'account'] },
+    ],
     chapters: [
       {
         id: 'start',

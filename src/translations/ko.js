@@ -1685,6 +1685,12 @@ const ko = {
       title: '계정에 문제가 있나요?',
       body: '로그인 문제, 결제 오류, 인증 지연은 팀이 처리해야 하며 어시스턴트로는 해결할 수 없습니다. 피드백 버튼을 쓰거나 support@torahub.io 로 메일 주세요.',
     },
+    sections: [
+      { id: 'basics', title: '여기서 시작', chapters: ['start', 'verify'] },
+      { id: 'people', title: '사람과 메시지', chapters: ['find', 'messages'] },
+      { id: 'work', title: '부킹·에이전트·투어', chapters: ['bookings', 'agents', 'tours'] },
+      { id: 'more', title: '플랜·News·도움말', chapters: ['premium', 'news', 'account'] },
+    ],
     chapters: [
       {
         id: 'start',

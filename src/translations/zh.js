@@ -1685,6 +1685,12 @@ const zh = {
       title: '账号出了问题？',
       body: '登录异常、支付出错或验证卡住需要团队处理，助手无法解决。请使用反馈按钮，或发送邮件至 support@torahub.io。',
     },
+    sections: [
+      { id: 'basics', title: '从这里开始', chapters: ['start', 'verify'] },
+      { id: 'people', title: '人脉与消息', chapters: ['find', 'messages'] },
+      { id: 'work', title: '预订、经纪与巡演', chapters: ['bookings', 'agents', 'tours'] },
+      { id: 'more', title: '套餐、动态与帮助', chapters: ['premium', 'news', 'account'] },
+    ],
     chapters: [
       {
         id: 'start',
