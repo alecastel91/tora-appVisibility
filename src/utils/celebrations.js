@@ -19,27 +19,53 @@
  * collection of effects.
  */
 
-const SEEN_KEY = (profileId) => `tora:badges-seen:${profileId}`;
+/**
+ * "Has this device already shown X?" — the one mechanism both detectors use.
+ *
+ * Returns null when nothing was ever recorded, which is what distinguishes a
+ * genuinely new member from one whose history predates this feature. Writes
+ * MERGE rather than replace: the deals list is paginated, so a milestone that
+ * scrolls off the newest page must not be forgotten and celebrated again.
+ */
+const seenStore = (key) => ({
+  read() {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? new Set(JSON.parse(raw)) : null;
+    } catch {
+      return null;   // private mode — treat as "never recorded"
+    }
+  },
+  merge(previous, ids) {
+    try {
+      localStorage.setItem(key, JSON.stringify([...new Set([...(previous || []), ...ids])]));
+    } catch {
+      /* quota / private mode — a celebration is not worth breaking a screen for */
+    }
+  },
+});
 
-/** Founding is the one badge worth showing to someone who already had it. */
-const SEED_EXEMPT = ['founding'];
+/**
+ * The shared shape of both detectors: work out what is currently true, compare
+ * against what has been shown, seed silently the first time.
+ *
+ * `exempt` is what still gets celebrated on that first silent seed — the
+ * founding badge, because it is a moment existing members were never given.
+ */
+function diffAgainstSeen(key, items, idOf, exempt = () => false) {
+  const store = seenStore(key);
+  const ids = items.map(idOf);
+  const seen = store.read();
 
-const readSeen = (profileId) => {
-  try {
-    const raw = localStorage.getItem(SEEN_KEY(profileId));
-    return raw ? new Set(JSON.parse(raw)) : null;   // null = never recorded
-  } catch {
-    return null;
+  if (seen === null) {
+    store.merge([], ids);
+    return items.filter(exempt);
   }
-};
 
-const writeSeen = (profileId, keys) => {
-  try {
-    localStorage.setItem(SEEN_KEY(profileId), JSON.stringify([...keys]));
-  } catch {
-    /* private mode / quota — celebrations are not worth breaking a screen for */
-  }
-};
+  const fresh = items.filter((item) => !seen.has(idOf(item)));
+  if (fresh.length) store.merge(seen, ids);
+  return fresh;
+}
 
 /**
  * A badge's identity for "have we shown this?" purposes.
@@ -52,27 +78,17 @@ const badgeId = (b) => (b.level ? `${b.key}:${b.level}` : b.key);
 /**
  * Which badges deserve a reveal right now — and record them as shown.
  *
- * First run for a profile seeds SILENTLY: a member who has been using TORA for
- * months must not get five overlays in a row the day this ships. The exception
- * is the founding badge, which is a moment they were never given.
- *
- * Returns the badges to celebrate, in display order.
+ * The first run for a profile seeds SILENTLY: a member of six months must not
+ * get five overlays in a row the day this ships.
  */
 export function collectBadgeReveals(profileId, badges) {
   if (!profileId || !Array.isArray(badges) || badges.length === 0) return [];
-
-  const current = badges.filter((b) => b && b.key);
-  const ids = new Set(current.map(badgeId));
-  const seen = readSeen(profileId);
-
-  if (seen === null) {
-    writeSeen(profileId, ids);
-    return current.filter((b) => SEED_EXEMPT.includes(b.key));
-  }
-
-  const fresh = current.filter((b) => !seen.has(badgeId(b)));
-  if (fresh.length) writeSeen(profileId, ids);
-  return fresh;
+  return diffAgainstSeen(
+    `tora:badges-seen:${profileId}`,
+    badges.filter((b) => b && b.key),
+    badgeId,
+    (b) => b.key === 'founding',
+  );
 }
 
 /**
@@ -82,12 +98,7 @@ export function collectBadgeReveals(profileId, badges) {
  * promoter whose offer was ACCEPTED, and the party who countersigned second,
  * both learn about it on their own screen later. So the deal list is diffed on
  * load instead — the milestone belongs to the member, not to the click.
- *
- * Seeds silently on first run, for the same reason badges do: nobody wants a
- * stack of overlays for bookings they closed last month.
  */
-const DEAL_SEEN_KEY = (profileId) => `tora:deal-moments-seen:${profileId}`;
-
 const dealMilestones = (deal, profileId, ownedIds) => {
   const out = [];
   const mine = (id) => id && (id === profileId || ownedIds.has(id));
@@ -107,34 +118,14 @@ export function celebrateDealMilestones(profileId, deals, ownedProfileIds = []) 
   if (!profileId || !Array.isArray(deals) || deals.length === 0) return;
   const owned = new Set(ownedProfileIds.filter(Boolean));
 
-  const found = deals.flatMap((d) => dealMilestones(d, profileId, owned));
-  const ids = found.map((m) => m.id);
-
-  let seen;
-  try {
-    const raw = localStorage.getItem(DEAL_SEEN_KEY(profileId));
-    seen = raw ? new Set(JSON.parse(raw)) : null;
-  } catch { seen = null; }
-
-  // Union, never replace: the deals list is paginated, so a milestone that
-  // scrolls off the newest page would otherwise be forgotten and celebrated a
-  // second time if it ever came back into view.
-  const persist = (base) => {
-    try {
-      localStorage.setItem(DEAL_SEEN_KEY(profileId), JSON.stringify([...new Set([...base, ...ids])]));
-    } catch { /* ignore */ }
-  };
-
-  if (seen === null) { persist([]); return; }       // first run — seed, say nothing
-
-  const fresh = found.filter((m) => !seen.has(m.id));
-  if (!fresh.length) return;
-  persist(seen);
+  const fresh = diffAgainstSeen(
+    `tora:deal-moments-seen:${profileId}`,
+    deals.flatMap((d) => dealMilestones(d, profileId, owned)),
+    (m) => m.id,
+  );
 
   for (const m of fresh) {
-    celebrateMoment(m.moment, {
-      name: m.deal.eventName || m.deal.venueName || '',
-    });
+    celebrateMoment(m.moment, { name: m.deal.eventName || m.deal.venueName || '' });
   }
 }
 

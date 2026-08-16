@@ -56,7 +56,10 @@ const CelebrationOverlay = ({
     <div
       className="celebration-overlay fixed inset-0 z-[10050] flex items-center justify-center bg-black/80 backdrop-blur-sm px-6"
       onClick={finish}
-      role="dialog"
+      // status, not dialog: this announces itself and leaves on its own, so it
+      // must not claim a modal's focus contract — a screen reader user should
+      // hear it without being trapped in it.
+      role="status"
       aria-live="polite"
       aria-label={title}
     >
