@@ -151,8 +151,6 @@ const GuideScreen = ({ onClose }) => {
       <div className="mx-auto w-full max-w-2xl px-5 pb-16 pt-2">
         {!chapter && (
           <>
-            <p className="mt-0 mb-4 text-[13px] leading-relaxed text-white/50">{t('guide.subtitle')}</p>
-
             <label className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-[#0a0a0e] px-3.5 py-2.5">
               <span className="text-white/35"><SearchGlyph /></span>
               <input
