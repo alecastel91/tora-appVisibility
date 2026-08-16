@@ -129,16 +129,23 @@ const GuideScreen = ({ onClose }) => {
       className="fixed inset-0 z-[10040] overflow-y-auto"
       style={{ backgroundColor: '#0a0a0a' }}
     >
-      <div className="sub-screen-header">
+      {/* The app's own sub-screen header (Settings, Achievements): sticky bar,
+          circular back button, centred uppercase title. An invented class name
+          was silently unstyled here, which left the title colliding with the
+          back arrow. */}
+      <div className="settings-header">
         <button
           type="button"
-          className="back-btn"
+          className="back-button"
           onClick={() => (chapter ? setOpenChapter(null) : onClose && onClose())}
           aria-label={t('common.back')}
         >
-          ‹
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
         </button>
         <h1>{chapter ? chapter.title : t('guide.title')}</h1>
+        <div style={{ width: '24px' }} />
       </div>
 
       <div className="mx-auto w-full max-w-2xl px-5 pb-16 pt-2">
