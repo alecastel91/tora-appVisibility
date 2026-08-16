@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { appAlert } from '../../utils/dialogs';
+import { celebrateBadges } from '../../utils/celebrations';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import Modal from '../common/Modal';
@@ -102,7 +103,15 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
     let cancelled = false;
     if (!user?.id) { setOwnEnriched(null); return undefined; }
     apiService.getProfile(user.id)
-      .then((p) => { if (!cancelled) setOwnEnriched(p.profile || p); })
+      .then((p) => {
+        if (cancelled) return;
+        const fresh = p.profile || p;
+        setOwnEnriched(fresh);
+        // Badges are derived server-side, so there is no "earned" event to
+        // listen for — this is where the app first sees the computed set, and
+        // celebrateBadges reveals anything this device hasn't shown yet.
+        celebrateBadges(user.id, fresh.badges);
+      })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [user?.id, rosterIdsKey]);

@@ -1648,6 +1648,26 @@ const es = {
     confirm: 'Confirmar',
     gotIt: 'Entendido',
   },
+  celebration: {
+    tapToContinue: 'Toca para continuar',
+    badgeEyebrow: 'Insignia conseguida',
+    badgeTierSubtitle: 'Nivel {{tier}} alcanzado.',
+    offerAccepted: {
+      eyebrow: 'Oferta aceptada',
+      title: 'Tienes la fecha',
+      subtitle: 'Tu oferta fue aceptada. La reserva está en Reservas.',
+    },
+    contractSigned: {
+      eyebrow: 'Contrato firmado',
+      title: 'Es oficial',
+      subtitle: 'Ambas partes han firmado. Te enviamos una copia por correo.',
+    },
+    representationConfirmed: {
+      eyebrow: 'Representación',
+      title: 'Ya tienes agente',
+      subtitle: '{{name}} ahora te representa.',
+    },
+  },
   badges: {
     sectionTitle: "Insignias",
     founding: { name: "Miembro Fundador", description: "Se unió a TORA como miembro fundador, antes que nadie." },

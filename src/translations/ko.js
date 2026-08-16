@@ -1648,6 +1648,26 @@ const ko = {
     confirm: '확인',
     gotIt: '확인',
   },
+  celebration: {
+    tapToContinue: '탭하여 계속',
+    badgeEyebrow: '배지 획득',
+    badgeTierSubtitle: '{{tier}} 등급에 도달했습니다.',
+    offerAccepted: {
+      eyebrow: '제안 수락됨',
+      title: '섭외 확정',
+      subtitle: '제안이 수락되었습니다. 부킹에서 확인하세요.',
+    },
+    contractSigned: {
+      eyebrow: '계약 체결',
+      title: '공식 확정',
+      subtitle: '양측 모두 서명했습니다. 사본을 이메일로 보내드립니다.',
+    },
+    representationConfirmed: {
+      eyebrow: '에이전트 계약',
+      title: '에이전트가 생겼습니다',
+      subtitle: '{{name}} 님이 이제 당신을 대리합니다.',
+    },
+  },
   badges: {
     sectionTitle: "배지",
     founding: { name: "창립 멤버", description: "TORA 창립 멤버로 누구보다 먼저 합류했습니다." },

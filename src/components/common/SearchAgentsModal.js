@@ -3,6 +3,7 @@ import { appAlert, appConfirm } from '../../utils/dialogs';
 import { isVerificationGate } from '../../utils/errors';
 import { CloseIcon } from '../../utils/icons';
 import apiService from '../../services/api';
+import { celebrateMoment, MOMENT } from '../../utils/celebrations';
 import ViewProfileScreen from '../screens/ViewProfileScreen';
 import LoadingGlobe from './LoadingGlobe';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -448,6 +449,9 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
       } else {
         // For representation requests, update accepted state
         setAcceptedRequestIds(prev => new Set([...prev, agentId]));
+        // Signing with an agency is a completion worth marking — and it is
+        // this artist who just caused it.
+        celebrateMoment(MOMENT.REPRESENTATION, { name: selectedAgent.name || '' });
       }
 
       // Remove from received and sent request lists

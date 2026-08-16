@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef , useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
+import { celebrateDealMilestones } from '../../utils/celebrations';
 import * as contractService from '../../services/contractService';
 import WorkflowTimeline from '../common/WorkflowTimeline';
 import AddContractModal from '../common/AddContractModal';
@@ -177,6 +178,15 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       ]);
       setDeals(response.deals || []);
       setHasMoreDeals(!!response.hasMore);
+      // An accepted offer and a countersigned contract both reach one side as
+      // news rather than as a button they pressed, so the moment is noticed
+      // here rather than raised at an action site. An agent's roster ids count
+      // as theirs — a deal they run is their win too.
+      celebrateDealMilestones(
+        currentUser.id,
+        response.deals || [],
+        (currentUser.representingArtists || []).map((a) => a.profileId || a.id),
+      );
       // Every deal that currently needs the user's action — highlight them all,
       // so a card keeps its glow until the action is handled (the set shrinks on
       // the next refetch once it's resolved).

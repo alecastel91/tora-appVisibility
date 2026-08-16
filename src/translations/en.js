@@ -1660,6 +1660,26 @@ const en = {
     confirm: 'Confirm',
     gotIt: 'Got it',
   },
+  celebration: {
+    tapToContinue: 'Tap to continue',
+    badgeEyebrow: 'Badge earned',
+    badgeTierSubtitle: '{{tier}} tier reached.',
+    offerAccepted: {
+      eyebrow: 'Offer accepted',
+      title: 'You\'re booked',
+      subtitle: 'Your offer was accepted. The booking is now in Bookings.',
+    },
+    contractSigned: {
+      eyebrow: 'Contract signed',
+      title: 'It\'s official',
+      subtitle: 'Both sides have signed. A copy is on its way by email.',
+    },
+    representationConfirmed: {
+      eyebrow: 'Representation',
+      title: 'You have an agent',
+      subtitle: '{{name}} now represents you.',
+    },
+  },
   badges: {
     sectionTitle: "Badges",
     founding: { name: "Founding Member", description: "Joined TORA as one of its founding members — here before everyone else." },

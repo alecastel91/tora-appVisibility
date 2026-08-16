@@ -1648,6 +1648,26 @@ const zh = {
     confirm: '确认',
     gotIt: '知道了',
   },
+  celebration: {
+    tapToContinue: '点击继续',
+    badgeEyebrow: '获得徽章',
+    badgeTierSubtitle: '已达到{{tier}}等级。',
+    offerAccepted: {
+      eyebrow: '报价已接受',
+      title: '演出已确认',
+      subtitle: '你的报价已被接受，可在「预订」中查看。',
+    },
+    contractSigned: {
+      eyebrow: '合同已签署',
+      title: '正式生效',
+      subtitle: '双方均已签署，副本将通过邮件发送。',
+    },
+    representationConfirmed: {
+      eyebrow: '经纪关系',
+      title: '你有经纪人了',
+      subtitle: '{{name}}现在是你的经纪人。',
+    },
+  },
   badges: {
     sectionTitle: "徽章",
     founding: { name: "创始会员", description: "作为TORA创始会员加入——比所有人都早。" },

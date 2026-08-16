@@ -1648,6 +1648,26 @@ const ja = {
     confirm: '確認',
     gotIt: '了解',
   },
+  celebration: {
+    tapToContinue: 'タップして続ける',
+    badgeEyebrow: 'バッジ獲得',
+    badgeTierSubtitle: '{{tier}}ティアに到達しました。',
+    offerAccepted: {
+      eyebrow: 'オファー成立',
+      title: 'ブッキング確定',
+      subtitle: 'あなたのオファーが承諾されました。ブッキングで確認できます。',
+    },
+    contractSigned: {
+      eyebrow: '契約締結',
+      title: '正式に成立',
+      subtitle: '両者が署名しました。控えをメールでお送りします。',
+    },
+    representationConfirmed: {
+      eyebrow: 'エージェント契約',
+      title: 'エージェントが決まりました',
+      subtitle: '{{name}}があなたを担当します。',
+    },
+  },
   badges: {
     sectionTitle: "バッジ",
     founding: { name: "創設メンバー", description: "TORAの創設メンバーとして、誰よりも早く参加しました。" },

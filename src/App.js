@@ -31,6 +31,7 @@ import AchievementsScreen from './components/screens/AchievementsScreen';
 import InviteFriendsSection from './components/common/InviteFriendsSection';
 import VerificationModal from './components/common/VerificationModal';
 import AppDialogHost from './components/common/AppDialogHost';
+import CelebrationHost from './components/common/CelebrationHost';
 import StripeCheckout from './components/common/StripeCheckout';
 import BetaTools from './components/common/BetaTools';
 import AssistantChat from './components/common/AssistantChat';
@@ -609,6 +610,7 @@ function App() {
       <div className={`app-container tab-${activeTab}`}>
         <BetaTools />
       <AppDialogHost />
+      <CelebrationHost />
         <AssistantChat />
         <GettingStartedSheet open={showGettingStarted} onClose={closeGettingStarted} />
         <Header

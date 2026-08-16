@@ -3,6 +3,7 @@ import { CURRENCY_OPTIONS } from '../common/CurrencyOptions';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import apiService from '../../services/api';
+import { celebrateMoment, MOMENT } from '../../utils/celebrations';
 import contractService from '../../services/contractService';
 import { subscribeToChat } from '../../services/realtime';
 import MakeOfferModal from '../common/MakeOfferModal';
@@ -751,6 +752,10 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     setActionBusy(true);
     try {
       await apiService.acceptRepresentationRequest(selectedRepresentationRequest.id);
+
+      // A completion this member caused, so it is raised right here rather
+      // than noticed later from a list.
+      celebrateMoment(MOMENT.REPRESENTATION, { name: user?.name || '' });
 
       setShowRepresentationDetails(false);
       setSelectedRepresentationRequest(null);
