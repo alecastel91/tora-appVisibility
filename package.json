@@ -28,7 +28,8 @@
     "start": "vite --host 0.0.0.0 --port 3002",
     "sync-theme": "cp ../tora-application/src/styles/tora-theme.css src/styles/tora-theme.css",
     "prepare": "husky",
-    "check:cities": "node scripts/check-city-coords.mjs"
+    "check:cities": "node scripts/check-city-coords.mjs",
+    "check:i18n": "node scripts/check-translations.js"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.1",
