@@ -1680,6 +1680,125 @@ const en = {
       subtitle: '{{name}} now represents you.',
     },
   },
+  guide: {
+    title: 'How TORA works',
+    subtitle: 'Short answers to the things members ask most. Pick a chapter, or search.',
+    searchPlaceholder: 'Search the guide',
+    noResults: 'Nothing matched that. Try a different word, or ask the Assistant.',
+    resultsFor: '{{n}} result(s)',
+    backToIndex: 'All chapters',
+    entryCount: '{{n}} topics',
+    assistant: {
+      title: 'Still stuck?',
+      body: 'The TORA Assistant answers questions about the app in your own language. It cannot see your messages, deals or private data.',
+      cta: 'Ask the Assistant',
+    },
+    support: {
+      title: 'Something wrong with your account?',
+      body: 'Login trouble, a payment gone wrong or verification stuck are things the team has to fix — the Assistant cannot. Use the feedback button, or email support@torahub.io.',
+    },
+    chapters: [
+      {
+        id: 'start',
+        title: 'Getting started',
+        entries: [
+          { q: 'What is TORA?', a: 'An invite-only network where the club music industry books itself. Members are artists, agents, promoters and venues — no fans, no press, no noise.' },
+          { q: 'Set up your profile first', a: 'Add a photo, a short bio, your genres and your city, plus your links. Artists can embed SoundCloud or Spotify; venues add capacity, rooms and a photo gallery; promoters add flyers. A thin profile gets ignored — this is the one thing worth doing properly before anything else.' },
+          { q: 'One account, several profiles', a: 'You can hold an Artist, Agent, Promoter and Venue profile on the same account. Switch between them from the Profile tab. Each profile has its own connections, bookings and plan.' },
+          { q: 'Where things live', a: 'Profile is you. Search finds people. News is the member feed. Tour is Tour Kickstart. Bookings tracks every offer through to payment. Messages is your chats.' },
+        ],
+      },
+      {
+        id: 'verify',
+        title: 'Verification',
+        entries: [
+          { q: 'Why verification exists', a: 'Everyone here signs contracts and moves money with people they may never have met. Verification is what makes a name on a profile mean something.' },
+          { q: 'What you can do before verifying', a: 'Browse, search, chat and RECEIVE offers. Nothing about arriving on TORA is blocked.' },
+          { q: 'What needs verification', a: 'Sending or accepting offers, connection requests and representation requests, signing contracts, creating a tour, and liking or messaging first. In short: anything you start.' },
+          { q: 'How to verify (artists, promoters, venues)', a: 'Add your Instagram handle to your profile, request a code in the app, DM that code to @tora.verify from that same Instagram account, then tap "I\'ve sent it". A human reviews it.' },
+          { q: 'How agencies verify', a: 'Agencies do not use Instagram. Either verify a work email at your agency\'s own website domain, or ask an artist who already knows you and is verified to confirm you. Their confirmation also connects you and takes them onto your roster.' },
+        ],
+      },
+      {
+        id: 'find',
+        title: 'Finding people',
+        entries: [
+          { q: 'Two ways to search', a: 'The Search tab has a globe showing members by city, and a list with filters for role, zone, country, city and genre.' },
+          { q: 'Free vs Premium search', a: 'Free members search inside their own country. Premium unlocks the whole world.' },
+          { q: 'Likes and connection requests', a: 'Likes are limited per day and connection requests per month on free plans. An accepted connection opens a chat.' },
+          { q: 'Why some profiles look locked', a: 'Free members can open anyone in their own country, and anyone they already have a relationship with — someone who liked them, messaged them, or is on a booking with them. Profiles abroad that you have no connection to show a locked card until you upgrade.' },
+        ],
+      },
+      {
+        id: 'messages',
+        title: 'Messages',
+        entries: [
+          { q: 'Who you can message', a: 'Your connections. A connection request has to be accepted first.' },
+          { q: 'Sending documents', a: 'Use the paperclip in a chat. Press kits, tech riders and hospitality riders sent this way also attach themselves to any active booking with that person.' },
+          { q: 'Reading messages in your language', a: 'Tap "Translate" under a message or a profile bio to read it in your app language, and "See original" to switch back.' },
+        ],
+      },
+      {
+        id: 'bookings',
+        title: 'Bookings and offers',
+        entries: [
+          { q: 'Who can send an offer', a: 'Only promoters and venues start a booking offer. Artists and agents receive them — an agent negotiates on behalf of the artists they represent. If you are an artist or agent wanting bookings, publish a tour instead and invite interested promoters to offer.' },
+          { q: 'What an offer contains', a: 'Fee and currency, date, event details (capacity, rooms, stage), lineup, ticket price, optional deposit and final-payment deadlines, and extras like travel, accommodation or meals.' },
+          { q: 'Accept, decline or counter', a: 'Any offer can be countered. The counter shows exactly which fields changed from the previous one, so nothing moves without both sides seeing it.' },
+          { q: 'Offers that name a TORA venue', a: 'If a promoter tags a venue that is on TORA, that venue confirms the event before the offer reaches the artist. Nobody gets booked into a room that has not agreed to host them.' },
+          { q: 'After acceptance', a: 'Contract (send and sign in the app, or skip it), then shared documents, then payment — marked with proof and confirmed by the artist side. The Bookings tab shows the whole workflow as a bar.' },
+        ],
+      },
+      {
+        id: 'agents',
+        title: 'Agents and representation',
+        entries: [
+          { q: 'What representation means here', a: 'An accepted representation link lets an agent receive and negotiate offers for that artist, and see their bookings. It has to be accepted by both sides.' },
+          { q: 'More than one agent', a: 'An artist can have several agents — often one per region. Each agent runs the deals they brought, and sees the others only as read-only cards without fees or documents.' },
+          { q: 'Ending a representation', a: 'Open Representing Agent from your profile and remove the agency. If your own confirmation is what verified them, you will be asked separately whether to take that verification back too — ending the work and vouching for who someone is are different decisions.' },
+          { q: 'Agent plans', a: 'Agents pay per seat — the plan is sized by how many artists are on the roster.' },
+        ],
+      },
+      {
+        id: 'tours',
+        title: 'Tours (Tour Kickstart)',
+        entries: [
+          { q: 'What a tour is for', a: 'An artist or their agent publishes a region, dates, target cities and a fee range. Promoters and venues browsing tours can see it and bring offers, instead of the artist cold-messaging every city.' },
+          { q: 'Tour Kickstart is Premium', a: 'Browsing tours needs a paid plan. Publishing one does not cost extra beyond your own plan.' },
+          { q: 'Showing interest', a: 'Promoters and venues can tap the heart to say "I\'m interested". It costs nothing and commits nothing — it tells the artist where the appetite is.' },
+          { q: 'Turning interest into an offer', a: 'The artist or agent sees who is interested, with role and city, and can invite any of them to make a real offer. The invitation arrives in that member\'s chat.' },
+          { q: 'Closing a tour', a: 'When the run is full, the artist side can close it to further offers without cancelling it. Confirmed gigs and revenue progress show on the tour card.' },
+        ],
+      },
+      {
+        id: 'premium',
+        title: 'Plans and Premium',
+        entries: [
+          { q: 'What Premium costs', a: 'Monthly €19.90, or Yearly €199.90 — two months free.' },
+          { q: 'What it unlocks', a: 'Global search, more likes and connection requests, Tour Kickstart, and on Yearly: fee privacy on tours, calendar privacy, priority placement in search and travel alerts.' },
+          { q: 'What is never behind a paywall', a: 'Receiving an offer and accepting it. Nobody is ever prevented from taking work because of their plan.' },
+          { q: 'One-off extras', a: 'If you run out before your reset, you can buy extra likes, extra connection requests or extra offers without changing plan.' },
+        ],
+      },
+      {
+        id: 'news',
+        title: 'News feed',
+        entries: [
+          { q: 'What the feed is', a: 'A member feed — post updates, like and comment. Verified members can post.' },
+          { q: 'Milestones', a: 'Some cards appear on their own: a representation signed, a tour completed. You only see a milestone from someone you already like, connect with or represent.' },
+        ],
+      },
+      {
+        id: 'account',
+        title: 'Account and help',
+        entries: [
+          { q: 'Availability and travel', a: 'Set your available dates and travel schedule on your profile. Availability is what powers calendar matching in the Tour tab.' },
+          { q: 'Language and currency', a: 'Both live in Settings. The app is available in eight languages; currency affects how fees are displayed to you.' },
+          { q: 'Getting help', a: 'For how-to questions, the Assistant below answers instantly. For anything about your account — login, payments, verification stuck — use the feedback button or email support@torahub.io, because only the team can fix those.' },
+        ],
+      },
+    ],
+  },
   badges: {
     sectionTitle: "Badges",
     founding: { name: "Founding Member", description: "Joined TORA as one of its founding members — here before everyone else." },

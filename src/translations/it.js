@@ -1668,6 +1668,125 @@ const it = {
       subtitle: '{{name}} ora ti rappresenta.',
     },
   },
+  guide: {
+    title: 'Come funziona TORA',
+    subtitle: 'Risposte brevi alle domande più frequenti. Scegli un capitolo o cerca.',
+    searchPlaceholder: 'Cerca nella guida',
+    noResults: 'Nessun risultato. Prova con un’altra parola o chiedi all’Assistente.',
+    resultsFor: '{{n}} risultato/i',
+    backToIndex: 'Tutti i capitoli',
+    entryCount: '{{n}} argomenti',
+    assistant: {
+      title: 'Non trovi quello che cerchi?',
+      body: 'L’Assistente TORA risponde nella tua lingua alle domande sull’app. Non vede i tuoi messaggi, le tue trattative o i tuoi dati privati.',
+      cta: 'Chiedi all’Assistente',
+    },
+    support: {
+      title: 'Problemi con il tuo account?',
+      body: 'Accesso, pagamenti o verifiche bloccate sono cose che deve risolvere il team: l’Assistente non può. Usa il pulsante di feedback o scrivi a support@torahub.io.',
+    },
+    chapters: [
+      {
+        id: 'start',
+        title: 'Per iniziare',
+        entries: [
+          { q: 'Che cos’è TORA?', a: 'Una rete su invito dove l’industria del club si prenota da sola. I membri sono artisti, agenti, promoter e venue — niente fan, niente stampa, niente rumore.' },
+          { q: 'Prima di tutto: il profilo', a: 'Aggiungi foto, una bio breve, i tuoi generi e la città, più i link. Gli artisti possono incorporare SoundCloud o Spotify; le venue aggiungono capienza, sale e galleria; i promoter aggiungono le locandine. Un profilo scarno viene ignorato: è la cosa che conviene fare bene prima di tutto il resto.' },
+          { q: 'Un account, più profili', a: 'Puoi avere un profilo Artista, Agente, Promoter e Venue sullo stesso account. Passi dall’uno all’altro dalla scheda Profilo. Ogni profilo ha connessioni, prenotazioni e piano propri.' },
+          { q: 'Dove si trova cosa', a: 'Profilo sei tu. Cerca trova le persone. News è il feed dei membri. Tour è Tour Kickstart. Prenotazioni segue ogni offerta fino al pagamento. Messaggi sono le tue chat.' },
+        ],
+      },
+      {
+        id: 'verify',
+        title: 'Verifica',
+        entries: [
+          { q: 'Perché esiste la verifica', a: 'Qui si firmano contratti e si muovono soldi con persone che spesso non si sono mai incontrate. La verifica è ciò che dà valore a un nome su un profilo.' },
+          { q: 'Cosa puoi fare senza verifica', a: 'Navigare, cercare, chattare e RICEVERE offerte. Nulla di ciò che serve per arrivare su TORA è bloccato.' },
+          { q: 'Cosa richiede la verifica', a: 'Inviare o accettare offerte, richieste di connessione e di rappresentanza, firmare contratti, creare un tour, mettere like o scrivere per primo. In breve: tutto ciò che inizi tu.' },
+          { q: 'Come verificarsi (artisti, promoter, venue)', a: 'Aggiungi il tuo profilo Instagram, richiedi un codice nell’app, invia quel codice in DM a @tora.verify dallo stesso account Instagram, poi tocca «L’ho inviato». La revisione è manuale.' },
+          { q: 'Come si verificano le agenzie', a: 'Le agenzie non usano Instagram. Puoi verificare un’email di lavoro sul dominio del sito dell’agenzia, oppure chiedere a un artista verificato che ti conosce di confermarti. La sua conferma vi collega e lo porta anche nel tuo roster.' },
+        ],
+      },
+      {
+        id: 'find',
+        title: 'Trovare persone',
+        entries: [
+          { q: 'Due modi di cercare', a: 'La scheda Cerca ha un globo con i membri per città e una lista con filtri per ruolo, zona, paese, città e genere.' },
+          { q: 'Ricerca Free e Premium', a: 'I membri Free cercano dentro il proprio paese. Premium sblocca tutto il mondo.' },
+          { q: 'Like e richieste di connessione', a: 'Con i piani gratuiti i like sono limitati al giorno e le richieste di connessione al mese. Una connessione accettata apre la chat.' },
+          { q: 'Perché alcuni profili sono bloccati', a: 'I membri Free aprono chiunque nel proprio paese e chiunque abbia già un rapporto con loro: chi li ha messi like, chi ha scritto, chi è in una prenotazione con loro. I profili all’estero con cui non hai alcun legame mostrano una scheda bloccata finché non passi a Premium.' },
+        ],
+      },
+      {
+        id: 'messages',
+        title: 'Messaggi',
+        entries: [
+          { q: 'A chi puoi scrivere', a: 'Alle tue connessioni. La richiesta di connessione va prima accettata.' },
+          { q: 'Inviare documenti', a: 'Usa la graffetta in chat. Press kit, tech rider e hospitality rider inviati così si allegano da soli a qualsiasi prenotazione attiva con quella persona.' },
+          { q: 'Leggere nella tua lingua', a: 'Tocca «Traduci» sotto un messaggio o una bio per leggerlo nella lingua dell’app, e «Vedi originale» per tornare indietro.' },
+        ],
+      },
+      {
+        id: 'bookings',
+        title: 'Prenotazioni e offerte',
+        entries: [
+          { q: 'Chi può inviare un’offerta', a: 'Solo promoter e venue iniziano un’offerta. Artisti e agenti le ricevono: l’agente negozia per gli artisti che rappresenta. Se sei artista o agente e cerchi date, pubblica un tour e invita i promoter interessati a fare un’offerta.' },
+          { q: 'Cosa contiene un’offerta', a: 'Cachet e valuta, data, dettagli dell’evento (capienza, sale, palco), lineup, prezzo del biglietto, eventuali scadenze di acconto e saldo, ed extra come viaggio, alloggio o pasti.' },
+          { q: 'Accettare, rifiutare o contrattare', a: 'Ogni offerta può ricevere una controproposta, che evidenzia esattamente quali campi sono cambiati rispetto alla precedente: nulla si muove senza che entrambe le parti lo vedano.' },
+          { q: 'Offerte che indicano una venue TORA', a: 'Se un promoter indica una venue presente su TORA, quella venue conferma l’evento prima che l’offerta arrivi all’artista. Nessuno viene prenotato in una sala che non ha accettato di ospitarlo.' },
+          { q: 'Dopo l’accettazione', a: 'Contratto (si invia e si firma nell’app, oppure si salta), poi documenti condivisi, poi pagamento — segnato con prova e confermato dal lato artista. La scheda Prenotazioni mostra tutto il flusso come una barra.' },
+        ],
+      },
+      {
+        id: 'agents',
+        title: 'Agenti e rappresentanza',
+        entries: [
+          { q: 'Cosa significa rappresentanza qui', a: 'Un legame di rappresentanza accettato permette all’agente di ricevere e negoziare offerte per quell’artista e di vedere le sue prenotazioni. Va accettato da entrambe le parti.' },
+          { q: 'Più di un agente', a: 'Un artista può avere più agenti, spesso uno per area. Ognuno gestisce le trattative che ha portato e vede quelle degli altri solo come schede in sola lettura, senza cachet né documenti.' },
+          { q: 'Chiudere una rappresentanza', a: 'Apri Agente rappresentante dal tuo profilo e rimuovi l’agenzia. Se è stata la tua conferma a verificarla, ti verrà chiesto separatamente se vuoi ritirare anche quella verifica: chiudere il lavoro e garantire per chi è una persona sono due decisioni diverse.' },
+          { q: 'Piani per agenti', a: 'Gli agenti pagano per posto: il piano è dimensionato sul numero di artisti nel roster.' },
+        ],
+      },
+      {
+        id: 'tours',
+        title: 'Tour (Tour Kickstart)',
+        entries: [
+          { q: 'A cosa serve un tour', a: 'Un artista o il suo agente pubblica area, date, città obiettivo e una fascia di cachet. Promoter e venue che sfogliano i tour lo vedono e portano offerte, invece che l’artista scriva a freddo a ogni città.' },
+          { q: 'Tour Kickstart è Premium', a: 'Sfogliare i tour richiede un piano a pagamento. Pubblicarne uno non costa nulla oltre al tuo piano.' },
+          { q: 'Mostrare interesse', a: 'Promoter e venue possono toccare il cuore per dire «Mi interessa». Non costa nulla e non impegna a nulla: dice all’artista dove c’è domanda.' },
+          { q: 'Da interesse a offerta', a: 'L’artista o l’agente vede chi è interessato, con ruolo e città, e può invitare chiunque di loro a fare un’offerta vera. L’invito arriva nella chat di quel membro.' },
+          { q: 'Chiudere un tour', a: 'Quando le date sono piene, il lato artista può chiudere il tour a nuove offerte senza annullarlo. Date confermate e avanzamento dei ricavi restano sulla scheda del tour.' },
+        ],
+      },
+      {
+        id: 'premium',
+        title: 'Piani e Premium',
+        entries: [
+          { q: 'Quanto costa Premium', a: 'Mensile 19,90 €, oppure annuale 199,90 € — due mesi gratis.' },
+          { q: 'Cosa sblocca', a: 'Ricerca globale, più like e richieste di connessione, Tour Kickstart e, con l’annuale: cachet privati sui tour, calendario privato, posizione prioritaria nella ricerca e avvisi di viaggio.' },
+          { q: 'Cosa non è mai a pagamento', a: 'Ricevere un’offerta e accettarla. A nessuno viene impedito di lavorare per via del proprio piano.' },
+          { q: 'Extra una tantum', a: 'Se finisci prima del rinnovo, puoi acquistare like, richieste di connessione o offerte extra senza cambiare piano.' },
+        ],
+      },
+      {
+        id: 'news',
+        title: 'Feed News',
+        entries: [
+          { q: 'Che cos’è il feed', a: 'Un feed di membri: pubblica aggiornamenti, metti like e commenta. Possono pubblicare i membri verificati.' },
+          { q: 'Traguardi', a: 'Alcune schede compaiono da sole: una rappresentanza firmata, un tour completato. Vedi il traguardo di qualcuno solo se lo segui già con un like, una connessione o una rappresentanza.' },
+        ],
+      },
+      {
+        id: 'account',
+        title: 'Account e aiuto',
+        entries: [
+          { q: 'Disponibilità e viaggi', a: 'Imposta le date disponibili e il calendario viaggi sul tuo profilo. È la disponibilità che alimenta l’abbinamento per calendario nella scheda Tour.' },
+          { q: 'Lingua e valuta', a: 'Entrambe nelle Impostazioni. L’app è disponibile in otto lingue; la valuta cambia come vedi i cachet.' },
+          { q: 'Ottenere aiuto', a: 'Per il «come si fa», l’Assistente qui sotto risponde subito. Per tutto ciò che riguarda il tuo account — accesso, pagamenti, verifica bloccata — usa il pulsante di feedback o scrivi a support@torahub.io: solo il team può risolverli.' },
+        ],
+      },
+    ],
+  },
   badges: {
     sectionTitle: "Badge",
     founding: { name: "Membro Fondatore", description: "Si è unito a TORA come membro fondatore — prima di tutti." },

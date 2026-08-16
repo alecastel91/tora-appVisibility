@@ -1668,6 +1668,125 @@ const fr = {
       subtitle: '{{name}} vous représente désormais.',
     },
   },
+  guide: {
+    title: 'Comment fonctionne TORA',
+    subtitle: 'Des réponses courtes aux questions les plus fréquentes. Choisissez un chapitre ou cherchez.',
+    searchPlaceholder: 'Rechercher dans le guide',
+    noResults: 'Aucun résultat. Essayez un autre mot, ou demandez à l’Assistant.',
+    resultsFor: '{{n}} résultat(s)',
+    backToIndex: 'Tous les chapitres',
+    entryCount: '{{n}} sujets',
+    assistant: {
+      title: 'Vous ne trouvez pas ?',
+      body: 'L’Assistant TORA répond dans votre langue aux questions sur l’application. Il ne voit ni vos messages, ni vos négociations, ni vos données privées.',
+      cta: 'Demander à l’Assistant',
+    },
+    support: {
+      title: 'Un problème avec votre compte ?',
+      body: 'Connexion, paiement qui a échoué ou vérification bloquée : seule l’équipe peut les résoudre, pas l’Assistant. Utilisez le bouton de retour ou écrivez à support@torahub.io.',
+    },
+    chapters: [
+      {
+        id: 'start',
+        title: 'Pour commencer',
+        entries: [
+          { q: 'Qu’est-ce que TORA ?', a: 'Un réseau sur invitation où l’industrie du club se réserve elle-même. Les membres sont artistes, agents, promoteurs et lieux — pas de fans, pas de presse, pas de bruit.' },
+          { q: 'D’abord : votre profil', a: 'Ajoutez une photo, une bio courte, vos genres et votre ville, ainsi que vos liens. Les artistes peuvent intégrer SoundCloud ou Spotify ; les lieux ajoutent capacité, salles et galerie ; les promoteurs ajoutent leurs affiches. Un profil vide est ignoré : c’est la seule chose à soigner avant tout le reste.' },
+          { q: 'Un compte, plusieurs profils', a: 'Vous pouvez avoir un profil Artiste, Agent, Promoteur et Lieu sur le même compte. On bascule depuis l’onglet Profil. Chaque profil a ses propres connexions, réservations et formule.' },
+          { q: 'Où se trouve quoi', a: 'Profil, c’est vous. Recherche trouve les gens. News est le fil des membres. Tour, c’est Tour Kickstart. Réservations suit chaque offre jusqu’au paiement. Messages, ce sont vos discussions.' },
+        ],
+      },
+      {
+        id: 'verify',
+        title: 'Vérification',
+        entries: [
+          { q: 'Pourquoi la vérification existe', a: 'Ici on signe des contrats et on déplace de l’argent avec des gens qu’on n’a parfois jamais rencontrés. La vérification est ce qui donne du poids à un nom sur un profil.' },
+          { q: 'Ce que vous pouvez faire sans être vérifié', a: 'Naviguer, chercher, discuter et RECEVOIR des offres. Rien de ce qui permet d’arriver sur TORA n’est bloqué.' },
+          { q: 'Ce qui exige la vérification', a: 'Envoyer ou accepter des offres, des demandes de connexion et de représentation, signer des contrats, créer une tournée, aimer ou écrire en premier. En bref : tout ce que vous initiez.' },
+          { q: 'Comment se vérifier (artistes, promoteurs, lieux)', a: 'Ajoutez votre Instagram à votre profil, demandez un code dans l’application, envoyez ce code en DM à @tora.verify depuis ce même compte, puis touchez « Je l’ai envoyé ». La revue est manuelle.' },
+          { q: 'Comment les agences se vérifient', a: 'Les agences n’utilisent pas Instagram. Vérifiez soit une adresse professionnelle sur le domaine du site de l’agence, soit demandez à un artiste vérifié qui vous connaît de vous confirmer. Sa confirmation vous connecte et l’ajoute à votre roster.' },
+        ],
+      },
+      {
+        id: 'find',
+        title: 'Trouver des gens',
+        entries: [
+          { q: 'Deux façons de chercher', a: 'L’onglet Recherche propose un globe des membres par ville et une liste avec filtres par rôle, zone, pays, ville et genre.' },
+          { q: 'Recherche gratuite et Premium', a: 'Les membres gratuits cherchent dans leur propre pays. Premium ouvre le monde entier.' },
+          { q: 'J’aime et demandes de connexion', a: 'Sur les formules gratuites, les j’aime sont limités par jour et les demandes de connexion par mois. Une connexion acceptée ouvre la discussion.' },
+          { q: 'Pourquoi certains profils sont verrouillés', a: 'Les membres gratuits ouvrent tout le monde dans leur pays, et toute personne avec qui ils ont déjà un lien : celle qui les a aimés, qui leur a écrit, ou qui partage une réservation. Les profils à l’étranger sans aucun lien affichent une carte verrouillée jusqu’au passage en Premium.' },
+        ],
+      },
+      {
+        id: 'messages',
+        title: 'Messages',
+        entries: [
+          { q: 'À qui écrire', a: 'À vos connexions. Une demande de connexion doit d’abord être acceptée.' },
+          { q: 'Envoyer des documents', a: 'Utilisez le trombone dans la discussion. Press kit, fiche technique et rider hospitalité envoyés ainsi s’attachent d’eux-mêmes à toute réservation active avec cette personne.' },
+          { q: 'Lire dans votre langue', a: 'Touchez « Traduire » sous un message ou une bio pour le lire dans la langue de l’application, et « Voir l’original » pour revenir.' },
+        ],
+      },
+      {
+        id: 'bookings',
+        title: 'Réservations et offres',
+        entries: [
+          { q: 'Qui peut envoyer une offre', a: 'Seuls les promoteurs et les lieux initient une offre. Artistes et agents les reçoivent : l’agent négocie pour les artistes qu’il représente. Si vous êtes artiste ou agent et cherchez des dates, publiez une tournée et invitez les promoteurs intéressés à faire une offre.' },
+          { q: 'Ce que contient une offre', a: 'Cachet et devise, date, détails de l’événement (capacité, salles, scène), line-up, prix du billet, échéances facultatives d’acompte et de solde, et extras comme voyage, hébergement ou repas.' },
+          { q: 'Accepter, refuser ou contre-proposer', a: 'Toute offre peut recevoir une contre-proposition, qui montre exactement quels champs ont changé depuis la précédente : rien ne bouge sans que les deux parties le voient.' },
+          { q: 'Les offres qui désignent un lieu TORA', a: 'Si un promoteur mentionne un lieu présent sur TORA, ce lieu confirme l’événement avant que l’offre n’atteigne l’artiste. Personne n’est réservé dans une salle qui n’a pas accepté de l’accueillir.' },
+          { q: 'Après l’acceptation', a: 'Contrat (envoyé et signé dans l’application, ou passé), puis documents partagés, puis paiement — marqué avec justificatif et confirmé côté artiste. L’onglet Réservations affiche tout le parcours sous forme de barre.' },
+        ],
+      },
+      {
+        id: 'agents',
+        title: 'Agents et représentation',
+        entries: [
+          { q: 'Ce que représentation veut dire ici', a: 'Un lien de représentation accepté permet à l’agent de recevoir et négocier des offres pour cet artiste et de voir ses réservations. Il doit être accepté des deux côtés.' },
+          { q: 'Plusieurs agents', a: 'Un artiste peut avoir plusieurs agents, souvent un par région. Chacun gère les négociations qu’il a apportées et ne voit celles des autres qu’en lecture seule, sans cachets ni documents.' },
+          { q: 'Mettre fin à une représentation', a: 'Ouvrez Agent représentant depuis votre profil et retirez l’agence. Si c’est votre confirmation qui l’a vérifiée, on vous demandera séparément si vous voulez aussi retirer cette vérification : mettre fin au travail et se porter garant de l’identité de quelqu’un sont deux décisions différentes.' },
+          { q: 'Formules agent', a: 'Les agents paient par siège : la formule est dimensionnée selon le nombre d’artistes du roster.' },
+        ],
+      },
+      {
+        id: 'tours',
+        title: 'Tournées (Tour Kickstart)',
+        entries: [
+          { q: 'À quoi sert une tournée', a: 'Un artiste ou son agent publie une région, des dates, des villes cibles et une fourchette de cachet. Les promoteurs et lieux qui parcourent les tournées la voient et apportent des offres, au lieu que l’artiste écrive à froid à chaque ville.' },
+          { q: 'Tour Kickstart est Premium', a: 'Parcourir les tournées demande une formule payante. En publier une ne coûte rien de plus que votre formule.' },
+          { q: 'Manifester son intérêt', a: 'Promoteurs et lieux peuvent toucher le cœur pour dire « Ça m’intéresse ». C’est gratuit et sans engagement : cela indique à l’artiste où est la demande.' },
+          { q: 'De l’intérêt à l’offre', a: 'L’artiste ou l’agent voit qui est intéressé, avec rôle et ville, et peut inviter n’importe lequel à faire une vraie offre. L’invitation arrive dans la discussion de ce membre.' },
+          { q: 'Clore une tournée', a: 'Quand la tournée est complète, le côté artiste peut la fermer aux nouvelles offres sans l’annuler. Les dates confirmées et l’avancement des revenus restent sur la carte de la tournée.' },
+        ],
+      },
+      {
+        id: 'premium',
+        title: 'Formules et Premium',
+        entries: [
+          { q: 'Le prix de Premium', a: 'Mensuel 19,90 €, ou annuel 199,90 € — deux mois offerts.' },
+          { q: 'Ce que cela débloque', a: 'Recherche mondiale, plus de j’aime et de demandes de connexion, Tour Kickstart et, en annuel : cachets privés sur les tournées, calendrier privé, placement prioritaire dans la recherche et alertes voyage.' },
+          { q: 'Ce qui n’est jamais payant', a: 'Recevoir une offre et l’accepter. Personne n’est empêché de travailler à cause de sa formule.' },
+          { q: 'Extras ponctuels', a: 'Si vous épuisez vos quotas avant le renouvellement, vous pouvez acheter des j’aime, des demandes de connexion ou des offres supplémentaires sans changer de formule.' },
+        ],
+      },
+      {
+        id: 'news',
+        title: 'Fil News',
+        entries: [
+          { q: 'Ce qu’est le fil', a: 'Un fil de membres : publiez des actualités, aimez et commentez. Les membres vérifiés peuvent publier.' },
+          { q: 'Étapes marquantes', a: 'Certaines cartes apparaissent seules : une représentation signée, une tournée terminée. Vous ne voyez l’étape de quelqu’un que si vous l’aimez déjà, êtes connecté ou le représentez.' },
+        ],
+      },
+      {
+        id: 'account',
+        title: 'Compte et aide',
+        entries: [
+          { q: 'Disponibilités et déplacements', a: 'Indiquez vos dates disponibles et votre calendrier de déplacements sur votre profil. C’est la disponibilité qui alimente la correspondance par calendrier dans l’onglet Tour.' },
+          { q: 'Langue et devise', a: 'Les deux sont dans Réglages. L’application existe en huit langues ; la devise change l’affichage des cachets.' },
+          { q: 'Obtenir de l’aide', a: 'Pour le « comment faire », l’Assistant ci-dessous répond tout de suite. Pour tout ce qui touche à votre compte — connexion, paiements, vérification bloquée — utilisez le bouton de retour ou écrivez à support@torahub.io : seule l’équipe peut les régler.' },
+        ],
+      },
+    ],
+  },
   badges: {
     sectionTitle: "Badges",
     founding: { name: "Membre Fondateur", description: "A rejoint TORA parmi ses membres fondateurs — avant tout le monde." },

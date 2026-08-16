@@ -35,6 +35,7 @@ import CelebrationHost from './components/common/CelebrationHost';
 import StripeCheckout from './components/common/StripeCheckout';
 import BetaTools from './components/common/BetaTools';
 import AssistantChat from './components/common/AssistantChat';
+import GuideScreen from './components/common/GuideScreen';
 import GettingStartedSheet from './components/common/GettingStartedSheet';
 import { appConfirm, appAlert } from './utils/dialogs';
 
@@ -137,6 +138,14 @@ function App() {
     });
     window.addEventListener('tora:verification-required', onRequired);
     return () => window.removeEventListener('tora:verification-required', onRequired);
+  }, []);
+  // The written guide is what the help icon opens; the Assistant is offered
+  // from inside it rather than being the only way in.
+  const [showGuide, setShowGuide] = useState(false);
+  useEffect(() => {
+    const open = () => setShowGuide(true);
+    window.addEventListener('tora:open-guide', open);
+    return () => window.removeEventListener('tora:open-guide', open);
   }, []);
   const [activeChatUser, setActiveChatUser] = useState(null);
   const [viewingProfile, setViewingProfile] = useState(null);
@@ -612,6 +621,7 @@ function App() {
       <AppDialogHost />
       <CelebrationHost />
         <AssistantChat />
+        {showGuide && <GuideScreen onClose={() => setShowGuide(false)} />}
         <GettingStartedSheet open={showGettingStarted} onClose={closeGettingStarted} />
         <Header
           onOpenSettings={() => setShowSettings(true)}
