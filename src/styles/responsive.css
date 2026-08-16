@@ -161,13 +161,6 @@
     display: none;
   }
 
-  /* ...and the header's bottom border with them. It spans the full width
-     while the profile screen is a 680px column, so the rule cut a hard line
-     straight across the role bloom, reading as a black band above the avatar.
-     Invisible on mobile, where header and column are the same width. */
-  .app-container.tab-profile .app-header {
-    border-bottom-color: transparent;
-  }
 
   /* Settings content fills its 760px column (base caps it at 600px) */
   .settings-screen .settings-content {
