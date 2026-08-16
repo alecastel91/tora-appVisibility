@@ -111,7 +111,14 @@ const GuideScreen = ({ onClose }) => {
   const chapter = chapters.find((c) => c.id === openChapter);
 
   return createPortal(
-    <div className="screen active fixed inset-0 z-[10040] overflow-y-auto bg-[#050507]">
+    // Deliberately NOT `.screen`: that class sets `background: transparent`
+    // and App.css loads after Tailwind, so it would beat the bg utility and
+    // leave the app showing through. This is a portaled full-screen overlay —
+    // it needs its own opaque ground, not the ambient one.
+    <div
+      className="fixed inset-0 z-[10040] overflow-y-auto"
+      style={{ backgroundColor: '#0a0a0a' }}
+    >
       <div className="sub-screen-header">
         <button
           type="button"
