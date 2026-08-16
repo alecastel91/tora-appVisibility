@@ -1105,7 +1105,7 @@ const ja = {
 
   search: {
     roleArtist: 'アーティスト',
-    roleVenue: '会場',
+    roleVenue: 'ベニュー',
     rolePromoter: 'プロモーター',
     roleAgent: 'エージェント',
     trialTierName: '48時間トライアル',

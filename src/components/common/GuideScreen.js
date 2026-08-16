@@ -105,8 +105,18 @@ const GuideScreen = ({ onClose }) => {
     <div className="mt-6 rounded-2xl border border-infrared/30 bg-infrared/[0.06] p-4">
       <p className="m-0 text-sm font-semibold text-white font-space-grotesk">{t('guide.assistant.title')}</p>
       <p className="mt-1.5 mb-0 text-[13px] leading-relaxed text-white/55">{t('guide.assistant.body')}</p>
-      <button type="button" onClick={openAssistant} className="btn btn-primary mt-3.5 px-5">
+      <button
+        type="button"
+        onClick={openAssistant}
+        className="btn btn-primary mt-3.5 px-5 inline-flex items-center gap-2"
+      >
         {t('guide.assistant.cta')}
+        {/* the chat glyph makes it read as "opens a conversation" rather than
+            "opens another page of text" */}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+             strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+        </svg>
       </button>
     </div>
   );
