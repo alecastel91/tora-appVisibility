@@ -31,6 +31,54 @@ const SearchGlyph = () => (
   </svg>
 );
 
+/** One question/answer row. Hoisted: a component defined inside the parent's
+ *  body gets a new identity on every render, which remounted every row on each
+ *  keystroke in the search box. */
+const Entry = ({ entry, open, onToggle }) => (
+  <div className="rounded-xl border border-white/10 bg-[#0a0a0e] overflow-hidden">
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer
+                 transition-colors hover:bg-white/[0.03]"
+    >
+      <span className="text-sm text-white">{entry.q}</span>
+      <ChevronDown open={open} />
+    </button>
+    {open && (
+      <p className="m-0 px-4 pb-4 text-[13px] leading-relaxed text-white/60">{entry.a}</p>
+    )}
+  </div>
+);
+
+const AssistantBanner = ({ t, onAsk }) => (
+  <div className="mt-6 rounded-2xl border border-infrared/30 bg-infrared/[0.06] p-4">
+    <p className="m-0 text-sm font-semibold text-white font-space-grotesk">{t('guide.assistant.title')}</p>
+    <p className="mt-1.5 mb-0 text-[13px] leading-relaxed text-white/55">{t('guide.assistant.body')}</p>
+    <button
+      type="button"
+      onClick={onAsk}
+      className="btn btn-primary mt-3.5 px-5 inline-flex items-center gap-2"
+    >
+      {t('guide.assistant.cta')}
+      {/* the chat glyph makes it read as "opens a conversation" rather than
+          "opens another page of text" */}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+           strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+      </svg>
+    </button>
+  </div>
+);
+
+const SupportNote = ({ t }) => (
+  <div className="mt-3 rounded-2xl border border-white/10 bg-[#0a0a0e] p-4">
+    <p className="m-0 text-sm font-semibold text-white/80">{t('guide.support.title')}</p>
+    <p className="mt-1.5 mb-0 text-[13px] leading-relaxed text-white/50">{t('guide.support.body')}</p>
+  </div>
+);
+
 const GuideScreen = ({ onClose }) => {
   const { t, language } = useLanguage();
   const [openChapter, setOpenChapter] = useState(null);
@@ -55,11 +103,17 @@ const GuideScreen = ({ onClose }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [language, chapters]);
 
+  // Escape mirrors the back button: out of a chapter first, then out of the
+  // guide — rather than dumping you to the app from three levels in.
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose && onClose(); };
+    const onKey = (e) => {
+      if (e.key !== 'Escape') return;
+      if (openChapter) setOpenChapter(null);
+      else if (onClose) onClose();
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [onClose, openChapter]);
 
   const q = query.trim().toLowerCase();
   const matches = useMemo(() => {
@@ -80,55 +134,7 @@ const GuideScreen = ({ onClose }) => {
     setTimeout(() => window.dispatchEvent(new CustomEvent('tora:open-assistant')), 0);
   };
 
-  const Entry = ({ entry, id }) => {
-    const open = openEntry === id;
-    return (
-      <div className="rounded-xl border border-white/10 bg-[#0a0a0e] overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setOpenEntry(open ? null : id)}
-          aria-expanded={open}
-          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left cursor-pointer
-                     transition-colors hover:bg-white/[0.03]"
-        >
-          <span className="text-sm text-white">{entry.q}</span>
-          <ChevronDown open={open} />
-        </button>
-        {open && (
-          <p className="m-0 px-4 pb-4 text-[13px] leading-relaxed text-white/60">{entry.a}</p>
-        )}
-      </div>
-    );
-  };
-
-  const AssistantBanner = () => (
-    <div className="mt-6 rounded-2xl border border-infrared/30 bg-infrared/[0.06] p-4">
-      <p className="m-0 text-sm font-semibold text-white font-space-grotesk">{t('guide.assistant.title')}</p>
-      <p className="mt-1.5 mb-0 text-[13px] leading-relaxed text-white/55">{t('guide.assistant.body')}</p>
-      <button
-        type="button"
-        onClick={openAssistant}
-        className="btn btn-primary mt-3.5 px-5 inline-flex items-center gap-2"
-      >
-        {t('guide.assistant.cta')}
-        {/* the chat glyph makes it read as "opens a conversation" rather than
-            "opens another page of text" */}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-             strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-        </svg>
-      </button>
-    </div>
-  );
-
-  const SupportNote = () => (
-    <div className="mt-3 rounded-2xl border border-white/10 bg-[#0a0a0e] p-4">
-      <p className="m-0 text-sm font-semibold text-white/80">{t('guide.support.title')}</p>
-      <p className="mt-1.5 mb-0 text-[13px] leading-relaxed text-white/50">{t('guide.support.body')}</p>
-    </div>
-  );
-
-  const chapter = chapters.find((c) => c.id === openChapter);
+    const chapter = chapters.find((c) => c.id === openChapter);
 
   return createPortal(
     // Deliberately NOT `.screen`: that class sets `background: transparent`
@@ -186,7 +192,7 @@ const GuideScreen = ({ onClose }) => {
                         <p className="m-0 mb-1 text-[10px] uppercase tracking-[0.15em] text-white/30 font-tech">
                           {e.chapter}
                         </p>
-                        <Entry entry={e} id={`search-${i}`} />
+                        <Entry entry={e} open={openEntry === `search-${i}`} onToggle={() => setOpenEntry(openEntry === `search-${i}` ? null : `search-${i}`)} />
                       </div>
                     ))}
                   </>
@@ -253,8 +259,8 @@ const GuideScreen = ({ onClose }) => {
               </div>
             )}
 
-            <AssistantBanner />
-            <SupportNote />
+            <AssistantBanner t={t} onAsk={openAssistant} />
+            <SupportNote t={t} />
           </>
         )}
 
@@ -270,10 +276,15 @@ const GuideScreen = ({ onClose }) => {
             </button>
             <div className="flex flex-col gap-2">
               {(chapter.entries || []).map((e, i) => (
-                <Entry key={`${chapter.id}-${i}`} entry={e} id={`${chapter.id}-${i}`} />
+                <Entry
+                  key={`${chapter.id}-${i}`}
+                  entry={e}
+                  open={openEntry === `${chapter.id}-${i}`}
+                  onToggle={() => setOpenEntry(openEntry === `${chapter.id}-${i}` ? null : `${chapter.id}-${i}`)}
+                />
               ))}
             </div>
-            <AssistantBanner />
+            <AssistantBanner t={t} onAsk={openAssistant} />
           </>
         )}
       </div>

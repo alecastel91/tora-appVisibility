@@ -42,31 +42,23 @@ const BANNED = {
 // Must survive untranslated in every locale that mentions them.
 const BRAND = ['TORA', 'Tour Kickstart'];
 
-const flatten = (obj, prefix = '') =>
-  Object.entries(obj).flatMap(([k, v]) =>
-    v && typeof v === 'object' && !Array.isArray(v)
-      ? flatten(v, `${prefix}${k}.`)
-      : [[`${prefix}${k}`, v]]
-  );
+/**
+ * Every string leaf, keyed by path — one walker for objects AND arrays, so the
+ * guide's `chapters[0].entries[1].a` is reached the same way as `search.title`.
+ * (This used to be two passes: one that treated arrays as leaves and a second
+ * that re-walked them, which is how the guide escaped the pt-BR conversion.)
+ */
+const walk = (node, prefix = '') => {
+  if (typeof node === 'string') return [[prefix, node]];
+  if (Array.isArray(node)) return node.flatMap((v, i) => walk(v, `${prefix}[${i}]`));
+  if (node && typeof node === 'object') {
+    return Object.entries(node).flatMap(([k, v]) => walk(v, prefix ? `${prefix}.${k}` : k));
+  }
+  return [];
+};
 
-// Arrays (the guide chapters) hold objects of strings — pull those out too.
-const strings = (pairs) =>
-  pairs.flatMap(([k, v]) => {
-    if (typeof v === 'string') return [[k, v]];
-    if (Array.isArray(v)) {
-      return v.flatMap((item, i) =>
-        item && typeof item === 'object'
-          ? Object.entries(item).flatMap(([ik, iv]) =>
-              typeof iv === 'string' ? [[`${k}[${i}].${ik}`, iv]]
-              : Array.isArray(iv) ? iv.flatMap((sub, j) =>
-                  Object.entries(sub || {}).filter(([, sv]) => typeof sv === 'string')
-                    .map(([sk, sv]) => [`${k}[${i}].${ik}[${j}].${sk}`, sv]))
-              : [])
-          : []
-      );
-    }
-    return [];
-  });
+/** Structural keys only — what parity is compared on. */
+const keyPaths = (node) => walk(node).map(([k]) => k);
 
 const vars = (s) => (s.match(/\{\{\w+\}\}/g) || []).sort().join(',');
 
@@ -78,17 +70,17 @@ const vars = (s) => (s.match(/\{\{\w+\}\}/g) || []).sort().join(',');
   }
 
   const problems = [];
-  const baseKeys = new Set(flatten(loaded.en).map(([k]) => k));
-  const baseStrings = new Map(strings(flatten(loaded.en)));
+  const baseKeys = new Set(keyPaths(loaded.en));
+  const baseStrings = new Map(walk(loaded.en));
 
   for (const l of LOCALES) {
-    const pairs = flatten(loaded[l]);
+    const pairs = walk(loaded[l]);
     const keys = new Set(pairs.map(([k]) => k));
 
     for (const k of baseKeys) if (!keys.has(k)) problems.push(`${l}: MISSING key ${k}`);
     for (const k of keys) if (!baseKeys.has(k)) problems.push(`${l}: EXTRA key ${k}`);
 
-    for (const [k, v] of strings(pairs)) {
+    for (const [k, v] of pairs) {
       const en = baseStrings.get(k);
       if (en && vars(en) !== vars(v)) {
         problems.push(`${l}: {{var}} mismatch at ${k} — en[${vars(en)}] vs ${l}[${vars(v)}]`);
@@ -105,7 +97,7 @@ const vars = (s) => (s.match(/\{\{\w+\}\}/g) || []).sort().join(',');
     }
   }
 
-  const total = flatten(loaded.en).length;
+  const total = keyPaths(loaded.en).length;
   if (problems.length) {
     console.error(`\n✗ ${problems.length} problem(s) across ${LOCALES.length} locales (${total} keys):\n`);
     problems.slice(0, 40).forEach((p) => console.error('  •', p));
