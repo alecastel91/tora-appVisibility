@@ -1341,7 +1341,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                             let initiallyViewed = locallyViewedDealIds.has(msg.dealId);
                             if (!initiallyViewed) {
                               try {
-                                const deal = await apiService.getDeal(msg.dealId);
+                                const deal = await apiService.getDeal(msg.dealId, currentUser.id);
                                 const viewedBy = deal?.contract?.viewedBy || [];
                                 initiallyViewed = viewedBy.some((v) => v.profile === currentUser.id);
                               } catch (_) { /* default to false */ }

@@ -869,8 +869,10 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getDealsForTour(tourId) {
-    const response = await fetch(`${API_URL}/deals?tour=${tourId}`, {
+  // profileId is required by the backend: ?tour= narrows the caller's OWN deals
+  // to one tour, it does not grant access to everyone's.
+  async getDealsForTour(tourId, profileId) {
+    const response = await fetch(`${API_URL}/deals?tour=${tourId}&profileId=${profileId}`, {
       method: 'GET',
       headers: this.getHeaders()
     });

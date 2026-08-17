@@ -1091,7 +1091,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                             try {
                               let initiallyViewed = false;
                               try {
-                                const fresh = await apiService.getDeal(deal.id);
+                                const fresh = await apiService.getDeal(deal.id, currentUser.id);
                                 const viewedBy = fresh?.contract?.viewedBy || [];
                                 initiallyViewed = viewedBy.some((v) => v.profile === currentUser.id);
                               } catch (_) { /* default false */ }

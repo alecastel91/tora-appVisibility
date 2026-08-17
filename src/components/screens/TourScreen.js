@@ -947,7 +947,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
 
     try {
       // Fetch deals linked to this tour
-      const response = await apiService.getDealsForTour(tour.id);
+      const response = await apiService.getDealsForTour(tour.id, user.id);
       setTourGigs(response.deals || []);
     } catch (error) {
       console.error('Error fetching tour gigs:', error);
