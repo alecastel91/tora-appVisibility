@@ -972,6 +972,10 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
         (a, b) => new Date(a.timestamp || a.createdAt) - new Date(b.timestamp || b.createdAt)
       );
       const contractCardsByDeal = [];
+      // Ids already emitted above (offer, counters, shares, skips, payments).
+      // Folded events (withdrawal / signature) are added as they're consumed,
+      // so the catch-all below re-emits neither.
+      const seen = new Set(filteredDealMessages.map((m) => m.id));
       sortedMsgs.forEach((m) => {
         const isContract = (m.documentAttachment && m.documentAttachment.category === 'contracts')
           || (m.text && (m.text.includes('Contract sent') || m.text.includes('sent and signed a contract')));
@@ -985,7 +989,9 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
           const card = { ...m, _withdrawn: false, _signedByOne: false, _fullySigned: false };
           contractCardsByDeal.push(card);
           filteredDealMessages.push(card);
+          seen.add(m.id);
         } else if (isWithdrawal) {
+          seen.add(m.id);
           const lastActive = [...contractCardsByDeal].reverse().find((c) => !c._withdrawn);
           if (lastActive) {
             lastActive._withdrawn = true;
@@ -993,12 +999,14 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
             lastActive._withdrawnBy = m.fromProfileId;
           }
         } else if (isFullySigned) {
+          seen.add(m.id);
           const lastActive = [...contractCardsByDeal].reverse().find((c) => !c._withdrawn);
           if (lastActive) {
             lastActive._fullySigned = true;
             lastActive._fullySignedAt = m.timestamp || m.createdAt;
           }
         } else if (isPartialSigned) {
+          seen.add(m.id);
           const lastActive = [...contractCardsByDeal].reverse().find((c) => !c._withdrawn && !c._fullySigned);
           if (lastActive) {
             lastActive._signedByOne = true;
@@ -1006,6 +1014,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
             lastActive._partialSignedBy = m.fromProfileId;
           }
         } else if (isAccept || isDecline) {
+          filteredDealMessages.push(m);
+          seen.add(m.id);
+        } else if (!seen.has(m.id)) {
+          // Anything else the rules above didn't claim. This used to be an
+          // allowlist: a deal message matching none of the known English
+          // phrases was dropped from the thread while still showing in the
+          // conversation preview — which is exactly what happened to
+          // "Booking cancelled". New system messages should appear by
+          // default and be styled by the renderer, not disappear silently.
           filteredDealMessages.push(m);
         }
       });
@@ -1521,6 +1538,32 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   </div>
                 );
               })()
+            ) : msg.isSystem && msg.dealId && msg.data?.lifecycle ? (
+              // How a booking ended. Recognised by a structured flag, not by
+              // its wording, so it renders the same in every language and
+              // can't be lost by a phrase change.
+              <div className={`booking-lifecycle-card ${msg.data.lifecycle}`}>
+                <div className="booking-lifecycle-head">
+                  {msg.data.lifecycle === 'cancelled' ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="15" y1="9" x2="9" y2="15"></line>
+                      <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                  )}
+                  <span>
+                    {msg.data.lifecycle === 'cancelled'
+                      ? t('bookings.statusCancelled')
+                      : t('bookings.statusCompleted')}
+                  </span>
+                </div>
+                <p>{msg.text}</p>
+              </div>
             ) : msg.isSystem && msg.dealId ? (
               (() => {
                 // Determine card type from the message text itself, so the original
