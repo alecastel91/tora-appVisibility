@@ -59,6 +59,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   const [dealToDelete, setDealToDelete] = useState(null);
   const [expandedDealId, setExpandedDealId] = useState(null);
   const [dealToDecline, setDealToDecline] = useState(null);
+  const [dealToCancel, setDealToCancel] = useState(null);
+  const [cancelReason, setCancelReason] = useState('');
   const [declineReason, setDeclineReason] = useState('');
 
   // Workflow state
@@ -298,6 +300,49 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
     }
   };
 
+  // Closing the booking out. Completing states a fact; cancelling records one
+  // with a reason attached, because the reason is what the reliability record
+  // is eventually built from.
+  const handleCompleteDeal = async (deal) => {
+    if (actionBusy) return;
+    setActionBusy(true);
+    try {
+      await apiService.completeDeal(deal.id, currentUser.id);
+      fetchDeals();
+      reloadProfileData();
+    } catch (err) {
+      console.error('Error completing booking:', err);
+      appAlert(err.message || t('bookings.completeFailed'));
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const handleCancelDeal = async () => {
+    if (actionBusy || !dealToCancel) return;
+
+    if (!cancelReason.trim()) {
+      appAlert(t('bookings.cancelReasonRequired'));
+      return;
+    }
+
+    setActionBusy(true);
+    try {
+      await apiService.cancelDeal(dealToCancel.id, currentUser.id, cancelReason);
+      setDealToCancel(null);
+      setCancelReason('');
+      fetchDeals();
+      reloadProfileData();
+    } catch (err) {
+      console.error('Error cancelling booking:', err);
+      appAlert(err.message || t('bookings.cancelFailed'));
+      setDealToCancel(null);
+      setCancelReason('');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
   const handleDeleteDeal = async () => {
     if (actionBusy || !dealToDelete) return;
     setActionBusy(true);
@@ -389,12 +434,18 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         if (dealArtistId !== selectedArtistFilter) return false;
       }
 
+      // A booking that isn't happening must not sit in the calendar next to
+      // ones that are — that is the whole point of being able to cancel. Both
+      // ways a booking dies (declined before acceptance, cancelled after) land
+      // in the same tab.
+      const isOff = deal.status === 'DECLINED' || deal.status === 'CANCELLED';
+
       if (activeTab === 'declined') {
-        return deal.status === 'DECLINED';
+        return isOff;
       } else if (activeTab === 'upcoming') {
-        return dealDate >= today && deal.status !== 'DECLINED';
+        return dealDate >= today && !isOff;
       } else {
-        return dealDate < today && deal.status !== 'DECLINED';
+        return dealDate < today && !isOff;
       }
     });
   };
@@ -460,6 +511,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         return 'status-badge status-accepted';
       case 'DECLINED':
         return 'status-badge status-declined';
+      case 'CANCELLED':
+        return 'status-badge status-declined';
       case 'COMPLETED':
         return 'status-badge status-completed';
       default:
@@ -475,11 +528,19 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
     if (deal.status === 'PENDING' || deal.status === 'NEGOTIATING' || deal.status === 'DECLINED') {
       return deal.status;
     }
+    // The two real end states. These are now recorded rather than inferred —
+    // COMPLETED used to be guessed here from "fully paid and confirmed",
+    // which disagreed with what badges counted, so a booking could read as
+    // finished on this card while counting as unfinished everywhere else.
+    if (deal.status === 'CANCELLED') return 'CANCELLED';
+    if (deal.status === 'COMPLETED') return 'COMPLETED';
     const payment = deal.payment || {};
     const fullyPaidAndConfirmed = !!payment.fullPaymentProof?.confirmedAt
       || ((Number(deal.currentFee) || 0) > 0 && (Array.isArray(payment.depositHistory) ? payment.depositHistory : [])
           .reduce((s, e) => s + (e.confirmedAt ? (Number(e.amount) || 0) : 0), 0) >= (Number(deal.currentFee) || 0));
-    if (fullyPaidAndConfirmed) return 'COMPLETED';
+    // Paid in full but not yet closed by hand: the money is settled, the
+    // booking is not. It reads as PAID rather than borrowing COMPLETED.
+    if (fullyPaidAndConfirmed) return 'PAID';
     const docs = deal.sharedDocuments || {};
     const anyDocActivelyShared = DOC_CATEGORIES.some((c) => docs[c.key]?.documentId);
     if (anyDocActivelyShared) return 'DOCS SHARED';
@@ -496,6 +557,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       'PENDING': t('bookings.statusPending'),
       'NEGOTIATING': t('bookings.statusNegotiating'),
       'DECLINED': t('bookings.statusDeclined'),
+      'CANCELLED': t('bookings.statusCancelled'),
+      'PAID': t('bookings.statusPaid'),
       'COMPLETED': t('bookings.statusCompleted'),
       'DOCS SHARED': t('bookings.statusDocsShared'),
       'CONTRACT SIGNED': t('bookings.statusContractSigned'),
@@ -1345,6 +1408,44 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                     {t('search.message')}
                   </button>
                 )}
+
+                {/* Closing the booking out. Both live only on a confirmed
+                    booking that hasn't already ended — an offer that was never
+                    accepted is declined or withdrawn, which are other buttons. */}
+                {!hideWorkflow && deal.status === 'ACCEPTED' && (() => {
+                  // "Completed" is a claim about something that already
+                  // happened, so the button doesn't exist before the date.
+                  const eventPassed = deal.date && new Date(deal.date) <= new Date();
+                  const artistSide = isArtistSideForDeal(deal, currentUser);
+                  return (
+                    <>
+                      {eventPassed && artistSide && (
+                        <button
+                          className="btn btn-primary"
+                          disabled={actionBusy}
+                          onClick={() => handleCompleteDeal(deal)}
+                        >
+                          {actionBusy ? '...' : t('bookings.markCompleted')}
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-outline btn-danger-outline"
+                        disabled={actionBusy}
+                        onClick={() => { setDealToCancel(deal); setCancelReason(''); }}
+                      >
+                        {t('bookings.cancelBooking')}
+                      </button>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Why a booking ended, kept visible on the card. A cancellation
+                with no stated reason is the thing people argue about later. */}
+            {deal.status === 'CANCELLED' && deal.cancelReason && (
+              <div className="cancelled-reason-note">
+                <strong>{t('bookings.cancelledReasonLabel')}</strong> {deal.cancelReason}
               </div>
             )}
 
@@ -1590,6 +1691,49 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       )}
 
       {/* Decline Offer Modal */}
+      {dealToCancel && (
+        <div className="delete-modal-overlay" onClick={() => {
+          setDealToCancel(null);
+          setCancelReason('');
+        }}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-header">
+              <h3>{t('bookings.cancelBooking')}</h3>
+            </div>
+            <div className="delete-modal-content">
+              <p>{t('bookings.cancelBookingWarning')}</p>
+              <p>{t('bookings.cancelReasonLabel')}</p>
+              <textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder={t('bookings.cancelExamplePlaceholder')}
+                className="decline-reason-textarea"
+                rows="4"
+                autoFocus
+              />
+            </div>
+            <div className="delete-modal-actions">
+              <button
+                className="btn btn-outline"
+                onClick={() => {
+                  setDealToCancel(null);
+                  setCancelReason('');
+                }}
+              >
+                {t('bookings.keepBooking')}
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleCancelDeal}
+                disabled={actionBusy}
+              >
+                {actionBusy ? '...' : t('bookings.confirmCancelBooking')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {dealToDecline && (
         <div className="delete-modal-overlay" onClick={() => {
           setDealToDecline(null);

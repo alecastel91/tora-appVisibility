@@ -1039,6 +1039,28 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // The gig happened. Artist side only, and only once the date has passed.
+  async completeDeal(dealId, profileId) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/complete`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId })
+    });
+
+    return this.handleResponse(response);
+  }
+
+  // The gig is off. Either party, reason required and recorded.
+  async cancelDeal(dealId, profileId, reason) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/cancel`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId, reason })
+    });
+
+    return this.handleResponse(response);
+  }
+
   async withdrawContract(dealId, profileId) {
     const response = await fetch(`${API_URL}/deals/${dealId}/withdraw-contract`, {
       method: 'PUT',

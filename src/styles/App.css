@@ -2813,6 +2813,38 @@
   border-color: #ff2222;
 }
 
+/* Cancelling a confirmed booking sits in a row of ordinary workflow CTAs.
+   It reads as available but never as the obvious next step — the weight it
+   carries comes from the colour, not from a filled button competing with
+   Mark as completed beside it. */
+.btn-danger-outline {
+  background: transparent;
+  color: #F5576C;
+  border-color: rgba(245, 87, 108, 0.45);
+}
+
+.btn-danger-outline:hover {
+  background: rgba(245, 87, 108, 0.12);
+  border-color: #F5576C;
+}
+
+/* Why a booking ended, on the card itself. */
+.cancelled-reason-note {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-left: 2px solid rgba(245, 87, 108, 0.5);
+  background: rgba(245, 87, 108, 0.07);
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.cancelled-reason-note strong {
+  color: rgba(255, 255, 255, 0.92);
+  margin-right: 4px;
+}
+
 /* Schedule Form */
 .schedule-form {
   padding: 20px 0;

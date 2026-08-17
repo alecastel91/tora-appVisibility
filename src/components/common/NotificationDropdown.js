@@ -24,6 +24,8 @@ const TYPE_TO_TAB = {
   CONTRACT_WITHDRAWN: 'bookings',
   DOCUMENT_SHARED: 'bookings',
   PAYMENT_RECEIVED: 'bookings',
+  DEAL_COMPLETED: 'bookings',
+  DEAL_CANCELLED: 'bookings',
   // Event-venue consent (a promoter tagged your venue for their event)
   VENUE_EVENT_REQUEST: 'bookings',
   VENUE_EVENT_CONFIRMED: 'bookings',
