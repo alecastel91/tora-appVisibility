@@ -1550,6 +1550,11 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       <line x1="15" y1="9" x2="9" y2="15"></line>
                       <line x1="9" y1="9" x2="15" y2="15"></line>
                     </svg>
+                  ) : msg.data.lifecycle === 'settled' ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="1" x2="12" y2="23"></line>
+                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
                   ) : (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -1557,9 +1562,13 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     </svg>
                   )}
                   <span>
-                    {msg.data.lifecycle === 'cancelled'
-                      ? t('bookings.statusCancelled')
-                      : t('bookings.statusCompleted')}
+                    {msg.data.lifecycle === 'cancelled' && t('bookings.statusCancelled')}
+                    {msg.data.lifecycle === 'completed' && t('bookings.statusCompleted')}
+                    {msg.data.lifecycle === 'settled' && (
+                      msg.data.settlementOutcome === 'waived'
+                        ? t('bookings.paymentWaived')
+                        : t('bookings.paymentSettled')
+                    )}
                   </span>
                 </div>
                 <p>{msg.text}</p>
@@ -2194,6 +2203,15 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     </>
                   );
                 })()}
+                {/* Shown where the offer is ACCEPTED OR DECLINED. Terms you
+                    agree to without being able to read them are worse than no
+                    terms at all. */}
+                {selectedOffer.cancellationTerms && (
+                  <div className="offer-detail-row">
+                    <span className="detail-label">{t('offer.cancellationTerms')}</span>
+                    <span className="detail-value">{selectedOffer.cancellationTerms}</span>
+                  </div>
+                )}
                 {selectedOffer.notes && (
                   <div className="offer-detail-row">
                     <span className="detail-label">{t('chat.notesLabel')}</span>

@@ -536,6 +536,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         return 'status-badge status-declined';
       case 'CANCELLED':
         return 'status-badge status-declined';
+      case 'PAID':
+        // Money settled, booking not yet closed out. Had no case at all, so
+        // it fell through to an unstyled grey pill while every neighbouring
+        // status carried a colour.
+        return 'status-badge status-accepted';
       case 'COMPLETED':
         return 'status-badge status-completed';
       default:
@@ -999,6 +1004,15 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                       <div className="booking-detail-row">
                         <span className="detail-label">{t('offer.finalPaymentDeadline')}</span>
                         <span className="detail-value">{fmt(finalPaymentDeadline)}</span>
+                      </div>
+                    )}
+                    {/* On the live booking too, not only once it's cancelled:
+                        the terms matter most while calling it off is still a
+                        decision someone is weighing. */}
+                    {deal.cancellationTerms && (
+                      <div className="booking-detail-row">
+                        <span className="detail-label">{t('offer.cancellationTerms')}</span>
+                        <span className="detail-value">{deal.cancellationTerms}</span>
                       </div>
                     )}
                   </>

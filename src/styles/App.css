@@ -2849,6 +2849,12 @@
   background: rgba(67, 233, 123, 0.06);
 }
 
+/* Settling up reads as neutral: it closes the money question without
+   claiming the booking itself went well or badly. */
+.booking-lifecycle-card.settled {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
 .booking-lifecycle-head {
   display: flex;
   align-items: center;
@@ -2862,6 +2868,7 @@
 
 .booking-lifecycle-card.cancelled .booking-lifecycle-head { color: #F5576C; }
 .booking-lifecycle-card.completed .booking-lifecycle-head { color: #43E97B; }
+.booking-lifecycle-card.settled .booking-lifecycle-head { color: rgba(255, 255, 255, 0.6); }
 
 .booking-lifecycle-card p {
   margin: 0;
