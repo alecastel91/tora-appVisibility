@@ -1006,15 +1006,6 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                         <span className="detail-value">{fmt(finalPaymentDeadline)}</span>
                       </div>
                     )}
-                    {/* On the live booking too, not only once it's cancelled:
-                        the terms matter most while calling it off is still a
-                        decision someone is weighing. */}
-                    {deal.cancellationTerms && (
-                      <div className="booking-detail-row">
-                        <span className="detail-label">{t('offer.cancellationTerms')}</span>
-                        <span className="detail-value">{deal.cancellationTerms}</span>
-                      </div>
-                    )}
                   </>
                 );
               })()}
@@ -1495,12 +1486,6 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   {deal.cancelReason && (
                     <div className="cancelled-reason-note">
                       <strong>{t('bookings.cancelledReasonLabel')}</strong> {deal.cancelReason}
-                    </div>
-                  )}
-
-                  {deal.cancellationTerms && (
-                    <div className="cancelled-reason-note">
-                      <strong>{t('bookings.agreedCancellationTerms')}</strong> {deal.cancellationTerms}
                     </div>
                   )}
 

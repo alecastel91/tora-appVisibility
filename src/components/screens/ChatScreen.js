@@ -555,11 +555,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
   };
 
   const handleOpenReview = () => {
-    console.log('handleOpenReview called', selectedOffer);
-    if (!selectedOffer) {
-      console.log('No selected offer');
-      return;
-    }
+    if (!selectedOffer) return;
 
     // Pre-fill review form with current offer values
     const lastEntry = (selectedOffer.offerHistory || [])[
@@ -573,9 +569,11 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
       finalPaymentDeadline: lastEntry.finalPaymentDeadline || '',
       notes: ''
     };
-    console.log('Setting review data:', newReviewData);
     setReviewData(newReviewData);
-    console.log('Opening review modal');
+    // Close the card this was opened from. Every other handler here does the
+    // same; this one left the offer details sitting on top of the review
+    // screen, so the review had to be dug out from under it.
+    setShowOfferDetails(false);
     setShowReviewModal(true);
   };
 
@@ -1539,40 +1537,63 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 );
               })()
             ) : msg.isSystem && msg.dealId && msg.data?.lifecycle ? (
-              // How a booking ended. Recognised by a structured flag, not by
-              // its wording, so it renders the same in every language and
-              // can't be lost by a phrase change.
-              <div className={`booking-lifecycle-card ${msg.data.lifecycle}`}>
-                <div className="booking-lifecycle-head">
-                  {msg.data.lifecycle === 'cancelled' ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="15" y1="9" x2="9" y2="15"></line>
-                      <line x1="9" y1="9" x2="15" y2="15"></line>
-                    </svg>
-                  ) : msg.data.lifecycle === 'settled' ? (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="1" x2="12" y2="23"></line>
-                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                    </svg>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                  )}
-                  <span>
-                    {msg.data.lifecycle === 'cancelled' && t('bookings.statusCancelled')}
-                    {msg.data.lifecycle === 'completed' && t('bookings.statusCompleted')}
-                    {msg.data.lifecycle === 'settled' && (
-                      msg.data.settlementOutcome === 'waived'
-                        ? t('bookings.paymentWaived')
-                        : t('bookings.paymentSettled')
-                    )}
-                  </span>
-                </div>
-                <p>{msg.text}</p>
-              </div>
+              // How a booking ended. Same card shape as the offer/accept/
+              // decline cards it sits between — recognised by a structured
+              // flag rather than by its wording, so it reads the same in
+              // every language and can't be lost to a phrasing change.
+              (() => {
+                const kind = msg.data.lifecycle;
+                const displayName = msg.isMe ? t('chat.you') : user.name;
+                const iconClass = kind === 'cancelled'
+                  ? 'declined-offer-icon'
+                  : kind === 'completed' ? 'accepted-offer-icon' : '';
+                const action = kind === 'cancelled'
+                  ? t('chat.cancelledBooking')
+                  : kind === 'completed'
+                    ? t('chat.completedBooking')
+                    : msg.data.settlementOutcome === 'waived'
+                      ? t('chat.closedPayment')
+                      : t('chat.settledPayment');
+                return (
+                  <div className={`message-with-timestamp ${msg.isMe ? "card-sent" : "card-received"}`}>
+                    <div className="offer-card-message">
+                      <div className="offer-card-content">
+                        <div className={`offer-card-icon ${iconClass}`}>
+                          {kind === 'cancelled' ? (
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <line x1="15" y1="9" x2="9" y2="15"></line>
+                              <line x1="9" y1="9" x2="15" y2="15"></line>
+                            </svg>
+                          ) : kind === 'completed' ? (
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10"></circle>
+                              <polyline points="9 12 11 14 15 10"></polyline>
+                            </svg>
+                          ) : (
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <line x1="12" y1="1" x2="12" y2="23"></line>
+                              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                          )}
+                        </div>
+                        <div className="offer-card-text">
+                          <p className="offer-card-name">{displayName}</p>
+                          <p className="offer-card-action">
+                            {action}
+                            {msg.deal?.eventName ? ` \u00b7 ${msg.deal.eventName}` : ''}
+                          </p>
+                          {kind === 'cancelled' && msg.data.cancelReason && (
+                            <p className="offer-card-note">
+                              {t('bookings.cancelledReasonLabel')} {msg.data.cancelReason}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()
             ) : msg.isSystem && msg.dealId ? (
               (() => {
                 // Determine card type from the message text itself, so the original
@@ -2203,15 +2224,6 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     </>
                   );
                 })()}
-                {/* Shown where the offer is ACCEPTED OR DECLINED. Terms you
-                    agree to without being able to read them are worse than no
-                    terms at all. */}
-                {selectedOffer.cancellationTerms && (
-                  <div className="offer-detail-row">
-                    <span className="detail-label">{t('offer.cancellationTerms')}</span>
-                    <span className="detail-value">{selectedOffer.cancellationTerms}</span>
-                  </div>
-                )}
                 {selectedOffer.notes && (
                   <div className="offer-detail-row">
                     <span className="detail-label">{t('chat.notesLabel')}</span>
