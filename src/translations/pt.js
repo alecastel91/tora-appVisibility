@@ -208,7 +208,7 @@ const pt = {
     statusCompleted: 'Concluída',
     statusCancelled: 'Cancelada',
     paidSoFar: 'Pago:',
-    awaitingConfirmation: ' · {{amount}} aguardando sua confirmação',
+    awaitingConfirmation: '{{amount}} aguardando sua confirmação',
     resolvePayment: 'Resolver pagamento',
     resolvePaymentExplainer: 'Só você pode encerrar isso, porque é a parte a quem o cachê é devido. Nenhuma das respostas movimenta dinheiro: ela registra o que aconteceu.',
     resolvePaymentNotePlaceholder: 'Observação opcional (ex. recebida multa de 50%)',

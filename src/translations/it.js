@@ -208,7 +208,7 @@ const it = {
     statusCompleted: 'Completata',
     statusCancelled: 'Annullata',
     paidSoFar: 'Pagato:',
-    awaitingConfirmation: ' · {{amount}} in attesa di conferma',
+    awaitingConfirmation: '{{amount}} in attesa di conferma',
     resolvePayment: 'Risolvi pagamento',
     resolvePaymentExplainer: 'Solo tu puoi chiudere questa voce, perché sei la parte a cui spetta il compenso. Nessuna delle due risposte muove denaro: registra quanto accaduto.',
     resolvePaymentNotePlaceholder: 'Nota facoltativa (es. ricevuto il 50% di penale)',

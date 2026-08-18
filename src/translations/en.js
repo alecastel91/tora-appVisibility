@@ -208,7 +208,7 @@ const en = {
     statusCompleted: 'Completed',
     statusCancelled: 'Cancelled',
     paidSoFar: 'Paid:',
-    awaitingConfirmation: ' · {{amount}} awaiting your confirmation',
+    awaitingConfirmation: '{{amount}} awaiting your confirmation',
     resolvePayment: 'Resolve payment',
     resolvePaymentExplainer: 'Only you can close this, because you are the side owed the fee. Neither answer moves money — it records what happened.',
     resolvePaymentNotePlaceholder: 'Optional note (e.g. 50% kill fee received)',

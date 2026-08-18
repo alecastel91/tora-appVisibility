@@ -208,7 +208,7 @@ const zh = {
     statusCompleted: '已完成',
     statusCancelled: '已取消',
     paidSoFar: '已付：',
-    awaitingConfirmation: ' · {{amount}} 待你确认',
+    awaitingConfirmation: '{{amount}} 待你确认',
     resolvePayment: '处理款项',
     resolvePaymentExplainer: '只有你能结束此事，因为你是应收取费用的一方。两个选项都不会转账，只是记录实际情况。',
     resolvePaymentNotePlaceholder: '备注（选填，例如：已收到 50% 违约金）',

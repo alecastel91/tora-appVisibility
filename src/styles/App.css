@@ -2863,6 +2863,13 @@
   color: rgba(255, 255, 255, 0.72);
 }
 
+/* Money marked by the payer, not yet acknowledged by the payee. Amber
+   rather than green: it has been sent, it has not been confirmed. */
+.cancelled-payment-awaiting {
+  font-style: normal;
+  color: #FFC107;
+}
+
 .cancelled-payment-actions {
   display: flex;
   gap: 8px;

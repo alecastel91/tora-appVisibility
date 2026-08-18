@@ -208,7 +208,7 @@ const fr = {
     statusCompleted: 'Terminée',
     statusCancelled: 'Annulée',
     paidSoFar: 'Payé :',
-    awaitingConfirmation: ' · {{amount}} en attente de votre confirmation',
+    awaitingConfirmation: '{{amount}} en attente de votre confirmation',
     resolvePayment: 'Régler le paiement',
     resolvePaymentExplainer: 'Vous seul pouvez clore ce point, car le cachet vous est dû. Aucune des deux réponses ne transfère d’argent : elle consigne ce qui s’est passé.',
     resolvePaymentNotePlaceholder: 'Note facultative (ex. indemnité de 50 % reçue)',

@@ -524,11 +524,19 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   // of cards already on screen. Counting actions instead means the badge says
   // where the work is — including on tabs you aren't looking at, which is the
   // whole reason to put a number on a tab at all.
-  const actionCountForTab = (tab) => (
-    actionableDealIds.size === 0
-      ? 0
-      : filterDeals(tab).reduce((n, deal) => n + (actionableDealIds.has(deal.id) ? 1 : 0), 0)
-  );
+  //
+  // Computed once for all three tabs: the JSX reads each count twice (the
+  // `> 0` guard and the value), which as a function meant six passes over
+  // every deal on every render.
+  const actionCounts = useMemo(() => {
+    const empty = { upcoming: 0, past: 0, declined: 0 };
+    if (actionableDealIds.size === 0) return empty;
+    return Object.keys(empty).reduce((acc, tab) => ({
+      ...acc,
+      [tab]: filterDeals(tab).filter((d) => actionableDealIds.has(d.id)).length,
+    }), empty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deals, actionableDealIds, selectedArtistFilter, currentUser?.id, currentUser?.role]);
   const clusteredDeals = clusterDealsByMonth(filteredDeals);
 
   const getStatusBadgeClass = (status) => {
@@ -1487,10 +1495,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               const summary = summarizeDealPayment(deal);
               const isOwedSide = isArtistSideForDeal(deal, currentUser);
               const isBooker = deal.venue.id === currentUser.id;
-              // Money can still be owed after a cancellation — agreed terms, a
-              // kill fee, or a deposit that already moved. The tracking stays
-              // open so the transaction people argue about is on the record.
-              const moneyOutstanding = summary.hasAnyPayment || summary.totalFee > 0;
+              // Whether there is a money question worth showing at all. Not
+              // "money is owed" — the app can't know that — just that a fee
+              // was agreed or a payment moved, either of which leaves
+              // something for the two of them to settle.
+              const hasMoneyQuestion = summary.hasAnyPayment || summary.totalFee > 0;
 
               return (
                 <div className="cancelled-settlement">
@@ -1500,7 +1509,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                     </div>
                   )}
 
-                  {moneyOutstanding && (() => {
+                  {hasMoneyQuestion && (() => {
                     // Money marked by the payer but not yet acknowledged. The
                     // proof and the Confirm receipt button used to live only
                     // inside the ACCEPTED workflow block, so on a cancelled
@@ -1516,9 +1525,12 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                           {t('bookings.paidSoFar')} {formatFee(summary.totalConfirmed)}
                           {summary.totalFee > 0 && ` / ${formatFee(summary.totalFee)}`} {summary.currency}
                           {awaiting > 0 && (
-                            <em className="cancelled-payment-awaiting">
-                              {t('bookings.awaitingConfirmation', { amount: `${formatFee(awaiting)} ${summary.currency}` })}
-                            </em>
+                            <>
+                              {' \u00b7 '}
+                              <em className="cancelled-payment-awaiting">
+                                {t('bookings.awaitingConfirmation', { amount: `${formatFee(awaiting)} ${summary.currency}` })}
+                              </em>
+                            </>
                           )}
                         </span>
 
@@ -1686,8 +1698,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           {t('bookings.tabUpcoming')}
-          {actionCountForTab('upcoming') > 0 && (
-            <span className="tab-badge">{actionCountForTab('upcoming')}</span>
+          {actionCounts.upcoming > 0 && (
+            <span className="tab-badge">{actionCounts.upcoming}</span>
           )}
         </button>
         <button
@@ -1696,8 +1708,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           {t('bookings.tabPast')}
-          {actionCountForTab('past') > 0 && (
-            <span className="tab-badge">{actionCountForTab('past')}</span>
+          {actionCounts.past > 0 && (
+            <span className="tab-badge">{actionCounts.past}</span>
           )}
         </button>
         <button
@@ -1706,8 +1718,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
           {t('bookings.tabDeclined')}
-          {actionCountForTab('declined') > 0 && (
-            <span className="tab-badge">{actionCountForTab('declined')}</span>
+          {actionCounts.declined > 0 && (
+            <span className="tab-badge">{actionCounts.declined}</span>
           )}
         </button>
       </div>

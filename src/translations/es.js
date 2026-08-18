@@ -208,7 +208,7 @@ const es = {
     statusCompleted: 'Completada',
     statusCancelled: 'Cancelada',
     paidSoFar: 'Pagado:',
-    awaitingConfirmation: ' · {{amount}} a la espera de tu confirmación',
+    awaitingConfirmation: '{{amount}} a la espera de tu confirmación',
     resolvePayment: 'Resolver pago',
     resolvePaymentExplainer: 'Solo tú puedes cerrar esto, porque eres la parte a la que se debe el caché. Ninguna respuesta mueve dinero: deja constancia de lo ocurrido.',
     resolvePaymentNotePlaceholder: 'Nota opcional (p. ej. recibido el 50 % de penalización)',

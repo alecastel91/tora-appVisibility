@@ -208,7 +208,7 @@ const ja = {
     statusCompleted: '完了',
     statusCancelled: 'キャンセル',
     paidSoFar: '支払い済み:',
-    awaitingConfirmation: ' · {{amount}} の確認待ち',
+    awaitingConfirmation: '{{amount}} の確認待ち',
     resolvePayment: '支払いを整理',
     resolvePaymentExplainer: '報酬を受け取る側であるあなたのみが、この件を終了できます。どちらを選んでも送金は行われません。事実を記録するだけです。',
     resolvePaymentNotePlaceholder: '任意のメモ（例：キャンセル料50%を受領）',

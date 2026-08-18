@@ -208,7 +208,7 @@ const ko = {
     statusCompleted: '완료',
     statusCancelled: '취소됨',
     paidSoFar: '지급됨:',
-    awaitingConfirmation: ' · {{amount}} 확인 대기 중',
+    awaitingConfirmation: '{{amount}} 확인 대기 중',
     resolvePayment: '정산 처리',
     resolvePaymentExplainer: '대금을 받을 쪽이 회원님이므로, 이 건은 회원님만 마무리할 수 있습니다. 어느 쪽을 선택해도 송금은 이뤄지지 않으며, 사실만 기록됩니다.',
     resolvePaymentNotePlaceholder: '메모(선택, 예: 위약금 50% 수령)',
