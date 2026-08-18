@@ -13,6 +13,7 @@ export const ACTION_ICONS = {
   contract_to_sign: FileIcon,
   payment_to_mark_sent: DollarIcon,
   payment_to_confirm_received: DollarIcon,
+  payment_to_resolve: DollarIcon,
   representation_request_received: MailIcon,
 };
 
@@ -35,6 +36,7 @@ const ACTION_TITLE_PATTERNS = {
   contract_to_send: [/^Send contract for (.+)$/, 'manage.actionContractToSend'],
   contract_to_sign: [/^Sign contract from (.+)$/, 'manage.actionContractToSign'],
   payment_to_mark_sent: [/^Mark payment sent to (.+)$/, 'manage.actionPaymentToMarkSent'],
+  payment_to_resolve: [/^Resolve payment for (.+)$/, 'manage.actionPaymentToResolve'],
   representation_request_received: [/^Representation request from (.+)$/, 'manage.actionRepresentationRequest'],
 };
 
@@ -44,6 +46,7 @@ const ACTION_LABEL_KEYS = {
   'Sign': 'manage.actionSign',
   'Mark Sent': 'manage.actionMarkSent',
   'Confirm': 'manage.actionConfirm',
+  'Resolve': 'manage.actionResolve',
 };
 
 const ACTION_TYPE_KEYS = {
@@ -52,6 +55,7 @@ const ACTION_TYPE_KEYS = {
   contract_to_send: 'manage.actionContractToSend',
   contract_to_sign: 'manage.actionContractToSign',
   payment_to_mark_sent: 'manage.actionPaymentToMarkSent',
+  payment_to_resolve: 'manage.actionPaymentToResolve',
   representation_request_received: 'manage.actionRepresentationRequest',
 };
 

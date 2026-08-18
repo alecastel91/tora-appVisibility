@@ -440,7 +440,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   );
 
   // Filter deals into past, upcoming, and declined (with optional agent artist filter)
-  const filterDeals = () => {
+  const filterDeals = (tab = activeTab) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -463,9 +463,9 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       // in the same tab.
       const isOff = deal.status === 'DECLINED' || deal.status === 'CANCELLED';
 
-      if (activeTab === 'declined') {
+      if (tab === 'declined') {
         return isOff;
-      } else if (activeTab === 'upcoming') {
+      } else if (tab === 'upcoming') {
         return dealDate >= today && !isOff;
       } else {
         return dealDate < today && !isOff;
@@ -518,6 +518,17 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   };
 
   const filteredDeals = filterDeals();
+
+  // Badge counts = bookings waiting on THIS user, per tab. They used to show
+  // filteredDeals.length on the open tab only, which just restated the number
+  // of cards already on screen. Counting actions instead means the badge says
+  // where the work is — including on tabs you aren't looking at, which is the
+  // whole reason to put a number on a tab at all.
+  const actionCountForTab = (tab) => (
+    actionableDealIds.size === 0
+      ? 0
+      : filterDeals(tab).reduce((n, deal) => n + (actionableDealIds.has(deal.id) ? 1 : 0), 0)
+  );
   const clusteredDeals = clusterDealsByMonth(filteredDeals);
 
   const getStatusBadgeClass = (status) => {
@@ -1489,44 +1500,78 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                     </div>
                   )}
 
-                  {moneyOutstanding && (
-                    <div className="cancelled-payment-row">
-                      <span className="cancelled-payment-figure">
-                        {t('bookings.paidSoFar')} {formatFee(summary.totalConfirmed)}
-                        {summary.totalFee > 0 && ` / ${formatFee(summary.totalFee)}`} {summary.currency}
-                      </span>
+                  {moneyOutstanding && (() => {
+                    // Money marked by the payer but not yet acknowledged. The
+                    // proof and the Confirm receipt button used to live only
+                    // inside the ACCEPTED workflow block, so on a cancelled
+                    // booking a deposit could be sent with proof and the
+                    // receiving side had no way to see either — and this
+                    // figure, counting only CONFIRMED money, read zero.
+                    const awaiting = Math.max(0, summary.totalMarked - summary.totalConfirmed);
+                    const canConfirm = isOwedSide && awaiting > 0;
 
-                      {settlement ? (
-                        <span className={`settlement-pill ${settlement.outcome}`}>
-                          {settlement.outcome === 'settled'
-                            ? t('bookings.paymentSettled')
-                            : t('bookings.paymentWaived')}
+                    return (
+                      <div className="cancelled-payment-row">
+                        <span className="cancelled-payment-figure">
+                          {t('bookings.paidSoFar')} {formatFee(summary.totalConfirmed)}
+                          {summary.totalFee > 0 && ` / ${formatFee(summary.totalFee)}`} {summary.currency}
+                          {awaiting > 0 && (
+                            <em className="cancelled-payment-awaiting">
+                              {t('bookings.awaitingConfirmation', { amount: `${formatFee(awaiting)} ${summary.currency}` })}
+                            </em>
+                          )}
                         </span>
-                      ) : (
-                        <div className="cancelled-payment-actions">
-                          {isBooker && (
-                            <button
-                              className="btn btn-outline btn-sm"
-                              onClick={() => {
-                                setSelectedDealForWorkflow(deal);
-                                setShowPaymentModal(true);
-                              }}
-                            >
-                              {t('bookings.updatePayment')}
-                            </button>
-                          )}
-                          {isOwedSide && (
-                            <button
-                              className="btn btn-primary btn-sm"
-                              onClick={() => { setDealToSettle(deal); setSettleNote(''); }}
-                            >
-                              {t('bookings.resolvePayment')}
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
+
+                        {settlement ? (
+                          <span className={`settlement-pill ${settlement.outcome}`}>
+                            {settlement.outcome === 'settled'
+                              ? t('bookings.paymentSettled')
+                              : t('bookings.paymentWaived')}
+                          </span>
+                        ) : (
+                          <div className="cancelled-payment-actions">
+                            {/* Open to both sides: the payer needs to check what
+                                they sent landed, the payee needs the proof. */}
+                            {summary.hasAnyPayment && (
+                              <button
+                                className="btn btn-outline btn-sm"
+                                onClick={() => setDepositHistoryDeal(deal)}
+                              >
+                                {t('bookings.viewDetailsLink')}
+                              </button>
+                            )}
+                            {isBooker && (
+                              <button
+                                className="btn btn-outline btn-sm"
+                                onClick={() => {
+                                  setSelectedDealForWorkflow(deal);
+                                  setShowPaymentModal(true);
+                                }}
+                              >
+                                {t('bookings.updatePayment')}
+                              </button>
+                            )}
+                            {canConfirm && (
+                              <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => setDepositHistoryDeal(deal)}
+                              >
+                                {t('bookings.confirmReceipt')}
+                              </button>
+                            )}
+                            {isOwedSide && !canConfirm && (
+                              <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => { setDealToSettle(deal); setSettleNote(''); }}
+                              >
+                                {t('bookings.resolvePayment')}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {settlement?.note && (
                     <p className="settlement-note">{settlement.note}</p>
@@ -1641,8 +1686,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           {t('bookings.tabUpcoming')}
-          {activeTab === 'upcoming' && filteredDeals.length > 0 && (
-            <span className="tab-badge">{filteredDeals.length}</span>
+          {actionCountForTab('upcoming') > 0 && (
+            <span className="tab-badge">{actionCountForTab('upcoming')}</span>
           )}
         </button>
         <button
@@ -1651,8 +1696,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           {t('bookings.tabPast')}
-          {activeTab === 'past' && filteredDeals.length > 0 && (
-            <span className="tab-badge">{filteredDeals.length}</span>
+          {actionCountForTab('past') > 0 && (
+            <span className="tab-badge">{actionCountForTab('past')}</span>
           )}
         </button>
         <button
@@ -1661,8 +1706,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
           {t('bookings.tabDeclined')}
-          {activeTab === 'declined' && filteredDeals.length > 0 && (
-            <span className="tab-badge">{filteredDeals.length}</span>
+          {actionCountForTab('declined') > 0 && (
+            <span className="tab-badge">{actionCountForTab('declined')}</span>
           )}
         </button>
       </div>
