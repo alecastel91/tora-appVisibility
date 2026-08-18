@@ -61,6 +61,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   const [dealToDecline, setDealToDecline] = useState(null);
   const [dealToCancel, setDealToCancel] = useState(null);
   const [cancelReason, setCancelReason] = useState('');
+  const [dealToSettle, setDealToSettle] = useState(null);
+  const [settleNote, setSettleNote] = useState('');
   const [declineReason, setDeclineReason] = useState('');
 
   // Workflow state
@@ -338,6 +340,27 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       appAlert(err.message || t('bookings.cancelFailed'));
       setDealToCancel(null);
       setCancelReason('');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  // Closing the money question on a booking that was called off. Only the
+  // side owed the fee can answer it, and neither answer moves money — TORA
+  // records what happened, it doesn't collect.
+  const handleSettlePayment = async (outcome) => {
+    if (actionBusy || !dealToSettle) return;
+    setActionBusy(true);
+    try {
+      await apiService.settlePayment(dealToSettle.id, currentUser.id, outcome, settleNote);
+      setDealToSettle(null);
+      setSettleNote('');
+      fetchDeals();
+    } catch (err) {
+      console.error('Error settling payment:', err);
+      appAlert(err.message || t('bookings.settleFailed'));
+      setDealToSettle(null);
+      setSettleNote('');
     } finally {
       setActionBusy(false);
     }
@@ -1443,11 +1466,75 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
 
             {/* Why a booking ended, kept visible on the card. A cancellation
                 with no stated reason is the thing people argue about later. */}
-            {deal.status === 'CANCELLED' && deal.cancelReason && (
-              <div className="cancelled-reason-note">
-                <strong>{t('bookings.cancelledReasonLabel')}</strong> {deal.cancelReason}
-              </div>
-            )}
+            {deal.status === 'CANCELLED' && (() => {
+              const settlement = deal.payment?.settlement;
+              const summary = summarizeDealPayment(deal);
+              const isOwedSide = isArtistSideForDeal(deal, currentUser);
+              const isBooker = deal.venue.id === currentUser.id;
+              // Money can still be owed after a cancellation — agreed terms, a
+              // kill fee, or a deposit that already moved. The tracking stays
+              // open so the transaction people argue about is on the record.
+              const moneyOutstanding = summary.hasAnyPayment || summary.totalFee > 0;
+
+              return (
+                <div className="cancelled-settlement">
+                  {deal.cancelReason && (
+                    <div className="cancelled-reason-note">
+                      <strong>{t('bookings.cancelledReasonLabel')}</strong> {deal.cancelReason}
+                    </div>
+                  )}
+
+                  {deal.cancellationTerms && (
+                    <div className="cancelled-reason-note">
+                      <strong>{t('bookings.agreedCancellationTerms')}</strong> {deal.cancellationTerms}
+                    </div>
+                  )}
+
+                  {moneyOutstanding && (
+                    <div className="cancelled-payment-row">
+                      <span className="cancelled-payment-figure">
+                        {t('bookings.paidSoFar')} {formatFee(summary.totalConfirmed)}
+                        {summary.totalFee > 0 && ` / ${formatFee(summary.totalFee)}`} {summary.currency}
+                      </span>
+
+                      {settlement ? (
+                        <span className={`settlement-pill ${settlement.outcome}`}>
+                          {settlement.outcome === 'settled'
+                            ? t('bookings.paymentSettled')
+                            : t('bookings.paymentWaived')}
+                        </span>
+                      ) : (
+                        <div className="cancelled-payment-actions">
+                          {isBooker && (
+                            <button
+                              className="btn btn-outline btn-sm"
+                              onClick={() => {
+                                setSelectedDealForWorkflow(deal);
+                                setShowPaymentModal(true);
+                              }}
+                            >
+                              {t('bookings.updatePayment')}
+                            </button>
+                          )}
+                          {isOwedSide && (
+                            <button
+                              className="btn btn-primary btn-sm"
+                              onClick={() => { setDealToSettle(deal); setSettleNote(''); }}
+                            >
+                              {t('bookings.resolvePayment')}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {settlement?.note && (
+                    <p className="settlement-note">{settlement.note}</p>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Action buttons - show when current user can accept/decline */}
             {/* For PENDING: recipient (not initiator) can accept/decline */}
@@ -1691,6 +1778,42 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       )}
 
       {/* Decline Offer Modal */}
+      {dealToSettle && (
+        <div className="delete-modal-overlay" onClick={() => { setDealToSettle(null); setSettleNote(''); }}>
+          <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="delete-modal-header">
+              <h3>{t('bookings.resolvePayment')}</h3>
+            </div>
+            <div className="delete-modal-content">
+              <p>{t('bookings.resolvePaymentExplainer')}</p>
+              <textarea
+                value={settleNote}
+                onChange={(e) => setSettleNote(e.target.value)}
+                placeholder={t('bookings.resolvePaymentNotePlaceholder')}
+                className="decline-reason-textarea"
+                rows="3"
+              />
+            </div>
+            <div className="delete-modal-actions">
+              <button
+                className="btn btn-outline"
+                onClick={() => handleSettlePayment('waived')}
+                disabled={actionBusy}
+              >
+                {actionBusy ? '...' : t('bookings.markWaived')}
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => handleSettlePayment('settled')}
+                disabled={actionBusy}
+              >
+                {actionBusy ? '...' : t('bookings.markSettled')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {dealToCancel && (
         <div className="delete-modal-overlay" onClick={() => {
           setDealToCancel(null);

@@ -1061,6 +1061,17 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // The side owed the money closes the question out: 'settled' or 'waived'.
+  async settlePayment(dealId, profileId, outcome, note) {
+    const response = await fetch(`${API_URL}/deals/${dealId}/settle-payment`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId, outcome, note })
+    });
+
+    return this.handleResponse(response);
+  }
+
   async withdrawContract(dealId, profileId) {
     const response = await fetch(`${API_URL}/deals/${dealId}/withdraw-contract`, {
       method: 'PUT',

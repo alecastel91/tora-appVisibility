@@ -39,6 +39,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
     setEndTime: '',
     depositDeadline: '',
     finalPaymentDeadline: '',
+    cancellationTerms: '',
     notes: '',
     selectedArtistId: '',
     selectedArtistName: '',
@@ -325,6 +326,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
         extras: Object.keys(extras).length > 0 ? extras : undefined,
         depositDeadline: formData.depositDeadline || undefined,
         finalPaymentDeadline: formData.finalPaymentDeadline || undefined,
+        cancellationTerms: formData.cancellationTerms.trim() || undefined,
         notes: formData.notes,
         artistId: formData.selectedArtistId || undefined,
         artistName: formData.selectedArtistName || undefined,
@@ -371,6 +373,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
         setEndTime: '',
         depositDeadline: '',
         finalPaymentDeadline: '',
+        cancellationTerms: '',
         notes: '',
         selectedArtistId: '',
         selectedArtistName: '',
@@ -890,6 +893,22 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
                   className="form-input"
                 />
               </div>
+            </div>
+
+            {/* Agreed here, while both sides are still friendly — which is the
+                only time anyone negotiates this honestly. */}
+            <div className="form-group">
+              <label>{t('offer.cancellationTerms')}</label>
+              <p className="m-0 mb-2 text-xs leading-relaxed text-white/45">
+                {t('offer.cancellationTermsHint')}
+              </p>
+              <textarea
+                value={formData.cancellationTerms}
+                onChange={(e) => handleChange('cancellationTerms', e.target.value)}
+                placeholder={t('offer.cancellationTermsPlaceholder')}
+                className="form-input"
+                rows="2"
+              />
             </div>
           </div>
 
