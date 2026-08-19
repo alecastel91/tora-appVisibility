@@ -3,6 +3,7 @@ import { CURRENCY_OPTIONS, CURRENCY_OPTIONS_WITH_SYMBOL } from '../common/Curren
 import ReactDOM from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { formatEventDate } from '../../utils/dates';
 import { subscribeToTours } from '../../services/realtime';
 import ViewProfileScreen from './ViewProfileScreen';
 import MakeOfferModal from '../common/MakeOfferModal';
@@ -1530,9 +1531,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           </p>
                         )}
                         <p className="text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
-                          {new Date(tour.startDate).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric' })}
+                          {formatEventDate(tour.startDate, t('dateFormat.locale'), { month: 'short', day: 'numeric' })}
                           {' — '}
-                          {new Date(tour.endDate).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {formatEventDate(tour.endDate, t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
                           {tour.zone && tour.country ? ` · ${tour.zone}` : ''}
                         </p>
                       </div>
@@ -1878,7 +1879,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     <div className="tour-dates-section">
                       <CalendarIcon />
                       <span>
-                        {new Date(tour.startDate).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric' })} - {new Date(tour.endDate).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {formatEventDate(tour.startDate, t('dateFormat.locale'), { month: 'short', day: 'numeric' })} - {formatEventDate(tour.endDate, t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
                       </span>
                     </div>
                     <div className="tour-card-body">
@@ -2155,7 +2156,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                   {t('tour.tourTitle', { location: myProposalData.tour?.zone })}
                 </h3>
                 <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
-                  {new Date(myProposalData.tour?.startDate).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric' })} - {new Date(myProposalData.tour?.endDate).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
+                  {formatEventDate(myProposalData.tour?.startDate, t('dateFormat.locale'), { month: 'short', day: 'numeric' })} - {formatEventDate(myProposalData.tour?.endDate, t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
                 </p>
               </div>
 
@@ -2296,7 +2297,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                         <div>
                           <p style={{ margin: '0 0 4px 0', color: 'rgba(255,255,255,0.5)' }}>{t('tour.date')}</p>
                           <p style={{ margin: 0, color: 'rgba(255,255,255,0.8)' }}>
-                            {new Date(deal.date).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {formatEventDate(deal.date, t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
                           </p>
                         </div>
                         <div>

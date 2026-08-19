@@ -10,6 +10,7 @@ import VerifiedBadge from '../common/VerifiedBadge';
 import ProfileBadges from '../common/ProfileBadges';
 import BioTranslate from '../common/BioTranslate';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { formatEventDate } from '../../utils/dates';
 import {roleLabel, getAvatarClass } from '../../utils/roles';
 import { raProfileUrl } from '../../utils/urls';
 import MakeOfferModal from '../common/MakeOfferModal';
@@ -765,9 +766,9 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
                         {t('tour.tourTitle', { location: tour.country || tour.zone })}
                       </p>
                       <p className="m-0 mt-1 text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech">
-                        {new Date(tour.startDate).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric' })}
+                        {formatEventDate(tour.startDate, t('dateFormat.locale'), { month: 'short', day: 'numeric' })}
                         {' — '}
-                        {new Date(tour.endDate).toLocaleDateString(t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {formatEventDate(tour.endDate, t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
                         {(tour.feeExpectation || tour.priceOnRequest)
                           ? ` · ${tour.priceOnRequest ? t('tour.priceOnRequest') : tour.feeExpectation}`
                           : ''}
@@ -1027,7 +1028,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
                     <p className="m-0 text-sm font-medium text-white truncate">{g.eventName || g.venueName}</p>
                     <p className="m-0 mt-1 text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech">
                       {[g.venueName && g.eventName ? g.venueName : '', [g.city, g.country].filter(Boolean).join(', '),
-                        g.date && new Date(g.date).toLocaleDateString(t('dateFormat.locale'), { day: 'numeric', month: 'short', year: 'numeric' })]
+                        g.date && formatEventDate(g.date, t('dateFormat.locale'), { day: 'numeric', month: 'short', year: 'numeric' })]
                         .filter(Boolean).join(' · ')}
                     </p>
                   </div>

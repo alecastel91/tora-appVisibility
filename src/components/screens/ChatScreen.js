@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { CURRENCY_OPTIONS } from '../common/CurrencyOptions';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { formatEventDate } from '../../utils/dates';
 import apiService from '../../services/api';
 import { celebrateMoment, MOMENT } from '../../utils/celebrations';
 import contractService from '../../services/contractService';
@@ -2108,7 +2109,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 <div className="offer-detail-row">
                   <span className="detail-label">{t('chat.dateLabel')}</span>
                   <span className="detail-value">
-                    {new Date(selectedOffer.date).toLocaleDateString(t('dateFormat.locale'), {
+                    {formatEventDate(selectedOffer.date, t('dateFormat.locale'), {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric'
@@ -2658,7 +2659,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                       {deal?.date && (
                         <div className="offer-detail-row">
                           <span className="detail-label">{t('tour.date')}</span>
-                          <span className="detail-value">{new Date(deal.date).toLocaleDateString(t('dateFormat.locale'), { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })}</span>
+                          <span className="detail-value">{formatEventDate(deal.date, t('dateFormat.locale'), { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                         </div>
                       )}
                       {(entry.performanceType || deal?.performanceType) && (

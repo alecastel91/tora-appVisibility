@@ -29,7 +29,8 @@
     "sync-theme": "cp ../tora-application/src/styles/tora-theme.css src/styles/tora-theme.css",
     "prepare": "husky",
     "check:cities": "node scripts/check-city-coords.mjs",
-    "check:i18n": "node scripts/check-translations.js"
+    "check:i18n": "node scripts/check-translations.js",
+    "test": "TZ=America/Sao_Paulo node --test 'src/**/*.test.mjs'"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.1",

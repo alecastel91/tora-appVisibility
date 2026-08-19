@@ -18,6 +18,7 @@ import { getAuthedBackendUrl, buildPaymentProofUrl } from '../../utils/urls';
 import { subscribeToDeals } from '../../services/realtime';
 import LoadingGlobe from '../common/LoadingGlobe';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { formatEventDate } from '../../utils/dates';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { roleLabel } from '../../utils/roles';
 
@@ -406,15 +407,6 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
     setExpandedDealId(expandedDealId === dealId ? null : dealId);
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(t('dateFormat.locale'), {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
   // Safely format a monetary amount. Returns null when the value is missing —
   // e.g. a deal REDACTED for a tagged venue has no currentFee — so callers can
   // omit the fee entirely instead of crashing on `.toLocaleString()`.
@@ -635,8 +627,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   // (while PENDING). Confirmed/declined states show a status line instead.
   const renderConsentCard = (deal) => {
     const promoterName = deal.initiator?.name || deal.venue?.name || t('bookings.aPromoter');
-    const dateStr = new Date(deal.date).toLocaleDateString(t('dateFormat.locale'), {
-      month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+    const dateStr = formatEventDate(deal.date, t('dateFormat.locale'), {
+      month: 'short', day: 'numeric', year: 'numeric'
     });
     const status = deal.eventVenueStatus;
     return (
@@ -782,7 +774,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       <div key={deal.id} className={`booking-card ${isExpanded ? 'expanded' : ''}${isActionable ? ' booking-card-actionable' : ''}`}>
         <div className="booking-date-badge">
           <span className="booking-date-month">
-            {dealDate.toLocaleDateString(t('dateFormat.locale'), { month: 'short' })}
+            {formatEventDate(dealDate, t('dateFormat.locale'), { month: 'short', day: undefined, year: undefined })}
           </span>
           <span className="booking-date-day">{dayNumber}</span>
         </div>
