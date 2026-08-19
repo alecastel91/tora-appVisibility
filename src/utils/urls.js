@@ -20,12 +20,17 @@ function backendBaseUrl() {
  * with `http://localhost:5002` opens correctly when the env now points at
  * `http://alessandro.local:5002` (or production).
  */
-export function getAuthedBackendUrl(url, profileId) {
+export function getAuthedBackendUrl(url, profileId, dealId) {
   if (!url) return '';
   const base = backendBaseUrl();
   const token = localStorage.getItem('token');
 
   if (/[?&]token=/.test(url)) return url;
+
+  // dealId lets /api/contracts/files check one deal instead of scanning every
+  // deal's JSONB (F4-03). Purely an optimization hint — the backend re-verifies
+  // the caller is a party, so a wrong dealId can't widen access.
+  const dealParam = dealId ? `&dealId=${dealId}` : '';
 
   const isAbsolute = url.startsWith('http://') || url.startsWith('https://');
   if (isAbsolute) {
@@ -34,11 +39,11 @@ export function getAuthedBackendUrl(url, profileId) {
     if (!parsed.pathname.startsWith('/api/')) return url; // external
     const pathAndQuery = parsed.pathname + parsed.search;
     const separator = pathAndQuery.includes('?') ? '&' : '?';
-    return `${base}${pathAndQuery}${separator}profileId=${profileId}&token=${token}`;
+    return `${base}${pathAndQuery}${separator}profileId=${profileId}&token=${token}${dealParam}`;
   }
 
   const separator = url.includes('?') ? '&' : '?';
-  return `${base}${url}${separator}profileId=${profileId}&token=${token}`;
+  return `${base}${url}${separator}profileId=${profileId}&token=${token}${dealParam}`;
 }
 
 // Backend-proxied files (uploads, contract files) need to open in the

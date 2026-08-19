@@ -34,12 +34,13 @@ function validatePaymentProof(file) {
 const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onActionCountChange }) => {
   const { t } = useLanguage();
   const { user: currentUser, reloadProfileData } = useAppContext();
-  const getFullUrl = (url) => getAuthedBackendUrl(url, currentUser?.id);
+  const getFullUrl = (url, dealId) => getAuthedBackendUrl(url, currentUser?.id, dealId);
 
   const openContractPdf = (deal) => {
     let url = null;
     if (deal?.contract?.documentUrl && deal.contract.documentUrl !== 'N/A') {
-      url = getFullUrl(deal.contract.documentUrl);
+      // Pass the deal id so the file endpoint checks this deal, not every deal (F4-03).
+      url = getFullUrl(deal.contract.documentUrl, deal.id);
     } else if (deal?.contract?.documentId) {
       url = getFullUrl(`/api/contracts/view/${deal.contract.documentId}`);
     }
