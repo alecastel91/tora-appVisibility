@@ -33,6 +33,7 @@
     "test": "TZ=America/Sao_Paulo node --test 'src/**/*.test.mjs'"
   },
   "devDependencies": {
+    "@sentry/vite-plugin": "^4.9.1",
     "@tailwindcss/vite": "^4.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "husky": "^9.1.7",
