@@ -22,6 +22,23 @@ export const AppProvider = ({ children }) => {
   const [connectedUsersData, setConnectedUsersData] = useState([]); // Full profile objects
   const [likerProfilesData, setLikerProfilesData] = useState([]); // Full profile objects for likers
 
+  // The profile whose graph SHOULD be showing right now (F6-02). A load/poll
+  // captures the id it fetched for and discards its result if a profile switch
+  // superseded it — otherwise an in-flight fetch for the old profile lands on
+  // the new one's cards. Cleared-and-reset by switchProfile.
+  const activeProfileIdRef = useRef(null);
+  // Clear every per-profile graph Set/array in one place.
+  const clearProfileGraph = () => {
+    setLikedProfiles(new Set());
+    setLikedProfilesData([]);
+    setConnectedUsers(new Set());
+    setConnectedUsersData([]);
+    setSentRequests(new Set());
+    setReceivedRequests(new Set());
+    setLikerProfilesData([]);
+    setNotifications([]);
+  };
+
   // User will be set from backend after authentication
   const [user, setUser] = useState(null);
 
@@ -54,7 +71,10 @@ export const AppProvider = ({ children }) => {
     const loadProfileData = async () => {
       const userId = user?.id;
       if (!user || !userId) return;
-      if (isLoadingProfileData) return; // Prevent duplicate fetches
+      // This effect keys on user?.id, so a re-run means the profile changed —
+      // it must NOT be short-circuited by an in-flight load for the OLD profile
+      // (F6-02). The stale guard below discards a superseded result instead.
+      activeProfileIdRef.current = userId;
 
       const startTime = performance.now();
       console.log('🔄 [AppContext] Starting to load profile data for:', userId);
@@ -67,6 +87,10 @@ export const AppProvider = ({ children }) => {
         const data = await apiService.getProfileData(userId);
         const apiEndTime = performance.now();
         console.log(`✅ [AppContext] API call completed in ${(apiEndTime - apiStartTime).toFixed(0)}ms`);
+
+        // A profile switch during the fetch supersedes this result — discard it
+        // rather than land the old profile's graph on the new profile's cards.
+        if (activeProfileIdRef.current !== userId) return;
 
         setLikedProfiles(new Set(data.likedProfileIds || []));
         setLikedProfilesData(data.likedProfiles || []); // Store full profile objects
@@ -81,15 +105,9 @@ export const AppProvider = ({ children }) => {
         console.log(`✅ [AppContext] Profile data loaded in ${(endTime - startTime).toFixed(0)}ms`);
       } catch (error) {
         console.error('❌ [AppContext] Error loading profile data:', error);
-        // Reset to empty sets on error
-        setLikedProfiles(new Set());
-        setLikedProfilesData([]);
-        setConnectedUsers(new Set());
-        setConnectedUsersData([]);
-        setSentRequests(new Set());
-        setReceivedRequests(new Set());
-        setLikerProfilesData([]);
-        setNotifications([]);
+        // Only reset if this is still the active profile — a superseded load's
+        // error must not wipe the profile the user actually switched to.
+        if (activeProfileIdRef.current === userId) clearProfileGraph();
       } finally {
         setIsLoadingProfileData(false);
       }
@@ -169,8 +187,14 @@ export const AppProvider = ({ children }) => {
   const switchProfile = (profileId) => {
     const newProfile = userProfiles.find(p => p.id === profileId);
     if (newProfile) {
+      // Clear the previous profile's graph immediately so its like/connection/
+      // request state can't show on the new profile's cards during the reload
+      // (F6-02), and point the stale guard at the new profile so an in-flight
+      // fetch for the old one is discarded.
+      activeProfileIdRef.current = profileId;
+      clearProfileGraph();
       setUser(newProfile);
-      // Profile data will reload automatically via useEffect
+      // Profile data reloads via the user?.id effect.
     }
   };
 
@@ -214,6 +238,10 @@ export const AppProvider = ({ children }) => {
         apiService.getProfileData(userId),
         apiService.getCurrentUser()
       ]);
+
+      // A profile switch during this poll/reload supersedes it — discard rather
+      // than clobber the new profile's graph with the old profile's data (F6-02).
+      if (activeProfileIdRef.current && activeProfileIdRef.current !== userId) return;
 
       // Publish only when something actually changed. One signature gates
       // ALL the setters: publishing fresh Set/array identities every poll

@@ -222,6 +222,22 @@ function App() {
     return () => window.removeEventListener('tora:open-premium', openPremium);
   }, []);
 
+  // Token expired/invalid mid-session (F6-01). api.js raises this on a
+  // token-rejection 401; without it the app looked logged in while every call
+  // failed, recovering only on a manual reload. Clear the dead token locally
+  // (no backend /logout — the token is already rejected) and drop to login.
+  useEffect(() => {
+    const onExpired = () => {
+      apiService.removeToken();
+      updateUser(null);
+      closeAllOverlays();
+      setActiveTab('profile');
+      setIsAuthenticated(false);
+    };
+    window.addEventListener('tora:session-expired', onExpired);
+    return () => window.removeEventListener('tora:session-expired', onExpired);
+  }, [updateUser]);
+
 
   // Check if user is already logged in
   useEffect(() => {

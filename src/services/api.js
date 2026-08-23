@@ -61,6 +61,17 @@ class ApiService {
         window.dispatchEvent(new CustomEvent('tora:offer-limit', { detail: errorData }));
       }
 
+      // Token expired/invalid mid-session (F6-01). The auth middleware returns
+      // 401 with a token-mentioning message; operation-level 401s (bad login,
+      // wrong current password) do not mention "token" and login bypasses this
+      // handler entirely, so this fires only on a genuinely dead session. One
+      // global signal — App.js clears the token and shows login — instead of
+      // every call site failing silently until a manual reload.
+      if (response.status === 401 && /token/i.test(errorData.error || '')
+          && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('tora:session-expired', { detail: errorData }));
+      }
+
       // Create an error object that mimics axios structure
       const error = new Error(errorData.message || errorData.error || 'Request failed');
       error.response = {
