@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, PaymentElement, AddressElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import apiService from '../../services/api';
 import { useLanguage } from '../../contexts/LanguageContext';
 
@@ -40,6 +40,34 @@ const PromoBanner = ({ coupon, amountDue, t }) => {
           : coupon.name}
       </span>
     </div>
+  );
+};
+
+// Billing-address step — shown only when the backend answers ADDRESS_REQUIRED
+// (Stripe Tax is on and the customer has no saved address). Stripe's own
+// AddressElement handles countries/ISO codes/autocomplete; we pass the result
+// back so the subscribe call can be retried with it.
+const AddressStep = ({ onContinue, t }) => {
+  const elements = useElements();
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!elements || busy) return;
+    setBusy(true);
+    const { complete, value } = await elements.getElement(AddressElement).getValue();
+    if (!complete) { setBusy(false); return; } // element shows its own field errors
+    onContinue(value.address); // { country (ISO-2), postal_code, city, line1, state }
+  };
+
+  return (
+    <form onSubmit={submit}>
+      <p className="m-0 mb-3 text-sm text-white/70">{t('premium.billingAddress')}</p>
+      <AddressElement options={{ mode: 'billing' }} />
+      <button type="submit" className="btn btn-primary btn-full mt-5" disabled={busy}>
+        {busy ? t('premium.processing') : t('premium.billingAddressContinue')}
+      </button>
+    </form>
   );
 };
 
@@ -112,11 +140,19 @@ const StripeCheckout = ({ profileId, interval, seats, extraItem, onSuccess, onQu
     // setState after a real unmount is a safe no-op in React 18.
     if (startedKeyRef.current === startKey) return undefined;
     startedKeyRef.current = startKey;
-    // Two flavours share one embedded flow: subscriptions/plan changes, and
-    // one-off extras (+likes / +connections / +offers).
+    begin();
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startKey]);
+
+  // Two flavours share one embedded flow: subscriptions/plan changes, and
+  // one-off extras (+likes / +connections / +offers). With Stripe Tax on, the
+  // backend rejects a first-time subscribe with ADDRESS_REQUIRED — we show the
+  // address step and re-run with the collected address.
+  const begin = (billingAddress) => {
     const start = extraItem
       ? apiService.purchaseExtra({ profileId, item: extraItem })
-      : apiService.startSubscription({ profileId, interval, seats });
+      : apiService.startSubscription({ profileId, interval, seats, billingAddress });
     start
       .then((res) => {
         setState({ ...res });
@@ -125,12 +161,14 @@ const StripeCheckout = ({ profileId, interval, seats, extraItem, onSuccess, onQu
         if (onQuote) onQuote({ amountDue: res.amountDue ?? null, change: !!res.change, coupon: !!res.coupon });
       })
       .catch((e) => {
+        if (e.response?.data?.code === 'ADDRESS_REQUIRED') {
+          setState({ addressRequired: true });
+          return;
+        }
         startedKeyRef.current = null; // allow a retry after a failure
         setState({ error: e.message || t('premium.paymentFailed') });
       });
-    return undefined;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startKey]);
+  };
 
   // Plan change charged to the card on file (no new card entry needed) — the
   // backend already applied the new tier; just finish the flow.
@@ -148,6 +186,16 @@ const StripeCheckout = ({ profileId, interval, seats, extraItem, onSuccess, onQu
 
   if (state.loading) return <p className="py-6 text-center text-sm text-white/50">{t('common.loading')}</p>;
   if (state.error) return <p className="py-6 text-center text-sm text-infrared">{state.error}</p>;
+  if (state.addressRequired) {
+    return (
+      <Elements stripe={stripePromise} options={{ appearance }}>
+        <AddressStep
+          t={t}
+          onContinue={(address) => { setState({ loading: true }); begin(address); }}
+        />
+      </Elements>
+    );
+  }
   if (state.mode === 'none') return <p className="py-6 text-center text-sm text-white/50">{t('premium.processing')}</p>;
   if (!options) return <p className="py-6 text-center text-sm text-white/50">{t('premium.notConfigured')}</p>;
 

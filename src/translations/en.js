@@ -555,6 +555,8 @@ const en = {
     promoOff: '{{percent}}% off applied',
     promoDueToday: '{{due}} due today',
     subscribeNow: 'Subscribe Now',
+    billingAddress: 'Billing address',
+    billingAddressContinue: 'Continue',
     startExploring: 'Start Exploring',
     sendOffers: 'Send Offers',
     perMonth: '{{n}} x month',

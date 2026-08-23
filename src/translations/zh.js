@@ -527,6 +527,8 @@ const zh = {
     promoOff: '已享 {{percent}}% 折扣',
     promoDueToday: '今日应付 {{due}}',
     subscribeNow: '立即订阅',
+    billingAddress: '账单地址',
+    billingAddressContinue: '继续',
     startExploring: '开始探索',
     sendOffers: '发送报价',
     perMonth: '每月{{n}}次',

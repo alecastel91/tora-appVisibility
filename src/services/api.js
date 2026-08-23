@@ -369,11 +369,11 @@ class ApiService {
   }
 
   // ---- Billing (Stripe) ----
-  async startSubscription({ profileId, interval, seats }) {
+  async startSubscription({ profileId, interval, seats, billingAddress }) {
     const response = await fetch(`${API_URL}/billing/subscribe`, {
       method: 'POST',
       headers: this.getHeaders(),
-      body: JSON.stringify({ profileId, interval, seats }),
+      body: JSON.stringify({ profileId, interval, seats, billingAddress }),
     });
     return this.handleResponse(response);
   }

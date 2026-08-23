@@ -527,6 +527,8 @@ const fr = {
     promoOff: '{{percent}}% de réduction appliquée',
     promoDueToday: '{{due}} à payer aujourd\'hui',
     subscribeNow: 'S\'abonner maintenant',
+    billingAddress: 'Adresse de facturation',
+    billingAddressContinue: 'Continuer',
     startExploring: 'Commencer à explorer',
     sendOffers: 'Envoi d\'offres',
     perMonth: '{{n}} par mois',

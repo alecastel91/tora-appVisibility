@@ -527,6 +527,8 @@ const es = {
     promoOff: '{{percent}}% de descuento aplicado',
     promoDueToday: '{{due}} a pagar hoy',
     subscribeNow: 'Suscribirse ahora',
+    billingAddress: 'Dirección de facturación',
+    billingAddressContinue: 'Continuar',
     startExploring: 'Empieza a explorar',
     sendOffers: 'Envío de ofertas',
     perMonth: '{{n}} al mes',

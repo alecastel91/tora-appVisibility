@@ -527,6 +527,8 @@ const ko = {
     promoOff: '{{percent}}% 할인 적용',
     promoDueToday: '오늘 결제 {{due}}',
     subscribeNow: '지금 구독하기',
+    billingAddress: '청구지 주소',
+    billingAddressContinue: '계속',
     startExploring: '시작하기',
     sendOffers: '오퍼 보내기',
     perMonth: '월 {{n}}회',

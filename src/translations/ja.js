@@ -527,6 +527,8 @@ const ja = {
     promoOff: '{{percent}}%オフ適用',
     promoDueToday: '本日のお支払い {{due}}',
     subscribeNow: '今すぐ登録',
+    billingAddress: '請求先住所',
+    billingAddressContinue: '続行',
     startExploring: 'さっそく始める',
     sendOffers: 'オファー送信',
     perMonth: '月{{n}}回',
