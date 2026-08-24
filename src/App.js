@@ -310,6 +310,13 @@ function App() {
 
   // Fetch unread messages count (includes both unread messages and connection requests)
   useEffect(() => {
+    // Clear the previous profile's badges immediately on switch (F6-02): these
+    // counts are App-level state, so without this reset the new profile's tab
+    // bar briefly shows the old profile's unread count / bookings dot until the
+    // async refetch below lands. Zero-then-fill avoids the cross-profile flash.
+    setUnreadMessagesCount(0);
+    setBookingsActionCount(0);
+
     const fetchUnreadCount = async () => {
       if (!isAuthenticated || !user || !user.id) return;
 
