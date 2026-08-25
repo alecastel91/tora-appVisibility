@@ -570,7 +570,7 @@ const ko = {
     body: '오퍼, 메시지, 커넥션 요청이 도착하면 알림을 받아보세요.',
     enable: '알림 켜기',
     later: '나중에',
-    iosInstallHint: 'iPhone에서 알림을 받으려면 먼저 TORA를 설치하세요: 공유 버튼을 누르고 "홈 화면에 추가"를 선택한 뒤 앱에서 알림을 켜세요.',
+    iosInstallHint: 'iPhone에서 알림을 받으려면 Safari 또는 Chrome에서 TORA를 열고, 공유 버튼을 누른 뒤 "홈 화면에 추가"를 선택하고, 설치된 앱에서 알림을 켜세요.',
     deniedHint: '브라우저 설정에서 TORA 알림이 차단되어 있습니다 — 먼저 그곳에서 다시 허용해 주세요.',
     unsupportedHint: '이 브라우저는 푸시 알림을 지원하지 않습니다.',
     cat_likes: '좋아요',

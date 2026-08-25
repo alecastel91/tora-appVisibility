@@ -570,7 +570,7 @@ const en = {
     body: 'Get notified when offers, messages and connection requests arrive.',
     enable: 'Enable notifications',
     later: 'Not now',
-    iosInstallHint: 'To get notifications on iPhone, first install TORA: tap Share, then "Add to Home Screen", and enable them from the app.',
+    iosInstallHint: 'To get notifications on iPhone, open TORA in Safari or Chrome, tap Share, then "Add to Home Screen", and enable them from the installed app.',
     deniedHint: 'Notifications are blocked for TORA in your browser settings — re-enable them there first.',
     unsupportedHint: 'This browser does not support push notifications.',
     cat_likes: 'Likes',

@@ -570,7 +570,7 @@ const fr = {
     body: 'Soyez averti à l\'arrivée d\'offres, de messages et de demandes de connexion.',
     enable: 'Activer les notifications',
     later: 'Plus tard',
-    iosInstallHint: 'Pour recevoir les notifications sur iPhone, installez d\'abord TORA : touchez Partager puis « Sur l\'écran d\'accueil », et activez-les depuis l\'app.',
+    iosInstallHint: 'Pour recevoir les notifications sur iPhone, ouvrez TORA dans Safari ou Chrome, touchez Partager puis « Sur l\'écran d\'accueil », et activez-les depuis l\'app installée.',
     deniedHint: 'Les notifications TORA sont bloquées dans les réglages du navigateur — réactivez-les d\'abord là-bas.',
     unsupportedHint: 'Ce navigateur ne prend pas en charge les notifications push.',
     cat_likes: 'J\'aime',

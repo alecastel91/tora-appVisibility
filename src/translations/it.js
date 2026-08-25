@@ -570,7 +570,7 @@ const it = {
     body: 'Ricevi un avviso quando arrivano offerte, messaggi e richieste di connessione.',
     enable: 'Attiva le notifiche',
     later: 'Non ora',
-    iosInstallHint: 'Per ricevere le notifiche su iPhone, installa prima TORA: tocca Condividi, poi "Aggiungi a Home", e attivale dall\'app.',
+    iosInstallHint: 'Per ricevere le notifiche su iPhone, apri TORA in Safari o Chrome, tocca Condividi, poi "Aggiungi a Home", e attivale dall\'app installata.',
     deniedHint: 'Le notifiche di TORA sono bloccate nelle impostazioni del browser — riattivale prima lì.',
     unsupportedHint: 'Questo browser non supporta le notifiche push.',
     cat_likes: 'Mi piace',
