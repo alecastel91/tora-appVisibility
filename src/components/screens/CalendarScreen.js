@@ -1157,23 +1157,26 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
             </div>
           )}
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>{t('calendar.startDate')}</label>
-              <input
-                type="date"
-                value={scheduleForm.startDate}
-                onChange={(e) => setScheduleForm({...scheduleForm, startDate: e.target.value})}
-              />
-            </div>
-            <div className="form-group">
-              <label>{t('calendar.endDate')}</label>
-              <input
-                type="date"
-                value={scheduleForm.endDate}
-                onChange={(e) => setScheduleForm({...scheduleForm, endDate: e.target.value})}
-              />
-            </div>
+          {/* One date per line: iOS native date pills ignore width rules, so
+              side-by-side always overlapped. form-input opts out of native
+              appearance (same as MakeOffer/EditProfile dates). */}
+          <div className="form-group">
+            <label>{t('calendar.startDate')}</label>
+            <input
+              className="form-input"
+              type="date"
+              value={scheduleForm.startDate}
+              onChange={(e) => setScheduleForm({...scheduleForm, startDate: e.target.value})}
+            />
+          </div>
+          <div className="form-group">
+            <label>{t('calendar.endDate')}</label>
+            <input
+              className="form-input"
+              type="date"
+              value={scheduleForm.endDate}
+              onChange={(e) => setScheduleForm({...scheduleForm, endDate: e.target.value})}
+            />
           </div>
 
 

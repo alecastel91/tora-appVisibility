@@ -521,7 +521,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
 
             <div className="form-group">
               <label>{t('tour.date')} *</label>
-              <input
+              <input className="form-input"
                 type="date"
                 value={formData.date}
                 onChange={(e) => handleChange('date', e.target.value)}
@@ -874,7 +874,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
             <div className="form-row">
               <div className="form-group">
                 <label>{t('offer.depositDeadline')}</label>
-                <input
+                <input className="form-input"
                   type="date"
                   value={formData.depositDeadline}
                   onChange={(e) => handleChange('depositDeadline', e.target.value)}
@@ -883,7 +883,7 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
               </div>
               <div className="form-group">
                 <label>{t('offer.finalPaymentDeadline')}</label>
-                <input
+                <input className="form-input"
                   type="date"
                   value={formData.finalPaymentDeadline}
                   onChange={(e) => handleChange('finalPaymentDeadline', e.target.value)}

@@ -2588,7 +2588,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                   <div className="form-row">
                     <div className="form-group">
                       <label>{t('offer.depositDeadline')}</label>
-                      <input
+                      <input className="form-input"
                         type="date"
                         value={reviewData.depositDeadline || ''}
                         onChange={(e) => setReviewData({ ...reviewData, depositDeadline: e.target.value })}
@@ -2597,7 +2597,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                     </div>
                     <div className="form-group">
                       <label>{t('offer.finalPaymentDeadline')}</label>
-                      <input
+                      <input className="form-input"
                         type="date"
                         value={reviewData.finalPaymentDeadline || ''}
                         onChange={(e) => setReviewData({ ...reviewData, finalPaymentDeadline: e.target.value })}
