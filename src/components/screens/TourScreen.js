@@ -761,7 +761,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     <div
                       key={`${s.profile.id}-${s.startDate}-${i}`}
                       className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 cursor-pointer hover:border-infrared/40 transition-colors"
-                      onClick={() => handleProfileClick(s.profile.id)}
+                      onClick={() => setViewingProfile(s.profile)}
                     >
                       <div className={`match-avatar avatar-${(s.profile.role || 'artist').toLowerCase()} shrink-0`}>
                         {s.profile.avatar
@@ -771,7 +771,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold text-white truncate">{s.profile.name}</span>
-                          <span className={`role-badge ${(s.profile.role || '').toLowerCase()}`}>{s.profile.role}</span>
+                          <span className={`role-badge ${(s.profile.role || '').toLowerCase()} self-center leading-none`}>{s.profile.role}</span>
                           {s.tier === 0 && (
                             <span className="text-[9px] uppercase tracking-[0.12em] text-emerald-400/90 font-tech">{t('tour.feedConnected')}</span>
                           )}
