@@ -567,7 +567,7 @@ const en = {
     title: 'Get the TORA app',
     subtitle: 'Add TORA to your home screen — full screen, faster launch, and push notifications for offers and messages.',
     cta: 'Install app',
-    ios1: 'Tap the Share button in your browser bar.',
+    ios1: 'Tap the Share button',
     ios2: 'Choose "Add to Home Screen", then open TORA from your home screen.',
     genericHint: 'In your browser menu, choose "Add to Home Screen" or "Install app".',
     later: 'Not now',

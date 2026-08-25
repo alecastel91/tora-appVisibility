@@ -567,7 +567,7 @@ const it = {
     title: 'Scarica l\'app TORA',
     subtitle: 'Aggiungi TORA alla schermata Home: schermo intero, avvio più rapido e notifiche push per offerte e messaggi.',
     cta: 'Installa l\'app',
-    ios1: 'Tocca il pulsante Condividi nella barra del browser.',
+    ios1: 'Tocca il pulsante Condividi',
     ios2: 'Scegli "Aggiungi a Home", poi apri TORA dalla schermata Home.',
     genericHint: 'Nel menu del browser, scegli "Aggiungi a schermata Home" o "Installa app".',
     later: 'Non ora',

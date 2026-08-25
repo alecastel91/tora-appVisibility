@@ -653,18 +653,26 @@ function App() {
     }
     if (authMode === 'signup') {
       return (
-        <SignupScreen
-          onSignupSuccess={handleSignupSuccess}
-          onSwitchToLogin={() => setAuthMode('login')}
-        />
+        <>
+          <SignupScreen
+            onSignupSuccess={handleSignupSuccess}
+            onSwitchToLogin={() => setAuthMode('login')}
+          />
+          <InstallSheet delay={4500} />
+        </>
       );
     }
     return (
-      <LoginScreen
-        onLoginSuccess={handleLoginSuccess}
-        onSwitchToSignup={() => setAuthMode('signup')}
-        onSwitchToForgotPassword={() => setAuthMode('forgot')}
-      />
+      <>
+        <LoginScreen
+          onLoginSuccess={handleLoginSuccess}
+          onSwitchToSignup={() => setAuthMode('signup')}
+          onSwitchToForgotPassword={() => setAuthMode('forgot')}
+        />
+        {/* Install CTA before login too — long delay so the intro splash
+            (form fades in ~2.8s, splash gone at 3.5s) finishes first. */}
+        <InstallSheet delay={4500} />
+      </>
     );
   }
 

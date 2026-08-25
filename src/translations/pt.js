@@ -567,7 +567,7 @@ const pt = {
     title: 'Baixe o app TORA',
     subtitle: 'Adicione o TORA à sua tela de início: tela cheia, abertura mais rápida e notificações push de ofertas e mensagens.',
     cta: 'Instalar app',
-    ios1: 'Toque no botão Compartilhar na barra do navegador.',
+    ios1: 'Toque no botão Compartilhar',
     ios2: 'Escolha "Adicionar à Tela de Início" e abra o TORA pela tela de início.',
     genericHint: 'No menu do seu navegador, escolha "Adicionar à tela de início" ou "Instalar aplicativo".',
     later: 'Agora não',
