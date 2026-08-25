@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef , useMemo } from 'react';
+import OverlayPortal from '../common/OverlayPortal';
 import { createPortal } from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
@@ -1800,7 +1801,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
 
       {/* Custom Delete Confirmation Modal */}
       {dealToDelete && (
-        <div className="delete-modal-overlay" onClick={() => setDealToDelete(null)}>
+        <OverlayPortal><div className="delete-modal-overlay" onClick={() => setDealToDelete(null)}>
           <div className="delete-modal" onClick={(e) => e.stopPropagation()}>
             <div className="delete-modal-header">
               <h3>{t('bookings.deleteOffer')}</h3>
@@ -1825,7 +1826,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Decline Offer Modal */}
@@ -1866,7 +1867,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       )}
 
       {dealToCancel && (
-        <div className="delete-modal-overlay" onClick={() => {
+        <OverlayPortal><div className="delete-modal-overlay" onClick={() => {
           setDealToCancel(null);
           setCancelReason('');
         }}>
@@ -1905,7 +1906,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {dealToDecline && (
@@ -1952,7 +1953,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
 
       {/* Send Contract Modal */}
       {showContractModal && selectedDealForWorkflow && (
-        <div className="delete-modal-overlay" onClick={() => {
+        <OverlayPortal><div className="delete-modal-overlay" onClick={() => {
           setShowContractModal(false);
           setSelectedDealForWorkflow(null);
         }}>
@@ -2027,7 +2028,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       <ShareDocumentsModal
@@ -2054,7 +2055,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
 
       {/* Update Payment Modal */}
       {showPaymentModal && selectedDealForWorkflow && (
-        <div className="delete-modal-overlay" onClick={() => {
+        <OverlayPortal><div className="delete-modal-overlay" onClick={() => {
           setShowPaymentModal(false);
           setSelectedDealForWorkflow(null);
           setDepositInput('');
@@ -2239,7 +2240,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Add Contract Modal */}
@@ -2404,7 +2405,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         );
 
         return (
-          <div className="delete-modal-overlay" onClick={() => setDepositHistoryDeal(null)}>
+          <OverlayPortal><div className="delete-modal-overlay" onClick={() => setDepositHistoryDeal(null)}>
             <div className="delete-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '560px' }}>
               <div className="delete-modal-header">
                 <h3>{t('bookings.payments')}</h3>
@@ -2468,7 +2469,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                 <button className="btn btn-outline" onClick={() => setDepositHistoryDeal(null)}>{t('common.close')}</button>
               </div>
             </div>
-          </div>
+          </div></OverlayPortal>
         );
       })(), document.body)}
 
@@ -2525,7 +2526,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
 
       {/* Withdraw Contract Confirmation Modal */}
       {showWithdrawConfirmation && dealToWithdraw && (
-        <div className="delete-modal-overlay" onClick={() => {
+        <OverlayPortal><div className="delete-modal-overlay" onClick={() => {
           setShowWithdrawConfirmation(false);
           setDealToWithdraw(null);
         }}>
@@ -2575,7 +2576,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
     </div>
   );

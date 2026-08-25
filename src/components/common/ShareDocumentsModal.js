@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import OverlayPortal from './OverlayPortal';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import apiService from '../../services/api';
 import { uploadDocument } from '../../services/contractService';
@@ -36,7 +37,7 @@ const ShareDocumentsModal = ({ isOpen, deal, currentUser, onClose, onDealUpdated
   if (!isOpen || !localDeal) return null;
 
   return (
-    <div className="delete-modal-overlay" onClick={onClose}>
+    <OverlayPortal><div className="delete-modal-overlay" onClick={onClose}>
       <div className="delete-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '560px' }}>
         <div className="delete-modal-header">
           <h3>{t('chat.shareDocuments')}</h3>
@@ -232,7 +233,7 @@ const ShareDocumentsModal = ({ isOpen, deal, currentUser, onClose, onDealUpdated
           <button className="btn btn-outline" onClick={onClose}>{t('common.done')}</button>
         </div>
       </div>
-    </div>
+    </div></OverlayPortal>
   );
 };
 

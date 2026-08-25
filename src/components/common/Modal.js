@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
   useEffect(() => {
@@ -15,7 +16,9 @@ const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
 
   if (!isOpen) return null;
 
-  return (
+  // Portaled to <body>: transformed ancestors (beta banner's #root shift)
+  // re-anchor position:fixed and clip the dialog under the header/tab bar.
+  return createPortal(
     <div className={`modal ${isOpen ? 'active' : ''} ${className}`} onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
@@ -26,7 +29,8 @@ const Modal = ({ isOpen, onClose, title, children, className = '' }) => {
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

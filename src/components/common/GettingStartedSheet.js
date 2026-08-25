@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import OverlayPortal from './OverlayPortal';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { SearchIcon, HandshakeIcon, PlaneIcon, ProfileIcon, BookingsIcon, StarIcon } from '../../utils/icons';
 
@@ -48,7 +49,7 @@ const GettingStartedSheet = ({ open, onClose }) => {
   const last = index === SLIDES.length - 1;
 
   return (
-    <div className="onboarding-overlay">
+    <OverlayPortal><div className="onboarding-overlay">
       <div className="onboarding-sheet">
         <div className="onboarding-top">
           <img src="/tora_logo.png" alt="TORA" className="onboarding-brand-logo" />
@@ -87,7 +88,7 @@ const GettingStartedSheet = ({ open, onClose }) => {
           {last ? t('onboarding.done') : t('onboarding.next')}
         </button>
       </div>
-    </div>
+    </div></OverlayPortal>
   );
 };
 

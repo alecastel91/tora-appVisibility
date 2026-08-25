@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import OverlayPortal from './OverlayPortal';
 import apiService from '../../services/api';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAppContext } from '../../contexts/AppContext';
@@ -75,7 +76,7 @@ const AssistantChat = () => {
   return (
     <>
       {open && (
-        <div className="assistant-overlay" onClick={() => setOpen(false)}>
+        <OverlayPortal><div className="assistant-overlay" onClick={() => setOpen(false)}>
           <div className="assistant-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="assistant-header">
               <div>
@@ -112,7 +113,7 @@ const AssistantChat = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
     </>
   );

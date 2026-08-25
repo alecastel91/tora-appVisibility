@@ -1061,7 +1061,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     if (!showCreateTourModal) return null;
 
     const modalContent = (
-      <div className="create-tour-modal-overlay md-drawer" onClick={() => setShowCreateTourModal(false)}>
+      <OverlayPortal><div className="create-tour-modal-overlay md-drawer" onClick={() => setShowCreateTourModal(false)}>
         <div className="modal-content create-tour-modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <h2>{t('tour.createTour')}</h2>
@@ -1252,7 +1252,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             </div>
           </div>
         </div>
-      </div>
+      </div></OverlayPortal>
     );
 
     // Render modal using portal to escape the TourScreen stacking context
@@ -1264,7 +1264,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     if (!showEditTourModal || !selectedTour) return null;
 
     const modalContent = (
-      <div className="create-tour-modal-overlay md-drawer" onClick={() => setShowEditTourModal(false)}>
+      <OverlayPortal><div className="create-tour-modal-overlay md-drawer" onClick={() => setShowEditTourModal(false)}>
         <div className="modal-content create-tour-modal" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <h2>{t('tour.editTour')}</h2>
@@ -1426,7 +1426,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             </div>
           </div>
         </div>
-      </div>
+      </div></OverlayPortal>
     );
 
     // Render modal using portal to escape the TourScreen stacking context

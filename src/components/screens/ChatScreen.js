@@ -2407,7 +2407,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
       {/* Review/Counter-Offer Modal */}
       {showReviewModal && (
-        <div className="modal active review-modal-wrapper" onClick={() => setShowReviewModal(false)}>
+        <OverlayPortal><div className="modal active review-modal-wrapper" onClick={() => setShowReviewModal(false)}>
           <div className="review-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{t('chat.reviewOffer')}</h3>
@@ -2625,7 +2625,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Counter-Offer Details Modal */}
