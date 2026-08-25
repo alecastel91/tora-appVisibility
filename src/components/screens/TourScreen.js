@@ -780,8 +780,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           )}
                         </div>
                         <p className="m-0 mt-0.5 text-xs text-white/55 truncate">
+                          {s.kind === 'availability' && (
+                            <span className="text-amber-300/80">{t('tour.feedOpenDates')} · </span>
+                          )}
                           {[s.destCity, s.destCountry].filter(Boolean).join(', ') || s.zone}
-                          <span className="text-white/35"> · {s.startDate} → {s.endDate}</span>
+                          <span className="text-white/35"> · {s.startDate}{s.endDate !== s.startDate ? ` → ${s.endDate}` : ''}</span>
                         </p>
                       </div>
                     </div>

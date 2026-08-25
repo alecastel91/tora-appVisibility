@@ -817,6 +817,7 @@ const ko = {
     travelFeedHint: '업계의 움직임 — 날짜 매칭을 넘어선 모든 예정 일정.',
     travelFeedEmpty: '현재 활성 일정이 없습니다.',
     feedConnected: '커넥션',
+    feedOpenDates: '가능 날짜',
     feedLiked: '좋아요',
     noMatchesMessage: '캘린더나 이벤트와 일치하는 프로필이 없습니다.',
     tipsTitle: '더 많은 매치를 위한 팁',

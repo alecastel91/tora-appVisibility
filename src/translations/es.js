@@ -817,6 +817,7 @@ const es = {
     travelFeedHint: 'Hacia dónde va la industria — todas las agendas próximas, más allá de tus coincidencias de fechas.',
     travelFeedEmpty: 'No hay agendas activas ahora mismo.',
     feedConnected: 'Conectado',
+    feedOpenDates: 'Fechas libres',
     feedLiked: 'Me gusta',
     noMatchesMessage: 'Ningún perfil compatible con tu calendario o tus eventos.',
     tipsTitle: 'Consejos para conseguir más matches',

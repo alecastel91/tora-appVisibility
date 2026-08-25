@@ -817,6 +817,7 @@ const zh = {
     travelFeedHint: '行业动向一览 — 所有即将到来的行程，不限于你的日期匹配。',
     travelFeedEmpty: '目前没有活跃的行程。',
     feedConnected: '已联络',
+    feedOpenDates: '空档日期',
     feedLiked: '已喜欢',
     noMatchesMessage: '没有与你的日历或活动匹配的档案。',
     tipsTitle: '获得更多匹配的技巧',

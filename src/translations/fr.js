@@ -817,6 +817,7 @@ const fr = {
     travelFeedHint: 'Où va l\'industrie — tous les déplacements à venir, au-delà de vos correspondances de dates.',
     travelFeedEmpty: 'Aucun agenda actif pour le moment.',
     feedConnected: 'Connecté',
+    feedOpenDates: 'Dates libres',
     feedLiked: 'Aimé',
     noMatchesMessage: 'Aucun profil compatible avec votre calendrier ou vos événements.',
     tipsTitle: "Conseils pour obtenir plus de matchs",

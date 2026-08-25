@@ -817,6 +817,7 @@ const en = {
     travelFeedHint: 'Where the industry is heading — every upcoming schedule, beyond your date matches.',
     travelFeedEmpty: 'No active schedules right now.',
     feedConnected: 'Connected',
+    feedOpenDates: 'Open dates',
     feedLiked: 'Liked',
     noMatchesMessage: 'No profiles match your travel schedule or events.',
     tipsTitle: 'Tips to get more matches',

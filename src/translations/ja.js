@@ -817,6 +817,7 @@ const ja = {
     travelFeedHint: '業界の動きが見える — 日程マッチ以外も含む、今後のすべてのスケジュール。',
     travelFeedEmpty: '現在アクティブなスケジュールはありません。',
     feedConnected: 'コネクション',
+    feedOpenDates: '空き日程',
     feedLiked: 'いいね済み',
     noMatchesMessage: '旅行スケジュールやイベントに一致するプロフィールがありません。',
     tipsTitle: 'マッチを増やすヒント',
