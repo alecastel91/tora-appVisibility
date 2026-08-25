@@ -771,12 +771,14 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold text-white truncate">{s.profile.name}</span>
-                          <span className={`role-badge ${(s.profile.role || '').toLowerCase()} self-center leading-none`}>{s.profile.role}</span>
-                          {s.tier === 0 && (
-                            <span className="text-[9px] uppercase tracking-[0.12em] text-emerald-400/90 font-tech">{t('tour.feedConnected')}</span>
+                          <span className={`role-badge ${(s.profile.role || '').toLowerCase()} self-center leading-none relative -top-[1.5px]`}>{s.profile.role}</span>
+                          {s.connected && (
+                            <span className="text-[9px] uppercase tracking-[0.12em] text-emerald-400/90 font-tech self-center">{t('tour.feedConnected')}</span>
                           )}
-                          {s.tier === 1 && (
-                            <span className="text-[9px] uppercase tracking-[0.12em] text-infrared/80 font-tech">{t('tour.feedLiked')}</span>
+                          {s.liked && (
+                            <span className="self-center text-infrared [&_svg]:w-3 [&_svg]:h-3" aria-label={t('tour.feedLiked')}>
+                              <HeartIcon filled />
+                            </span>
                           )}
                         </div>
                         <p className="m-0 mt-0.5 text-xs text-white/55 truncate">
