@@ -571,6 +571,10 @@ const en = {
     ios2: 'Choose "Add to Home Screen", then open TORA from your home screen.',
     genericHint: 'In your browser menu, choose "Add to Home Screen" or "Install app".',
     later: 'Not now',
+    settingsSection: 'TORA App',
+    settingsBody: 'Install TORA on your device for full screen, faster launch and push notifications.',
+    settingsCta: 'Install the app',
+    installedNote: 'The app is installed on this device.',
   },
   push: {
     settingsSection: 'Notifications',

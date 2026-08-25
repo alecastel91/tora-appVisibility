@@ -571,6 +571,10 @@ const zh = {
     ios2: '选择"添加到主屏幕"，然后从主屏幕打开 TORA。',
     genericHint: '在浏览器菜单中选择"添加到主屏幕"或"安装应用"。',
     later: '暂不',
+    settingsSection: 'TORA 应用',
+    settingsBody: '将 TORA 安装到您的设备：全屏体验、更快启动和推送通知。',
+    settingsCta: '安装应用',
+    installedNote: '此设备已安装该应用。',
   },
   push: {
     settingsSection: '通知',

@@ -571,6 +571,10 @@ const it = {
     ios2: 'Scegli "Aggiungi a Home", poi apri TORA dalla schermata Home.',
     genericHint: 'Nel menu del browser, scegli "Aggiungi a schermata Home" o "Installa app".',
     later: 'Non ora',
+    settingsSection: 'App TORA',
+    settingsBody: 'Installa TORA sul tuo dispositivo: schermo intero, avvio più rapido e notifiche push.',
+    settingsCta: 'Installa l\'app',
+    installedNote: 'L\'app è installata su questo dispositivo.',
   },
   push: {
     settingsSection: 'Notifiche',

@@ -39,7 +39,8 @@ import GuideScreen from './components/common/GuideScreen';
 import GettingStartedSheet from './components/common/GettingStartedSheet';
 import PushSettingsToggle from './components/common/PushSettingsToggle';
 import PushNudge from './components/common/PushNudge';
-import InstallSheet from './components/common/InstallSheet';
+import InstallSheet, { InstallSettingsSection } from './components/common/InstallSheet';
+import { isStandalone } from './services/install';
 import { appConfirm, appAlert } from './utils/dialogs';
 
 function App() {
@@ -222,6 +223,16 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, accountUser?.id]);
+  // Install tracking: running standalone means the PWA is installed — record
+  // it once per device (server keeps only the first timestamp per user).
+  useEffect(() => {
+    if (isAuthenticated && isStandalone() && !localStorage.getItem('tora:pwa-tracked')) {
+      apiService.markPwaInstalled()
+        .then(() => localStorage.setItem('tora:pwa-tracked', '1'))
+        .catch(() => {}); // retried on a later launch
+    }
+  }, [isAuthenticated]);
+
   const closeGettingStarted = () => {
     if (accountUser?.id) localStorage.setItem(`tora:onboarded:${accountUser.id}`, '1');
     setShowGettingStarted(false);
@@ -986,6 +997,11 @@ function App() {
             <div className="settings-section">
               <h3>{t('push.settingsSection')}</h3>
               <PushSettingsToggle />
+            </div>
+
+            <div className="settings-section">
+              <h3>{t('install.settingsSection')}</h3>
+              <InstallSettingsSection />
             </div>
 
             <div className="settings-section">

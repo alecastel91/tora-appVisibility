@@ -571,6 +571,10 @@ const fr = {
     ios2: 'Choisissez « Sur l\'écran d\'accueil », puis ouvrez TORA depuis votre écran d\'accueil.',
     genericHint: 'Dans le menu de votre navigateur, choisissez « Ajouter à l\'écran d\'accueil » ou « Installer l\'application ».',
     later: 'Plus tard',
+    settingsSection: 'App TORA',
+    settingsBody: 'Installez TORA sur votre appareil : plein écran, lancement plus rapide et notifications push.',
+    settingsCta: 'Installer l\'app',
+    installedNote: 'L\'app est installée sur cet appareil.',
   },
   push: {
     settingsSection: 'Notifications',

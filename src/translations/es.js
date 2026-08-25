@@ -571,6 +571,10 @@ const es = {
     ios2: 'Elige "Añadir a pantalla de inicio" y abre TORA desde tu pantalla de inicio.',
     genericHint: 'En el menú de tu navegador, elige "Añadir a pantalla de inicio" o "Instalar aplicación".',
     later: 'Ahora no',
+    settingsSection: 'App de TORA',
+    settingsBody: 'Instala TORA en tu dispositivo para pantalla completa, apertura más rápida y notificaciones push.',
+    settingsCta: 'Instalar la app',
+    installedNote: 'La app está instalada en este dispositivo.',
   },
   push: {
     settingsSection: 'Notificaciones',

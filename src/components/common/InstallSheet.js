@@ -5,6 +5,7 @@ import { isStandalone, isIos, canPromptInstall, promptInstall, onInstallAvailabi
 
 const DISMISS_KEY = 'tora-install-dismissed';
 const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000; // "Not now" hides for a week, not forever
+const OPEN_EVENT = 'tora:open-install'; // Settings row reopens the sheet on demand
 
 // The iOS Share glyph (box with arrow out the top), inline with the step text.
 const ShareGlyph = () => (
@@ -44,9 +45,17 @@ const InstallSheet = ({ delay = 900 }) => {
     // welcome, not a roadblock. Auth screens pass a longer delay to let the
     // intro splash finish.
     const timer = setTimeout(() => setVisible(true), delay);
-    const off = onInstallAvailabilityChange(() => setNativeReady(canPromptInstall()));
-    return () => { clearTimeout(timer); off(); };
+    return () => clearTimeout(timer);
   }, [delay]);
+
+  useEffect(() => {
+    // Registered regardless of snooze — the Settings "Get the app" row must
+    // always be able to reopen the sheet.
+    const onOpen = () => { if (!isStandalone()) setVisible(true); };
+    window.addEventListener(OPEN_EVENT, onOpen);
+    const off = onInstallAvailabilityChange(() => setNativeReady(canPromptInstall()));
+    return () => { window.removeEventListener(OPEN_EVENT, onOpen); off(); };
+  }, []);
 
   if (!visible) return null;
 
@@ -95,6 +104,32 @@ const InstallSheet = ({ delay = 900 }) => {
         </div>
       </div>
     </OverlayPortal>
+  );
+};
+
+/**
+ * Settings section: reopens the install sheet on demand, or confirms the app
+ * is already installed when running standalone.
+ */
+export const InstallSettingsSection = () => {
+  const { t } = useLanguage();
+  return (
+    <div className="settings-item">
+      {isStandalone() ? (
+        <p className="m-0 text-sm text-white/70">{t('install.installedNote')}</p>
+      ) : (
+        <>
+          <p className="m-0 mb-2 text-xs leading-relaxed text-white/50">{t('install.settingsBody')}</p>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))}
+          >
+            {t('install.settingsCta')}
+          </button>
+        </>
+      )}
+    </div>
   );
 };
 

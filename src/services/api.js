@@ -451,6 +451,14 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async markPwaInstalled() {
+    const response = await fetch(`${API_URL}/auth/pwa-installed`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
   async setPushPrefs(prefs) {
     const response = await fetch(`${API_URL}/push/prefs`, {
       method: 'PUT',

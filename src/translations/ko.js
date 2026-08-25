@@ -571,6 +571,10 @@ const ko = {
     ios2: '"홈 화면에 추가"를 선택한 뒤 홈 화면에서 TORA를 여세요.',
     genericHint: '브라우저 메뉴에서 "홈 화면에 추가" 또는 "앱 설치"를 선택하세요.',
     later: '나중에',
+    settingsSection: 'TORA 앱',
+    settingsBody: 'TORA를 기기에 설치하면 전체 화면, 더 빠른 실행, 푸시 알림을 이용할 수 있습니다.',
+    settingsCta: '앱 설치',
+    installedNote: '이 기기에는 앱이 설치되어 있습니다.',
   },
   push: {
     settingsSection: '알림',

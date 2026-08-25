@@ -571,6 +571,10 @@ const ja = {
     ios2: '「ホーム画面に追加」を選び、ホーム画面からTORAを開きます。',
     genericHint: 'ブラウザのメニューから「ホーム画面に追加」または「アプリをインストール」を選んでください。',
     later: '後で',
+    settingsSection: 'TORAアプリ',
+    settingsBody: 'TORAをデバイスにインストールすると、フルスクリーン表示・高速起動・プッシュ通知が利用できます。',
+    settingsCta: 'アプリをインストール',
+    installedNote: 'このデバイスにはアプリがインストール済みです。',
   },
   push: {
     settingsSection: '通知',
