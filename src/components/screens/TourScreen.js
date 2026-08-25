@@ -12,7 +12,7 @@ import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, Targe
 import { isVerificationGate } from '../../utils/errors';
 import apiService from '../../services/api';
 import LoadingGlobe from '../common/LoadingGlobe';
-import { citiesByCountry, countriesByZone, genresList } from '../../data/profiles';
+import { citiesByCountry, countriesByZone, genresList, zones } from '../../data/profiles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { isPremiumViewer, isYearlyViewer } from '../../utils/subscription';
 
@@ -111,8 +111,14 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [message, setMessage] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  // Multi-tick roles (none ticked = all). Agents excluded: they don't travel
+  // and aren't a booking counterpart in this view.
+  const [rolesFilter, setRolesFilter] = useState([]);
   const [monthFilter, setMonthFilter] = useState('all');
+  const [zoneFilter, setZoneFilter] = useState('all');
+  const [countryFilter, setCountryFilter] = useState('all');
+  const toggleRole = (r) => setRolesFilter((prev) =>
+    prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
   // Agents: filter matches down to a single represented artist.
   const [artistFilter, setArtistFilter] = useState('all');
   const [calendarMatches, setCalendarMatches] = useState([]);
@@ -131,7 +137,24 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     setFeedLoading(true);
     try {
       const page = reset ? 0 : feedPageRef.current;
-      const res = await apiService.getTravelFeed(user.id, page);
+      // Month filter ('sep-2026') → a [from, to] window for the server.
+      let from; let to;
+      if (monthFilter !== 'all') {
+        const [mon, year] = monthFilter.split('-');
+        const monthIdx = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(mon);
+        if (monthIdx >= 0) {
+          const y = Number(year);
+          from = `${y}-${String(monthIdx + 1).padStart(2, '0')}-01`;
+          const last = new Date(y, monthIdx + 1, 0).getDate();
+          to = `${y}-${String(monthIdx + 1).padStart(2, '0')}-${String(last).padStart(2, '0')}`;
+        }
+      }
+      const res = await apiService.getTravelFeed(user.id, page, {
+        roles: rolesFilter,
+        zone: zoneFilter !== 'all' ? zoneFilter : undefined,
+        country: countryFilter !== 'all' ? countryFilter : undefined,
+        from, to,
+      });
       feedPageRef.current = page + 1;
       setFeedHasMore(!!res.hasMore);
       setTravelFeed((prev) => (reset ? res.schedules : [...prev, ...res.schedules]));
@@ -146,7 +169,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       loadFeedPage(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, activeTab, isActive]);
+  }, [user?.id, activeTab, isActive, rolesFilter, monthFilter, zoneFilter, countryFilter]);
 
   useEffect(() => {
     const el = feedSentinelRef.current;
@@ -243,7 +266,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     const currentMonth = currentDate.getMonth();
     const currentYear = currentDate.getFullYear();
 
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 24; i++) {
       const monthIndex = (currentMonth + i) % 12;
       const year = currentYear + Math.floor((currentMonth + i) / 12);
       const monthName = months[monthIndex];
@@ -456,8 +479,16 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       return false;
     }
 
-    // Role filter
-    if (roleFilter !== 'all' && match.profile.role !== roleFilter) {
+    // Role filter (multi-tick; empty = all)
+    if (rolesFilter.length > 0 && !rolesFilter.includes(match.profile.role)) {
+      return false;
+    }
+
+    // Geography (the match's base location)
+    if (zoneFilter !== 'all' && match.profile.zone !== zoneFilter) {
+      return false;
+    }
+    if (countryFilter !== 'all' && match.profile.country !== countryFilter) {
       return false;
     }
 
@@ -591,43 +622,78 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             )}
 
             {/* Filters Section */}
-            <div className="matches-filters">
+            <div className="matches-filters flex-col items-stretch gap-3">
+              {/* Roles: multi-tick chips (none = all). Agents excluded. */}
               <div className="filter-group">
                 <label className="filter-label">{t('editProfile.role')}</label>
-                <select
-                  className="filter-select"
-                  value={roleFilter}
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                >
-                  <option value="all">{t('tour.allRoles')}</option>
-                  <option value="VENUE">{t('tour.venues')}</option>
-                  <option value="PROMOTER">{t('tour.promoters')}</option>
-                  <option value="AGENT">{t('tour.agents')}</option>
-                  <option value="ARTIST">{t('tour.artists')}</option>
-                </select>
-              </div>
-
-              <div className="filter-group">
-                <label className="filter-label">{t('tour.period')}</label>
-                <select
-                  className="filter-select"
-                  value={monthFilter}
-                  onChange={(e) => setMonthFilter(e.target.value)}
-                >
-                  {monthOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
+                <div className="flex flex-wrap gap-2">
+                  {[['ARTIST', t('tour.artists')], ['PROMOTER', t('tour.promoters')], ['VENUE', t('tour.venues')]].map(([r, label]) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => toggleRole(r)}
+                      className={`rounded-full border px-3.5 py-1.5 text-[10px] font-tech uppercase tracking-[0.15em] transition-colors cursor-pointer
+                        ${rolesFilter.includes(r)
+                          ? 'border-infrared text-infrared bg-infrared/10'
+                          : 'border-white/15 text-white/50 hover:text-white/80'}`}
+                    >
+                      {label}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
-              {(roleFilter !== 'all' || monthFilter !== 'all' || artistFilter !== 'all') && (
+              <div className="flex flex-wrap gap-3">
+                <div className="filter-group flex-1 min-w-[130px]">
+                  <label className="filter-label">{t('tour.period')}</label>
+                  <select
+                    className="filter-select"
+                    value={monthFilter}
+                    onChange={(e) => setMonthFilter(e.target.value)}
+                  >
+                    {monthOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter-group flex-1 min-w-[130px]">
+                  <label className="filter-label">{t('editProfile.zone')}</label>
+                  <select
+                    className="filter-select"
+                    value={zoneFilter}
+                    onChange={(e) => { setZoneFilter(e.target.value); setCountryFilter('all'); }}
+                  >
+                    <option value="all">{t('manageArtist.allZones')}</option>
+                    {zones.map((z) => <option key={z} value={z}>{z}</option>)}
+                  </select>
+                </div>
+
+                {zoneFilter !== 'all' && (
+                  <div className="filter-group flex-1 min-w-[130px]">
+                    <label className="filter-label">{t('editProfile.country')}</label>
+                    <select
+                      className="filter-select"
+                      value={countryFilter}
+                      onChange={(e) => setCountryFilter(e.target.value)}
+                    >
+                      <option value="all">{t('manageArtist.allCountries')}</option>
+                      {(countriesByZone[zoneFilter] || []).map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {(rolesFilter.length > 0 || monthFilter !== 'all' || zoneFilter !== 'all' || artistFilter !== 'all') && (
                 <button
-                  className="filter-clear-btn"
+                  className="filter-clear-btn self-start"
                   onClick={() => {
-                    setRoleFilter('all');
+                    setRolesFilter([]);
                     setMonthFilter('all');
+                    setZoneFilter('all');
+                    setCountryFilter('all');
                     setArtistFilter('all');
                   }}
                 >

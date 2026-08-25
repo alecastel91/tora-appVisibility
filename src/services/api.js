@@ -219,8 +219,14 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async getTravelFeed(profileId, page = 0) {
-    const response = await fetch(`${API_URL}/profiles/travel-feed?profileId=${encodeURIComponent(profileId)}&page=${page}`, {
+  async getTravelFeed(profileId, page = 0, filters = {}) {
+    const params = new URLSearchParams({ profileId, page: String(page) });
+    if (filters.roles?.length) params.set('roles', filters.roles.join(','));
+    if (filters.zone) params.set('zone', filters.zone);
+    if (filters.country) params.set('country', filters.country);
+    if (filters.from) params.set('from', filters.from);
+    if (filters.to) params.set('to', filters.to);
+    const response = await fetch(`${API_URL}/profiles/travel-feed?${params}`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
