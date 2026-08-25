@@ -575,8 +575,8 @@ const pt = {
     unsupportedHint: 'este navegador não suporta notificações push.',
     cat_likes: 'curtidas',
     cat_messages: 'mensagens',
-    cat_connections: 'conexões e representação',
-    cat_bookings: 'reservas e ofertas',
+    cat_connections: 'conexões',
+    cat_bookings: 'reservas',
     cat_news: 'TORA News',
   },
   settingsExtra: {

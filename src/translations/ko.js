@@ -575,8 +575,8 @@ const ko = {
     unsupportedHint: '이 브라우저는 푸시 알림을 지원하지 않습니다.',
     cat_likes: '좋아요',
     cat_messages: '메시지',
-    cat_connections: '커넥션 및 에이전트 계약',
-    cat_bookings: '부킹 및 오퍼',
+    cat_connections: '커넥션',
+    cat_bookings: '부킹',
     cat_news: 'TORA News',
   },
   settingsExtra: {

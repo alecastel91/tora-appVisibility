@@ -75,7 +75,9 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
     inFlightRef.current = true;
 
     try {
-      setLoading(true);
+      // Spinner only on the very first load — later refreshes (realtime,
+      // tab re-activation) swap data in place with no flash.
+      if (!dataLoaded) setLoading(true);
 
       // OPTIMIZED: Fetch both in parallel
       const [convos, requestsData, vouchData] = await Promise.all([
@@ -120,9 +122,9 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
   isActiveRef.current = isActive;
   const staleRef = React.useRef(false);
   useEffect(() => {
-    if (isActive && staleRef.current) {
+    if (isActive) {
       staleRef.current = false;
-      fetchData();
+      fetchData(); // silent after first load — cheap freshness on every visit
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);

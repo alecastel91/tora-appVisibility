@@ -575,8 +575,8 @@ const zh = {
     unsupportedHint: '此浏览器不支持推送通知。',
     cat_likes: '喜欢',
     cat_messages: '消息',
-    cat_connections: '联络与代理',
-    cat_bookings: '预订与邀约',
+    cat_connections: '联络',
+    cat_bookings: '预订',
     cat_news: 'TORA News',
   },
   settingsExtra: {

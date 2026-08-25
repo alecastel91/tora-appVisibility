@@ -575,8 +575,8 @@ const ja = {
     unsupportedHint: 'このブラウザはプッシュ通知に対応していません。',
     cat_likes: 'いいね',
     cat_messages: 'メッセージ',
-    cat_connections: 'コネクションと代理契約',
-    cat_bookings: 'ブッキングとオファー',
+    cat_connections: 'コネクション',
+    cat_bookings: 'ブッキング',
     cat_news: 'TORA News',
   },
   settingsExtra: {

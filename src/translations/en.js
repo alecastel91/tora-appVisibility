@@ -575,8 +575,8 @@ const en = {
     unsupportedHint: 'This browser does not support push notifications.',
     cat_likes: 'Likes',
     cat_messages: 'Messages',
-    cat_connections: 'Connections & representation',
-    cat_bookings: 'Bookings & offers',
+    cat_connections: 'Connections',
+    cat_bookings: 'Bookings',
     cat_news: 'TORA News',
   },
   settingsExtra: {

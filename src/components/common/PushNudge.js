@@ -15,12 +15,20 @@ const PushNudge = () => {
   const [state, setState] = useState(null); // null = checking / hidden
 
   useEffect(() => {
-    if (localStorage.getItem(DISMISS_KEY)) return;
+    if (localStorage.getItem(DISMISS_KEY)) return undefined;
     let alive = true;
     getPushState().then((s) => {
       if (alive && (s === 'ready' || s === 'ios-needs-install')) setState(s);
     });
-    return () => { alive = false; };
+    // Enabling from Settings must also retire the card.
+    const onPushState = (e) => {
+      if (e.detail?.state === 'subscribed') {
+        localStorage.setItem(DISMISS_KEY, '1');
+        setState(null);
+      }
+    };
+    window.addEventListener('tora:push-state', onPushState);
+    return () => { alive = false; window.removeEventListener('tora:push-state', onPushState); };
   }, []);
 
   if (!state) return null;

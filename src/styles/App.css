@@ -13175,7 +13175,8 @@ body.beta-env #root {
 .beta-fab {
   position: fixed;
   right: 16px;
-  bottom: 92px; /* clears the bottom tab bar */
+  bottom: calc(92px + env(safe-area-inset-bottom)); /* clears the tab bar incl. iPhone safe area */
+  touch-action: none; /* hold-and-drag repositioning must not scroll the page */
   z-index: var(--z-fab);
   width: 44px;
   height: 44px;

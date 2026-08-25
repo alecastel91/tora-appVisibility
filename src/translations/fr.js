@@ -575,8 +575,8 @@ const fr = {
     unsupportedHint: 'Ce navigateur ne prend pas en charge les notifications push.',
     cat_likes: 'J\'aime',
     cat_messages: 'Messages',
-    cat_connections: 'Connexions et représentation',
-    cat_bookings: 'Réservations et offres',
+    cat_connections: 'Connexions',
+    cat_bookings: 'Réservations',
     cat_news: 'TORA News',
   },
   settingsExtra: {

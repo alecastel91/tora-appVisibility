@@ -116,10 +116,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   const isActiveRef = useRef(isActive);
   isActiveRef.current = isActive;
   const staleRef = useRef(false);
+  const hasLoadedRef = useRef(false);
   useEffect(() => {
-    if (isActive && staleRef.current) {
+    if (isActive) {
       staleRef.current = false;
-      fetchDeals();
+      fetchDeals(); // silent after first load — cheap freshness on every visit
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
@@ -170,7 +171,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       return;
     }
 
-    setLoading(true);
+    if (!hasLoadedRef.current) setLoading(true); // silent refresh after first load
     setError('');
 
     try {
@@ -184,6 +185,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       ]);
       setDeals(response.deals || []);
       setHasMoreDeals(!!response.hasMore);
+      hasLoadedRef.current = true;
       // An accepted offer and a countersigned contract both reach one side as
       // news rather than as a button they pressed, so the moment is noticed
       // here rather than raised at an action site. An agent's roster ids count

@@ -25,6 +25,40 @@ const BetaTools = () => {
   const shotInputRef = useRef(null);
   const [ticker, setTicker] = useState(false);
 
+  // Draggable FAB: hold and move to reposition (it was colliding with the
+  // taller safe-area tab bar and the Search filters). Position persists.
+  const fabRef = useRef(null);
+  const dragMovedRef = useRef(false);
+  const [fabPos, setFabPos] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('tora-beta-fab-pos')) || null; }
+    catch { return null; }
+  });
+  const onFabPointerDown = (e) => {
+    const fab = fabRef.current;
+    if (!fab) return;
+    dragMovedRef.current = false;
+    const rect = fab.getBoundingClientRect();
+    const offX = e.clientX - rect.left;
+    const offY = e.clientY - rect.top;
+    const onMove = (ev) => {
+      const x = Math.min(Math.max(4, ev.clientX - offX), window.innerWidth - rect.width - 4);
+      const y = Math.min(Math.max(4, ev.clientY - offY), window.innerHeight - rect.height - 4);
+      if (Math.abs(ev.clientX - e.clientX) + Math.abs(ev.clientY - e.clientY) > 6) {
+        dragMovedRef.current = true;
+        setFabPos({ x, y });
+      }
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      if (dragMovedRef.current) {
+        setFabPos((pos) => { localStorage.setItem('tora-beta-fab-pos', JSON.stringify(pos)); return pos; });
+      }
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
   // Shift the sticky header/content below the fixed banner.
   useEffect(() => {
     if (!IS_BETA) return undefined;
@@ -106,7 +140,15 @@ const BetaTools = () => {
         document.body,
       )}
 
-      <button type="button" className="beta-fab" onClick={() => setOpen(true)} aria-label="Send feedback">
+      <button
+        type="button"
+        className="beta-fab"
+        ref={fabRef}
+        style={fabPos ? { left: fabPos.x, top: fabPos.y, right: 'auto', bottom: 'auto' } : undefined}
+        onPointerDown={onFabPointerDown}
+        onClick={() => { if (!dragMovedRef.current) setOpen(true); }}
+        aria-label="Send feedback"
+      >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.3 8.7 8.7 0 0 1-3.9-.9L3 20l1.2-4.1a8.2 8.2 0 0 1-1-4A8.38 8.38 0 0 1 11.7 3.6a8.38 8.38 0 0 1 9.3 7.9z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>

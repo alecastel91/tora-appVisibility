@@ -293,9 +293,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   // Fetch tours when Kickstart tab is active
   useEffect(() => {
     const fetchTours = async () => {
-      if (!user || activeTab !== 'kickstart') return;
+      if (!user || activeTab !== 'kickstart' || !isActive) return;
 
-      setToursLoading(true);
+      // Spinner only while the list is empty — re-activations refresh silently
+      // (fixes e.g. the interested-counter staying stale until re-login).
+      if (myTours.length === 0 && allTours.length === 0) setToursLoading(true);
       console.log('[TourScreen] Fetching tours, user role:', user.role);
 
       try {
@@ -323,7 +325,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     };
 
     fetchTours();
-  }, [user?.id, user?.role, activeTab, onUnreadProposalsChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.role, activeTab, isActive, onUnreadProposalsChange]);
 
   // Helper function to check role compatibility
   const isValidRoleMatch = (role1, role2) => {

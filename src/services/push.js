@@ -46,6 +46,8 @@ export async function enablePush() {
     applicationServerKey: urlBase64ToUint8Array(key),
   });
   await apiService.subscribePush(sub.toJSON());
+  // Let other surfaces (the soft-ask card) react without polling.
+  window.dispatchEvent(new CustomEvent('tora:push-state', { detail: { state: 'subscribed' } }));
   return 'subscribed';
 }
 
