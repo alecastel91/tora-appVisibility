@@ -38,6 +38,7 @@ import AssistantChat from './components/common/AssistantChat';
 import GuideScreen from './components/common/GuideScreen';
 import GettingStartedSheet from './components/common/GettingStartedSheet';
 import PushSettingsToggle from './components/common/PushSettingsToggle';
+import PushNudge from './components/common/PushNudge';
 import { appConfirm, appAlert } from './utils/dialogs';
 
 function App() {
@@ -79,7 +80,16 @@ function App() {
     // Cold start from a notification tap:
     const bootTab = new URLSearchParams(window.location.search).get('tab');
     if (bootTab) switchTab(bootTab);
-    return () => navigator.serviceWorker?.removeEventListener?.('message', onSwMessage);
+    // Opening (or returning to) the app clears the icon badge the push set.
+    const clearBadge = () => {
+      if (document.visibilityState === 'visible') navigator.clearAppBadge?.().catch(() => {});
+    };
+    clearBadge();
+    document.addEventListener('visibilitychange', clearBadge);
+    return () => {
+      navigator.serviceWorker?.removeEventListener?.('message', onSwMessage);
+      document.removeEventListener('visibilitychange', clearBadge);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -675,6 +685,9 @@ function App() {
           activeTab={activeTab}
         />
         <main className="app-content" ref={appContentRef}>
+          {/* Notifications soft-ask: visible right after login on ANY tab
+              (one card, dismissible; native prompt only on its button). */}
+          <PushNudge />
           {/* The active tab always renders even if a code path bypassed
               switchTab's mount bookkeeping — never a blank main area. */}
           {(mountedTabs.includes(activeTab) ? mountedTabs : [...mountedTabs, activeTab]).map((tab) => (

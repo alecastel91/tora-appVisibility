@@ -40,13 +40,19 @@ self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { /* opaque payload */ }
   const title = data.title || 'TORA';
-  event.waitUntil(self.registration.showNotification(title, {
-    body: data.body || 'You have a new notification',
-    icon: '/pwa-192.png',
-    badge: '/pwa-192.png',
-    data: { url: data.url || '/' },
-    tag: data.tag, // same-tag notifications collapse instead of stacking
-  }));
+  event.waitUntil((async () => {
+    await self.registration.showNotification(title, {
+      body: data.body || 'You have a new notification',
+      icon: '/pwa-192.png',
+      badge: '/pwa-192.png',
+      data: { url: data.url || '/' },
+      tag: data.tag, // same-tag notifications collapse instead of stacking
+    });
+    // App-icon badge (the red count on the home-screen icon).
+    if (typeof data.badge === 'number' && self.navigator.setAppBadge) {
+      await self.navigator.setAppBadge(data.badge).catch(() => {});
+    }
+  })());
 });
 
 self.addEventListener('notificationclick', (event) => {
