@@ -1925,7 +1925,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               <p className="m-0 text-left text-xs text-white/45 leading-relaxed flex-1">
                 {t('tour.tourOpportunitiesDesc')}
               </p>
-              <div className="zone-filter-dropdown shrink-0">
+              <div className="zone-filter-dropdown flex-none">
                 <button
                   onClick={() => setShowZoneDropdown(!showZoneDropdown)}
                   aria-label={t('editProfile.zone')}
