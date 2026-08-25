@@ -573,6 +573,11 @@ const ja = {
     iosInstallHint: 'iPhoneで通知を受け取るには、まずTORAをインストールしてください：共有ボタンから「ホーム画面に追加」を選び、アプリから通知をオンにします。',
     deniedHint: 'ブラウザの設定でTORAの通知がブロックされています — まずそちらで再度有効にしてください。',
     unsupportedHint: 'このブラウザはプッシュ通知に対応していません。',
+    cat_likes: 'いいね',
+    cat_messages: 'メッセージ',
+    cat_connections: 'コネクションと代理契約',
+    cat_bookings: 'ブッキングとオファー',
+    cat_news: 'TORA News',
   },
   settingsExtra: {
     changePasswordFailed: 'パスワードの変更に失敗しました',

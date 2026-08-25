@@ -573,6 +573,11 @@ const en = {
     iosInstallHint: 'To get notifications on iPhone, first install TORA: tap Share, then "Add to Home Screen", and enable them from the app.',
     deniedHint: 'Notifications are blocked for TORA in your browser settings — re-enable them there first.',
     unsupportedHint: 'This browser does not support push notifications.',
+    cat_likes: 'Likes',
+    cat_messages: 'Messages',
+    cat_connections: 'Connections & representation',
+    cat_bookings: 'Bookings & offers',
+    cat_news: 'TORA News',
   },
   settingsExtra: {
     changePasswordFailed: 'Failed to change password',

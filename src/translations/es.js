@@ -573,6 +573,11 @@ const es = {
     iosInstallHint: 'Para recibir notificaciones en iPhone, instala TORA primero: toca Compartir y luego "Añadir a pantalla de inicio", y actívalas desde la app.',
     deniedHint: 'Las notificaciones de TORA están bloqueadas en los ajustes del navegador — reactívalas allí primero.',
     unsupportedHint: 'Este navegador no admite notificaciones push.',
+    cat_likes: 'Me gusta',
+    cat_messages: 'Mensajes',
+    cat_connections: 'Conexiones y representación',
+    cat_bookings: 'Reservas y ofertas',
+    cat_news: 'TORA News',
   },
   settingsExtra: {
     changePasswordFailed: 'No se pudo cambiar la contraseña',

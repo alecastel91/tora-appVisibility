@@ -431,6 +431,20 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async getPushPrefs() {
+    const response = await fetch(`${API_URL}/push/prefs`, { headers: this.getHeaders() });
+    return this.handleResponse(response);
+  }
+
+  async setPushPrefs(prefs) {
+    const response = await fetch(`${API_URL}/push/prefs`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ prefs }),
+    });
+    return this.handleResponse(response);
+  }
+
   async unsubscribePush(endpoint) {
     const response = await fetch(`${API_URL}/push/unsubscribe`, {
       method: 'POST',

@@ -573,6 +573,11 @@ const zh = {
     iosInstallHint: '要在 iPhone 上接收通知，请先安装 TORA：点按分享按钮，选择「添加到主屏幕」，然后在应用中开启通知。',
     deniedHint: '浏览器设置中已屏蔽 TORA 的通知 — 请先在那里重新允许。',
     unsupportedHint: '此浏览器不支持推送通知。',
+    cat_likes: '喜欢',
+    cat_messages: '消息',
+    cat_connections: '联络与代理',
+    cat_bookings: '预订与邀约',
+    cat_news: 'TORA News',
   },
   settingsExtra: {
     changePasswordFailed: '无法修改密码',

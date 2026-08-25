@@ -36,7 +36,7 @@ const PushNudge = () => {
   };
 
   return (
-    <div className="mx-4 mb-3 rounded-xl border border-white/10 bg-white/[0.04] p-4">
+    <div className="mx-4 mt-4 mb-3 rounded-xl border border-white/10 bg-white/[0.04] p-4">
       <p className="m-0 text-sm font-semibold text-white">{t('push.title')}</p>
       <p className="m-0 mt-1 text-xs leading-relaxed text-white/60">
         {state === 'ios-needs-install' ? t('push.iosInstallHint') : t('push.body')}

@@ -3,7 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/png" href="/tora_logo_square.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <!-- viewport-fit=cover makes iOS report real safe-area insets (rounded
+         corners / home indicator); the tab bar and headers already pad with
+         env(safe-area-inset-*) and were getting 0 without it. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="TORA - Music Booking Platform" />
     <meta name="mobile-web-app-capable" content="yes" />

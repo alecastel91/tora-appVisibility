@@ -24,6 +24,28 @@ Vercel env vars (Production scope):
 
 Local `.env` is for local dev only — it points at Project 1. The two stacks are fully isolated (different JWT_SECRETs, different databases). Test users on local don't exist on production and vice versa.
 
+## Recent Updates (July 24 – August 25, 2026) — Prod launch, audit fixes, PWA, web push (ALL SHIPPED)
+
+### Deployment (supersedes older notes)
+- **PROD LIVE 2026-08-02.** Both Vercel projects auto-deploy from `main`: `tora-app` → app.torahub.io, `tora-app-beta` → beta.torahub.io (production branch fixed to `main` on 2026-08-23 — it had been pinned to feature/tailwind-implementation). Sentry source maps upload at build (SENTRY_AUTH_TOKEN/ORG/PROJECT in both projects; org `tora-51`, project `tora-app`).
+
+### PWA (Aug 25)
+- Installable on both surfaces via vite-plugin-pwa in **injectManifest** mode: custom worker `src/sw.js` (shell precached; **API NetworkOnly — never cached**; Supabase storage media CacheFirst bounded 200/7d; SPA navigateFallback).
+- **Per-environment identity**: beta builds (detected via VITE_API_URL containing `-2424`) get manifest/A2HS name "TORA Beta" + BETA-badged icon (Supreme font); prod stays "TORA". Icons: 84% wordmark scale on black, maskable variants for Android.
+- Dark **first-frame boot screen** in index.html (inline style + wordmark placeholder) — no white flash on standalone launch. `viewport-fit=cover` added so iOS reports real safe-area insets (the tab bar's env() padding was evaluating to 0 → corner-clipped labels).
+
+### Web push (Aug 25)
+- `src/sw.js` handles `push` (event-type title, body, `/pwa-192.png` icon, app-icon badge via `setAppBadge(unreadCount)`) and `notificationclick` (focuses/opens and routes by payload url `/?tab=...` — message→Messages, offer→Bookings, post→News; App.js listens for the SW postMessage and the `?tab=` boot param; clears the badge on focus).
+- `src/services/push.js`: state machine — `unsupported | ios-needs-install | denied | ready | subscribed`; the native permission prompt fires ONLY from a user tap.
+- UX: `PushNudge` soft-ask card renders in the app shell right after login (dismissible via localStorage; iOS-in-Safari variant shows Add-to-Home-Screen guidance since iOS only allows push for installed apps). `PushSettingsToggle` in Settings: master switch + per-category sub-toggles (likes/messages/connections/bookings/news) via `/api/push/prefs` — these filter the PUSH channel only; the in-app bell always shows everything.
+- i18n: `push.*` keys in all 8 locales (~1800 keys total, parity enforced by `npm run check:i18n`).
+
+### Audit-driven fixes shipped (Aug)
+- F6-01: expired/invalid token mid-session now force-logs-out via a global `tora:session-expired` event from api.js (401 + "token" in the message) — no more dead-looking app until manual reload.
+- F6-02: profile switch fully resets AppContext state (no stale likes/connections from the previous profile).
+- Stripe checkout: `AddressElement` billing-address step appears only when the backend answers `ADDRESS_REQUIRED` (Stripe Tax dormant until OSS registration).
+- Delta review: post-like read gated; fee NaN guard; badge staleness fix.
+
 ## Recent Updates (July 20-21, 2026) — News tab, deadlines, badges, official account (SHIPPED TO PROD)
 
 Large feature batch merged `feature/tailwind-implementation` → `main` and deployed 2026-07-21. i18n stays 8/8 (~1358 keys).

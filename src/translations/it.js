@@ -573,6 +573,11 @@ const it = {
     iosInstallHint: 'Per ricevere le notifiche su iPhone, installa prima TORA: tocca Condividi, poi "Aggiungi a Home", e attivale dall\'app.',
     deniedHint: 'Le notifiche di TORA sono bloccate nelle impostazioni del browser — riattivale prima lì.',
     unsupportedHint: 'Questo browser non supporta le notifiche push.',
+    cat_likes: 'Mi piace',
+    cat_messages: 'Messaggi',
+    cat_connections: 'Connessioni e rappresentanza',
+    cat_bookings: 'Prenotazioni e offerte',
+    cat_news: 'TORA News',
   },
   settingsExtra: {
     changePasswordFailed: 'Impossibile cambiare la password',
