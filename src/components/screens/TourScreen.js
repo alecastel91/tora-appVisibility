@@ -1770,8 +1770,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               </button>
             </div>
 
-
-
             {/* Tour cards or empty state */}
             {toursLoading ? (
               <LoadingGlobe label={t('tour.loadingTours')} />
@@ -1969,7 +1967,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                   <div style={{ width: '32px' }}></div>
                 </div>
                 <div className="filter-screen-content">
-                  {/* Period */}
                   <div className="filter-dropdown-group">
                     <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'period' ? null : 'period')}>
                       <span>{t('tour.period')}</span>
@@ -1990,7 +1987,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     )}
                   </div>
 
-                  {/* Zone */}
                   <div className="filter-dropdown-group">
                     <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'zone' ? null : 'zone')}>
                       <span>{t('editProfile.zone')}</span>
@@ -2009,7 +2005,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     )}
                   </div>
 
-                  {/* Country */}
                   {tourZoneFilter !== 'all' && (
                     <div className="filter-dropdown-group">
                       <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'country' ? null : 'country')}>
@@ -2030,7 +2025,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     </div>
                   )}
 
-                  {/* Genres */}
                   <div className="filter-dropdown-group">
                     <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'genres' ? null : 'genres')}>
                       <span>{t('search.genres')}</span>
@@ -2068,145 +2062,165 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             )}
 
             {/* Tour cards or empty state */}
-            {toursLoading ? (
-              <LoadingGlobe label={t('tour.loadingTours')} />
-            ) : myTours.length === 0 ? (
+            {filteredTours.length === 0 ? (
               <div className="tour-empty-state">
                 <PlaneIcon />
-                <p>{t('tour.noToursYet')}</p>
-                <p className="tour-empty-hint">{t('tour.noToursHint')}</p>
+                <p>{t('tour.noActiveTours')}</p>
+                <p className="tour-empty-hint">{t('tour.noActiveToursHint')}</p>
               </div>
             ) : (
               <div className="tour-cards-list">
-                {myTours.map(tour => {
-                  const pct = Math.min(100, Math.round(((tour.totalRevenue || 0) / (tour.minRevenue || 1)) * 100));
-                  const statusPill = {
-                    ACTIVE: 'text-role-agent border-role-agent/50',
-                    COMPLETED: 'text-white/60 border-white/25',
-                    CANCELLED: 'text-role-venue border-role-venue/50',
-                  }[tour.status] || 'text-white/60 border-white/25';
-                  return (
-                  <div
-                    key={tour.id}
-                    className="rounded-2xl border border-white/10 bg-[#0a0a0e] p-4 transition-colors hover:border-white/20"
-                  >
-                    {/* Header: destination + window, status pill */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="min-w-0">
-                        <h4 className="text-[17px] font-semibold text-white font-space-grotesk tracking-[-0.01em] m-0 truncate">
-                          {t('tour.tourTitle', { location: tour.country || tour.zone })}
-                        </h4>
-                        {user?.role === 'AGENT' && tour.artist?.name && (
-                          <p className="text-[11px] text-infrared/90 font-tech mt-1 m-0 truncate">
-                            {tour.artist.name}
+                {filteredTours.map(tour => (
+                  <div key={tour.id} className="tour-card">
+                    <div className="tour-card-header">
+                      {/* Artist identity links to the profile (replaces the old
+                          View Artist CTA in the footer) */}
+                      <div
+                        className="tour-artist-info"
+                        role="button"
+                        tabIndex={0}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => handleViewTourArtist(tour)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleViewTourArtist(tour); } }}
+                      >
+                        <div className="tour-artist-avatar">
+                          {tour.artist?.avatar ? (
+                            <img src={tour.artist.avatar} alt={tour.artist.name} />
+                          ) : (
+                            <div className="avatar-placeholder">
+                              {tour.artist?.name?.charAt(0) || 'A'}
+                            </div>
+                          )}
+                        </div>
+                        <div className="tour-artist-details">
+                          <h4 className="tour-artist-name">{tour.artist?.name || t('tour.unknownArtist')}</h4>
+                          <p className="tour-artist-role">{tour.artist?.role || t('tour.artistRoleFallback')}</p>
+                          <p className="tour-location-info">
+                            <LocationIcon /> {t('tour.tourTitle', { location: tour.country || tour.zone })}
                           </p>
+                        </div>
+                      </div>
+                      <span className={`tour-status-badge status-${tour.status.toLowerCase()}`}>
+                        {tourStatusLabel(tour.status)}
+                      </span>
+                    </div>
+                    <div className="tour-dates-section">
+                      <CalendarIcon />
+                      <span>
+                        {formatEventDate(tour.startDate, t('dateFormat.locale'), { month: 'short', day: 'numeric' })} - {formatEventDate(tour.endDate, t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <div className="tour-card-body">
+                      {/* Booking traction. Deliberately NOT the revenue
+                          progress bar the owner sees: how much the tour still
+                          needs to earn is the owner's planning figure, and it
+                          would tell a promoter exactly how much leverage they
+                          have. Confirmed shows are the honest public signal —
+                          drawn as one segment per booked show against the
+                          stops the artist is targeting, so the visual counts
+                          real things rather than implying a percentage of a
+                          number nobody outside can see. */}
+                      {(() => {
+                        const booked = tour.confirmedGigs || 0;
+                        // Five slots to start with, and a fresh one appears as
+                        // soon as the last is taken — so an open tour always
+                        // reads as "there is still room", never as finished.
+                        // A tour CLOSED to offers is the one case that should
+                        // read as full: the slots collapse to what was booked
+                        // and the bar completes.
+                        const segments = tour.closedToOffers
+                          ? Math.max(booked, 1)
+                          : Math.min(14, Math.max(5, booked + 1));
+                        return (
+                          <div className="tour-progress">
+                            <div className="tour-progress-header">
+                              <span className="tour-progress-label">
+                                {booked === 1
+                                  ? t('tour.gigConfirmedCountOne')
+                                  : t('tour.gigsConfirmedCount', { n: booked })}
+                              </span>
+                            </div>
+                            <div className="flex gap-1" aria-hidden="true">
+                              {Array.from({ length: segments }, (_, i) => (
+                                <span
+                                  key={i}
+                                  className={`h-1.5 flex-1 rounded-full transition-colors ${
+                                    i < booked ? 'bg-infrared' : 'bg-white/10'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      <div className="tour-stats-row">
+                        {(tour.feeExpectation || tour.priceOnRequest) && (
+                          <div className="tour-stat">
+                            <span className="tour-stat-label">{t('tour.feeRangeLabel')}</span>
+                            <span className="tour-stat-value">{tour.priceOnRequest ? t('tour.priceOnRequest') : tour.feeExpectation}</span>
+                          </div>
                         )}
-                        <p className="text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
-                          {formatEventDate(tour.startDate, t('dateFormat.locale'), { month: 'short', day: 'numeric' })}
-                          {' — '}
-                          {formatEventDate(tour.endDate, t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
-                          {tour.zone && tour.country ? ` · ${tour.zone}` : ''}
-                        </p>
-                      </div>
-                      <div className="shrink-0 flex flex-col items-end gap-1">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-[9px]
-                                          font-semibold uppercase tracking-[0.15em] font-tech ${statusPill}`}>
-                          {tourStatusLabel(tour.status)}
-                        </span>
-                        {/* Closed to offers is a state of a LIVE tour, so it
-                            reads alongside the status rather than replacing it. */}
-                        {tour.closedToOffers && tour.status === 'ACTIVE' && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full border border-white/20
-                                           text-white/55 text-[9px] font-semibold uppercase tracking-[0.15em] font-tech">
-                            {t('tour.fullyBooked')}
-                          </span>
+                        {(tour.interestsCount || 0) > 0 && (
+                          <div className="tour-stat">
+                            <span className="tour-stat-value text-infrared">
+                              {t('tour.interestedCountPublic', { n: tour.interestsCount })}
+                            </span>
+                          </div>
                         )}
                       </div>
+                      {tour.artist?.genres && tour.artist.genres.length > 0 && (
+                        <div className="tour-genres">
+                          <span className="genres-label">{t('tour.genresLabel')}</span>
+                          <span>{tour.artist.genres.slice(0, 3).join(', ')}</span>
+                        </div>
+                      )}
                     </div>
-
-                    {/* Console: gigs + interest + revenue tiles */}
-                    <div className="grid grid-cols-3 gap-2.5 mb-3">
-                      {/* The two counts ARE the way in to their lists — a
-                          separate "View gigs" / "View interested" button pair
-                          restated the same numbers and pushed the action row
-                          to five CTAs, which wrapped and clipped. */}
-                      <button
-                        type="button"
-                        onClick={() => handleViewTourGigs(tour)}
-                        className="text-left rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5
-                                   transition-colors hover:border-infrared/40 cursor-pointer"
-                      >
-                        <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
-                          {tour.confirmedGigs || 0}
-                        </p>
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
-                          {t('tour.gigsConfirmed')}
-                        </p>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleViewInterests(tour)}
-                        className="text-left rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5
-                                   transition-colors hover:border-infrared/40 cursor-pointer"
-                      >
-                        <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
-                          {tour.interestsCount || 0}
-                        </p>
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
-                          {t('tour.interestedCount')}
-                        </p>
-                      </button>
-                      <div className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5">
-                        <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
-                          {Math.round(tour.totalRevenue || 0).toLocaleString()}
-                          <span className="text-xs font-medium text-white/35"> / {Math.round(tour.minRevenue || 0).toLocaleString()} {tour.revenueCurrency || 'EUR'}</span>
-                        </p>
-                        <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
-                          {t('tour.revenueTarget')}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Thin crimson progress line */}
-                    <div className="flex items-center gap-2.5 mb-4">
-                      <div className="flex-1 h-[3px] rounded-full bg-white/10 overflow-hidden">
-                        <div className="h-full rounded-full bg-infrared" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="shrink-0 text-[10px] text-white/50 font-tech">{pct}%</span>
-                    </div>
-
-                    {/* Actions: the two things you DO to a tour, then the
-                        quiet destructive one. Labels stay on one line; the row
-                        wraps rather than clipping on a narrow phone. */}
-                    <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-white/[0.07]">
-                      <button
-                        className="btn btn-outline btn-small whitespace-nowrap"
-                        onClick={() => handleEditTour(tour)}
-                      >
-                        {t('common.edit')}
-                      </button>
-                      {tour.status === 'ACTIVE' && (
+                    <div className="tour-card-footer">
+                      {tour.myProposal ? (
+                        // User has already sent a proposal
                         <button
-                          className={`btn btn-small whitespace-nowrap ${tour.closedToOffers ? 'btn-primary' : 'btn-outline'}`}
-                          disabled={tourActionBusy === tour.id}
-                          onClick={() => handleToggleTourOffers(tour)}
+                          className={`btn btn-small ${
+                            tour.myProposal.status === 'ACCEPTED' ? 'btn-success' :
+                            tour.myProposal.status === 'DECLINED' ? 'btn-secondary' :
+                            'btn-primary'
+                          }`}
+                          onClick={() => handleViewMyProposal(tour)}
+                          style={{ flex: 1 }}
                         >
-                          {tourActionBusy === tour.id
-                            ? '...'
-                            : (tour.closedToOffers ? t('tour.reopenToOffers') : t('tour.closeToOffers'))}
+                          {tour.myProposal.status === 'ACCEPTED' ? `✓ ${t('tour.proposalAccepted')}` :
+                           tour.myProposal.status === 'DECLINED' ? t('tour.proposalDeclined') :
+                           t('tour.viewSentProposal')}
+                        </button>
+                      ) : tour.closedToOffers ? (
+                        // Full: the artist side stopped taking offers. The tour
+                        // stays listed and interest stays open, so a promoter
+                        // can still put their hand up for the next run.
+                        <button className="btn btn-secondary btn-small" style={{ flex: 1 }} disabled>
+                          {t('tour.fullyBooked')}
+                        </button>
+                      ) : (
+                        // No proposal sent yet
+                        <button
+                          className="btn btn-primary btn-small"
+                          style={{ flex: 1 }}
+                          onClick={() => handleMakeOffer(tour)}
+                        >
+                          {t('tour.makeAnOffer')}
                         </button>
                       )}
+                      {/* Lightweight appetite signal — free, precedes an offer */}
                       <button
-                        className="ml-auto bg-transparent border-none cursor-pointer text-[10px] uppercase tracking-[0.1em]
-                                   font-tech text-white/35 hover:text-role-venue transition-colors whitespace-nowrap"
-                        onClick={() => handleDeleteTour(tour)}
+                        className={`btn btn-small ${tour.myInterest ? 'btn-liked' : 'btn-outline'}`}
+                        style={{ flex: 1 }}
+                        onClick={() => handleToggleInterest(tour)}
                       >
-                        {t('tour.cancelTour')}
+                        <HeartIcon filled={!!tour.myInterest} />{' '}
+                        {tour.myInterest ? t('tour.interested') : t('tour.imInterested')}
                       </button>
                     </div>
                   </div>
-                  );
-                })}
+                ))}
               </div>
             )}
           </div>
