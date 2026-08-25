@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import SignatureCanvas from 'react-signature-canvas';
 import { useLanguage } from '../../contexts/LanguageContext';
 
@@ -111,7 +112,10 @@ const SignContractModal = ({
 
   if (!isOpen) return null;
 
-  return (
+  // Portaled to <body>: any transformed ancestor (the beta banner shifts
+  // #root; screens animate) re-anchors position:fixed and leaves the modal
+  // clipped under the header/tab bar on iOS. Same cure as PdfViewerModal.
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
@@ -324,7 +328,8 @@ const SignContractModal = ({
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
