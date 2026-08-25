@@ -116,11 +116,9 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   // refetch once on reveal instead of on every broadcast.
   const isActiveRef = useRef(isActive);
   isActiveRef.current = isActive;
-  const staleRef = useRef(false);
   const hasLoadedRef = useRef(false);
   useEffect(() => {
     if (isActive) {
-      staleRef.current = false;
       fetchDeals(); // silent after first load — cheap freshness on every visit
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -129,7 +127,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
     if (!currentUser?.id) return;
     const unsubscribe = subscribeToDeals(currentUser.id, () => {
       if (isActiveRef.current) fetchDeals();
-      else staleRef.current = true;
+      // hidden tab: the unconditional refetch-on-activation covers it
     });
     return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2405,7 +2403,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         );
 
         return (
-          <OverlayPortal><div className="delete-modal-overlay" onClick={() => setDepositHistoryDeal(null)}>
+          <div className="delete-modal-overlay" onClick={() => setDepositHistoryDeal(null)}>
             <div className="delete-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '560px' }}>
               <div className="delete-modal-header">
                 <h3>{t('bookings.payments')}</h3>
@@ -2469,7 +2467,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                 <button className="btn btn-outline" onClick={() => setDepositHistoryDeal(null)}>{t('common.close')}</button>
               </div>
             </div>
-          </div></OverlayPortal>
+          </div>
         );
       })(), document.body)}
 

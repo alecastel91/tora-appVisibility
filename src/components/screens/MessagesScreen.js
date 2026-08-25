@@ -120,10 +120,8 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
   // inbox broadcast — just mark the list stale and refetch once on reveal.
   const isActiveRef = React.useRef(isActive);
   isActiveRef.current = isActive;
-  const staleRef = React.useRef(false);
   useEffect(() => {
     if (isActive) {
-      staleRef.current = false;
       fetchData(); // silent after first load — cheap freshness on every visit
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -135,7 +133,7 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
   useEffect(() => {
     if (prevChatOpenRef.current && !chatOpen) {
       if (isActiveRef.current) fetchData();
-      else staleRef.current = true;
+      // hidden tab: the unconditional refetch-on-activation covers it
     }
     prevChatOpenRef.current = chatOpen;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,7 +145,7 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
     if (!user?.id) return;
     const unsubscribe = subscribeToInbox(user.id, () => {
       if (isActiveRef.current) fetchData();
-      else staleRef.current = true;
+      // hidden tab: the unconditional refetch-on-activation covers it
     });
     return unsubscribe;
     // eslint-disable-next-line react-hooks/exhaustive-deps

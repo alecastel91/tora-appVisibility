@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import OverlayPortal from '../common/OverlayPortal';
+import FilterSheet, { FilterButton } from '../common/FilterSheet';
 import { CURRENCY_OPTIONS, CURRENCY_OPTIONS_WITH_SYMBOL } from '../common/CurrencyOptions';
 import ReactDOM from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
@@ -8,11 +9,11 @@ import { formatEventDate } from '../../utils/dates';
 import { subscribeToTours } from '../../services/realtime';
 import ViewProfileScreen from './ViewProfileScreen';
 import MakeOfferModal from '../common/MakeOfferModal';
-import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon, HeartIcon, FilterIcon } from '../../utils/icons';
+import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon, HeartIcon } from '../../utils/icons';
 import { isVerificationGate } from '../../utils/errors';
 import apiService from '../../services/api';
 import LoadingGlobe from '../common/LoadingGlobe';
-import { citiesByCountry, countriesByZone, genresList, zones } from '../../data/profiles';
+import { countriesByZone, genresList, zones } from '../../data/profiles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { isPremiumViewer, isYearlyViewer } from '../../utils/subscription';
 
@@ -122,7 +123,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const [matchDropdown, setMatchDropdown] = useState(null);
   const matchFilterCount =
     (rolesFilter.length ? 1 : 0) + (monthFilter !== 'all' ? 1 : 0) +
-    (zoneFilter !== 'all' ? 1 : 0) + (genresFilter.length ? 1 : 0);
+    (zoneFilter !== 'all' ? 1 : 0) + (countryFilter !== 'all' ? 1 : 0) +
+    (genresFilter.length ? 1 : 0);
   const toggleGenre = (g) => setGenresFilter((prev) =>
     prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]);
   const clearMatchFilters = () => {
@@ -140,46 +142,57 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const [travelFeed, setTravelFeed] = useState([]);
   const feedPageRef = useRef(0);
   const [feedHasMore, setFeedHasMore] = useState(true);
+  const feedHasMoreRef = useRef(true);
   const [feedLoading, setFeedLoading] = useState(false);
+  // Synchronous mirror of feedLoading: the IntersectionObserver can fire
+  // twice before React re-renders, and both firings would pass a state-based
+  // guard and fetch the same page.
+  const feedLoadingRef = useRef(false);
+  // Monotonic token: a reset (filter change / tab entry) invalidates any
+  // in-flight page so its late response can't clobber the fresh list.
+  const feedReqRef = useRef(0);
   const feedSentinelRef = useRef(null);
 
   const loadFeedPage = async (reset = false) => {
-    if (feedLoading || !user?.id || !isPremiumUser()) return;
-    if (!reset && !feedHasMore) return;
+    if (!user?.id || !isPremiumUser()) return;
+    if (!reset && (feedLoadingRef.current || !feedHasMoreRef.current)) return;
+    const reqId = reset ? ++feedReqRef.current : feedReqRef.current;
+    if (reset) {
+      feedPageRef.current = 0;
+      feedHasMoreRef.current = true;
+      setFeedHasMore(true);
+    }
+    feedLoadingRef.current = true;
     setFeedLoading(true);
     try {
-      const page = reset ? 0 : feedPageRef.current;
-      // Month filter ('sep-2026') → a [from, to] window for the server.
-      let from; let to;
-      if (monthFilter !== 'all') {
-        const [mon, year] = monthFilter.split('-');
-        const monthIdx = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(mon);
-        if (monthIdx >= 0) {
-          const y = Number(year);
-          from = `${y}-${String(monthIdx + 1).padStart(2, '0')}-01`;
-          const last = new Date(y, monthIdx + 1, 0).getDate();
-          to = `${y}-${String(monthIdx + 1).padStart(2, '0')}-${String(last).padStart(2, '0')}`;
-        }
-      }
+      const page = feedPageRef.current;
+      const range = monthFilter !== 'all' ? monthKeyToRange(monthFilter) : null;
       const res = await apiService.getTravelFeed(user.id, page, {
         roles: rolesFilter,
         zone: zoneFilter !== 'all' ? zoneFilter : undefined,
         country: countryFilter !== 'all' ? countryFilter : undefined,
         genres: genresFilter,
-        from, to,
+        from: range?.from, to: range?.to,
       });
+      if (reqId !== feedReqRef.current) return; // superseded by a newer reset
       feedPageRef.current = page + 1;
+      feedHasMoreRef.current = !!res.hasMore;
       setFeedHasMore(!!res.hasMore);
-      setTravelFeed((prev) => (reset ? res.schedules : [...prev, ...res.schedules]));
+      setTravelFeed((prev) => (page === 0 ? res.schedules : [...prev, ...res.schedules]));
     } catch { /* premium 403 / network — leave the list as is */ }
-    finally { setFeedLoading(false); }
+    finally {
+      if (reqId === feedReqRef.current) {
+        feedLoadingRef.current = false;
+        setFeedLoading(false);
+      }
+    }
   };
+  const loadFeedPageRef = useRef(loadFeedPage);
+  loadFeedPageRef.current = loadFeedPage;
 
   useEffect(() => {
     if (activeTab === 'calendar' && isActive && user?.id) {
-      feedPageRef.current = 0;
-      setFeedHasMore(true);
-      loadFeedPage(true);
+      loadFeedPage(true); // owns the page/hasMore reset
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, activeTab, isActive, rolesFilter, monthFilter, zoneFilter, countryFilter, genresFilter]);
@@ -188,12 +201,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     const el = feedSentinelRef.current;
     if (!el) return undefined;
     const io = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) loadFeedPage();
+      if (entries[0].isIntersecting) loadFeedPageRef.current();
     }, { rootMargin: '200px' });
     io.observe(el);
     return () => io.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, isActive, feedHasMore, feedLoading, travelFeed.length]);
+  }, [activeTab, isActive]);
   const [loadingMatches, setLoadingMatches] = useState(false);
 
   // Tour Kickstart state
@@ -280,6 +292,24 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const [loadingInterests, setLoadingInterests] = useState(false);
   const [invitingInterestId, setInvitingInterestId] = useState(null);
 
+  // Month keys look like 'sep-2026' (see generateMonthOptions). One parser,
+  // shared by the feed request and the kickstart tour filter.
+  const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const monthKeyToRange = (key) => {
+    const [mon, year] = String(key).split('-');
+    const idx = MONTH_KEYS.indexOf(mon);
+    if (idx < 0) return null;
+    const y = Number(year);
+    const last = new Date(y, idx + 1, 0).getDate();
+    const mm = String(idx + 1).padStart(2, '0');
+    return {
+      from: `${y}-${mm}-01`,
+      to: `${y}-${mm}-${String(last).padStart(2, '0')}`,
+      fromDate: new Date(y, idx, 1),
+      toDate: new Date(y, idx + 1, 0, 23, 59, 59),
+    };
+  };
+
   // Generate month/year options starting from current month for next 12 months
   const generateMonthOptions = () => {
     const options = [{ value: 'all', label: t('tour.allMonths') }];
@@ -301,7 +331,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     return options;
   };
 
-  const monthOptions = generateMonthOptions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const monthOptions = React.useMemo(generateMonthOptions, [t]);
 
   // Fetch calendar matches when premium. Artists/venues/promoters match on
   // their OWN availability; an agent has no calendar of their own, so they
@@ -624,18 +655,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             <p className="m-0 text-left text-xs text-white/45 leading-relaxed flex-1">
               {t('tour.matchesIntro')}
             </p>
-            <button
-              onClick={() => setShowMatchFilters(true)}
-              aria-label={t('search.filters')}
-              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/80 backdrop-blur-md cursor-pointer"
-            >
-              <span className="[&>svg]:h-4 [&>svg]:w-4"><FilterIcon /></span>
-              {matchFilterCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-infrared px-1 text-[9px] font-semibold text-white">
-                  {matchFilterCount}
-                </span>
-              )}
-            </button>
+            <FilterButton count={matchFilterCount} onClick={() => setShowMatchFilters(true)} label={t('search.filters')} />
           </div>
 
           <div className="feature-preview">
@@ -825,153 +845,36 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
           </div>
         </div>
 
-        {/* Filter full-page panel — same pattern/classes as the Search screen */}
+        {/* Full-page filters — shared FilterSheet, draft-applied on Apply */}
         {showMatchFilters && (
-          <div className="screen active filter-screen">
-            <div className="screen-header">
-              <button className="back-btn" onClick={() => setShowMatchFilters(false)}>←</button>
-              <h2>{t('search.filters')}</h2>
-              <div style={{ width: '32px' }}></div>
-            </div>
-            <div className="filter-screen-content">
-              {/* Roles */}
-              <div className="filter-dropdown-group">
-                <div
-                  className="filter-dropdown-header"
-                  onClick={() => setMatchDropdown(matchDropdown === 'roles' ? null : 'roles')}
-                >
-                  <span>{t('search.roles')}</span>
-                  <span className="dropdown-value">
-                    {rolesFilter.length > 0 ? t('search.nSelected', { n: rolesFilter.length }) : t('search.selectRoles')}
-                  </span>
-                  <span className="dropdown-arrow">{matchDropdown === 'roles' ? '▲' : '▼'}</span>
-                </div>
-                {matchDropdown === 'roles' && (
-                  <div className="filter-dropdown-content">
-                    {['ARTIST', 'PROMOTER', 'VENUE'].map((role) => (
-                      <label key={role} className="filter-dropdown-item">
-                        <input
-                          type="checkbox"
-                          checked={rolesFilter.includes(role)}
-                          onChange={() => toggleRole(role)}
-                        />
-                        <span>{t(`editProfile.${role.toLowerCase()}`)}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Period */}
-              <div className="filter-dropdown-group">
-                <div className="filter-dropdown-header" onClick={() => setMatchDropdown(matchDropdown === 'period' ? null : 'period')}>
-                  <span>{t('tour.period')}</span>
-                  <span className="dropdown-value">
-                    {monthFilter !== 'all' ? monthOptions.find((o) => o.value === monthFilter)?.label : t('tour.allMonths')}
-                  </span>
-                  <span className="dropdown-arrow">{matchDropdown === 'period' ? '▲' : '▼'}</span>
-                </div>
-                {matchDropdown === 'period' && (
-                  <div className="filter-dropdown-content max-h-56 overflow-y-auto">
-                    {monthOptions.map((option) => (
-                      <label key={option.value} className="filter-dropdown-item">
-                        <input
-                          type="radio"
-                          name="match-period"
-                          checked={monthFilter === option.value}
-                          onChange={() => setMonthFilter(option.value)}
-                        />
-                        <span>{option.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Zone */}
-              <div className="filter-dropdown-group">
-                <div className="filter-dropdown-header" onClick={() => setMatchDropdown(matchDropdown === 'zone' ? null : 'zone')}>
-                  <span>{t('editProfile.zone')}</span>
-                  <span className="dropdown-value">{zoneFilter !== 'all' ? zoneFilter : t('manageArtist.allZones')}</span>
-                  <span className="dropdown-arrow">{matchDropdown === 'zone' ? '▲' : '▼'}</span>
-                </div>
-                {matchDropdown === 'zone' && (
-                  <div className="filter-dropdown-content">
-                    {['all', ...zones].map((z) => (
-                      <label key={z} className="filter-dropdown-item">
-                        <input
-                          type="radio"
-                          name="match-zone"
-                          checked={zoneFilter === z}
-                          onChange={() => { setZoneFilter(z); setCountryFilter('all'); }}
-                        />
-                        <span>{z === 'all' ? t('manageArtist.allZones') : z}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Country (when a zone is chosen) */}
-              {zoneFilter !== 'all' && (
-                <div className="filter-dropdown-group">
-                  <div className="filter-dropdown-header" onClick={() => setMatchDropdown(matchDropdown === 'country' ? null : 'country')}>
-                    <span>{t('editProfile.country')}</span>
-                    <span className="dropdown-value">{countryFilter !== 'all' ? countryFilter : t('manageArtist.allCountries')}</span>
-                    <span className="dropdown-arrow">{matchDropdown === 'country' ? '▲' : '▼'}</span>
-                  </div>
-                  {matchDropdown === 'country' && (
-                    <div className="filter-dropdown-content max-h-56 overflow-y-auto">
-                      {['all', ...(countriesByZone[zoneFilter] || [])].map((c) => (
-                        <label key={c} className="filter-dropdown-item">
-                          <input
-                            type="radio"
-                            name="match-country"
-                            checked={countryFilter === c}
-                            onChange={() => setCountryFilter(c)}
-                          />
-                          <span>{c === 'all' ? t('manageArtist.allCountries') : c}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Genres */}
-              <div className="filter-dropdown-group">
-                <div className="filter-dropdown-header" onClick={() => setMatchDropdown(matchDropdown === 'genres' ? null : 'genres')}>
-                  <span>{t('search.genres')}</span>
-                  <span className="dropdown-value">
-                    {genresFilter.length > 0 ? t('search.nSelected', { n: genresFilter.length }) : t('search.selectGenres')}
-                  </span>
-                  <span className="dropdown-arrow">{matchDropdown === 'genres' ? '▲' : '▼'}</span>
-                </div>
-                {matchDropdown === 'genres' && (
-                  <div className="filter-dropdown-content max-h-56 overflow-y-auto">
-                    {genresList.map((genre) => (
-                      <label key={genre} className="filter-dropdown-item">
-                        <input
-                          type="checkbox"
-                          checked={genresFilter.includes(genre)}
-                          onChange={() => toggleGenre(genre)}
-                        />
-                        <span>{genre}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="filter-screen-actions">
-              <button className="btn btn-outline" onClick={clearMatchFilters}>
-                {t('search.clearFilters')}
-              </button>
-              <button className="btn btn-primary" onClick={() => setShowMatchFilters(false)}>
-                {t('search.applyFilters')}
-              </button>
-            </div>
-          </div>
+          <FilterSheet
+            values={{ roles: rolesFilter, period: monthFilter, zone: zoneFilter, country: countryFilter, genres: genresFilter }}
+            clearedValues={{ roles: [], period: 'all', zone: 'all', country: 'all', genres: [] }}
+            onClose={() => setShowMatchFilters(false)}
+            onApply={(v) => {
+              setRolesFilter(v.roles); setMonthFilter(v.period);
+              setZoneFilter(v.zone); setCountryFilter(v.country);
+              setGenresFilter(v.genres);
+              setShowMatchFilters(false);
+            }}
+            sections={[
+              { key: 'roles', label: t('search.roles'), multi: true,
+                options: () => [
+                  { value: 'ARTIST', label: t('editProfile.artist') },
+                  { value: 'PROMOTER', label: t('editProfile.promoter') },
+                  { value: 'VENUE', label: t('editProfile.venue') },
+                ] },
+              { key: 'period', label: t('tour.period'), multi: false, allLabel: t('tour.allMonths'),
+                options: () => monthOptions.map((o) => ({ value: o.value, label: o.label })) },
+              { key: 'zone', label: t('editProfile.zone'), multi: false, allLabel: t('manageArtist.allZones'), resets: ['country'],
+                options: () => [{ value: 'all', label: t('manageArtist.allZones') }, ...zones.map((z) => ({ value: z, label: z }))] },
+              { key: 'country', label: t('editProfile.country'), multi: false, allLabel: t('manageArtist.allCountries'),
+                visible: (d) => d.zone !== 'all',
+                options: (d) => [{ value: 'all', label: t('manageArtist.allCountries') }, ...(countriesByZone[d.zone] || []).map((c) => ({ value: c, label: c }))] },
+              { key: 'genres', label: t('search.genres'), multi: true,
+                options: () => genresList.map((g) => ({ value: g, label: g })) },
+            ]}
+          />
         )}
       </div>
     );
@@ -1526,7 +1429,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     );
 
     // Render modal using portal to escape the TourScreen stacking context
-    return ReactDOM.createPortal(modalContent, document.body);
+    // modalContent portals itself via OverlayPortal — return it directly.
+    return modalContent;
   };
 
   // Render Edit Tour Modal
@@ -1700,7 +1604,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     );
 
     // Render modal using portal to escape the TourScreen stacking context
-    return ReactDOM.createPortal(modalContent, document.body);
+    // modalContent portals itself via OverlayPortal — return it directly.
+    return modalContent;
   };
 
   // Tour Kickstart Tab Content
@@ -1927,12 +1832,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
           (tour.artist && tour.artist.genres && tour.artist.genres.some(g => tourGenreFilter.includes(g)));
         let monthMatch = true;
         if (tourMonthFilter !== 'all') {
-          const [mon, year] = tourMonthFilter.split('-');
-          const monthIdx = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(mon);
-          const from = new Date(Number(year), monthIdx, 1);
-          const to = new Date(Number(year), monthIdx + 1, 0, 23, 59, 59);
-          const ts = new Date(tour.startDate); const te = new Date(tour.endDate);
-          monthMatch = ts <= to && te >= from;
+          const range = monthKeyToRange(tourMonthFilter);
+          if (range) {
+            const ts = new Date(tour.startDate); const te = new Date(tour.endDate);
+            monthMatch = ts <= range.toDate && te >= range.fromDate;
+          }
         }
         return zoneMatch && countryMatch && genreMatch && monthMatch;
       });
@@ -1944,121 +1848,32 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               <p className="m-0 text-left text-xs text-white/45 leading-relaxed flex-1">
                 {t('tour.tourOpportunitiesDesc')}
               </p>
-              <button
-                onClick={() => setShowTourFilters(true)}
-                aria-label={t('search.filters')}
-                className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/80 backdrop-blur-md cursor-pointer"
-              >
-                <span className="[&>svg]:h-4 [&>svg]:w-4"><FilterIcon /></span>
-                {tourFilterCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-infrared px-1 text-[9px] font-semibold text-white">
-                    {tourFilterCount}
-                  </span>
-                )}
-              </button>
+              <FilterButton count={tourFilterCount} onClick={() => setShowTourFilters(true)} label={t('search.filters')} />
             </div>
 
-            {/* Kickstart filter panel — same pattern as Calendar Matches, no Roles */}
+            {/* Full-page filters — shared FilterSheet (no Roles for tours) */}
             {showTourFilters && (
-              <div className="screen active filter-screen">
-                <div className="screen-header">
-                  <button className="back-btn" onClick={() => setShowTourFilters(false)}>←</button>
-                  <h2>{t('search.filters')}</h2>
-                  <div style={{ width: '32px' }}></div>
-                </div>
-                <div className="filter-screen-content">
-                  <div className="filter-dropdown-group">
-                    <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'period' ? null : 'period')}>
-                      <span>{t('tour.period')}</span>
-                      <span className="dropdown-value">
-                        {tourMonthFilter !== 'all' ? monthOptions.find((o) => o.value === tourMonthFilter)?.label : t('tour.allMonths')}
-                      </span>
-                      <span className="dropdown-arrow">{tourDropdown === 'period' ? '▲' : '▼'}</span>
-                    </div>
-                    {tourDropdown === 'period' && (
-                      <div className="filter-dropdown-content max-h-56 overflow-y-auto">
-                        {monthOptions.map((option) => (
-                          <label key={option.value} className="filter-dropdown-item">
-                            <input type="radio" name="tour-period" checked={tourMonthFilter === option.value} onChange={() => setTourMonthFilter(option.value)} />
-                            <span>{option.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="filter-dropdown-group">
-                    <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'zone' ? null : 'zone')}>
-                      <span>{t('editProfile.zone')}</span>
-                      <span className="dropdown-value">{tourZoneFilter !== 'all' ? tourZoneFilter : t('manageArtist.allZones')}</span>
-                      <span className="dropdown-arrow">{tourDropdown === 'zone' ? '▲' : '▼'}</span>
-                    </div>
-                    {tourDropdown === 'zone' && (
-                      <div className="filter-dropdown-content">
-                        {['all', ...zones].map((z) => (
-                          <label key={z} className="filter-dropdown-item">
-                            <input type="radio" name="tour-zone" checked={tourZoneFilter === z} onChange={() => { setTourZoneFilter(z); setTourCountryFilter('all'); }} />
-                            <span>{z === 'all' ? t('manageArtist.allZones') : z}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {tourZoneFilter !== 'all' && (
-                    <div className="filter-dropdown-group">
-                      <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'country' ? null : 'country')}>
-                        <span>{t('editProfile.country')}</span>
-                        <span className="dropdown-value">{tourCountryFilter !== 'all' ? tourCountryFilter : t('manageArtist.allCountries')}</span>
-                        <span className="dropdown-arrow">{tourDropdown === 'country' ? '▲' : '▼'}</span>
-                      </div>
-                      {tourDropdown === 'country' && (
-                        <div className="filter-dropdown-content max-h-56 overflow-y-auto">
-                          {['all', ...(countriesByZone[tourZoneFilter] || [])].map((c) => (
-                            <label key={c} className="filter-dropdown-item">
-                              <input type="radio" name="tour-country" checked={tourCountryFilter === c} onChange={() => setTourCountryFilter(c)} />
-                              <span>{c === 'all' ? t('manageArtist.allCountries') : c}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="filter-dropdown-group">
-                    <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'genres' ? null : 'genres')}>
-                      <span>{t('search.genres')}</span>
-                      <span className="dropdown-value">
-                        {tourGenreFilter.length > 0 ? t('search.nSelected', { n: tourGenreFilter.length }) : t('search.selectGenres')}
-                      </span>
-                      <span className="dropdown-arrow">{tourDropdown === 'genres' ? '▲' : '▼'}</span>
-                    </div>
-                    {tourDropdown === 'genres' && (
-                      <div className="filter-dropdown-content max-h-56 overflow-y-auto">
-                        {genresList.map((genre) => (
-                          <label key={genre} className="filter-dropdown-item">
-                            <input
-                              type="checkbox"
-                              checked={tourGenreFilter.includes(genre)}
-                              onChange={() => setTourGenreFilter((prev) =>
-                                prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre])}
-                            />
-                            <span>{genre}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="filter-screen-actions">
-                  <button className="btn btn-outline" onClick={clearTourFilters}>
-                    {t('search.clearFilters')}
-                  </button>
-                  <button className="btn btn-primary" onClick={() => setShowTourFilters(false)}>
-                    {t('search.applyFilters')}
-                  </button>
-                </div>
-              </div>
+              <FilterSheet
+                values={{ period: tourMonthFilter, zone: tourZoneFilter, country: tourCountryFilter, genres: tourGenreFilter }}
+                clearedValues={{ period: 'all', zone: 'all', country: 'all', genres: [] }}
+                onClose={() => setShowTourFilters(false)}
+                onApply={(v) => {
+                  setTourMonthFilter(v.period); setTourZoneFilter(v.zone);
+                  setTourCountryFilter(v.country); setTourGenreFilter(v.genres);
+                  setShowTourFilters(false);
+                }}
+                sections={[
+                  { key: 'period', label: t('tour.period'), multi: false, allLabel: t('tour.allMonths'),
+                    options: () => monthOptions.map((o) => ({ value: o.value, label: o.label })) },
+                  { key: 'zone', label: t('editProfile.zone'), multi: false, allLabel: t('manageArtist.allZones'), resets: ['country'],
+                    options: () => [{ value: 'all', label: t('manageArtist.allZones') }, ...zones.map((z) => ({ value: z, label: z }))] },
+                  { key: 'country', label: t('editProfile.country'), multi: false, allLabel: t('manageArtist.allCountries'),
+                    visible: (d) => d.zone !== 'all',
+                    options: (d) => [{ value: 'all', label: t('manageArtist.allCountries') }, ...(countriesByZone[d.zone] || []).map((c) => ({ value: c, label: c }))] },
+                  { key: 'genres', label: t('search.genres'), multi: true,
+                    options: () => genresList.map((g) => ({ value: g, label: g })) },
+                ]}
+              />
             )}
 
             {/* Tour cards or empty state */}

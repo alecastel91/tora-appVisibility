@@ -39,7 +39,10 @@ const PushSettingsToggle = () => {
     const next = { ...prefs, [cat]: enabled ? undefined : false };
     if (enabled) delete next[cat];
     setPrefs(next); // optimistic
-    apiService.setPushPrefs(next).catch(() => setPrefs(prefs));
+    apiService.setPushPrefs(next).catch(() =>
+      // authoritative rollback — a captured `prefs` would undo unrelated
+      // toggles when two rapid changes race
+      apiService.getPushPrefs().then((r) => setPrefs(r.prefs || {})).catch(() => {}));
   };
 
   const hint =

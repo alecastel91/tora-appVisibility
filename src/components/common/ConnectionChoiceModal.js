@@ -118,7 +118,8 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
             </button>
           </div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
@@ -216,7 +217,6 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
         </button>
       </div>
     </Modal>
-    , document.body
   );
 };
 

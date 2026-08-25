@@ -33,6 +33,7 @@ const BetaTools = () => {
     try { return JSON.parse(localStorage.getItem('tora-beta-fab-pos')) || null; }
     catch { return null; }
   });
+  const lastPosRef = useRef(null);
   const onFabPointerDown = (e) => {
     const fab = fabRef.current;
     if (!fab) return;
@@ -45,18 +46,23 @@ const BetaTools = () => {
       const y = Math.min(Math.max(4, ev.clientY - offY), window.innerHeight - rect.height - 4);
       if (Math.abs(ev.clientX - e.clientX) + Math.abs(ev.clientY - e.clientY) > 6) {
         dragMovedRef.current = true;
-        setFabPos({ x, y });
+        lastPosRef.current = { x, y };
+        setFabPos(lastPosRef.current);
       }
     };
-    const onUp = () => {
+    // pointercancel matters on touch: an incoming call / gesture interrupt
+    // would otherwise leave the move listener leaked and the FAB glued.
+    const onEnd = () => {
       window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      if (dragMovedRef.current) {
-        setFabPos((pos) => { localStorage.setItem('tora-beta-fab-pos', JSON.stringify(pos)); return pos; });
+      window.removeEventListener('pointerup', onEnd);
+      window.removeEventListener('pointercancel', onEnd);
+      if (dragMovedRef.current && lastPosRef.current) {
+        localStorage.setItem('tora-beta-fab-pos', JSON.stringify(lastPosRef.current));
       }
     };
     window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointerup', onEnd);
+    window.addEventListener('pointercancel', onEnd);
   };
 
   // Shift the sticky header/content below the fixed banner.
