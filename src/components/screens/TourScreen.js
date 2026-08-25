@@ -769,14 +769,17 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           : (s.profile.name || '?').charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
+                        {/* items-baseline: the pill's text baseline rides the
+                            name's baseline, so its lower edge stays level with
+                            the name instead of dipping below it. */}
+                        <div className="flex items-baseline gap-2">
                           <span className="text-sm font-semibold text-white truncate">{s.profile.name}</span>
-                          <span className={`role-badge ${(s.profile.role || '').toLowerCase()} self-center leading-none relative -top-[1.5px]`}>{s.profile.role}</span>
+                          <span className={`role-badge ${(s.profile.role || '').toLowerCase()} leading-none`}>{s.profile.role}</span>
                           {s.connected && (
-                            <span className="text-[9px] uppercase tracking-[0.12em] text-emerald-400/90 font-tech self-center">{t('tour.feedConnected')}</span>
+                            <span className="text-[9px] uppercase tracking-[0.12em] text-emerald-400/90 font-tech">{t('tour.feedConnected')}</span>
                           )}
                           {s.liked && (
-                            <span className="self-center text-infrared [&_svg]:w-3 [&_svg]:h-3" aria-label={t('tour.feedLiked')}>
+                            <span className="text-infrared [&_svg]:w-3 [&_svg]:h-3 [&_svg]:translate-y-[1.5px]" aria-label={t('tour.feedLiked')}>
                               <HeartIcon filled />
                             </span>
                           )}
