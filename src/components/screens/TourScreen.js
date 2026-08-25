@@ -769,12 +769,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                           : (s.profile.name || '?').charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
-                        {/* items-baseline: the pill's text baseline rides the
-                            name's baseline, so its lower edge stays level with
-                            the name instead of dipping below it. */}
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm font-semibold text-white truncate">{s.profile.name}</span>
-                          <span className={`role-badge ${(s.profile.role || '').toLowerCase()} leading-none`}>{s.profile.role}</span>
+                        {/* Same structure as the match cards (.match-name-role)
+                            so name + role pill align identically everywhere. */}
+                        <div className="match-name-role !mb-0">
+                          <h3 className="truncate">{s.profile.name}</h3>
+                          <span className={`role-badge ${(s.profile.role || '').toLowerCase()}`}>{s.profile.role}</span>
                           {s.connected && (
                             <span className="text-[9px] uppercase tracking-[0.12em] text-emerald-400/90 font-tech">{t('tour.feedConnected')}</span>
                           )}
