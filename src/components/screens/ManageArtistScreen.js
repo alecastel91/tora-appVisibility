@@ -2289,23 +2289,25 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
               </select>
             </div>
           )}
+          <div className="form-row">
 
-          <div className="form-group">
-            <label>{t('manageArtist.startDate')}</label>
-            <input
-              type="date"
-              value={travelFilter.startDate}
-              onChange={(e) => setTravelFilter({...travelFilter, startDate: e.target.value})}
-            />
-          </div>
+            <div className="form-group">
+              <label>{t('manageArtist.startDate')}</label>
+              <input
+                type="date"
+                value={travelFilter.startDate}
+                onChange={(e) => setTravelFilter({...travelFilter, startDate: e.target.value})}
+              />
+            </div>
 
-          <div className="form-group">
-            <label>{t('manageArtist.endDate')}</label>
-            <input
-              type="date"
-              value={travelFilter.endDate}
-              onChange={(e) => setTravelFilter({...travelFilter, endDate: e.target.value})}
-            />
+            <div className="form-group">
+              <label>{t('manageArtist.endDate')}</label>
+              <input
+                type="date"
+                value={travelFilter.endDate}
+                onChange={(e) => setTravelFilter({...travelFilter, endDate: e.target.value})}
+              />
+            </div>
           </div>
 
 

@@ -516,7 +516,9 @@ const Calendar = ({ onClose }) => {
             </select>
           </div>
           
-          <div className="form-group">
+          <div className="form-row">
+          
+            <div className="form-group">
             <label>{t('calendar.startDate')}</label>
             <input
               type="date"
@@ -525,13 +527,15 @@ const Calendar = ({ onClose }) => {
             />
           </div>
           
-          <div className="form-group">
+            <div className="form-group">
             <label>{t('calendar.endDate')}</label>
             <input
               type="date"
               value={locationFilter.endDate}
               onChange={(e) => setLocationFilter({...locationFilter, endDate: e.target.value})}
             />
+          </div>
+          
           </div>
           
           <div className="form-actions">
