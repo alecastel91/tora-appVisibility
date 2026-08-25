@@ -563,6 +563,15 @@ const ko = {
     },
   },
 
+  install: {
+    title: 'TORA 앱 받기',
+    subtitle: 'TORA를 홈 화면에 추가하세요 — 전체 화면, 더 빠른 실행, 오퍼와 메시지 푸시 알림을 이용할 수 있습니다.',
+    cta: '앱 설치',
+    ios1: '브라우저의 공유 버튼을 탭하세요.',
+    ios2: '"홈 화면에 추가"를 선택한 뒤 홈 화면에서 TORA를 여세요.',
+    genericHint: '브라우저 메뉴에서 "홈 화면에 추가" 또는 "앱 설치"를 선택하세요.',
+    later: '나중에',
+  },
   push: {
     settingsSection: '알림',
     settingsToggle: '이 기기에서 푸시 알림',

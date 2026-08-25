@@ -39,6 +39,7 @@ import GuideScreen from './components/common/GuideScreen';
 import GettingStartedSheet from './components/common/GettingStartedSheet';
 import PushSettingsToggle from './components/common/PushSettingsToggle';
 import PushNudge from './components/common/PushNudge';
+import InstallSheet from './components/common/InstallSheet';
 import { appConfirm, appAlert } from './utils/dialogs';
 
 function App() {
@@ -688,6 +689,9 @@ function App() {
           {/* Notifications soft-ask: visible right after login on ANY tab
               (one card, dismissible; native prompt only on its button). */}
           <PushNudge />
+          {/* First-run "Get the app" install sheet — browser-only (never in
+              the installed PWA), one-tap native install where supported. */}
+          <InstallSheet />
           {/* The active tab always renders even if a code path bypassed
               switchTab's mount bookkeeping — never a blank main area. */}
           {(mountedTabs.includes(activeTab) ? mountedTabs : [...mountedTabs, activeTab]).map((tab) => (

@@ -563,6 +563,15 @@ const es = {
     },
   },
 
+  install: {
+    title: 'Consigue la app de TORA',
+    subtitle: 'Añade TORA a tu pantalla de inicio: pantalla completa, apertura más rápida y notificaciones push de ofertas y mensajes.',
+    cta: 'Instalar app',
+    ios1: 'Toca el botón Compartir en la barra del navegador.',
+    ios2: 'Elige "Añadir a pantalla de inicio" y abre TORA desde tu pantalla de inicio.',
+    genericHint: 'En el menú de tu navegador, elige "Añadir a pantalla de inicio" o "Instalar aplicación".',
+    later: 'Ahora no',
+  },
   push: {
     settingsSection: 'Notificaciones',
     settingsToggle: 'Notificaciones push en este dispositivo',

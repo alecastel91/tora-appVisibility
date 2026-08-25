@@ -563,6 +563,15 @@ const fr = {
     },
   },
 
+  install: {
+    title: 'Installez l\'app TORA',
+    subtitle: 'Ajoutez TORA à votre écran d\'accueil : plein écran, lancement plus rapide et notifications push pour les offres et messages.',
+    cta: 'Installer l\'app',
+    ios1: 'Touchez le bouton Partager dans la barre du navigateur.',
+    ios2: 'Choisissez « Sur l\'écran d\'accueil », puis ouvrez TORA depuis votre écran d\'accueil.',
+    genericHint: 'Dans le menu de votre navigateur, choisissez « Ajouter à l\'écran d\'accueil » ou « Installer l\'application ».',
+    later: 'Plus tard',
+  },
   push: {
     settingsSection: 'Notifications',
     settingsToggle: 'Notifications push sur cet appareil',

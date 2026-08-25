@@ -563,6 +563,15 @@ const zh = {
     },
   },
 
+  install: {
+    title: '获取 TORA 应用',
+    subtitle: '将 TORA 添加到主屏幕——全屏体验、更快启动，并可接收报价和消息的推送通知。',
+    cta: '安装应用',
+    ios1: '点按浏览器工具栏中的分享按钮。',
+    ios2: '选择"添加到主屏幕"，然后从主屏幕打开 TORA。',
+    genericHint: '在浏览器菜单中选择"添加到主屏幕"或"安装应用"。',
+    later: '暂不',
+  },
   push: {
     settingsSection: '通知',
     settingsToggle: '在此设备上接收推送通知',

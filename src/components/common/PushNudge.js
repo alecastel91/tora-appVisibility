@@ -5,10 +5,10 @@ import { getPushState, enablePush } from '../../services/push';
 const DISMISS_KEY = 'tora-push-nudge-dismissed';
 
 /**
- * Soft-ask card for notifications: shown once, contextually (Messages tab),
- * never fires the native permission prompt without a tap. On iOS in the
- * browser it becomes Add-to-Home-Screen guidance, since installed apps are
- * the only place iOS allows web push.
+ * Soft-ask card for notifications: shown once, never fires the native
+ * permission prompt without a tap. Only rendered where push can actually be
+ * enabled ('ready') — while still uninstalled on iOS, InstallSheet owns the
+ * Add-to-Home-Screen education instead.
  */
 const PushNudge = () => {
   const { t } = useLanguage();
@@ -18,7 +18,7 @@ const PushNudge = () => {
     if (localStorage.getItem(DISMISS_KEY)) return undefined;
     let alive = true;
     getPushState().then((s) => {
-      if (alive && (s === 'ready' || s === 'ios-needs-install')) setState(s);
+      if (alive && s === 'ready') setState(s);
     });
     // Enabling from Settings must also retire the card.
     const onPushState = (e) => {
@@ -47,14 +47,12 @@ const PushNudge = () => {
     <div className="mx-4 mt-4 mb-3 rounded-xl border border-white/10 bg-white/[0.04] p-4">
       <p className="m-0 text-sm font-semibold text-white">{t('push.title')}</p>
       <p className="m-0 mt-1 text-xs leading-relaxed text-white/60">
-        {state === 'ios-needs-install' ? t('push.iosInstallHint') : t('push.body')}
+        {t('push.body')}
       </p>
       <div className="mt-3 flex gap-2">
-        {state === 'ready' && (
-          <button type="button" className="btn btn-primary btn-sm" onClick={enable}>
-            {t('push.enable')}
-          </button>
-        )}
+        <button type="button" className="btn btn-primary btn-sm" onClick={enable}>
+          {t('push.enable')}
+        </button>
         <button type="button" className="btn btn-secondary btn-sm" onClick={dismiss}>
           {t('push.later')}
         </button>
