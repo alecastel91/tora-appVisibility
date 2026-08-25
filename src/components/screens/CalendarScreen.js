@@ -132,12 +132,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
     country: '',
     city: '',
     startDate: '',
-    endDate: '',
-    lookingFor: {
-      promoter: false,
-      venue: false,
-      artist: false
-    }
+    endDate: ''
   });
 
   // State for calendar navigation
@@ -164,23 +159,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
   ];
 
   // Determine what roles current user can look for based on their role
-  const getAvailableLookingForOptions = () => {
-    const role = user?.role;
-    switch(role) {
-      case 'ARTIST':
-        return ['promoter', 'venue'];
-      case 'PROMOTER':
-        return ['artist', 'venue'];
-      case 'VENUE':
-        return ['artist', 'promoter'];
-      case 'AGENT':
-        return ['promoter', 'venue'];
-      default:
-        return [];
-    }
-  };
 
-  const availableOptions = getAvailableLookingForOptions();
 
   // Navigation functions
   const goToPreviousMonth = () => {
@@ -467,12 +446,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
           country: '',
           city: '',
           startDate: '',
-          endDate: '',
-          lookingFor: {
-            promoter: false,
-            venue: false,
-            artist: false
-          }
+          endDate: ''
         });
       } catch (error) {
         console.error('Failed to save schedule:', error);
@@ -500,12 +474,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
       country: schedule.country || '',
       city: schedule.city || '',
       startDate: formatDateForInput(schedule.startDate),
-      endDate: formatDateForInput(schedule.endDate),
-      lookingFor: {
-        promoter: schedule.lookingFor?.promoter || false,
-        venue: schedule.lookingFor?.venue || false,
-        artist: schedule.lookingFor?.artist || false
-      }
+      endDate: formatDateForInput(schedule.endDate)
     });
 
     const scheduleId = schedule.id;
@@ -571,12 +540,7 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
       country: '',
       city: '',
       startDate: dateFormatted,
-      endDate: dateFormatted,
-      lookingFor: {
-        promoter: false,
-        venue: false,
-        artist: false
-      }
+      endDate: dateFormatted
     });
     setEditingScheduleId(null);
     setShowLocationModal(true);
@@ -607,14 +571,6 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-  };
-
-  const getLookingForLabel = (schedule) => {
-    const looking = [];
-    if (schedule.lookingFor?.promoter) looking.push(t('tour.promoters'));
-    if (schedule.lookingFor?.venue) looking.push(t('tour.venues'));
-    if (schedule.lookingFor?.artist) looking.push(t('tour.artists'));
-    return looking.length > 0 ? looking.join(', ') : t('calendar.notSpecified');
   };
 
   const isDateInSchedule = (day) => {
@@ -1220,62 +1176,6 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
             </div>
           </div>
 
-          {/* What are you looking for section */}
-          {availableOptions.length > 0 && (
-            <div className="looking-for-section">
-              <h4>{t('calendar.lookingFor')}</h4>
-              <div className="looking-for-options">
-                {availableOptions.includes('promoter') && (
-                  <label className="looking-for-option">
-                    <input
-                      type="checkbox"
-                      checked={scheduleForm.lookingFor.promoter}
-                      onChange={(e) => setScheduleForm({
-                        ...scheduleForm,
-                        lookingFor: {
-                          ...scheduleForm.lookingFor,
-                          promoter: e.target.checked
-                        }
-                      })}
-                    />
-                    <span>{t('tour.promoters')}</span>
-                  </label>
-                )}
-                {availableOptions.includes('venue') && (
-                  <label className="looking-for-option">
-                    <input
-                      type="checkbox"
-                      checked={scheduleForm.lookingFor.venue}
-                      onChange={(e) => setScheduleForm({
-                        ...scheduleForm,
-                        lookingFor: {
-                          ...scheduleForm.lookingFor,
-                          venue: e.target.checked
-                        }
-                      })}
-                    />
-                    <span>{t('tour.venues')}</span>
-                  </label>
-                )}
-                {availableOptions.includes('artist') && (
-                  <label className="looking-for-option">
-                    <input
-                      type="checkbox"
-                      checked={scheduleForm.lookingFor.artist}
-                      onChange={(e) => setScheduleForm({
-                        ...scheduleForm,
-                        lookingFor: {
-                          ...scheduleForm.lookingFor,
-                          artist: e.target.checked
-                        }
-                      })}
-                    />
-                    <span>{t('tour.artists')}</span>
-                  </label>
-                )}
-              </div>
-            </div>
-          )}
 
           <div className="form-actions">
             <button 

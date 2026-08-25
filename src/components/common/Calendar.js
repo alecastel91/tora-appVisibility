@@ -13,12 +13,6 @@ const Calendar = ({ onClose }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState(null);
   const [locationFilters, setLocationFilters] = useState([]);
-  const [lookingFor, setLookingFor] = useState({
-    promoter: false,
-    venue: false,
-    artist: false
-  });
-  
   const [locationFilter, setLocationFilter] = useState({
     zone: '',
     country: '',
@@ -276,23 +270,7 @@ const Calendar = ({ onClose }) => {
   };
 
   // Determine what roles current user can look for based on their role
-  const getAvailableLookingForOptions = () => {
-    const role = user?.role;
-    switch(role) {
-      case 'ARTIST':
-        return ['promoter', 'venue'];
-      case 'PROMOTER':
-        return ['artist', 'venue'];
-      case 'VENUE':
-        return ['artist', 'promoter'];
-      case 'AGENT':
-        return ['promoter', 'venue']; // Agents look for opportunities for their artists
-      default:
-        return [];
-    }
-  };
 
-  const availableOptions = getAvailableLookingForOptions();
 
   const isDateInLocationFilter = (day) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -422,45 +400,6 @@ const Calendar = ({ onClose }) => {
           </div>
         </div>
 
-        {/* What are you looking for section */}
-        {selectedDates.size > 0 && availableOptions.length > 0 && (
-          <div className="looking-for-section">
-            <h4>What are you looking for?</h4>
-            <div className="looking-for-options">
-              {availableOptions.includes('promoter') && (
-                <label className="looking-for-option">
-                  <input
-                    type="checkbox"
-                    checked={lookingFor.promoter}
-                    onChange={(e) => setLookingFor({...lookingFor, promoter: e.target.checked})}
-                  />
-                  <span>Promoters</span>
-                </label>
-              )}
-              {availableOptions.includes('venue') && (
-                <label className="looking-for-option">
-                  <input
-                    type="checkbox"
-                    checked={lookingFor.venue}
-                    onChange={(e) => setLookingFor({...lookingFor, venue: e.target.checked})}
-                  />
-                  <span>Venues</span>
-                </label>
-              )}
-              {availableOptions.includes('artist') && (
-                <label className="looking-for-option">
-                  <input
-                    type="checkbox"
-                    checked={lookingFor.artist}
-                    onChange={(e) => setLookingFor({...lookingFor, artist: e.target.checked})}
-                  />
-                  <span>Artists</span>
-                </label>
-              )}
-            </div>
-          </div>
-        )}
-        
         {/* Location Filters Display */}
         <div className="calendar-filters">
           {locationFilters.length === 0 ? (

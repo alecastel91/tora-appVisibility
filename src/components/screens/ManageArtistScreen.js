@@ -81,10 +81,6 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
     startDate: '',
     endDate: ''
   });
-  const [lookingFor, setLookingFor] = useState({
-    promoter: false,
-    venue: false
-  });
   const [upcomingGigs, setUpcomingGigs] = useState(null); // null means loading, number means loaded
   const [gigsError, setGigsError] = useState(false);
   const [ytdRevenue, setYtdRevenue] = useState(null); // null means loading, number means loaded
@@ -561,8 +557,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
         country: travelFilter.country || '',
         city: travelFilter.city || '',
         startDate: travelFilter.startDate || '',
-        endDate: travelFilter.endDate || '',
-        lookingFor: lookingFor
+        endDate: travelFilter.endDate || ''
       };
 
       console.log('[ManageArtistScreen] Creating/editing schedule with data:', scheduleData);
@@ -658,11 +653,6 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
       endDate: formatDateForInput(schedule.endDate)
     });
 
-    // Set looking for preferences
-    setLookingFor({
-      promoter: schedule.lookingFor?.promoter || false,
-      venue: schedule.lookingFor?.venue || false
-    });
 
     // Set the editing index so save knows to update instead of add
     setEditingScheduleIndex(index);
@@ -2318,28 +2308,6 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
             />
           </div>
 
-          {/* Looking For Section */}
-          <div className="looking-for-section">
-            <h4>{t('manageArtist.whatAreYouLookingFor')}</h4>
-            <div className="looking-for-options">
-              <label className="looking-for-option">
-                <input
-                  type="checkbox"
-                  checked={lookingFor.promoter}
-                  onChange={(e) => setLookingFor({...lookingFor, promoter: e.target.checked})}
-                />
-                <span>{t('manageArtist.promoters')}</span>
-              </label>
-              <label className="looking-for-option">
-                <input
-                  type="checkbox"
-                  checked={lookingFor.venue}
-                  onChange={(e) => setLookingFor({...lookingFor, venue: e.target.checked})}
-                />
-                <span>{t('manageArtist.venues')}</span>
-              </label>
-            </div>
-          </div>
 
           <div className="form-actions">
             <button
