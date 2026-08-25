@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import OverlayPortal from '../common/OverlayPortal';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { isVerificationGate } from '../../utils/errors';
 import { useAppContext } from '../../contexts/AppContext';
@@ -1061,7 +1062,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
       />
 
       {showMessageModal && (
-          <div className="message-modal-overlay" onClick={() => setShowMessageModal(false)}>
+          <OverlayPortal><div className="message-modal-overlay" onClick={() => setShowMessageModal(false)}>
             <div className="message-modal-bottom" onClick={(e) => e.stopPropagation()}>
               <h2 className="message-modal-title">{t('search.sendMessageTo')} {profile.name}</h2>
               <textarea
@@ -1087,7 +1088,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
                 </button>
               </div>
             </div>
-          </div>
+          </div></OverlayPortal>
         )}
 
       {/* Remove Connection Confirmation Modal */}

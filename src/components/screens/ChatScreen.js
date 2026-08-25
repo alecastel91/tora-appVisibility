@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import OverlayPortal from '../common/OverlayPortal';
 import { CURRENCY_OPTIONS } from '../common/CurrencyOptions';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -2077,7 +2078,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
       {/* Offer Details Modal */}
       {showOfferDetails && selectedOffer && (
-        <div className="modal-overlay" onClick={() => setShowOfferDetails(false)}>
+        <OverlayPortal><div className="modal-overlay" onClick={() => setShowOfferDetails(false)}>
           <div className="modal-content offer-details-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{t('chat.offerDetails')}</h3>
@@ -2401,7 +2402,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               )}
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Review/Counter-Offer Modal */}
@@ -2629,7 +2630,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
       {/* Counter-Offer Details Modal */}
       {showCounterOfferDetails && counterOfferData && (
-        <div className="modal-overlay" onClick={() => setShowCounterOfferDetails(false)}>
+        <OverlayPortal><div className="modal-overlay" onClick={() => setShowCounterOfferDetails(false)}>
           <div className="modal-content offer-details-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{t('chat.counterOfferDetails')}</h3>
@@ -2799,12 +2800,12 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               )}
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Decline Reason Modal */}
       {showDeclineReasonModal && declineReasonData && (
-        <div className="modal-overlay" onClick={() => setShowDeclineReasonModal(false)}>
+        <OverlayPortal><div className="modal-overlay" onClick={() => setShowDeclineReasonModal(false)}>
           <div className="modal-content offer-details-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{t('chat.declineReason')}</h3>
@@ -2841,12 +2842,12 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Representation Request Details Modal */}
       {showRepresentationDetails && selectedRepresentationRequest && (
-        <div className="modal-overlay" onClick={() => setShowRepresentationDetails(false)}>
+        <OverlayPortal><div className="modal-overlay" onClick={() => setShowRepresentationDetails(false)}>
           <div className="modal-content offer-details-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{t('messages.representationRequest')}</h3>
@@ -2919,7 +2920,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
               )}
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Paperclip share modal — library docs (Press Kit / Tech Rider /
@@ -2937,7 +2938,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
           setSelectedArtistForDocs(null);
         };
         return (
-          <div className="modal-overlay" onClick={closeModal}>
+          <OverlayPortal><div className="modal-overlay" onClick={closeModal}>
             <div className="modal-content offer-details-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '560px' }}>
               <div className="modal-header">
                 <h3>{t('chat.shareWith', { name: user.name })}</h3>
@@ -3083,7 +3084,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
                 )}
               </div>
             </div>
-          </div>
+          </div></OverlayPortal>
         );
       })()}
 

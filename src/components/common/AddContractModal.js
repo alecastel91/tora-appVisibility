@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { uploadDocument } from '../../services/contractService';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -118,7 +119,7 @@ const AddContractModal = ({
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
@@ -268,6 +269,7 @@ const AddContractModal = ({
         </div>
       </div>
     </div>
+    , document.body
   );
 };
 

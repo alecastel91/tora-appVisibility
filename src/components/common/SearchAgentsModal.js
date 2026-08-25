@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import OverlayPortal from './OverlayPortal';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { isVerificationGate } from '../../utils/errors';
 import { CloseIcon } from '../../utils/icons';
@@ -758,7 +759,7 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
 
       {/* Connection Modal - rendered on top of everything */}
       {showConnectionModal && selectedAgent && (
-        <div className="modal-overlay" onClick={handleCancelConnection}>
+        <OverlayPortal><div className="modal-overlay" onClick={handleCancelConnection}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{t('findAgent.connectWith', { name: selectedAgent.name })}</h2>
@@ -803,12 +804,12 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Message Modal - rendered on top of everything */}
       {showMessageModal && selectedAgent && (
-        <div className="modal-overlay rep-request-modal" onClick={handleCancelMessage}>
+        <OverlayPortal><div className="modal-overlay rep-request-modal" onClick={handleCancelMessage}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{t('findAgent.sendRepresentationRequest')}</h2>
@@ -853,12 +854,12 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Review Representation Request Modal */}
       {showReviewModal && selectedAgent && reviewingRequest && (
-        <div className="modal-overlay" onClick={() => {
+        <OverlayPortal><div className="modal-overlay" onClick={() => {
           setShowReviewModal(false);
           setSelectedAgent(null);
           setReviewingRequest(null);
@@ -930,7 +931,7 @@ const SearchAgentsModal = ({ onClose, onSelectAgent, currentArtistId, onOpenChat
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
     </>
   );

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import OverlayPortal from './OverlayPortal';
 import { appAlert } from '../../utils/dialogs';
 import { isVerificationGate } from '../../utils/errors';
 import { CloseIcon } from '../../utils/icons';
@@ -538,7 +539,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
 
       {/* Connection Modal - rendered on top of everything */}
       {showConnectionModal && selectedArtist && (
-        <div className="modal-overlay" onClick={handleCancelConnection}>
+        <OverlayPortal><div className="modal-overlay" onClick={handleCancelConnection}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{t('findArtist.connectWith', { name: selectedArtist.name })}</h2>
@@ -583,12 +584,12 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Message Modal - rendered on top of everything */}
       {showMessageModal && selectedArtist && (
-        <div className="modal-overlay rep-request-modal" onClick={handleCancelMessage}>
+        <OverlayPortal><div className="modal-overlay rep-request-modal" onClick={handleCancelMessage}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{t('findArtist.sendRepresentationRequest')}</h2>
@@ -633,12 +634,12 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Review Representation Request Modal */}
       {showReviewModal && selectedArtist && reviewingRequest && (
-        <div className="modal-overlay" onClick={() => {
+        <OverlayPortal><div className="modal-overlay" onClick={() => {
           setShowReviewModal(false);
           setSelectedArtist(null);
           setReviewingRequest(null);
@@ -710,7 +711,7 @@ const SearchArtistsModal = ({ onClose, onSelectArtist, currentAgentId }) => {
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
     </>
   );

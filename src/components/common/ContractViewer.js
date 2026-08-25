@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 /**
@@ -33,7 +34,7 @@ const ContractViewer = ({ isOpen, onClose, contractUrl, dealId, onTrackView }) =
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal-content"
@@ -145,6 +146,7 @@ const ContractViewer = ({ isOpen, onClose, contractUrl, dealId, onTrackView }) =
         }
       `}</style>
     </div>
+    , document.body
   );
 };
 

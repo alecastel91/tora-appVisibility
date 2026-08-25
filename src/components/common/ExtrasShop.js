@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import OverlayPortal from './OverlayPortal';
 import ExtraPurchaseFlow from './ExtraPurchaseFlow';
 import { extrasForRole } from '../../utils/extras';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -36,14 +37,14 @@ const ExtrasShop = ({ user }) => {
       </div>
 
       {buying && (
-        <div className="message-modal-overlay" onClick={() => setBuying(null)}>
+        <OverlayPortal><div className="message-modal-overlay" onClick={() => setBuying(null)}>
           <div className="message-modal-bottom" onClick={(e) => e.stopPropagation()}>
             <h2 className="message-modal-title">
               {t(`premium.${buying.labelKey}`)} · {buying.price}
             </h2>
             <ExtraPurchaseFlow item={buying} onClose={() => setBuying(null)} />
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
     </div>
   );

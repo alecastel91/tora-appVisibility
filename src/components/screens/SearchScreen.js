@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import OverlayPortal from '../common/OverlayPortal';
 import { appAlert } from '../../utils/dialogs';
 import { isVerificationGate } from '../../utils/errors';
 import { zones, countriesByZone, citiesByCountry, genresList } from '../../data/profiles';
@@ -928,7 +929,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
 
       {/* Message Modal */}
       {showMessageModal && selectedProfile && (
-        <div className="message-modal-overlay" onClick={() => {
+        <OverlayPortal><div className="message-modal-overlay" onClick={() => {
           setShowMessageModal(false);
           setSelectedProfile(null);
           setMessage('');
@@ -961,7 +962,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Connection Choice Modal */}
@@ -978,7 +979,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
 
       {/* Review Request Modal */}
       {showReviewModal && selectedProfile && reviewingRequest && (
-        <div className="message-modal-overlay" onClick={() => {
+        <OverlayPortal><div className="message-modal-overlay" onClick={() => {
           setShowReviewModal(false);
           setSelectedProfile(null);
           setReviewingRequest(null);
@@ -1029,7 +1030,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Like Limit Modal */}
@@ -1054,7 +1055,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
 
       {/* Globe locked-city upsell (FREE members tapping a Premium pin) */}
       {globeUpsellCity && (
-        <div className="modal-overlay" onClick={() => setGlobeUpsellCity(null)}>
+        <OverlayPortal><div className="modal-overlay" onClick={() => setGlobeUpsellCity(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{t('search.globeLockedTitle')}</h3>
@@ -1088,7 +1089,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { appAlert } from '../../utils/dialogs';
 import Modal from './Modal';
 import { InfoIcon, HandshakeIcon, UserIcon } from '../../utils/icons';
@@ -89,7 +90,7 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
       ? (selectedAgent.name || selectedAgent.agentName || 'Agent')
       : artist.name;
 
-    return (
+    return createPortal(
       <div className="message-modal-overlay" onClick={onClose}>
         <div className="message-modal-bottom" onClick={(e) => e.stopPropagation()}>
           <h2 className="message-modal-title">{t('search.sendMessageTo')} {targetName}</h2>
@@ -215,6 +216,7 @@ const ConnectionChoiceModal = ({ artist, onClose, onConnect }) => {
         </button>
       </div>
     </Modal>
+    , document.body
   );
 };
 

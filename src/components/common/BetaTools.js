@@ -155,6 +155,7 @@ const BetaTools = () => {
       </button>
 
       {open && (
+        createPortal(
         <div className="message-modal-overlay" onClick={close}>
           <div className="message-modal-bottom" onClick={(e) => e.stopPropagation()}>
             <h2 className="message-modal-title">Beta feedback</h2>
@@ -206,7 +207,9 @@ const BetaTools = () => {
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
+      )
       )}
     </>
   );

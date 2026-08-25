@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import ExtraPurchaseFlow from './ExtraPurchaseFlow';
 import { extrasForKind } from '../../utils/extras';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -19,7 +20,7 @@ const LimitReachedModal = ({ type, data, onClose, onOpenPremium }) => {
     ? t('search.likesPerDay', { n: data?.limit })
     : t('search.connectionsPerMonth', { n: data?.limit });
 
-  return (
+  return createPortal(
     <div className="modal-overlay rep-request-modal" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
@@ -57,6 +58,7 @@ const LimitReachedModal = ({ type, data, onClose, onOpenPremium }) => {
         </div>
       </div>
     </div>
+    , document.body
   );
 };
 

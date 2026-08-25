@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import OverlayPortal from '../common/OverlayPortal';
 import { CURRENCY_OPTIONS, CURRENCY_OPTIONS_WITH_SYMBOL } from '../common/CurrencyOptions';
 import ReactDOM from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
@@ -2085,7 +2086,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
 
       {/* Message Modal */}
       {showMessageModal && selectedProfile && (
-        <div className="message-modal-overlay" onClick={() => {
+        <OverlayPortal><div className="message-modal-overlay" onClick={() => {
           setShowMessageModal(false);
           setSelectedProfile(null);
           setMessage('');
@@ -2118,7 +2119,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               </button>
             </div>
           </div>
-        </div>
+        </div></OverlayPortal>
       )}
 
       {/* Create Tour Modal */}
