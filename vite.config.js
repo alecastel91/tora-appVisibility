@@ -49,7 +49,7 @@ export default defineConfig(({ command }) => {
     // spinner — and Supabase Realtime/storage bypass the worker entirely.
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['tora_logo_square.png', 'fonts/**/*'],
+      includeAssets: ['tora_logo_square.png', 'tora_logo.png', 'fonts/**/*'],
       manifest: {
         name: appName,
         short_name: appName,
