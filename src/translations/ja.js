@@ -814,7 +814,7 @@ const ja = {
     matchFound: '{{n}}件のマッチ',
     matchesFound: '{{n}}件のマッチ',
     travelFeedTitle: '移動スケジュールと空き日程',
-    travelFeedHint: '移動中のアーティスト、空き日程のあるプロモーターやヴェニュー — マッチの先にある業界のライブカレンダー。',
+    travelFeedHint: '移動中のアーティスト、空き日程のあるプロモーターやベニュー — マッチの先にある業界のライブカレンダー。',
     travelFeedEmpty: '現在アクティブなスケジュールはありません。',
     feedConnected: 'コネクション',
     feedOpenDates: '空き日程',
