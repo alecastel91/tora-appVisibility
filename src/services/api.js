@@ -416,6 +416,30 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  // WEB PUSH
+  async getVapidPublicKey() {
+    const response = await fetch(`${API_URL}/push/vapid-public-key`);
+    return this.handleResponse(response);
+  }
+
+  async subscribePush(subscription) {
+    const response = await fetch(`${API_URL}/push/subscribe`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ subscription }),
+    });
+    return this.handleResponse(response);
+  }
+
+  async unsubscribePush(endpoint) {
+    const response = await fetch(`${API_URL}/push/unsubscribe`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ endpoint }),
+    });
+    return this.handleResponse(response);
+  }
+
   async getBillingStatus(profileId) {
     const response = await fetch(`${API_URL}/billing/status?profileId=${profileId}`, {
       method: 'GET',

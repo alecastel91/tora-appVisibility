@@ -563,6 +563,17 @@ const en = {
     unlimited: 'Unlimited',
   },
 
+  push: {
+    settingsSection: 'Notifications',
+    settingsToggle: 'Push notifications on this device',
+    title: 'Never miss an offer',
+    body: 'Get notified when offers, messages and connection requests arrive.',
+    enable: 'Enable notifications',
+    later: 'Not now',
+    iosInstallHint: 'To get notifications on iPhone, first install TORA: tap Share, then "Add to Home Screen", and enable them from the app.',
+    deniedHint: 'Notifications are blocked for TORA in your browser settings — re-enable them there first.',
+    unsupportedHint: 'This browser does not support push notifications.',
+  },
   settingsExtra: {
     changePasswordFailed: 'Failed to change password',
     name: 'Name',

@@ -49,6 +49,11 @@ export default defineConfig(({ command }) => {
     // spinner — and Supabase Realtime/storage bypass the worker entirely.
     VitePWA({
       registerType: 'autoUpdate',
+      // Custom worker (src/sw.js): same precache/caching contract as before,
+      // plus web-push handlers, which generateSW cannot express.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       includeAssets: ['tora_logo_square.png', 'tora_logo.png', 'fonts/**/*'],
       manifest: {
         name: appName,
@@ -65,29 +70,7 @@ export default defineConfig(({ command }) => {
           { src: `${iconBase}-maskable-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
-      workbox: {
-        // SPA fallback for deep links; never intercept API or non-GET.
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
-        runtimeCaching: [
-          {
-            // Backend API: always network. NetworkOnly keeps auth flows,
-            // payments and realtime-adjacent reads honest offline = error.
-            urlPattern: /^https:\/\/tora-backend-[^/]+\.railway\.app\/.*/,
-            handler: 'NetworkOnly',
-          },
-          {
-            // Avatars/post images from Supabase storage: cache-first with a
-            // bounded box — they're immutable objects at unique URLs.
-            urlPattern: /^https:\/\/[^/]+\.supabase\.co\/storage\/.*/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'tora-media',
-              expiration: { maxEntries: 200, maxAgeSeconds: 7 * 24 * 3600 },
-            },
-          },
-        ],
-      },
+      // Caching rules live in src/sw.js now (injectManifest).
     }),
     // Must come after other plugins. Uploads maps then deletes them from the
     // deployed output so nothing ships to users.

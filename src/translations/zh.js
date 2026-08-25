@@ -563,6 +563,17 @@ const zh = {
     },
   },
 
+  push: {
+    settingsSection: '通知',
+    settingsToggle: '在此设备上接收推送通知',
+    title: '不错过任何邀约',
+    body: '当收到邀约、消息和联络请求时获得通知。',
+    enable: '开启通知',
+    later: '暂不',
+    iosInstallHint: '要在 iPhone 上接收通知，请先安装 TORA：点按分享按钮，选择「添加到主屏幕」，然后在应用中开启通知。',
+    deniedHint: '浏览器设置中已屏蔽 TORA 的通知 — 请先在那里重新允许。',
+    unsupportedHint: '此浏览器不支持推送通知。',
+  },
   settingsExtra: {
     changePasswordFailed: '无法修改密码',
     name: '姓名',

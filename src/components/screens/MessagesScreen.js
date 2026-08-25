@@ -7,6 +7,7 @@ import LoadingGlobe from '../common/LoadingGlobe';
 import { getAvatarClass } from '../../utils/roles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import CountBadge from '../common/CountBadge';
+import PushNudge from '../common/PushNudge';
 
 const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
   const { user, getConversations, acceptRequest, declineRequest } = useAppContext();
@@ -205,6 +206,8 @@ const MessagesScreen = ({ onOpenChat, chatOpen = false, isActive = true }) => {
         className="pointer-events-none absolute inset-x-0 top-0 h-48 -z-10 bg-grid
                    [mask-image:radial-gradient(70%_100%_at_50%_0%,black,transparent)]"
       />
+      {/* Soft-ask for push notifications — contextual, dismissible, no ambush */}
+      <PushNudge />
       {/* Tab Navigation */}
       <div className="flex border-b border-white/10 mb-5 px-1">
         <TabButton

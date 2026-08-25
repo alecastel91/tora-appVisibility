@@ -563,6 +563,17 @@ const es = {
     },
   },
 
+  push: {
+    settingsSection: 'Notificaciones',
+    settingsToggle: 'Notificaciones push en este dispositivo',
+    title: 'No te pierdas ninguna oferta',
+    body: 'Recibe avisos cuando lleguen ofertas, mensajes y solicitudes de conexión.',
+    enable: 'Activar notificaciones',
+    later: 'Ahora no',
+    iosInstallHint: 'Para recibir notificaciones en iPhone, instala TORA primero: toca Compartir y luego "Añadir a pantalla de inicio", y actívalas desde la app.',
+    deniedHint: 'Las notificaciones de TORA están bloqueadas en los ajustes del navegador — reactívalas allí primero.',
+    unsupportedHint: 'Este navegador no admite notificaciones push.',
+  },
   settingsExtra: {
     changePasswordFailed: 'No se pudo cambiar la contraseña',
     name: 'Nombre',

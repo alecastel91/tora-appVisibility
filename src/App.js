@@ -37,6 +37,7 @@ import BetaTools from './components/common/BetaTools';
 import AssistantChat from './components/common/AssistantChat';
 import GuideScreen from './components/common/GuideScreen';
 import GettingStartedSheet from './components/common/GettingStartedSheet';
+import PushSettingsToggle from './components/common/PushSettingsToggle';
 import { appConfirm, appAlert } from './utils/dialogs';
 
 function App() {
@@ -62,6 +63,25 @@ function App() {
     window.addEventListener('tora:navigate-tab', onNav);
     return () => window.removeEventListener('tora:navigate-tab', onNav);
   });
+
+  // A push-notification tap while the app is open: the service worker posts
+  // the target URL (/?tab=...) instead of re-navigating the window. A tap
+  // that LAUNCHES the app arrives as a real URL — handled by the same param.
+  useEffect(() => {
+    const toTab = (url) => {
+      const tab = new URL(url, window.location.origin).searchParams.get('tab');
+      if (tab) switchTab(tab);
+    };
+    const onSwMessage = (e) => {
+      if (e.data?.type === 'tora:push-navigate' && e.data.url) toTab(e.data.url);
+    };
+    navigator.serviceWorker?.addEventListener?.('message', onSwMessage);
+    // Cold start from a notification tap:
+    const bootTab = new URLSearchParams(window.location.search).get('tab');
+    if (bootTab) switchTab(bootTab);
+    return () => navigator.serviceWorker?.removeEventListener?.('message', onSwMessage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Keep-mounted tabs: once visited, a tab's screen stays mounted and is
   // hidden with display:none, so switching back is instant — no refetch,
@@ -936,6 +956,11 @@ function App() {
               >
                 {t('onboarding.reopen')}
               </button>
+            </div>
+
+            <div className="settings-section">
+              <h3>{t('push.settingsSection')}</h3>
+              <PushSettingsToggle />
             </div>
 
             <div className="settings-section">

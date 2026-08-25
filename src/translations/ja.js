@@ -563,6 +563,17 @@ const ja = {
     },
   },
 
+  push: {
+    settingsSection: '通知',
+    settingsToggle: 'このデバイスでプッシュ通知',
+    title: 'オファーを見逃さない',
+    body: 'オファー、メッセージ、コネクションリクエストが届いたときに通知を受け取れます。',
+    enable: '通知をオンにする',
+    later: '今はしない',
+    iosInstallHint: 'iPhoneで通知を受け取るには、まずTORAをインストールしてください：共有ボタンから「ホーム画面に追加」を選び、アプリから通知をオンにします。',
+    deniedHint: 'ブラウザの設定でTORAの通知がブロックされています — まずそちらで再度有効にしてください。',
+    unsupportedHint: 'このブラウザはプッシュ通知に対応していません。',
+  },
   settingsExtra: {
     changePasswordFailed: 'パスワードの変更に失敗しました',
     name: '名前',
