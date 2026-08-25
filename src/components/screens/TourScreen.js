@@ -8,7 +8,7 @@ import { formatEventDate } from '../../utils/dates';
 import { subscribeToTours } from '../../services/realtime';
 import ViewProfileScreen from './ViewProfileScreen';
 import MakeOfferModal from '../common/MakeOfferModal';
-import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon, HeartIcon } from '../../utils/icons';
+import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, TargetIcon, StarIcon, EyeIcon, SlidersIcon, HeartIcon, FilterIcon } from '../../utils/icons';
 import { isVerificationGate } from '../../utils/errors';
 import apiService from '../../services/api';
 import LoadingGlobe from '../common/LoadingGlobe';
@@ -117,6 +117,18 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const [monthFilter, setMonthFilter] = useState('all');
   const [zoneFilter, setZoneFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
+  const [genresFilter, setGenresFilter] = useState([]);
+  const [showMatchFilters, setShowMatchFilters] = useState(false);
+  const [matchDropdown, setMatchDropdown] = useState(null);
+  const matchFilterCount =
+    (rolesFilter.length ? 1 : 0) + (monthFilter !== 'all' ? 1 : 0) +
+    (zoneFilter !== 'all' ? 1 : 0) + (genresFilter.length ? 1 : 0);
+  const toggleGenre = (g) => setGenresFilter((prev) =>
+    prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]);
+  const clearMatchFilters = () => {
+    setRolesFilter([]); setMonthFilter('all'); setZoneFilter('all');
+    setCountryFilter('all'); setGenresFilter([]); setArtistFilter('all');
+  };
   const toggleRole = (r) => setRolesFilter((prev) =>
     prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
   // Agents: filter matches down to a single represented artist.
@@ -153,6 +165,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
         roles: rolesFilter,
         zone: zoneFilter !== 'all' ? zoneFilter : undefined,
         country: countryFilter !== 'all' ? countryFilter : undefined,
+        genres: genresFilter,
         from, to,
       });
       feedPageRef.current = page + 1;
@@ -169,7 +182,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       loadFeedPage(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, activeTab, isActive, rolesFilter, monthFilter, zoneFilter, countryFilter]);
+  }, [user?.id, activeTab, isActive, rolesFilter, monthFilter, zoneFilter, countryFilter, genresFilter]);
 
   useEffect(() => {
     const el = feedSentinelRef.current;
@@ -491,6 +504,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     if (countryFilter !== 'all' && match.profile.country !== countryFilter) {
       return false;
     }
+    if (genresFilter.length > 0 && !(match.profile.genres || []).some((g) => genresFilter.includes(g))) {
+      return false;
+    }
 
     // Month/Year filter
     if (monthFilter !== 'all') {
@@ -621,85 +637,20 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               </div>
             )}
 
-            {/* Filters Section */}
-            <div className="matches-filters flex-col items-stretch gap-3">
-              {/* Roles: multi-tick chips (none = all). Agents excluded. */}
-              <div className="filter-group">
-                <label className="filter-label">{t('editProfile.role')}</label>
-                <div className="flex flex-wrap gap-2">
-                  {[['ARTIST', t('tour.artists')], ['PROMOTER', t('tour.promoters')], ['VENUE', t('tour.venues')]].map(([r, label]) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => toggleRole(r)}
-                      className={`rounded-full border px-3.5 py-1.5 text-[10px] font-tech uppercase tracking-[0.15em] transition-colors cursor-pointer
-                        ${rolesFilter.includes(r)
-                          ? 'border-infrared text-infrared bg-infrared/10'
-                          : 'border-white/15 text-white/50 hover:text-white/80'}`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <div className="filter-group flex-1 min-w-[130px]">
-                  <label className="filter-label">{t('tour.period')}</label>
-                  <select
-                    className="filter-select"
-                    value={monthFilter}
-                    onChange={(e) => setMonthFilter(e.target.value)}
-                  >
-                    {monthOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="filter-group flex-1 min-w-[130px]">
-                  <label className="filter-label">{t('editProfile.zone')}</label>
-                  <select
-                    className="filter-select"
-                    value={zoneFilter}
-                    onChange={(e) => { setZoneFilter(e.target.value); setCountryFilter('all'); }}
-                  >
-                    <option value="all">{t('manageArtist.allZones')}</option>
-                    {zones.map((z) => <option key={z} value={z}>{z}</option>)}
-                  </select>
-                </div>
-
-                {zoneFilter !== 'all' && (
-                  <div className="filter-group flex-1 min-w-[130px]">
-                    <label className="filter-label">{t('editProfile.country')}</label>
-                    <select
-                      className="filter-select"
-                      value={countryFilter}
-                      onChange={(e) => setCountryFilter(e.target.value)}
-                    >
-                      <option value="all">{t('manageArtist.allCountries')}</option>
-                      {(countriesByZone[zoneFilter] || []).map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
+            {/* Filter trigger — same pattern as the Search screen */}
+            <div className="mb-4 flex justify-end">
+              <button
+                onClick={() => setShowMatchFilters(true)}
+                aria-label={t('search.filters')}
+                className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/80 backdrop-blur-md cursor-pointer"
+              >
+                <span className="[&>svg]:h-4 [&>svg]:w-4"><FilterIcon /></span>
+                {matchFilterCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-infrared px-1 text-[9px] font-semibold text-white">
+                    {matchFilterCount}
+                  </span>
                 )}
-              </div>
-
-              {(rolesFilter.length > 0 || monthFilter !== 'all' || zoneFilter !== 'all' || artistFilter !== 'all') && (
-                <button
-                  className="filter-clear-btn self-start"
-                  onClick={() => {
-                    setRolesFilter([]);
-                    setMonthFilter('all');
-                    setZoneFilter('all');
-                    setCountryFilter('all');
-                    setArtistFilter('all');
-                  }}
-                >
-                  {t('search.clearFilters')}
-                </button>
-              )}
+              </button>
             </div>
 
             {matches.length > 0 ? (
@@ -866,6 +817,155 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             )}
           </div>
         </div>
+
+        {/* Filter full-page panel — same pattern/classes as the Search screen */}
+        {showMatchFilters && (
+          <div className="screen active filter-screen">
+            <div className="screen-header">
+              <button className="back-btn" onClick={() => setShowMatchFilters(false)}>←</button>
+              <h2>{t('search.filters')}</h2>
+              <div style={{ width: '32px' }}></div>
+            </div>
+            <div className="filter-screen-content">
+              {/* Roles */}
+              <div className="filter-dropdown-group">
+                <div
+                  className="filter-dropdown-header"
+                  onClick={() => setMatchDropdown(matchDropdown === 'roles' ? null : 'roles')}
+                >
+                  <span>{t('search.roles')}</span>
+                  <span className="dropdown-value">
+                    {rolesFilter.length > 0 ? t('search.nSelected', { n: rolesFilter.length }) : t('search.selectRoles')}
+                  </span>
+                  <span className="dropdown-arrow">{matchDropdown === 'roles' ? '▲' : '▼'}</span>
+                </div>
+                {matchDropdown === 'roles' && (
+                  <div className="filter-dropdown-content">
+                    {['ARTIST', 'PROMOTER', 'VENUE'].map((role) => (
+                      <label key={role} className="filter-dropdown-item">
+                        <input
+                          type="checkbox"
+                          checked={rolesFilter.includes(role)}
+                          onChange={() => toggleRole(role)}
+                        />
+                        <span>{t(`editProfile.${role.toLowerCase()}`)}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Period */}
+              <div className="filter-dropdown-group">
+                <div className="filter-dropdown-header" onClick={() => setMatchDropdown(matchDropdown === 'period' ? null : 'period')}>
+                  <span>{t('tour.period')}</span>
+                  <span className="dropdown-value">
+                    {monthFilter !== 'all' ? monthOptions.find((o) => o.value === monthFilter)?.label : t('tour.allMonths')}
+                  </span>
+                  <span className="dropdown-arrow">{matchDropdown === 'period' ? '▲' : '▼'}</span>
+                </div>
+                {matchDropdown === 'period' && (
+                  <div className="filter-dropdown-content max-h-56 overflow-y-auto">
+                    {monthOptions.map((option) => (
+                      <label key={option.value} className="filter-dropdown-item">
+                        <input
+                          type="radio"
+                          name="match-period"
+                          checked={monthFilter === option.value}
+                          onChange={() => setMonthFilter(option.value)}
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Zone */}
+              <div className="filter-dropdown-group">
+                <div className="filter-dropdown-header" onClick={() => setMatchDropdown(matchDropdown === 'zone' ? null : 'zone')}>
+                  <span>{t('editProfile.zone')}</span>
+                  <span className="dropdown-value">{zoneFilter !== 'all' ? zoneFilter : t('manageArtist.allZones')}</span>
+                  <span className="dropdown-arrow">{matchDropdown === 'zone' ? '▲' : '▼'}</span>
+                </div>
+                {matchDropdown === 'zone' && (
+                  <div className="filter-dropdown-content">
+                    {['all', ...zones].map((z) => (
+                      <label key={z} className="filter-dropdown-item">
+                        <input
+                          type="radio"
+                          name="match-zone"
+                          checked={zoneFilter === z}
+                          onChange={() => { setZoneFilter(z); setCountryFilter('all'); }}
+                        />
+                        <span>{z === 'all' ? t('manageArtist.allZones') : z}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Country (when a zone is chosen) */}
+              {zoneFilter !== 'all' && (
+                <div className="filter-dropdown-group">
+                  <div className="filter-dropdown-header" onClick={() => setMatchDropdown(matchDropdown === 'country' ? null : 'country')}>
+                    <span>{t('editProfile.country')}</span>
+                    <span className="dropdown-value">{countryFilter !== 'all' ? countryFilter : t('manageArtist.allCountries')}</span>
+                    <span className="dropdown-arrow">{matchDropdown === 'country' ? '▲' : '▼'}</span>
+                  </div>
+                  {matchDropdown === 'country' && (
+                    <div className="filter-dropdown-content max-h-56 overflow-y-auto">
+                      {['all', ...(countriesByZone[zoneFilter] || [])].map((c) => (
+                        <label key={c} className="filter-dropdown-item">
+                          <input
+                            type="radio"
+                            name="match-country"
+                            checked={countryFilter === c}
+                            onChange={() => setCountryFilter(c)}
+                          />
+                          <span>{c === 'all' ? t('manageArtist.allCountries') : c}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Genres */}
+              <div className="filter-dropdown-group">
+                <div className="filter-dropdown-header" onClick={() => setMatchDropdown(matchDropdown === 'genres' ? null : 'genres')}>
+                  <span>{t('search.genres')}</span>
+                  <span className="dropdown-value">
+                    {genresFilter.length > 0 ? t('search.nSelected', { n: genresFilter.length }) : t('search.selectGenres')}
+                  </span>
+                  <span className="dropdown-arrow">{matchDropdown === 'genres' ? '▲' : '▼'}</span>
+                </div>
+                {matchDropdown === 'genres' && (
+                  <div className="filter-dropdown-content max-h-56 overflow-y-auto">
+                    {genresList.map((genre) => (
+                      <label key={genre} className="filter-dropdown-item">
+                        <input
+                          type="checkbox"
+                          checked={genresFilter.includes(genre)}
+                          onChange={() => toggleGenre(genre)}
+                        />
+                        <span>{genre}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="filter-screen-actions">
+              <button className="btn btn-outline" onClick={clearMatchFilters}>
+                {t('search.clearFilters')}
+              </button>
+              <button className="btn btn-primary" onClick={() => setShowMatchFilters(false)}>
+                {t('search.applyFilters')}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

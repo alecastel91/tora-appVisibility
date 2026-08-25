@@ -222,6 +222,7 @@ class ApiService {
   async getTravelFeed(profileId, page = 0, filters = {}) {
     const params = new URLSearchParams({ profileId, page: String(page) });
     if (filters.roles?.length) params.set('roles', filters.roles.join(','));
+    if (filters.genres?.length) params.set('genres', filters.genres.join(','));
     if (filters.zone) params.set('zone', filters.zone);
     if (filters.country) params.set('country', filters.country);
     if (filters.from) params.set('from', filters.from);
