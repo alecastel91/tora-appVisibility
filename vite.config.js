@@ -15,6 +15,14 @@ export default defineConfig(({ command }) => {
     process.env.SENTRY_ORG &&
     process.env.SENTRY_PROJECT;
 
+  // Beta builds get their own PWA identity ("TORA Beta" + BETA-badged icon)
+  // so testers can keep beta and prod installed side by side without
+  // confusing them. Detection: the beta Vercel project's API URL points at
+  // the -2424 Railway service — no extra env var to maintain.
+  const isBeta = (process.env.VITE_API_URL || '').includes('-2424');
+  const appName = isBeta ? 'TORA Beta' : 'TORA';
+  const iconBase = isBeta ? '/pwa-beta' : '/pwa';
+
   return ({
   plugins: [
     // Tell the React plugin to handle JSX inside .js files (dev server)
@@ -22,6 +30,19 @@ export default defineConfig(({ command }) => {
       include: '**/*.{js,jsx,ts,tsx}',
     }),
     tailwindcss(),
+    // Beta identity in the static HTML: iOS reads the A2HS name from
+    // apple-mobile-web-app-title and the icon from apple-touch-icon.
+    isBeta && {
+      name: 'tora-beta-identity',
+      transformIndexHtml(html) {
+        return html
+          .replace('<meta name="apple-mobile-web-app-title" content="TORA" />',
+                   '<meta name="apple-mobile-web-app-title" content="TORA Beta" />')
+          .replace('<link rel="apple-touch-icon" href="/pwa-192.png" />',
+                   '<link rel="apple-touch-icon" href="/pwa-beta-192.png" />')
+          .replace('<title>TORA - Music Booking</title>', '<title>TORA Beta</title>');
+      },
+    },
     // PWA: installable app-shell. The service worker precaches the built
     // shell and updates itself on each deploy (autoUpdate). API calls are
     // deliberately NEVER cached — stale bookings/messages are worse than a
@@ -30,8 +51,8 @@ export default defineConfig(({ command }) => {
       registerType: 'autoUpdate',
       includeAssets: ['tora_logo_square.png', 'fonts/**/*'],
       manifest: {
-        name: 'TORA',
-        short_name: 'TORA',
+        name: appName,
+        short_name: appName,
         description: 'Where music meets — the club music industry network',
         theme_color: '#000000',
         background_color: '#0a0a0a',
@@ -39,9 +60,9 @@ export default defineConfig(({ command }) => {
         orientation: 'portrait',
         start_url: '/',
         icons: [
-          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/pwa-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: `${iconBase}-192.png`, sizes: '192x192', type: 'image/png' },
+          { src: `${iconBase}-512.png`, sizes: '512x512', type: 'image/png' },
+          { src: `${iconBase}-maskable-512.png`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
