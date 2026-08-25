@@ -8315,6 +8315,20 @@
   -webkit-min-logical-width: 0;
 }
 
+/* Same iOS intrinsic-width fix for date/time inputs in ANY modal form group
+   (e.g. the calendar's Add Schedule popup — its fields carry no .form-input
+   class and sit outside a .form-row, so they overflowed the dialog). */
+.modal .form-group input[type="date"],
+.modal .form-group input[type="time"],
+.modal-content .form-group input[type="date"],
+.modal-content .form-group input[type="time"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  -webkit-min-logical-width: 0;
+  box-sizing: border-box;
+}
+
 .form-group {
   flex: 1;
   display: flex;
