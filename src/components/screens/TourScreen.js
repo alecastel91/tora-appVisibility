@@ -611,9 +611,23 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     return (
       <div className="tour-kickstart-content">
         <div className="coming-soon-placeholder">
-          <p className="text-xs text-white/45 leading-relaxed max-w-[300px] mx-auto mt-0 mb-6">
-            {t('tour.matchesIntro')}
-          </p>
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <p className="m-0 text-left text-xs text-white/45 leading-relaxed flex-1">
+              {t('tour.matchesIntro')}
+            </p>
+            <button
+              onClick={() => setShowMatchFilters(true)}
+              aria-label={t('search.filters')}
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/80 backdrop-blur-md cursor-pointer"
+            >
+              <span className="[&>svg]:h-4 [&>svg]:w-4"><FilterIcon /></span>
+              {matchFilterCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-infrared px-1 text-[9px] font-semibold text-white">
+                  {matchFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
 
           <div className="feature-preview">
             {/* Agent-only: filter matches to one represented artist (own row). */}
@@ -636,22 +650,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                 </div>
               </div>
             )}
-
-            {/* Filter trigger — same pattern as the Search screen */}
-            <div className="mb-4 flex justify-end">
-              <button
-                onClick={() => setShowMatchFilters(true)}
-                aria-label={t('search.filters')}
-                className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/80 backdrop-blur-md cursor-pointer"
-              >
-                <span className="[&>svg]:h-4 [&>svg]:w-4"><FilterIcon /></span>
-                {matchFilterCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-infrared px-1 text-[9px] font-semibold text-white">
-                    {matchFilterCount}
-                  </span>
-                )}
-              </button>
-            </div>
 
             {matches.length > 0 ? (
               <div className="matches-results">
@@ -1923,21 +1921,20 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       return (
         <div className="tour-kickstart-content">
           <div className="tour-kickstart-section">
-            <div className="section-header">
-              <h3>{t('tour.tourOpportunities')}</h3>
-            </div>
-            <p className="section-description">{t('tour.tourOpportunitiesDesc')}</p>
-
-            {/* Filters */}
-            <div className="tour-filters">
-              <div className="zone-filter-dropdown">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <p className="m-0 text-left text-xs text-white/45 leading-relaxed flex-1">
+                {t('tour.tourOpportunitiesDesc')}
+              </p>
+              <div className="zone-filter-dropdown shrink-0">
                 <button
-                  className="filter-select zone-filter-button"
                   onClick={() => setShowZoneDropdown(!showZoneDropdown)}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  aria-label={t('editProfile.zone')}
+                  className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/80 backdrop-blur-md cursor-pointer"
                 >
-                  <span>{tourZoneFilter === 'all' ? t('calendar.allZones') : tourZoneFilter}</span>
-                  <span style={{ marginLeft: '8px' }}>▼</span>
+                  <span className="[&>svg]:h-4 [&>svg]:w-4"><FilterIcon /></span>
+                  {tourZoneFilter !== 'all' && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-infrared px-1 text-[9px] font-semibold text-white">1</span>
+                  )}
                 </button>
                 {showZoneDropdown && (
                   <div
@@ -1945,9 +1942,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     style={{
                       position: 'absolute',
                       top: '100%',
-                      left: 0,
                       right: 0,
-                      marginTop: '4px',
+                      width: '220px',
+                      marginTop: '6px',
                       background: '#1a1a1a',
                       border: '1px solid rgba(255,255,255,0.2)',
                       borderRadius: '8px',
@@ -2013,9 +2010,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     style={{
                       position: 'absolute',
                       top: '100%',
-                      left: 0,
                       right: 0,
-                      marginTop: '4px',
+                      width: '220px',
+                      marginTop: '6px',
                       background: '#1a1a1a',
                       border: '1px solid rgba(255,255,255,0.2)',
                       borderRadius: '8px',
