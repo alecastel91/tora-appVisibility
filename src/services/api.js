@@ -219,6 +219,14 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async getTravelFeed(profileId, page = 0) {
+    const response = await fetch(`${API_URL}/profiles/travel-feed?profileId=${encodeURIComponent(profileId)}&page=${page}`, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse(response);
+  }
+
   async getProfileSuggestions(profileId) {
     const response = await fetch(`${API_URL}/profiles/suggestions?profileId=${encodeURIComponent(profileId || '')}`, {
       method: 'GET',

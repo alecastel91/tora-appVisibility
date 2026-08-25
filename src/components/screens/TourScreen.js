@@ -116,6 +116,48 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   // Agents: filter matches down to a single represented artist.
   const [artistFilter, setArtistFilter] = useState('all');
   const [calendarMatches, setCalendarMatches] = useState([]);
+
+  // Industry travel feed: every active schedule (connected > liked > others),
+  // server-paginated; the sentinel div drives infinite scroll.
+  const [travelFeed, setTravelFeed] = useState([]);
+  const feedPageRef = useRef(0);
+  const [feedHasMore, setFeedHasMore] = useState(true);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const feedSentinelRef = useRef(null);
+
+  const loadFeedPage = async (reset = false) => {
+    if (feedLoading || !user?.id || !isPremiumUser()) return;
+    if (!reset && !feedHasMore) return;
+    setFeedLoading(true);
+    try {
+      const page = reset ? 0 : feedPageRef.current;
+      const res = await apiService.getTravelFeed(user.id, page);
+      feedPageRef.current = page + 1;
+      setFeedHasMore(!!res.hasMore);
+      setTravelFeed((prev) => (reset ? res.schedules : [...prev, ...res.schedules]));
+    } catch { /* premium 403 / network — leave the list as is */ }
+    finally { setFeedLoading(false); }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'calendar' && isActive && user?.id) {
+      feedPageRef.current = 0;
+      setFeedHasMore(true);
+      loadFeedPage(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, activeTab, isActive]);
+
+  useEffect(() => {
+    const el = feedSentinelRef.current;
+    if (!el) return undefined;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) loadFeedPage();
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, isActive, feedHasMore, feedLoading, travelFeed.length]);
   const [loadingMatches, setLoadingMatches] = useState(false);
 
   // Tour Kickstart state
@@ -699,6 +741,54 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                     </li>
                   </ul>
                 </div>
+              </div>
+            )}
+
+            {/* Industry travel feed: every ACTIVE schedule out there, beyond
+                strict date matches — connected people first, then liked,
+                then everyone else. Infinite scroll via sentinel. */}
+            {isPremiumUser() && (
+              <div className="mt-8">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-white/40 font-tech m-0">
+                  {t('tour.travelFeedTitle')}
+                </p>
+                <p className="text-xs text-white/45 mt-1 mb-4">{t('tour.travelFeedHint')}</p>
+                {travelFeed.length === 0 && !feedLoading && (
+                  <p className="text-sm text-white/40">{t('tour.travelFeedEmpty')}</p>
+                )}
+                <div className="flex flex-col gap-2.5">
+                  {travelFeed.map((s, i) => (
+                    <div
+                      key={`${s.profile.id}-${s.startDate}-${i}`}
+                      className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3.5 py-3 cursor-pointer hover:border-infrared/40 transition-colors"
+                      onClick={() => handleProfileClick(s.profile.id)}
+                    >
+                      <div className={`match-avatar avatar-${(s.profile.role || 'artist').toLowerCase()} shrink-0`}>
+                        {s.profile.avatar
+                          ? <img src={s.profile.avatar} alt={s.profile.name} />
+                          : (s.profile.name || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-white truncate">{s.profile.name}</span>
+                          <span className={`role-badge ${(s.profile.role || '').toLowerCase()}`}>{s.profile.role}</span>
+                          {s.tier === 0 && (
+                            <span className="text-[9px] uppercase tracking-[0.12em] text-emerald-400/90 font-tech">{t('tour.feedConnected')}</span>
+                          )}
+                          {s.tier === 1 && (
+                            <span className="text-[9px] uppercase tracking-[0.12em] text-infrared/80 font-tech">{t('tour.feedLiked')}</span>
+                          )}
+                        </div>
+                        <p className="m-0 mt-0.5 text-xs text-white/55 truncate">
+                          {[s.destCity, s.destCountry].filter(Boolean).join(', ') || s.zone}
+                          <span className="text-white/35"> · {s.startDate} → {s.endDate}</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div ref={feedSentinelRef} className="h-8" />
+                {feedLoading && <p className="text-center text-xs text-white/35 py-2">{t('common.loading')}</p>}
               </div>
             )}
           </div>
