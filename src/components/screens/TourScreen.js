@@ -219,8 +219,17 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   }, []);
   const [tourZoneFilter, setTourZoneFilter] = useState('all');
   const [tourGenreFilter, setTourGenreFilter] = useState([]); // Array for multi-select
-  const [showGenreDropdown, setShowGenreDropdown] = useState(false);
-  const [showZoneDropdown, setShowZoneDropdown] = useState(false);
+  const [tourMonthFilter, setTourMonthFilter] = useState('all');
+  const [tourCountryFilter, setTourCountryFilter] = useState('all');
+  const [showTourFilters, setShowTourFilters] = useState(false);
+  const [tourDropdown, setTourDropdown] = useState(null);
+  const tourFilterCount =
+    (tourZoneFilter !== 'all' ? 1 : 0) + (tourGenreFilter.length ? 1 : 0) +
+    (tourMonthFilter !== 'all' ? 1 : 0) + (tourCountryFilter !== 'all' ? 1 : 0);
+  const clearTourFilters = () => {
+    setTourZoneFilter('all'); setTourCountryFilter('all');
+    setTourGenreFilter([]); setTourMonthFilter('all');
+  };
   const [tourForm, setTourForm] = useState({
     artistId: '', // agents create tours on behalf of a represented artist
     hideFee: false,
@@ -1761,6 +1770,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               </button>
             </div>
 
+
+
             {/* Tour cards or empty state */}
             {toursLoading ? (
               <LoadingGlobe label={t('tour.loadingTours')} />
@@ -1913,9 +1924,19 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       // Filter tours by selected zone and genres
       const filteredTours = allTours.filter(tour => {
         const zoneMatch = tourZoneFilter === 'all' || tour.zone === tourZoneFilter;
+        const countryMatch = tourCountryFilter === 'all' || tour.country === tourCountryFilter;
         const genreMatch = tourGenreFilter.length === 0 ||
           (tour.artist && tour.artist.genres && tour.artist.genres.some(g => tourGenreFilter.includes(g)));
-        return zoneMatch && genreMatch;
+        let monthMatch = true;
+        if (tourMonthFilter !== 'all') {
+          const [mon, year] = tourMonthFilter.split('-');
+          const monthIdx = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(mon);
+          const from = new Date(Number(year), monthIdx, 1);
+          const to = new Date(Number(year), monthIdx + 1, 0, 23, 59, 59);
+          const ts = new Date(tour.startDate); const te = new Date(tour.endDate);
+          monthMatch = ts <= to && te >= from;
+        }
+        return zoneMatch && countryMatch && genreMatch && monthMatch;
       });
 
       return (
@@ -1925,338 +1946,267 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               <p className="m-0 text-left text-xs text-white/45 leading-relaxed flex-1">
                 {t('tour.tourOpportunitiesDesc')}
               </p>
-              <div className="zone-filter-dropdown flex-none">
-                <button
-                  onClick={() => setShowZoneDropdown(!showZoneDropdown)}
-                  aria-label={t('editProfile.zone')}
-                  className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/80 backdrop-blur-md cursor-pointer"
-                >
-                  <span className="[&>svg]:h-4 [&>svg]:w-4"><FilterIcon /></span>
-                  {tourZoneFilter !== 'all' && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-infrared px-1 text-[9px] font-semibold text-white">1</span>
-                  )}
-                </button>
-                {showZoneDropdown && (
-                  <div
-                    className="zone-dropdown-menu"
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      width: '220px',
-                      marginTop: '6px',
-                      background: '#1a1a1a',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: '8px',
-                      maxHeight: '300px',
-                      overflowY: 'auto',
-                      zIndex: 1000,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                    }}
-                  >
-                    {['all', 'Europe', 'Asia', 'Americas', 'Africa', 'Oceania'].map(zone => (
-                      <div
-                        key={zone}
-                        onClick={() => {
-                          setTourZoneFilter(zone);
-                          setShowZoneDropdown(false);
-                        }}
-                        style={{
-                          padding: '12px 16px',
-                          cursor: 'pointer',
-                          background: tourZoneFilter === zone ? 'rgba(255,51,102,0.2)' : 'transparent',
-                          borderLeft: tourZoneFilter === zone ? '3px solid #FF3366' : '3px solid transparent',
-                          transition: 'all 0.2s',
-                          fontSize: '14px',
-                          color: tourZoneFilter === zone ? '#fff' : 'rgba(255,255,255,0.8)',
-                          fontWeight: tourZoneFilter === zone ? '600' : '400'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (tourZoneFilter !== zone) {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (tourZoneFilter !== zone) {
-                            e.currentTarget.style.background = 'transparent';
-                          }
-                        }}
-                      >
-                        {zone === 'all' ? t('calendar.allZones') : zone}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="genre-filter-dropdown">
-                <button
-                  className="filter-select genre-filter-button"
-                  onClick={() => setShowGenreDropdown(!showGenreDropdown)}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <span>
-                    {tourGenreFilter.length === 0
-                      ? t('tour.allGenres')
-                      : tourGenreFilter.length > 1
-                        ? t('tour.genresSelectedCount', { n: tourGenreFilter.length })
-                        : t('tour.genreSelectedCount', { n: tourGenreFilter.length })
-                    }
+              <button
+                onClick={() => setShowTourFilters(true)}
+                aria-label={t('search.filters')}
+                className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/80 backdrop-blur-md cursor-pointer"
+              >
+                <span className="[&>svg]:h-4 [&>svg]:w-4"><FilterIcon /></span>
+                {tourFilterCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-infrared px-1 text-[9px] font-semibold text-white">
+                    {tourFilterCount}
                   </span>
-                  <span style={{ marginLeft: '8px' }}>▼</span>
-                </button>
-                {showGenreDropdown && (
-                  <div
-                    className="genre-dropdown-menu"
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      right: 0,
-                      width: '220px',
-                      marginTop: '6px',
-                      background: '#1a1a1a',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: '8px',
-                      maxHeight: '300px',
-                      overflowY: 'auto',
-                      zIndex: 1000,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: '8px 12px',
-                        borderBottom: '1px solid rgba(255,255,255,0.1)',
-                        display: 'flex',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <button
-                        onClick={() => setTourGenreFilter([])}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#FF3366',
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
-                      >
-                        {t('tour.clearAll')}
-                      </button>
-                      <button
-                        onClick={() => setShowGenreDropdown(false)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'rgba(255,255,255,0.7)',
-                          cursor: 'pointer',
-                          fontSize: '14px'
-                        }}
-                      >
-                        {t('common.done')}
-                      </button>
-                    </div>
-                    {genresList.map(genre => (
-                      <label
-                        key={genre}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          padding: '10px 12px',
-                          cursor: 'pointer',
-                          background: tourGenreFilter.includes(genre) ? 'rgba(255,51,102,0.1)' : 'transparent',
-                          transition: 'background 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!tourGenreFilter.includes(genre)) {
-                            e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!tourGenreFilter.includes(genre)) {
-                            e.currentTarget.style.background = 'transparent';
-                          }
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={tourGenreFilter.includes(genre)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setTourGenreFilter([...tourGenreFilter, genre]);
-                            } else {
-                              setTourGenreFilter(tourGenreFilter.filter(g => g !== genre));
-                            }
-                          }}
-                          style={{ marginRight: '10px' }}
-                        />
-                        <span style={{ fontSize: '14px', color: '#fff' }}>{genre}</span>
-                      </label>
-                    ))}
-                  </div>
                 )}
-              </div>
+              </button>
             </div>
 
+            {/* Kickstart filter panel — same pattern as Calendar Matches, no Roles */}
+            {showTourFilters && (
+              <div className="screen active filter-screen">
+                <div className="screen-header">
+                  <button className="back-btn" onClick={() => setShowTourFilters(false)}>←</button>
+                  <h2>{t('search.filters')}</h2>
+                  <div style={{ width: '32px' }}></div>
+                </div>
+                <div className="filter-screen-content">
+                  {/* Period */}
+                  <div className="filter-dropdown-group">
+                    <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'period' ? null : 'period')}>
+                      <span>{t('tour.period')}</span>
+                      <span className="dropdown-value">
+                        {tourMonthFilter !== 'all' ? monthOptions.find((o) => o.value === tourMonthFilter)?.label : t('tour.allMonths')}
+                      </span>
+                      <span className="dropdown-arrow">{tourDropdown === 'period' ? '▲' : '▼'}</span>
+                    </div>
+                    {tourDropdown === 'period' && (
+                      <div className="filter-dropdown-content max-h-56 overflow-y-auto">
+                        {monthOptions.map((option) => (
+                          <label key={option.value} className="filter-dropdown-item">
+                            <input type="radio" name="tour-period" checked={tourMonthFilter === option.value} onChange={() => setTourMonthFilter(option.value)} />
+                            <span>{option.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Zone */}
+                  <div className="filter-dropdown-group">
+                    <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'zone' ? null : 'zone')}>
+                      <span>{t('editProfile.zone')}</span>
+                      <span className="dropdown-value">{tourZoneFilter !== 'all' ? tourZoneFilter : t('manageArtist.allZones')}</span>
+                      <span className="dropdown-arrow">{tourDropdown === 'zone' ? '▲' : '▼'}</span>
+                    </div>
+                    {tourDropdown === 'zone' && (
+                      <div className="filter-dropdown-content">
+                        {['all', ...zones].map((z) => (
+                          <label key={z} className="filter-dropdown-item">
+                            <input type="radio" name="tour-zone" checked={tourZoneFilter === z} onChange={() => { setTourZoneFilter(z); setTourCountryFilter('all'); }} />
+                            <span>{z === 'all' ? t('manageArtist.allZones') : z}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Country */}
+                  {tourZoneFilter !== 'all' && (
+                    <div className="filter-dropdown-group">
+                      <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'country' ? null : 'country')}>
+                        <span>{t('editProfile.country')}</span>
+                        <span className="dropdown-value">{tourCountryFilter !== 'all' ? tourCountryFilter : t('manageArtist.allCountries')}</span>
+                        <span className="dropdown-arrow">{tourDropdown === 'country' ? '▲' : '▼'}</span>
+                      </div>
+                      {tourDropdown === 'country' && (
+                        <div className="filter-dropdown-content max-h-56 overflow-y-auto">
+                          {['all', ...(countriesByZone[tourZoneFilter] || [])].map((c) => (
+                            <label key={c} className="filter-dropdown-item">
+                              <input type="radio" name="tour-country" checked={tourCountryFilter === c} onChange={() => setTourCountryFilter(c)} />
+                              <span>{c === 'all' ? t('manageArtist.allCountries') : c}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Genres */}
+                  <div className="filter-dropdown-group">
+                    <div className="filter-dropdown-header" onClick={() => setTourDropdown(tourDropdown === 'genres' ? null : 'genres')}>
+                      <span>{t('search.genres')}</span>
+                      <span className="dropdown-value">
+                        {tourGenreFilter.length > 0 ? t('search.nSelected', { n: tourGenreFilter.length }) : t('search.selectGenres')}
+                      </span>
+                      <span className="dropdown-arrow">{tourDropdown === 'genres' ? '▲' : '▼'}</span>
+                    </div>
+                    {tourDropdown === 'genres' && (
+                      <div className="filter-dropdown-content max-h-56 overflow-y-auto">
+                        {genresList.map((genre) => (
+                          <label key={genre} className="filter-dropdown-item">
+                            <input
+                              type="checkbox"
+                              checked={tourGenreFilter.includes(genre)}
+                              onChange={() => setTourGenreFilter((prev) =>
+                                prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre])}
+                            />
+                            <span>{genre}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="filter-screen-actions">
+                  <button className="btn btn-outline" onClick={clearTourFilters}>
+                    {t('search.clearFilters')}
+                  </button>
+                  <button className="btn btn-primary" onClick={() => setShowTourFilters(false)}>
+                    {t('search.applyFilters')}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Tour cards or empty state */}
-            {filteredTours.length === 0 ? (
+            {toursLoading ? (
+              <LoadingGlobe label={t('tour.loadingTours')} />
+            ) : myTours.length === 0 ? (
               <div className="tour-empty-state">
                 <PlaneIcon />
-                <p>{t('tour.noActiveTours')}</p>
-                <p className="tour-empty-hint">{t('tour.noActiveToursHint')}</p>
+                <p>{t('tour.noToursYet')}</p>
+                <p className="tour-empty-hint">{t('tour.noToursHint')}</p>
               </div>
             ) : (
               <div className="tour-cards-list">
-                {filteredTours.map(tour => (
-                  <div key={tour.id} className="tour-card">
-                    <div className="tour-card-header">
-                      {/* Artist identity links to the profile (replaces the old
-                          View Artist CTA in the footer) */}
-                      <div
-                        className="tour-artist-info"
-                        role="button"
-                        tabIndex={0}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => handleViewTourArtist(tour)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleViewTourArtist(tour); } }}
-                      >
-                        <div className="tour-artist-avatar">
-                          {tour.artist?.avatar ? (
-                            <img src={tour.artist.avatar} alt={tour.artist.name} />
-                          ) : (
-                            <div className="avatar-placeholder">
-                              {tour.artist?.name?.charAt(0) || 'A'}
-                            </div>
-                          )}
-                        </div>
-                        <div className="tour-artist-details">
-                          <h4 className="tour-artist-name">{tour.artist?.name || t('tour.unknownArtist')}</h4>
-                          <p className="tour-artist-role">{tour.artist?.role || t('tour.artistRoleFallback')}</p>
-                          <p className="tour-location-info">
-                            <LocationIcon /> {t('tour.tourTitle', { location: tour.country || tour.zone })}
+                {myTours.map(tour => {
+                  const pct = Math.min(100, Math.round(((tour.totalRevenue || 0) / (tour.minRevenue || 1)) * 100));
+                  const statusPill = {
+                    ACTIVE: 'text-role-agent border-role-agent/50',
+                    COMPLETED: 'text-white/60 border-white/25',
+                    CANCELLED: 'text-role-venue border-role-venue/50',
+                  }[tour.status] || 'text-white/60 border-white/25';
+                  return (
+                  <div
+                    key={tour.id}
+                    className="rounded-2xl border border-white/10 bg-[#0a0a0e] p-4 transition-colors hover:border-white/20"
+                  >
+                    {/* Header: destination + window, status pill */}
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className="min-w-0">
+                        <h4 className="text-[17px] font-semibold text-white font-space-grotesk tracking-[-0.01em] m-0 truncate">
+                          {t('tour.tourTitle', { location: tour.country || tour.zone })}
+                        </h4>
+                        {user?.role === 'AGENT' && tour.artist?.name && (
+                          <p className="text-[11px] text-infrared/90 font-tech mt-1 m-0 truncate">
+                            {tour.artist.name}
                           </p>
-                        </div>
+                        )}
+                        <p className="text-[10px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
+                          {formatEventDate(tour.startDate, t('dateFormat.locale'), { month: 'short', day: 'numeric' })}
+                          {' — '}
+                          {formatEventDate(tour.endDate, t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {tour.zone && tour.country ? ` · ${tour.zone}` : ''}
+                        </p>
                       </div>
-                      <span className={`tour-status-badge status-${tour.status.toLowerCase()}`}>
-                        {tourStatusLabel(tour.status)}
-                      </span>
+                      <div className="shrink-0 flex flex-col items-end gap-1">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-[9px]
+                                          font-semibold uppercase tracking-[0.15em] font-tech ${statusPill}`}>
+                          {tourStatusLabel(tour.status)}
+                        </span>
+                        {/* Closed to offers is a state of a LIVE tour, so it
+                            reads alongside the status rather than replacing it. */}
+                        {tour.closedToOffers && tour.status === 'ACTIVE' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full border border-white/20
+                                           text-white/55 text-[9px] font-semibold uppercase tracking-[0.15em] font-tech">
+                            {t('tour.fullyBooked')}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="tour-dates-section">
-                      <CalendarIcon />
-                      <span>
-                        {formatEventDate(tour.startDate, t('dateFormat.locale'), { month: 'short', day: 'numeric' })} - {formatEventDate(tour.endDate, t('dateFormat.locale'), { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </span>
-                    </div>
-                    <div className="tour-card-body">
-                      {/* Booking traction. Deliberately NOT the revenue
-                          progress bar the owner sees: how much the tour still
-                          needs to earn is the owner's planning figure, and it
-                          would tell a promoter exactly how much leverage they
-                          have. Confirmed shows are the honest public signal —
-                          drawn as one segment per booked show against the
-                          stops the artist is targeting, so the visual counts
-                          real things rather than implying a percentage of a
-                          number nobody outside can see. */}
-                      {(() => {
-                        const booked = tour.confirmedGigs || 0;
-                        // Five slots to start with, and a fresh one appears as
-                        // soon as the last is taken — so an open tour always
-                        // reads as "there is still room", never as finished.
-                        // A tour CLOSED to offers is the one case that should
-                        // read as full: the slots collapse to what was booked
-                        // and the bar completes.
-                        const segments = tour.closedToOffers
-                          ? Math.max(booked, 1)
-                          : Math.min(14, Math.max(5, booked + 1));
-                        return (
-                          <div className="tour-progress">
-                            <div className="tour-progress-header">
-                              <span className="tour-progress-label">
-                                {booked === 1
-                                  ? t('tour.gigConfirmedCountOne')
-                                  : t('tour.gigsConfirmedCount', { n: booked })}
-                              </span>
-                            </div>
-                            <div className="flex gap-1" aria-hidden="true">
-                              {Array.from({ length: segments }, (_, i) => (
-                                <span
-                                  key={i}
-                                  className={`h-1.5 flex-1 rounded-full transition-colors ${
-                                    i < booked ? 'bg-infrared' : 'bg-white/10'
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })()}
 
-                      <div className="tour-stats-row">
-                        {(tour.feeExpectation || tour.priceOnRequest) && (
-                          <div className="tour-stat">
-                            <span className="tour-stat-label">{t('tour.feeRangeLabel')}</span>
-                            <span className="tour-stat-value">{tour.priceOnRequest ? t('tour.priceOnRequest') : tour.feeExpectation}</span>
-                          </div>
-                        )}
-                        {(tour.interestsCount || 0) > 0 && (
-                          <div className="tour-stat">
-                            <span className="tour-stat-value text-infrared">
-                              {t('tour.interestedCountPublic', { n: tour.interestsCount })}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                      {tour.artist?.genres && tour.artist.genres.length > 0 && (
-                        <div className="tour-genres">
-                          <span className="genres-label">{t('tour.genresLabel')}</span>
-                          <span>{tour.artist.genres.slice(0, 3).join(', ')}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="tour-card-footer">
-                      {tour.myProposal ? (
-                        // User has already sent a proposal
-                        <button
-                          className={`btn btn-small ${
-                            tour.myProposal.status === 'ACCEPTED' ? 'btn-success' :
-                            tour.myProposal.status === 'DECLINED' ? 'btn-secondary' :
-                            'btn-primary'
-                          }`}
-                          onClick={() => handleViewMyProposal(tour)}
-                          style={{ flex: 1 }}
-                        >
-                          {tour.myProposal.status === 'ACCEPTED' ? `✓ ${t('tour.proposalAccepted')}` :
-                           tour.myProposal.status === 'DECLINED' ? t('tour.proposalDeclined') :
-                           t('tour.viewSentProposal')}
-                        </button>
-                      ) : tour.closedToOffers ? (
-                        // Full: the artist side stopped taking offers. The tour
-                        // stays listed and interest stays open, so a promoter
-                        // can still put their hand up for the next run.
-                        <button className="btn btn-secondary btn-small" style={{ flex: 1 }} disabled>
-                          {t('tour.fullyBooked')}
-                        </button>
-                      ) : (
-                        // No proposal sent yet
-                        <button
-                          className="btn btn-primary btn-small"
-                          style={{ flex: 1 }}
-                          onClick={() => handleMakeOffer(tour)}
-                        >
-                          {t('tour.makeAnOffer')}
-                        </button>
-                      )}
-                      {/* Lightweight appetite signal — free, precedes an offer */}
+                    {/* Console: gigs + interest + revenue tiles */}
+                    <div className="grid grid-cols-3 gap-2.5 mb-3">
+                      {/* The two counts ARE the way in to their lists — a
+                          separate "View gigs" / "View interested" button pair
+                          restated the same numbers and pushed the action row
+                          to five CTAs, which wrapped and clipped. */}
                       <button
-                        className={`btn btn-small ${tour.myInterest ? 'btn-liked' : 'btn-outline'}`}
-                        style={{ flex: 1 }}
-                        onClick={() => handleToggleInterest(tour)}
+                        type="button"
+                        onClick={() => handleViewTourGigs(tour)}
+                        className="text-left rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5
+                                   transition-colors hover:border-infrared/40 cursor-pointer"
                       >
-                        <HeartIcon filled={!!tour.myInterest} />{' '}
-                        {tour.myInterest ? t('tour.interested') : t('tour.imInterested')}
+                        <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
+                          {tour.confirmedGigs || 0}
+                        </p>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
+                          {t('tour.gigsConfirmed')}
+                        </p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleViewInterests(tour)}
+                        className="text-left rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5
+                                   transition-colors hover:border-infrared/40 cursor-pointer"
+                      >
+                        <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
+                          {tour.interestsCount || 0}
+                        </p>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
+                          {t('tour.interestedCount')}
+                        </p>
+                      </button>
+                      <div className="rounded-xl border border-white/10 bg-[#070709] px-3 py-2.5">
+                        <p className="text-lg font-bold text-white font-space-grotesk leading-none m-0">
+                          {Math.round(tour.totalRevenue || 0).toLocaleString()}
+                          <span className="text-xs font-medium text-white/35"> / {Math.round(tour.minRevenue || 0).toLocaleString()} {tour.revenueCurrency || 'EUR'}</span>
+                        </p>
+                        <p className="text-[9px] uppercase tracking-[0.15em] text-white/40 font-tech mt-1.5 m-0">
+                          {t('tour.revenueTarget')}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Thin crimson progress line */}
+                    <div className="flex items-center gap-2.5 mb-4">
+                      <div className="flex-1 h-[3px] rounded-full bg-white/10 overflow-hidden">
+                        <div className="h-full rounded-full bg-infrared" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="shrink-0 text-[10px] text-white/50 font-tech">{pct}%</span>
+                    </div>
+
+                    {/* Actions: the two things you DO to a tour, then the
+                        quiet destructive one. Labels stay on one line; the row
+                        wraps rather than clipping on a narrow phone. */}
+                    <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-white/[0.07]">
+                      <button
+                        className="btn btn-outline btn-small whitespace-nowrap"
+                        onClick={() => handleEditTour(tour)}
+                      >
+                        {t('common.edit')}
+                      </button>
+                      {tour.status === 'ACTIVE' && (
+                        <button
+                          className={`btn btn-small whitespace-nowrap ${tour.closedToOffers ? 'btn-primary' : 'btn-outline'}`}
+                          disabled={tourActionBusy === tour.id}
+                          onClick={() => handleToggleTourOffers(tour)}
+                        >
+                          {tourActionBusy === tour.id
+                            ? '...'
+                            : (tour.closedToOffers ? t('tour.reopenToOffers') : t('tour.closeToOffers'))}
+                        </button>
+                      )}
+                      <button
+                        className="ml-auto bg-transparent border-none cursor-pointer text-[10px] uppercase tracking-[0.1em]
+                                   font-tech text-white/35 hover:text-role-venue transition-colors whitespace-nowrap"
+                        onClick={() => handleDeleteTour(tour)}
+                      >
+                        {t('tour.cancelTour')}
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
