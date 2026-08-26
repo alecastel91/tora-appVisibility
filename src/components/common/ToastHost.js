@@ -30,7 +30,7 @@ const ToastHost = () => {
           dismiss early. */}
       <div className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center px-6">
         <div
-          className="pointer-events-auto max-w-sm rounded-2xl border border-[#FFD54A]/60 bg-[#FFB800]/95 px-5 py-3.5 text-center text-[14px] font-medium leading-snug text-black/90 shadow-2xl backdrop-blur-md"
+          className="pointer-events-auto max-w-sm rounded-xl border border-[#FFB800]/50 bg-[#241f12]/95 px-5 py-3 text-center text-[13px] font-medium leading-snug text-[#FFD54A] shadow-2xl backdrop-blur-md"
           onClick={() => setToast(null)}
         >
           {t(toast.key, toast.params)}
