@@ -49,6 +49,12 @@ class ApiService {
         errorData = { error: response.statusText || 'Something went wrong' };
       }
 
+      // Beta feedback context: remember the last API error this session so
+      // a report filed seconds later carries it silently.
+      if (typeof window !== 'undefined') {
+        window.__toraLastApiError = `${response.status} ${response.url?.replace(/^https?:\/\/[^/]+/, '')} — ${errorData.error || response.statusText || ''}`.slice(0, 500);
+      }
+
       // Identity gate tripped: one global signal instead of per-call-site
       // handling. App.js listens and opens the verification prompt.
       if (errorData.code === 'VERIFICATION_REQUIRED' && typeof window !== 'undefined') {
@@ -449,6 +455,30 @@ class ApiService {
 
   async getPushPrefs() {
     const response = await fetch(`${API_URL}/push/prefs`, { headers: this.getHeaders() });
+    return this.handleResponse(response);
+  }
+
+  // ---- Beta tasks & feedback (routes 404 outside the beta env) ----
+  async betaGetTasks(profileId) {
+    const response = await fetch(`${API_URL}/beta/tasks?profileId=${profileId}`, { headers: this.getHeaders() });
+    return this.handleResponse(response);
+  }
+
+  async betaUpdateTask(code, payload) {
+    const response = await fetch(`${API_URL}/beta/tasks/${code}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    return this.handleResponse(response);
+  }
+
+  async betaSendFeedback(payload) {
+    const response = await fetch(`${API_URL}/beta/feedback`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
     return this.handleResponse(response);
   }
 
