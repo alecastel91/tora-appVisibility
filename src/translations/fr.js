@@ -552,7 +552,7 @@ const fr = {
       updateTravelSchedule: 'Indiquez où vous serez et quand, pour que les promoteurs et salles de ces villes puissent vous réserver pendant votre séjour.',
       calendarMatching: 'Fait ressortir automatiquement les personnes dont les disponibilités recoupent les vôtres : moins de recherche, plus de réservations.',
       tourKickstarter: 'Planifiez une tournée dans plusieurs villes et laissez les salles et promoteurs sur la route venir à vous avec des offres.',
-      artistTravelAlerts: 'Soyez averti lorsqu\'un artiste annonce des dates près de votre salle, pour le contacter avant tout le monde.',
+      artistTravelAlerts: 'Chaque artiste que vous aimez devient une alerte : quand il annonce des dates de voyage ou de tournée près de votre ville, vous êtes averti — pour le contacter avant tout le monde.',
       calendarPrivacy: 'Décidez exactement qui peut voir vos disponibilités et vos projets de voyage : tout le monde, seulement vos contacts, ou personne.',
       feePrivacy: 'Gardez vos cachets privés. Seules les personnes avec qui vous négociez activement voient vos chiffres.',
       messaging: 'Messagerie directe avec n\'importe quel contact : négociez des accords, partagez des documents et confirmez les détails dans un seul fil.',
@@ -1828,6 +1828,7 @@ const fr = {
         entries: [
           { q: 'Le prix de Premium', a: 'Mensuel 19,90 €, ou annuel 199,90 € — deux mois offerts.' },
           { q: 'Ce que cela débloque', a: 'Recherche mondiale, plus de j’aime et de demandes de connexion, Tour Kickstart et, en annuel : cachets privés sur les tournées, calendrier privé, placement prioritaire dans la recherche et alertes voyage.' },
+          { q: 'Comment fonctionnent les alertes voyage', a: 'Aimez un artiste — c’est tout. Quand il annonce des dates de voyage ou de tournée près de votre ville, les salles et promoteurs en plan annuel reçoivent automatiquement une notification. Retirez le j’aime pour arrêter les alertes.' },
           { q: 'Ce qui n’est jamais payant', a: 'Recevoir une offre et l’accepter. Personne n’est empêché de travailler à cause de sa formule.' },
           { q: 'Extras ponctuels', a: 'Si vous épuisez vos quotas avant le renouvellement, vous pouvez acheter des j’aime, des demandes de connexion ou des offres supplémentaires sans changer de formule.' },
         ],

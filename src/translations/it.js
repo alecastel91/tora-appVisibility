@@ -552,7 +552,7 @@ const it = {
       updateTravelSchedule: 'Pubblica dove sarai e quando, così promoter e venue di quelle città possono scritturarti mentre sei in zona.',
       calendarMatching: 'Mostra automaticamente le persone la cui disponibilità coincide con la tua: meno ricerca, più prenotazioni.',
       tourKickstarter: 'Pianifica un tour in più città e lascia che venue e promoter lungo il percorso vengano da te con delle offerte.',
-      artistTravelAlerts: 'Ricevi una notifica quando un artista annuncia date vicino alla tua venue, così puoi contattarlo prima di tutti.',
+      artistTravelAlerts: 'Ogni artista a cui metti like diventa un avviso: quando annuncia date di viaggio o tour vicino alla tua città ricevi una notifica, così puoi contattarlo prima di tutti.',
       calendarPrivacy: 'Decidi esattamente chi può vedere la tua disponibilità e i tuoi programmi di viaggio: tutti, solo i tuoi contatti o nessuno.',
       feePrivacy: 'Mantieni privati i tuoi compensi. Solo le persone con cui stai attivamente negoziando vedono le tue cifre.',
       messaging: 'Messaggistica diretta con qualsiasi contatto: negozia accordi, condividi documenti e conferma i dettagli in un\'unica conversazione.',
@@ -1828,6 +1828,7 @@ const it = {
         entries: [
           { q: 'Quanto costa Premium', a: 'Mensile 19,90 €, oppure annuale 199,90 € — due mesi gratis.' },
           { q: 'Cosa sblocca', a: 'Ricerca globale, più like e richieste di connessione, Tour Kickstart e, con l’annuale: cachet privati sui tour, calendario privato, posizione prioritaria nella ricerca e avvisi di viaggio.' },
+          { q: 'Come funzionano gli avvisi di viaggio', a: 'Metti like a un artista: non serve altro. Quando annuncia date di viaggio o tour vicino alla tua città, venue e promoter con piano annuale ricevono automaticamente una notifica. Togli il like per fermare gli avvisi.' },
           { q: 'Cosa non è mai a pagamento', a: 'Ricevere un’offerta e accettarla. A nessuno viene impedito di lavorare per via del proprio piano.' },
           { q: 'Extra una tantum', a: 'Se finisci prima del rinnovo, puoi acquistare like, richieste di connessione o offerte extra senza cambiare piano.' },
         ],

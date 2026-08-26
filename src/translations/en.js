@@ -509,7 +509,7 @@ const en = {
       updateTravelSchedule: 'Publish where you\'ll be and when, so promoters and venues in those cities can book you while you\'re in town.',
       calendarMatching: 'Automatically surfaces people whose availability overlaps with yours — less searching, more booking.',
       tourKickstarter: 'Plan a multi-city tour and let venues and promoters along the route come to you with offers.',
-      artistTravelAlerts: 'Get notified when an artist announces dates near your venue, so you can reach out before anyone else.',
+      artistTravelAlerts: 'Every artist you like becomes an alert: when they announce travel or tour dates near your city, you\'re notified — so you can reach out before anyone else.',
       calendarPrivacy: 'Decide exactly who can see your availability and travel plans — everyone, only your connections, or no one.',
       feePrivacy: 'Keep your booking fees private. Only the people you\'re actively negotiating with ever see your numbers.',
       messaging: 'Direct messaging with any connection: negotiate deals, share documents and confirm details in one thread.',
@@ -1840,6 +1840,7 @@ const en = {
         entries: [
           { q: 'What Premium costs', a: 'Monthly €19.90, or Yearly €199.90 — two months free.' },
           { q: 'What it unlocks', a: 'Global search, more likes and connection requests, Tour Kickstart, and on Yearly: fee privacy on tours, calendar privacy, priority placement in search and travel alerts.' },
+          { q: 'How travel alerts work', a: 'Like an artist — that\'s the whole setup. When they announce travel or tour dates near your city, Yearly venues and promoters get a notification automatically. Unlike the artist to stop the alerts.' },
           { q: 'What is never behind a paywall', a: 'Receiving an offer and accepting it. Nobody is ever prevented from taking work because of their plan.' },
           { q: 'One-off extras', a: 'If you run out before your reset, you can buy extra likes, extra connection requests or extra offers without changing plan.' },
         ],

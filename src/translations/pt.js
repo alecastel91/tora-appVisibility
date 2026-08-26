@@ -552,7 +552,7 @@ const pt = {
       updateTravelSchedule: 'Publica onde vai estar e quando, para que os promotores e venues dessas cidades te possam contratar enquanto estiver na cidade.',
       calendarMatching: 'Mostra automaticamente as pessoas cuja disponibilidade coincide com a sua — menos pesquisa, mais reservas.',
       tourKickstarter: 'Planeia uma digressão por várias cidades e deixa que as venues e promotores ao longo do percurso venham ter contigo com ofertas.',
-      artistTravelAlerts: 'Recebe uma notificação quando um artista anunciar datas perto da sua venue, para poderes contactá-lo antes de todos.',
+      artistTravelAlerts: 'Cada artista que você curte vira um alerta: quando ele anunciar datas de viagem ou tour perto da sua cidade, você recebe uma notificação — para contatá-lo antes de todos.',
       calendarPrivacy: 'Decide exatamente quem pode ver a sua disponibilidade e os seus planos de viagem — todos, apenas os seus contatos, ou ninguém.',
       feePrivacy: 'Mantém os seus cachês privados. Só as pessoas com quem está a negociar ativamente veem os seus valores.',
       messaging: 'Mensagens diretas com qualquer contato: negoceia acordos, compartilha documentos e confirme detalhes numa única conversa.',
@@ -1828,6 +1828,7 @@ const pt = {
         entries: [
           { q: 'Quanto custa o Premium', a: 'Mensal 19,90 €, ou anual 199,90 € — dois meses grátis.' },
           { q: 'O que desbloqueia', a: 'Pesquisa global, mais gostos e pedidos de conexão, Tour Kickstart e, no anual: cachets privados nas tours, calendário privado, posição prioritária na pesquisa e alertas de viagem.' },
+          { q: 'Como funcionam os alertas de viagem', a: 'Curta um artista — é só isso. Quando ele anunciar datas de viagem ou tour perto da sua cidade, venues e promotores com plano anual recebem uma notificação automática. Descurta para parar os alertas.' },
           { q: 'O que nunca é pago', a: 'Receber uma proposta e aceitá-la. Ninguém é impedido de trabalhar por causa do plano.' },
           { q: 'Extras avulsos', a: 'Se esgotar antes da renovação, pode comprar gostos, pedidos de conexão ou propostas extra sem mudar de plano.' },
         ],

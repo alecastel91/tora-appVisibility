@@ -552,7 +552,7 @@ const es = {
       updateTravelSchedule: 'Publica dónde estarás y cuándo, para que los promotores y salas de esas ciudades puedan contratarte mientras estés allí.',
       calendarMatching: 'Muestra automáticamente a las personas cuya disponibilidad coincide con la tuya: menos búsqueda, más contrataciones.',
       tourKickstarter: 'Planifica una gira por varias ciudades y deja que las salas y promotores de la ruta vengan a ti con ofertas.',
-      artistTravelAlerts: 'Recibe una notificación cuando un artista anuncie fechas cerca de tu sala, para poder contactarlo antes que nadie.',
+      artistTravelAlerts: 'Cada artista que te gusta se convierte en un aviso: cuando anuncie fechas de viaje o gira cerca de tu ciudad, recibirás una notificación para contactarlo antes que nadie.',
       calendarPrivacy: 'Decide exactamente quién puede ver tu disponibilidad y tus planes de viaje: todos, solo tus contactos o nadie.',
       feePrivacy: 'Mantén privados tus honorarios de contratación. Solo las personas con las que estás negociando activamente ven tus cifras.',
       messaging: 'Mensajería directa con cualquier contacto: negocia acuerdos, comparte documentos y confirma detalles en un mismo hilo.',
@@ -1828,6 +1828,7 @@ const es = {
         entries: [
           { q: 'Cuánto cuesta Premium', a: 'Mensual 19,90 €, o anual 199,90 € — dos meses gratis.' },
           { q: 'Qué desbloquea', a: 'Búsqueda global, más me gusta y solicitudes de conexión, Tour Kickstart y, en el anual: cachés privados en los tours, calendario privado, posición prioritaria en la búsqueda y avisos de viaje.' },
+          { q: 'Cómo funcionan los avisos de viaje', a: 'Dale me gusta a un artista: eso es todo. Cuando anuncie fechas de viaje o gira cerca de tu ciudad, las salas y promotores con plan anual reciben una notificación automática. Quita el me gusta para detener los avisos.' },
           { q: 'Qué nunca está de pago', a: 'Recibir una oferta y aceptarla. A nadie se le impide trabajar por su plan.' },
           { q: 'Extras puntuales', a: 'Si se te acaban antes de la renovación, puedes comprar me gusta, solicitudes de conexión u ofertas extra sin cambiar de plan.' },
         ],
