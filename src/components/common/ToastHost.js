@@ -15,7 +15,7 @@ const ToastHost = () => {
     const onToast = (e) => {
       setToast(e.detail);
       clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => setToast(null), 4000);
+      timerRef.current = setTimeout(() => setToast(null), 5000);
     };
     window.addEventListener('tora:toast', onToast);
     return () => { window.removeEventListener('tora:toast', onToast); clearTimeout(timerRef.current); };
@@ -25,11 +25,14 @@ const ToastHost = () => {
 
   return (
     <OverlayPortal>
-      <div
-        className="pointer-events-none fixed inset-x-0 z-[1200] flex justify-center px-6"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 84px)' }}
-      >
-        <div className="pointer-events-auto max-w-sm rounded-full border border-[#FFD54A]/60 bg-[#FFB800]/95 px-4 py-2.5 text-center text-[13px] font-medium leading-snug text-black/90 shadow-lg backdrop-blur-md">
+      {/* Centered + z-index above every overlay (likes often happen from the
+          full-screen ViewProfile, which must not cover the toast). Tap to
+          dismiss early. */}
+      <div className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center px-6">
+        <div
+          className="pointer-events-auto max-w-sm rounded-2xl border border-[#FFD54A]/60 bg-[#FFB800]/95 px-5 py-3.5 text-center text-[14px] font-medium leading-snug text-black/90 shadow-2xl backdrop-blur-md"
+          onClick={() => setToast(null)}
+        >
           {t(toast.key, toast.params)}
         </div>
       </div>
