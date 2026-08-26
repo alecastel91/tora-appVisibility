@@ -25,12 +25,15 @@ const ToastHost = () => {
 
   return (
     <OverlayPortal>
-      {/* Centered + z-index above every overlay (likes often happen from the
-          full-screen ViewProfile, which must not cover the toast). Tap to
-          dismiss early. */}
-      <div className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center px-6">
+      {/* Bottom pill above the tab bar; z-index above every overlay (likes
+          often happen from the full-screen ViewProfile, which must not cover
+          the toast). Infrared like the heart it reacts to. Tap to dismiss. */}
+      <div
+        className="pointer-events-none fixed inset-x-0 z-[9999] flex justify-center px-6"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom) + 84px)' }}
+      >
         <div
-          className="pointer-events-auto max-w-sm rounded-xl border border-[#FFB800]/50 bg-[#241f12]/95 px-5 py-3 text-center text-[13px] font-medium leading-snug text-[#FFD54A] shadow-2xl backdrop-blur-md"
+          className="pointer-events-auto max-w-sm rounded-full border border-[#FF3366]/50 bg-[#1a1016]/95 px-5 py-3 text-center text-[13px] font-medium leading-snug text-[#FF6B8E] shadow-2xl backdrop-blur-md"
           onClick={() => setToast(null)}
         >
           {t(toast.key, toast.params)}
