@@ -563,6 +563,11 @@ const en = {
     unlimited: 'Unlimited',
   },
 
+  pitch: {
+    button: 'Send a pitch',
+    hintVenue: 'Venues review pitches by message and send an offer if they are interested.',
+    hintPromoter: 'Promoters review pitches by message and send an offer if they are interested.',
+  },
   travelAlerts: {
     set: 'Travel alert on — we\'ll notify you when {{name}} announces dates near you.',
     off: 'Travel alert off for {{name}}.',

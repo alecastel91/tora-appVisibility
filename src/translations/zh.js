@@ -563,6 +563,11 @@ const zh = {
     },
   },
 
+  pitch: {
+    button: '发送自荐',
+    hintVenue: '场地会通过消息查看自荐，如有兴趣会发送报价。',
+    hintPromoter: '主办方会通过消息查看自荐，如有兴趣会发送报价。',
+  },
   travelAlerts: {
     set: '巡演提醒已开启——{{name}} 公布您附近的日期时我们会通知您。',
     off: '已关闭 {{name}} 的巡演提醒。',

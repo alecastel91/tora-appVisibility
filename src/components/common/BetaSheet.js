@@ -5,7 +5,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
 import { downscaleImageToDataUrl } from '../../utils/image';
 import { isStandalone } from '../../services/install';
-import { BETA_TASKS_EN, BETA_TASKS_JA } from '../../beta/tasks-strings';
+import { BETA_TASKS_EN, BETA_TASKS_JA, BETA_UI } from '../../beta/tasks-strings';
 
 /**
  * Beta Tasks & Feedback sheet (TORA_BETA_BRIEF Build Item 2) — the two tabs
@@ -20,11 +20,7 @@ import { BETA_TASKS_EN, BETA_TASKS_JA } from '../../beta/tasks-strings';
  */
 const GROUP_ORDER = ['Setup', 'Discovery', 'Bookings', 'Role: Artist', 'Role: Agent', 'Role: Promoter', 'Role: Venue', 'Community', 'Notifications', 'Plan', 'Break it', 'Debrief'];
 const TYPES = ['Bug', 'Confusing', 'Missing', 'Idea', 'Copy', 'Performance'];
-const SEVERITIES = [
-  { value: 'blocked', label: 'Blocked me' },
-  { value: 'annoyed', label: 'Annoyed me' },
-  { value: 'noting', label: 'Just noting it' },
-];
+const SEVERITY_KEYS = ['blocked', 'annoyed', 'noting'];
 
 const taskText = (code, lang) => (lang === 'ja' && BETA_TASKS_JA[code]) || BETA_TASKS_EN[code] || { title: code, hint: '' };
 
@@ -36,6 +32,7 @@ const currentTab = () => {
 
 const BetaSheet = ({ open, onClose, language = 'en' }) => {
   const { user } = useAppContext();
+  const ui = language === 'ja' ? BETA_UI.ja : BETA_UI.en;
   const [tab, setTab] = useState('list');
   const [data, setData] = useState(null);
   const [openHint, setOpenHint] = useState(null);
@@ -153,7 +150,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
         </div>
 
         <div className="mx-4 mb-3 flex shrink-0 rounded-full border border-white/10 bg-white/[0.04] p-1">
-          {[['list', 'YOUR LIST'], ['tell', 'TELL US']].map(([k, label]) => (
+          {[['list', ui.yourList], ['tell', ui.tellUs]].map(([k, label]) => (
             <button
               key={k}
               type="button"
@@ -169,10 +166,10 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
           {tab === 'list' && (
             <>
               <p className="m-0 mb-4 text-[13px] text-white/60">
-                Work through these in any order, over as many sittings as you like.
-                {data ? ` ${data.done}/${data.total} done.` : ''}
+                {ui.intro}
+                {data ? ` ${data.done}/${data.total}` : ''}
               </p>
-              {!data && <p className="text-white/50">Loading…</p>}
+              {!data && <p className="text-white/50">{ui.loading}</p>}
               {groups.map(([g, rows]) => (
                 <div key={g} className="mb-5">
                   <h3 className="m-0 mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">{g}</h3>
@@ -205,15 +202,15 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                               <div className="mt-1.5 flex flex-wrap gap-3">
                                 {s.hint && (
                                   <button type="button" className="border-0 bg-transparent p-0 text-[12px] text-white/50 underline" onClick={() => openHintFor(t.code)}>
-                                    Show me how
+                                    {ui.showMeHow}
                                   </button>
                                 )}
                                 <button type="button" className="border-0 bg-transparent p-0 text-[12px] text-white/50 underline" onClick={() => confusing(t.code)}>
-                                  This was confusing
+                                  {ui.confusing}
                                 </button>
                                 {!skipped && !t.autoDetected && (
                                   <button type="button" className="border-0 bg-transparent p-0 text-[12px] text-white/35 underline" onClick={() => { setSkipFor(t.code); setSkipReason(''); }}>
-                                    Skip
+                                    {ui.skip}
                                   </button>
                                 )}
                               </div>
@@ -222,14 +219,14 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                               <div className="mt-2">
                                 <input
                                   className="form-input w-full text-[13px]"
-                                  placeholder="Why are you skipping it? One line is enough."
+                                  placeholder={ui.skipWhy}
                                   value={skipReason}
                                   onChange={(e) => setSkipReason(e.target.value)}
                                 />
                                 <div className="mt-2 flex gap-2">
-                                  <button type="button" className="btn btn-outline btn-sm" onClick={() => setSkipFor(null)}>Cancel</button>
+                                  <button type="button" className="btn btn-outline btn-sm" onClick={() => setSkipFor(null)}>{ui.cancel}</button>
                                   <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setStatus(t.code, 'skipped', skipReason); setSkipFor(null); }}>
-                                    Skip it
+                                    {ui.skipIt}
                                   </button>
                                 </div>
                               </div>
@@ -247,19 +244,19 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
           {tab === 'tell' && (
             sent ? (
               <div className="pt-10 text-center">
-                <p className="m-0 mb-2 text-[15px] font-semibold text-white">Received — thank you.</p>
-                <p className="m-0 mb-6 text-[13px] text-white/60">Every report makes TORA better. Send as many as you like.</p>
-                <button className="btn btn-primary" onClick={() => setSent(false)}>Send another</button>
+                <p className="m-0 mb-2 text-[15px] font-semibold text-white">{ui.received}</p>
+                <p className="m-0 mb-6 text-[13px] text-white/60">{ui.receivedSub}</p>
+                <button className="btn btn-primary" onClick={() => setSent(false)}>{ui.sendAnother}</button>
               </div>
             ) : (
               <>
                 {taskCode && (
                   <p className="m-0 mb-3 rounded-lg border border-white/10 bg-white/[0.04] p-2.5 text-[12.5px] text-white/60">
-                    About task: {taskText(taskCode, language).title}
-                    <button type="button" className="ml-2 border-0 bg-transparent p-0 text-white/40 underline" onClick={() => setTaskCode(null)}>remove</button>
+                    {ui.aboutTask}: {taskText(taskCode, language).title}
+                    <button type="button" className="ml-2 border-0 bg-transparent p-0 text-white/40 underline" onClick={() => setTaskCode(null)}>{ui.remove}</button>
                   </p>
                 )}
-                <p className="m-0 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40">What kind of thing?</p>
+                <p className="m-0 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40">{ui.typeQ}</p>
                 <div className="mb-3 flex flex-wrap gap-1.5">
                   {TYPES.map((tp) => (
                     <button key={tp} type="button" onClick={() => setType(tp)}
@@ -268,18 +265,18 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                     </button>
                   ))}
                 </div>
-                <p className="m-0 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40">How bad?</p>
+                <p className="m-0 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40">{ui.howBad}</p>
                 <div className="mb-3 flex flex-wrap gap-1.5">
-                  {SEVERITIES.map((sv) => (
-                    <button key={sv.value} type="button" onClick={() => setSeverity(sv.value)}
-                      className={`rounded-full border px-3 py-1.5 text-[12px] ${severity === sv.value ? 'border-[#FFB800] bg-[#FFB800]/15 text-white' : 'border-white/15 text-white/60'}`}>
-                      {sv.label}
+                  {SEVERITY_KEYS.map((sv) => (
+                    <button key={sv} type="button" onClick={() => setSeverity(sv)}
+                      className={`rounded-full border px-3 py-1.5 text-[12px] ${severity === sv ? 'border-[#FFB800] bg-[#FFB800]/15 text-white' : 'border-white/15 text-white/60'}`}>
+                      {ui.severities[sv]}
                     </button>
                   ))}
                 </div>
                 <textarea
                   className="message-textarea-bottom w-full"
-                  placeholder={'What happened? Short and blunt is perfect — "no idea what this button does" is a useful report.'}
+                  placeholder={ui.placeholder}
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   maxLength={5000}
@@ -298,15 +295,15 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                 )}
                 {shots.length < 5 && (
                   <button type="button" className="btn btn-outline beta-shot-attach" onClick={() => shotInputRef.current?.click()}>
-                    + Add screenshot ({shots.length}/5)
+                    + {ui.addShot} ({shots.length}/5)
                   </button>
                 )}
                 <p className="m-0 mb-2 mt-1 text-[11px] text-white/35">
-                  Your screen, device and the last error are attached automatically — no need to describe them.
+                  {ui.autoNote}
                 </p>
                 {error && <p className="m-0 mb-3 text-sm text-infrared">{error}</p>}
                 <button className="btn btn-primary btn-full" onClick={submit} disabled={busy || !body.trim()}>
-                  {busy ? '…' : 'Send'}
+                  {busy ? '…' : ui.send}
                 </button>
               </>
             )

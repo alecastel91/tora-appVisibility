@@ -563,6 +563,11 @@ const pt = {
     },
   },
 
+  pitch: {
+    button: 'Enviar uma proposta',
+    hintVenue: 'As venues avaliam propostas por mensagem e enviam uma oferta se tiverem interesse.',
+    hintPromoter: 'Os promotores avaliam propostas por mensagem e enviam uma oferta se tiverem interesse.',
+  },
   travelAlerts: {
     set: 'Alerta de viagem ativado — avisaremos quando {{name}} anunciar datas perto de você.',
     off: 'Alerta de viagem desativado para {{name}}.',
