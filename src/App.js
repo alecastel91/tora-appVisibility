@@ -40,6 +40,7 @@ import GettingStartedSheet from './components/common/GettingStartedSheet';
 import PushSettingsToggle from './components/common/PushSettingsToggle';
 import PushNudge from './components/common/PushNudge';
 import InstallSheet, { InstallSettingsSection } from './components/common/InstallSheet';
+import ToastHost from './components/common/ToastHost';
 import { isStandalone } from './services/install';
 import { appConfirm, appAlert } from './utils/dialogs';
 
@@ -704,6 +705,7 @@ function App() {
       <div className={`app-container tab-${activeTab}`}>
         <BetaTools />
       <AppDialogHost />
+      <ToastHost />
       <CelebrationHost />
         <AssistantChat />
         {showGuide && <GuideScreen onClose={() => setShowGuide(false)} />}

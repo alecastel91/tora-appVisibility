@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { subscribeToInbox } from '../services/realtime';
 import { mockUsers, mockConversations, mockExploreFeed } from '../services/mockData';
 import apiService from '../services/api';
+import { showToast } from '../utils/toast';
 
 const AppContext = createContext();
 
@@ -569,7 +570,21 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const toggleLike = async (profileId) => {
+  // A like from a venue/promoter on an artist silently arms a Yearly travel
+  // alert on the backend — surface that at the moment it happens, or the
+  // feature is invisible. `likedProfile` is optional context from call sites.
+  const announceTravelAlert = (likedProfile, nowLiked) => {
+    if (likedProfile?.role !== 'ARTIST') return;
+    if (!['VENUE', 'PROMOTER'].includes(user?.role)) return;
+    if (user?.subscriptionTier === 'YEARLY') {
+      showToast(nowLiked ? 'travelAlerts.set' : 'travelAlerts.off', { name: likedProfile.name });
+    } else if (nowLiked && !localStorage.getItem('tora-travel-alert-teaser')) {
+      localStorage.setItem('tora-travel-alert-teaser', '1');
+      showToast('travelAlerts.teaser');
+    }
+  };
+
+  const toggleLike = async (profileId, likedProfile) => {
     if (!user || !user.id) {
       console.error('No active user profile');
       return;
@@ -589,6 +604,7 @@ export const AppProvider = ({ children }) => {
     try {
       // Call backend to toggle like
       await apiService.toggleLike(user.id, profileId);
+      announceTravelAlert(likedProfile, !isCurrentlyLiked);
 
       // Force reload profile data by temporarily resetting loading flag
       setIsLoadingProfileData(false);

@@ -256,7 +256,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
 
   const activeFilterCount = Object.values(filters).reduce((count, arr) => count + arr.length, 0);
 
-  const handleLike = async (profileId) => {
+  const handleLike = async (profileId, likedProfile) => {
     console.log('Like button clicked for profile:', profileId);
     console.log('Current user:', user);
 
@@ -265,7 +265,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
 
     try {
       console.log('Calling toggleLike...');
-      await toggleLike(profileId);
+      await toggleLike(profileId, likedProfile);
       console.log('Toggle like successful!');
     } catch (error) {
       console.error('Error liking profile:', error);
@@ -690,7 +690,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
                 <div className="result-actions">
                   <button
                     className={`btn ${isLiked ? 'btn-liked' : 'btn-outline'} btn-like`}
-                    onClick={() => handleLike(profileId)}
+                    onClick={() => handleLike(profileId, profile)}
                   >
                     <HeartIcon filled={isLiked} /> {isLiked ? t('search.liked') : t('search.like')}
                   </button>

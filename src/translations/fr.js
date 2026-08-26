@@ -563,6 +563,11 @@ const fr = {
     },
   },
 
+  travelAlerts: {
+    set: 'Alerte voyage activée — nous vous préviendrons quand {{name}} annoncera des dates près de chez vous.',
+    off: 'Alerte voyage désactivée pour {{name}}.',
+    teaser: 'Les membres Yearly reçoivent des alertes voyage quand les artistes qu\'ils aiment annoncent des dates près de chez eux.',
+  },
   install: {
     title: 'Installez l\'app TORA',
     subtitle: 'Ajoutez TORA à votre écran d\'accueil : plein écran, lancement plus rapide et notifications push pour les offres et messages.',

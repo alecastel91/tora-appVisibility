@@ -563,6 +563,11 @@ const en = {
     unlimited: 'Unlimited',
   },
 
+  travelAlerts: {
+    set: 'Travel alert on — we\'ll notify you when {{name}} announces dates near you.',
+    off: 'Travel alert off for {{name}}.',
+    teaser: 'Yearly members get travel alerts when artists they like announce dates near them.',
+  },
   install: {
     title: 'Get the TORA app',
     subtitle: 'Add TORA to your home screen — full screen, faster launch, and push notifications for offers and messages.',

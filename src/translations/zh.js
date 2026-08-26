@@ -563,6 +563,11 @@ const zh = {
     },
   },
 
+  travelAlerts: {
+    set: '巡演提醒已开启——{{name}} 公布您附近的日期时我们会通知您。',
+    off: '已关闭 {{name}} 的巡演提醒。',
+    teaser: 'Yearly 会员在点赞的艺人公布附近日期时会收到巡演提醒。',
+  },
   install: {
     title: '获取 TORA 应用',
     subtitle: '将 TORA 添加到主屏幕——全屏体验、更快启动，并可接收报价和消息的推送通知。',

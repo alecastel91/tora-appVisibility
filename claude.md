@@ -52,6 +52,10 @@ Local `.env` is for local dev only — it points at Project 1. The two stacks ar
 - **BetaTools** (beta only): draggable feedback FAB + banner. **AssistantChat**: TORA Assistant (needs backend ANTHROPIC_API_KEY).
 - **Search tab List/Globe toggle**: lazy-loaded d3-geo network globe, pins by city (`cityCoords`), tap → profiles sheet.
 
+### Travel-alert visibility (Aug 26)
+- Liking an artist silently arms a Yearly travel alert on the backend (`tora-backend/src/utils/travelAlerts.js` — Yearly VENUE/PROMOTER likers get notified of new artist travel entries/tours matching their city/country). That was invisible in the UI — now `AppContext.toggleLike(profileId, likedProfile?)` fires a toast at the like moment: Yearly venue/promoter → "Travel alert on — we'll notify you when {name} announces dates near you" (and "off" on unlike); non-Yearly venue/promoter → one-time upgrade teaser (localStorage `tora-travel-alert-teaser`). Call sites pass the profile object (SearchScreen, ViewProfileScreen).
+- New minimal toast infra: `utils/toast.js#showToast(key, params)` (window event, i18n keys so non-React callers stay translation-free) + `ToastHost` (one glass pill above the tab bar, 4s, newest replaces). Mounted once in App.js — reuse for any lightweight confirmation.
+
 ### Audit-driven fixes shipped (Aug)
 - F6-01: expired/invalid token mid-session now force-logs-out via a global `tora:session-expired` event from api.js (401 + "token" in the message) — no more dead-looking app until manual reload.
 - F6-02: profile switch fully resets AppContext state (no stale likes/connections from the previous profile).

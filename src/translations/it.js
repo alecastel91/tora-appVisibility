@@ -563,6 +563,11 @@ const it = {
     },
   },
 
+  travelAlerts: {
+    set: 'Avviso viaggio attivo — ti avviseremo quando {{name}} annuncerà date vicino a te.',
+    off: 'Avviso viaggio disattivato per {{name}}.',
+    teaser: 'I membri Yearly ricevono avvisi viaggio quando gli artisti che hanno messo like annunciano date vicine.',
+  },
   install: {
     title: 'Scarica l\'app TORA',
     subtitle: 'Aggiungi TORA alla schermata Home: schermo intero, avvio più rapido e notifiche push per offerte e messaggi.',

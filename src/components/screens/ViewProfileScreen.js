@@ -298,7 +298,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
 
   const handleLike = async () => {
     try {
-      await toggleLike(profileId);
+      await toggleLike(profileId, profile);
     } catch (error) {
       console.error('Error toggling like:', error);
 
