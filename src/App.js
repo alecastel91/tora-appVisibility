@@ -817,38 +817,42 @@ function App() {
                   )}
                 </>
               ) : (
-                <div className="subscription-tier-badge">
-                  <span className={`tier-label ${user?.subscriptionTier?.toLowerCase() || 'free'}`}>
-                    {user?.subscriptionTier || 'FREE'}
-                  </span>
-                  {(!user?.subscriptionTier || user?.subscriptionTier === 'FREE') && (
-                    <button
-                      className="btn btn-upgrade-small"
-                      onClick={() => {
-                        setShowSettings(false);
-                        setShowPremium(true);
-                      }}
-                    >
-                      {t('premium.upgradeToPremium')}
-                    </button>
-                  )}
-                  {user?.subscriptionTier === 'MONTHLY' && (
-                    <button
-                      className="btn btn-upgrade-small"
-                      onClick={() => {
-                        setShowSettings(false);
-                        setShowPremium(true);
-                      }}
-                    >
-                      {t('premium.upgradeToYearly')}
-                    </button>
-                  )}
+                <>
+                  <div className="subscription-tier-badge">
+                    <span className={`tier-label ${user?.subscriptionTier?.toLowerCase() || 'free'}`}>
+                      {user?.subscriptionTier || 'FREE'}
+                    </span>
+                    {(!user?.subscriptionTier || user?.subscriptionTier === 'FREE') && (
+                      <button
+                        className="btn btn-upgrade-small"
+                        onClick={() => {
+                          setShowSettings(false);
+                          setShowPremium(true);
+                        }}
+                      >
+                        {t('premium.upgradeToPremium')}
+                      </button>
+                    )}
+                    {user?.subscriptionTier === 'MONTHLY' && (
+                      <button
+                        className="btn btn-upgrade-small"
+                        onClick={() => {
+                          setShowSettings(false);
+                          setShowPremium(true);
+                        }}
+                      >
+                        {t('premium.upgradeToYearly')}
+                      </button>
+                    )}
+                  </div>
+                  {/* Full-width by design — must sit OUTSIDE the pill row or
+                      the row overflows the viewport on MONTHLY. */}
                   {['MONTHLY', 'YEARLY'].includes(user?.subscriptionTier) && (
                     <button className="btn btn-outline btn-full manage-billing-btn" onClick={handleOpenBillingPortal}>
                       {t('premium.manageBilling')}
                     </button>
                   )}
-                </div>
+                </>
               )}
 
               {/* Trial Countdown */}

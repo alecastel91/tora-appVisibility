@@ -2176,9 +2176,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  flex-wrap: wrap; /* pill + upgrade must never push off-viewport */
+  margin-bottom: 16px;
   gap: 12px;
 }
+.subscription-tier-badge .btn-upgrade-small {
+  white-space: nowrap;
+}
+.subscription-tier-badge + .manage-billing-btn { margin-top: 0; }
 
 .tier-label {
   display: inline-block;

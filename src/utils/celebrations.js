@@ -64,6 +64,12 @@ function diffAgainstSeen(key, items, idOf, exempt = () => false) {
 
   const fresh = items.filter((item) => !seen.has(idOf(item)));
   if (fresh.length) store.merge(seen, ids);
+
+  // A BULK of fresh items means history was rewritten under us (beta reseed,
+  // snapshot restore, backfill) — real use earns these one at a time. Absorb
+  // silently, exactly like the first-run seed; an overlay parade teaches
+  // people to dismiss the animation unread.
+  if (fresh.length > 2) return fresh.filter(exempt);
   return fresh;
 }
 
@@ -101,6 +107,9 @@ export function collectBadgeReveals(profileId, badges) {
  */
 const dealMilestones = (deal, profileId, ownedIds) => {
   const out = [];
+  // Seeded rehearsal content ([DEMO] history, [BETA] ladder rungs) is not an
+  // achievement — it arrived by script, not by the member's actions.
+  if (/^\[(DEMO|BETA)\]/.test(deal.eventName || '')) return out;
   const mine = (id) => id && (id === profileId || ownedIds.has(id));
 
   // The offer landing a yes belongs to whoever sent it.
