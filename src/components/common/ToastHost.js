@@ -29,7 +29,7 @@ const ToastHost = () => {
         className="pointer-events-none fixed inset-x-0 z-[1200] flex justify-center px-6"
         style={{ bottom: 'calc(env(safe-area-inset-bottom) + 84px)' }}
       >
-        <div className="pointer-events-auto max-w-sm rounded-full border border-white/15 bg-[#101015]/95 px-4 py-2.5 text-center text-[13px] leading-snug text-white/90 shadow-lg backdrop-blur-md">
+        <div className="pointer-events-auto max-w-sm rounded-full border border-[#FFD54A]/60 bg-[#FFB800]/95 px-4 py-2.5 text-center text-[13px] font-medium leading-snug text-black/90 shadow-lg backdrop-blur-md">
           {t(toast.key, toast.params)}
         </div>
       </div>
