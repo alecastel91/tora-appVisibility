@@ -42,6 +42,16 @@ Local `.env` is for local dev only — it points at Project 1. The two stacks ar
 - UX: `PushNudge` soft-ask card renders in the app shell right after login (dismissible via localStorage; iOS-in-Safari variant shows Add-to-Home-Screen guidance since iOS only allows push for installed apps). `PushSettingsToggle` in Settings: master switch + per-category sub-toggles (likes/messages/connections/bookings/news) via `/api/push/prefs` — these filter the PUSH channel only; the in-app bell always shows everything.
 - i18n: `push.*` keys in all 8 locales (~1800 keys total, parity enforced by `npm run check:i18n`).
 
+### Travel feed + shared filters (Aug 25-26)
+- **TourScreen** "Calendar Matches" now appends the tiered industry feed below the matches: artist travel schedules + promoter/venue open dates ("Open dates" amber prefix), **connected > liked > others**, infinite scroll (`feedReqRef` token + sync `feedLoadingRef`/`feedHasMoreRef` make filter changes race-proof). Rows use the `.match-name-role` structure (name + role badge on one line); liked shows a heart, connected a label — both can show. Tap → ViewProfile (object path). Backend: `GET /api/profiles/travel-feed` (premium-gated, calendar-privacy enforced — see backend CLAUDE.md).
+- **`components/common/FilterSheet.js`** — shared config-driven full-page filter (the Search-screen pattern): `FilterButton` (round trigger w/ count badge) + sections `{key, label, multi, options(draft), visible?, allLabel?, resets?}`; selections held in a local draft, committed on Apply. Used by BOTH Tour sub-tabs (Calendar Matches: roles-no-Agent ticks, 24-month period, zone→country, genres; Tour Kickstart: same minus roles). SearchScreen migration to FilterSheet is still pending.
+- `MONTH_KEYS`/`monthKeyToRange` helpers; memoized 24-month options.
+
+### Onboarding, beta tools, install CTA (Aug)
+- **GettingStartedSheet** — 6-slide first-login carousel (last slide adapts: beta tester note vs "you're all set" via `VITE_TORA_ENV`); shows once per ACCOUNT (`accountUser.onboardedAt` from the server; done OR Skip both stamp it via `updateUserPreferences({onboarded:true})`; per-account localStorage flag kept only as a latency guard). Reopenable from Settings.
+- **BetaTools** (beta only): draggable feedback FAB + banner. **AssistantChat**: TORA Assistant (needs backend ANTHROPIC_API_KEY).
+- **Search tab List/Globe toggle**: lazy-loaded d3-geo network globe, pins by city (`cityCoords`), tap → profiles sheet.
+
 ### Audit-driven fixes shipped (Aug)
 - F6-01: expired/invalid token mid-session now force-logs-out via a global `tora:session-expired` event from api.js (401 + "token" in the message) — no more dead-looking app until manual reload.
 - F6-02: profile switch fully resets AppContext state (no stale likes/connections from the previous profile).
