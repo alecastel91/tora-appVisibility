@@ -319,10 +319,11 @@ class ApiService {
   }
 
   // ---- News feed ----
-  async getFeed({ profileId, cursor } = {}) {
+  async getFeed({ profileId, cursor, lang } = {}) {
     const params = new URLSearchParams();
     if (profileId) params.set('profileId', profileId);
     if (cursor) params.set('cursor', cursor);
+    if (lang) params.set('lang', lang); // official posts serve per-language text
     const response = await fetch(`${API_URL}/posts?${params}`, {
       method: 'GET',
       headers: this.getHeaders(),

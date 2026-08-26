@@ -92,7 +92,7 @@ const Avatar = ({ profile, size = 'h-10 w-10', onClick }) => (
 // visible to every tier; FREE members hit an upgrade prompt when opening a
 // profile outside their country (mirrors the search country-lock).
 const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAppContext();
   const [posts, setPosts] = useState(null);
   const [cursor, setCursor] = useState(null);
@@ -129,7 +129,7 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
   const load = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const data = await apiService.getFeed({ profileId: user.id });
+      const data = await apiService.getFeed({ profileId: user.id, lang: language });
       if (suggestedRef.current === null) suggestedRef.current = data.suggested || [];
       setPosts(interleaveSuggestions(data.posts, suggestedRef.current));
       setCursor(data.nextCursor);
@@ -145,7 +145,7 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
     if (loadingMore || !cursor) return;
     setLoadingMore(true);
     try {
-      const data = await apiService.getFeed({ profileId: user.id, cursor });
+      const data = await apiService.getFeed({ profileId: user.id, cursor, lang: language });
       setPosts((prev) => {
         const incomingIds = new Set(data.posts.map((p) => p.id));
         const kept = (prev || []).filter((p) => !(p.suggested && incomingIds.has(p.id)));
