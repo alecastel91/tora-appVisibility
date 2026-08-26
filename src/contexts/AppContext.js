@@ -579,11 +579,12 @@ export const AppProvider = ({ children }) => {
     if (user?.subscriptionTier === 'YEARLY') {
       showToast(nowLiked ? 'travelAlerts.set' : 'travelAlerts.off', { name: likedProfile.name });
     } else if (nowLiked) {
-      // Upgrade teaser: repeat weekly, not once-forever — a single missed
-      // toast would bury the Yearly pitch for good.
-      const lastShown = Number(localStorage.getItem('tora-travel-alert-teaser') || 0);
+      // Upgrade teaser: repeat weekly, per PROFILE (a device-wide key would
+      // silently swallow it for every other account on the same phone).
+      const teaserKey = `tora-travel-alert-teaser:${user.id}`;
+      const lastShown = Number(localStorage.getItem(teaserKey) || 0);
       if (Date.now() - lastShown > 7 * 24 * 60 * 60 * 1000) {
-        localStorage.setItem('tora-travel-alert-teaser', String(Date.now()));
+        localStorage.setItem(teaserKey, String(Date.now()));
         showToast('travelAlerts.teaser');
       }
     }
