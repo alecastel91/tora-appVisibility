@@ -216,13 +216,19 @@ function App() {
   const [preferredCurrency, setPreferredCurrency] = useState('USD');
   const [accountUser, setAccountUser] = useState(null); // Account-level user data (email, currency, etc)
 
-  // Show Getting Started on the account's first login on this device.
+  // Show Getting Started once per ACCOUNT (server-side onboardedAt — any
+  // device). Skip counts as seen; reopenable from Settings. The localStorage
+  // flag is only a fast-path guard for accounts that closed it before the
+  // next /auth/me refresh.
   useEffect(() => {
-    if (isAuthenticated && accountUser?.id && !localStorage.getItem(`tora:onboarded:${accountUser.id}`)) {
+    if (
+      isAuthenticated && accountUser?.id && !accountUser.onboardedAt
+      && !localStorage.getItem(`tora:onboarded:${accountUser.id}`)
+    ) {
       setShowGettingStarted(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, accountUser?.id]);
+  }, [isAuthenticated, accountUser?.id, accountUser?.onboardedAt]);
   // Install tracking: running standalone means the PWA is installed — record
   // it once per device (server keeps only the first timestamp per user).
   useEffect(() => {
@@ -234,7 +240,13 @@ function App() {
   }, [isAuthenticated]);
 
   const closeGettingStarted = () => {
-    if (accountUser?.id) localStorage.setItem(`tora:onboarded:${accountUser.id}`, '1');
+    if (accountUser?.id) {
+      localStorage.setItem(`tora:onboarded:${accountUser.id}`, '1');
+      if (!accountUser.onboardedAt) {
+        setAccountUser((u) => (u ? { ...u, onboardedAt: new Date().toISOString() } : u));
+        apiService.updateUserPreferences({ onboarded: true }).catch(() => {});
+      }
+    }
     setShowGettingStarted(false);
   };
   const { t, language, changeLanguage, availableLanguages } = useLanguage();
