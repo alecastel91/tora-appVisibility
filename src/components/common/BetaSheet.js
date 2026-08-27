@@ -155,7 +155,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
           <div style={{ width: '24px' }}></div>
         </div>
 
-        <div className="mx-4 mb-3 flex shrink-0 rounded-full border border-white/10 bg-white/[0.04] p-1">
+        <div className="mx-4 mt-5 mb-4 flex shrink-0 rounded-full border border-white/10 bg-white/[0.04] p-1">
           {[['list', ui.yourList], ['tell', ui.tellUs]].map(([k, label]) => (
             <button
               key={k}
@@ -197,7 +197,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                           <div className="min-w-0 flex-1">
                             <p className={`m-0 text-[13.5px] leading-snug ${done ? 'text-white/40 line-through' : 'text-white/90'}`}>
                               {s.title}
-                              {t.counterparty && !done && (
+                              {t.counterparty && !['None', 'n/a'].includes(t.counterparty) && !done && (
                                 <span className="ml-1 text-white/40">· {t.counterparty}</span>
                               )}
                             </p>
