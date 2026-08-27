@@ -52,7 +52,7 @@ const seenStore = (key) => ({
  * `exempt` is what still gets celebrated on that first silent seed — the
  * founding badge, because it is a moment existing members were never given.
  */
-function diffAgainstSeen(key, items, idOf, exempt = () => false) {
+function diffAgainstSeen(key, items, idOf, exempt = () => false, bulkLimit = 2) {
   const store = seenStore(key);
   const ids = items.map(idOf);
   const seen = store.read();
@@ -69,7 +69,7 @@ function diffAgainstSeen(key, items, idOf, exempt = () => false) {
   // snapshot restore, backfill) — real use earns these one at a time. Absorb
   // silently, exactly like the first-run seed; an overlay parade teaches
   // people to dismiss the animation unread.
-  if (fresh.length > 2) return fresh.filter(exempt);
+  if (fresh.length > bulkLimit) return fresh.filter(exempt);
   return fresh;
 }
 
@@ -89,11 +89,14 @@ const badgeId = (b) => (b.level ? `${b.key}:${b.level}` : b.key);
  */
 export function collectBadgeReveals(profileId, badges) {
   if (!profileId || !Array.isArray(badges) || badges.length === 0) return [];
+  // Badges get a higher bulk threshold: one completed deal can legitimately
+  // earn 3 badge tiers at once — that is a moment, not a history rewrite.
   return diffAgainstSeen(
     `tora:badges-seen:${profileId}`,
     badges.filter((b) => b && b.key),
     badgeId,
     (b) => b.key === 'founding',
+    4,
   );
 }
 
@@ -109,7 +112,7 @@ const dealMilestones = (deal, profileId, ownedIds) => {
   const out = [];
   // Seeded rehearsal content ([DEMO] history, [BETA] ladder rungs) is not an
   // achievement — it arrived by script, not by the member's actions.
-  if (/^\[(DEMO|BETA)\]/.test(deal.eventName || '')) return out;
+  if (/^\[(DEMO|BETA)\]/.test(deal.eventName || deal.venueName || '')) return out;
   const mine = (id) => id && (id === profileId || ownedIds.has(id));
 
   // The offer landing a yes belongs to whoever sent it.

@@ -50,9 +50,19 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
   const [error, setError] = useState('');
   const shotInputRef = useRef(null);
 
+  const mutationSeq = useRef(0);
+  const [loadFailed, setLoadFailed] = useState(false);
   const loadTasks = useCallback(async () => {
     if (!user?.id) return;
-    try { setData(await apiService.betaGetTasks(user.id)); } catch { /* keep last */ }
+    const seq = mutationSeq.current;
+    try {
+      const d = await apiService.betaGetTasks(user.id);
+      // A poll that started BEFORE a tick/skip must not clobber the
+      // optimistic update with pre-mutation server state.
+      if (seq === mutationSeq.current) { setData(d); setLoadFailed(false); }
+    } catch {
+      setLoadFailed(true); // keep last data; only first-load shows the error
+    }
   }, [user?.id]);
 
   // Poll while open: auto-detected ticks appear without a reload.
@@ -66,7 +76,9 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
   if (!open) return null;
 
   const setStatus = async (code, status, reason) => {
-    // Optimistic; server truth arrives on next poll.
+    // Optimistic; server truth arrives on next poll. Bump the sequence so
+    // in-flight stale polls are discarded.
+    mutationSeq.current += 1;
     setData((d) => d && { ...d, tasks: d.tasks.map((t) => (t.code === code ? { ...t, status } : t)) });
     try { await apiService.betaUpdateTask(code, { profileId: user.id, status, skipReason: reason }); } catch { /* next poll corrects */ }
     loadTasks();
@@ -178,7 +190,13 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                 {ui.intro}
                 {data ? ` ${data.done}/${data.total}` : ''}
               </p>
-              {!data && <p className="text-white/50">{ui.loading}</p>}
+              {!data && !loadFailed && <p className="text-white/50">{ui.loading}</p>}
+              {!data && loadFailed && (
+                <p className="text-white/50">
+                  {ui.loadError}{' '}
+                  <button type="button" className="border-0 bg-transparent p-0 text-white/70 underline" onClick={loadTasks}>{ui.retry}</button>
+                </p>
+              )}
               {groups.map(([g, rows]) => (
                 <div key={g} className="mb-5">
                   <h3 className="m-0 mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">{g}</h3>

@@ -36,6 +36,7 @@ export async function promptInstall() {
   if (!deferredPrompt) return false;
   const evt = deferredPrompt;
   deferredPrompt = null; // single-use per page load
+  listeners.forEach((fn) => fn()); // UIs must fall back to manual instructions
   evt.prompt();
   const { outcome } = await evt.userChoice;
   return outcome === 'accepted';

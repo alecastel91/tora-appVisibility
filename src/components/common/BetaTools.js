@@ -106,7 +106,13 @@ const BetaTools = () => {
         type="button"
         className="beta-fab"
         ref={fabRef}
-        style={fabPos ? { left: fabPos.x, top: fabPos.y, right: 'auto', bottom: 'auto' } : undefined}
+        style={fabPos ? {
+          // Clamp to the CURRENT viewport — a position saved on desktop
+          // could otherwise park the FAB off-screen on a phone, unrecoverable.
+          left: Math.min(Math.max(4, fabPos.x), (typeof window !== 'undefined' ? window.innerWidth : 9999) - 72),
+          top: Math.min(Math.max(4, fabPos.y), (typeof window !== 'undefined' ? window.innerHeight : 9999) - 48),
+          right: 'auto', bottom: 'auto',
+        } : undefined}
         onPointerDown={onFabPointerDown}
         onClick={() => { if (!dragMovedRef.current) setOpen(true); }}
         aria-label="Beta tasks and feedback"

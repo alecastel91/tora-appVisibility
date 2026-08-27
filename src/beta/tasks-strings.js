@@ -223,6 +223,7 @@ export const BETA_UI = {
     addShot: 'Add screenshot', autoNote: 'Your screen, device and the last error are attached automatically — no need to describe them.',
     send: 'Send', received: 'Received — thank you.', receivedSub: 'Every report makes TORA better. Send as many as you like.',
     sendAnother: 'Send another', aboutTask: 'About task', remove: 'remove', loading: 'Loading…',
+    loadError: 'Could not load your list.', retry: 'Retry',
     severities: { blocked: 'Blocked me', annoyed: 'Annoyed me', noting: 'Just noting it' },
   },
   ja: {
@@ -235,6 +236,7 @@ export const BETA_UI = {
     addShot: 'スクリーンショットを追加', autoNote: '画面・端末・直近のエラーは自動で添付されます。説明は不要です。',
     send: '送信', received: '受け取りました — ありがとうございます。', receivedSub: 'すべての報告がTORAを良くします。何件でもどうぞ。',
     sendAnother: 'もう1件送る', aboutTask: '対象タスク', remove: '外す', loading: '読み込み中…',
+    loadError: 'リストを読み込めませんでした。', retry: '再試行',
     severities: { blocked: '操作できなくなった', annoyed: '不便だった', noting: 'メモ程度' },
   },
 };
