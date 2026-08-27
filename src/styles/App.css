@@ -13092,9 +13092,10 @@ body.beta-env #root {
   bottom: calc(92px + env(safe-area-inset-bottom)); /* clears the tab bar incl. iPhone safe area */
   touch-action: none; /* hold-and-drag repositioning must not scroll the page */
   z-index: var(--z-fab);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: auto;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13106,6 +13107,12 @@ body.beta-env #root {
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 .beta-fab:hover { border-color: var(--primary-pink); transform: scale(1.05); }
+.beta-fab-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--primary-pink);
+}
 
 .beta-shot-attach {
   width: 100%;

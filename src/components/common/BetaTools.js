@@ -111,9 +111,7 @@ const BetaTools = () => {
         onClick={() => { if (!dragMovedRef.current) setOpen(true); }}
         aria-label="Beta tasks and feedback"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.3 8.7 8.7 0 0 1-3.9-.9L3 20l1.2-4.1a8.2 8.2 0 0 1-1-4A8.38 8.38 0 0 1 11.7 3.6a8.38 8.38 0 0 1 9.3 7.9z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <span className="beta-fab-label">BETA</span>
       </button>
 
       <BetaSheet open={open} onClose={() => setOpen(false)} language={language} />

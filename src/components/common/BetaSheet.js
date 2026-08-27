@@ -143,10 +143,16 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
   return (
     <OverlayPortal>
       <div className="fixed inset-0 z-[1100] flex flex-col bg-[#0a0a0a]">
-        <div className="screen-header shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 34px)' }}>
-          <button className="back-btn" onClick={onClose}>←</button>
-          <h2>TORA Beta</h2>
-          <div style={{ width: '32px' }}></div>
+        {/* Same header structure as the Premium page: back arrow left,
+            centered title, symmetric spacer. */}
+        <div className="premium-header shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 34px)' }}>
+          <button className="back-button" onClick={onClose}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1>BETA TEST</h1>
+          <div style={{ width: '24px' }}></div>
         </div>
 
         <div className="mx-4 mb-3 flex shrink-0 rounded-full border border-white/10 bg-white/[0.04] p-1">
