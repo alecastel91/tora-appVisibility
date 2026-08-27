@@ -155,7 +155,10 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
           <div style={{ width: '24px' }}></div>
         </div>
 
-        <div className="mx-4 mt-5 mb-4 flex shrink-0 rounded-full border border-white/10 bg-white/[0.04] p-1">
+        <div
+          className="mx-4 flex shrink-0 rounded-full border border-white/10 bg-white/[0.04] p-1"
+          style={{ marginTop: 22, marginBottom: 16 }}
+        >
           {[['list', ui.yourList], ['tell', ui.tellUs]].map(([k, label]) => (
             <button
               key={k}
