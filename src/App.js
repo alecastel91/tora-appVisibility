@@ -52,7 +52,13 @@ function App() {
     ? new URLSearchParams(window.location.search).get('token')
     : null;
   // 'login' | 'signup' | 'forgot' | 'reset'
-  const [authMode, setAuthMode] = useState(resetToken ? 'reset' : 'login');
+  // ?code=TORA-... in the URL (invitation emails link here) boots straight
+  // into Activate Your Account with the code prefilled — no hunting for the
+  // signup link on the login screen.
+  const inviteCodeFromUrl = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('code') || ''
+    : '';
+  const [authMode, setAuthMode] = useState(resetToken ? 'reset' : (inviteCodeFromUrl ? 'signup' : 'login'));
   const [loading, setLoading] = useState(true);
   // Beta lands on News so testers see the pinned intro post first
   const [activeTab, setActiveTab] = useState(
@@ -681,6 +687,7 @@ function App() {
           <SignupScreen
             onSignupSuccess={handleSignupSuccess}
             onSwitchToLogin={() => setAuthMode('login')}
+            initialCode={inviteCodeFromUrl}
           />
           <InstallSheet delay={4500} />
         </>

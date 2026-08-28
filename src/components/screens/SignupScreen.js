@@ -3,7 +3,7 @@ import apiService from '../../services/api';
 import { genresList, zones, countriesByZone, citiesByCountry } from '../../data/profiles';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
+const SignupScreen = ({ onSignupSuccess, onSwitchToLogin, initialCode = '' }) => {
   const { t } = useLanguage();
   const [step, setStep] = useState(1); // 1: Basic info, 2: Profile details
   const [formData, setFormData] = useState({
@@ -24,7 +24,7 @@ const SignupScreen = ({ onSignupSuccess, onSwitchToLogin }) => {
   const [loading, setLoading] = useState(false);
   const [customCity, setCustomCity] = useState('');
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
-  const [invitationCode, setInvitationCode] = useState('');
+  const [invitationCode, setInvitationCode] = useState(initialCode);
   const [invitationData, setInvitationData] = useState(null);
   const [validatingCode, setValidatingCode] = useState(false);
   const [codeError, setCodeError] = useState('');
