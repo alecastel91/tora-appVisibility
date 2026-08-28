@@ -52,11 +52,11 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
 
   const mutationSeq = useRef(0);
   const [loadFailed, setLoadFailed] = useState(false);
-  const loadTasks = useCallback(async () => {
+  const loadTasks = useCallback(async (fresh = false) => {
     if (!user?.id) return;
     const seq = mutationSeq.current;
     try {
-      const d = await apiService.betaGetTasks(user.id);
+      const d = await apiService.betaGetTasks(user.id, fresh);
       // A poll that started BEFORE a tick/skip must not clobber the
       // optimistic update with pre-mutation server state.
       if (seq === mutationSeq.current) { setData(d); setLoadFailed(false); }
@@ -68,8 +68,8 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
   // Poll while open: auto-detected ticks appear without a reload.
   useEffect(() => {
     if (!open || tab !== 'list') return undefined;
-    loadTasks();
-    const timer = setInterval(loadTasks, 15000);
+    loadTasks(true); // opening = actively checking: evaluate NOW, no debounce
+    const timer = setInterval(() => loadTasks(false), 15000);
     return () => clearInterval(timer);
   }, [open, tab, loadTasks]);
 

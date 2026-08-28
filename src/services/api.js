@@ -459,8 +459,8 @@ class ApiService {
   }
 
   // ---- Beta tasks & feedback (routes 404 outside the beta env) ----
-  async betaGetTasks(profileId) {
-    const response = await fetch(`${API_URL}/beta/tasks?profileId=${profileId}`, { headers: this.getHeaders() });
+  async betaGetTasks(profileId, fresh = false) {
+    const response = await fetch(`${API_URL}/beta/tasks?profileId=${profileId}${fresh ? '&fresh=1' : ''}`, { headers: this.getHeaders() });
     return this.handleResponse(response);
   }
 
