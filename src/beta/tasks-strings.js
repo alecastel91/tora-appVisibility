@@ -201,6 +201,14 @@ export const BETA_TASKS_EN = {
   "title": "Try to upload a file TORA should refuse: something over 10MB, or a file type that is not an image or a PDF.",
   "hint": "Try it in a chat and in the contract upload. Tell us whether the error message made sense."
  },
+ "T07@AGENT": {
+  "title": "Mark available dates for one of your artists for the next two months.",
+  "hint": "Profile > Manage > pick your artist > Calendar. Tap the dates they are free."
+ },
+ "T08@AGENT": {
+  "title": "Update the travel schedule of one of your artists.",
+  "hint": "Profile > Manage > pick your artist > Travel Schedule. Add a city and the dates."
+ },
  "T51": {
   "title": "Answer in the Feedback tab: would you run a real booking through TORA next month, yes or no, and why?",
   "hint": "One sentence is enough."
@@ -297,6 +305,8 @@ export const BETA_TASKS_JA = {
  T48: { title: 'スマホとPCで同時にログインする。片方で操作して、もう片方を見る。', hint: '近道なし。' },
  T49: { title: '交渉の途中でもう1つのプロフィールに切り替えて、また戻る。', hint: '上部のプロフィール写真から切り替えて、ブッキングに戻ります。' },
  T50: { title: 'TORAが拒否すべきファイルをアップロードしてみる: 10MB超、または画像・PDF以外。', hint: 'チャットと契約書アップロードの両方で試して、エラーメッセージが分かりやすかったか教えてください。' },
+ 'T07@AGENT': { title: '担当アーティストの今後2か月の空き日程を登録する。', hint: 'プロフィール > Manage > アーティストを選択 > カレンダー。' },
+ 'T08@AGENT': { title: '担当アーティストのトラベルスケジュールを更新する。', hint: 'プロフィール > Manage > アーティストを選択 > トラベルスケジュール。' },
  T51: { title: 'Feedbackタブで回答: 来月、実際のブッキングをTORAでやりますか？はい/いいえと、その理由。', hint: '一文で十分です。' },
  T52: { title: 'Feedbackタブで回答: TORAを使うのをやめるとしたら、その理由は何ですか？', hint: '一文で十分です。' },
 };

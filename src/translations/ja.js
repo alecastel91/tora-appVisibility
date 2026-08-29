@@ -513,6 +513,8 @@ const ja = {
     cancelSubscription: 'サブスクリプションを解約する',
     cancelSubConfirm: '解約しますか？お支払い済みの期間が終了するまでは、引き続きすべての機能をご利用いただけます。',
     cancelSubDone: '解約手続きが完了しました。更新は行われません。現在の期間終了まではご利用いただけます。',
+    subRenewsOn: '{{date}}に更新されます。',
+    subEndsOn: '解約済み — {{date}}までご利用いただけます。',
     inPlanSeats: '現在のプラン · {{n}}席',
     addingSeatsRow: '追加 · {{n}}席',
     payNow: '{{price}}を支払う',

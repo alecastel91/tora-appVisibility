@@ -513,6 +513,8 @@ const fr = {
     cancelSubscription: 'Annuler l\'abonnement',
     cancelSubConfirm: 'Annuler votre abonnement ? Vous conservez l\'accès complet jusqu\'à la fin de la période déjà payée.',
     cancelSubDone: 'C\'est fait — votre abonnement ne sera pas renouvelé. Vous conservez l\'accès jusqu\'à la fin de la période en cours.',
+    subRenewsOn: 'Renouvellement le {{date}}.',
+    subEndsOn: 'Annulé — vous conservez l\'accès jusqu\'au {{date}}.',
     inPlanSeats: 'Dans votre offre · {{n}} sièges',
     addingSeatsRow: 'Ajout · {{n}} siège(s)',
     payNow: 'Payer {{price}}',

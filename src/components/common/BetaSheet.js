@@ -25,7 +25,12 @@ const GROUP_ORDER_FREE = ['Setup', 'Discovery', 'Plan', 'Calendar', 'Bookings', 
 const TYPES = ['Bug', 'Confusing', 'Missing', 'Idea', 'Copy', 'Performance'];
 const SEVERITY_KEYS = ['blocked', 'annoyed', 'noting'];
 
-const taskText = (code, lang) => (lang === 'ja' && BETA_TASKS_JA[code]) || BETA_TASKS_EN[code] || { title: code, hint: '' };
+// Role-specific wording overrides use a `CODE@ROLE` key (e.g. T07@AGENT).
+const taskText = (code, lang, role) => {
+  const keyed = role && `${code}@${role}`;
+  return (lang === 'ja' && ((keyed && BETA_TASKS_JA[keyed]) || BETA_TASKS_JA[code]))
+    || (keyed && BETA_TASKS_EN[keyed]) || BETA_TASKS_EN[code] || { title: code, hint: '' };
+};
 
 const currentTab = () => {
   const container = document.querySelector('.app-container');
@@ -216,7 +221,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                 <div key={g} className="mb-5">
                   <h3 className="m-0 mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/40">{g}</h3>
                   {rows.map((t) => {
-                    const s = taskText(t.code, language);
+                    const s = taskText(t.code, language, user?.role);
                     const done = t.status === 'done';
                     const skipped = t.status === 'skipped';
                     return (
@@ -299,7 +304,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
               <>
                 {taskCode && (
                   <p className="m-0 mb-3 rounded-lg border border-white/10 bg-white/[0.04] p-2.5 text-[12.5px] text-white/60">
-                    {ui.aboutTask}: {taskText(taskCode, language).title}
+                    {ui.aboutTask}: {taskText(taskCode, language, user?.role).title}
                     <button type="button" className="ml-2 border-0 bg-transparent p-0 text-white/40 underline" onClick={() => setTaskCode(null)}>{ui.remove}</button>
                   </p>
                 )}

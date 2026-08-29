@@ -513,6 +513,8 @@ const ko = {
     cancelSubscription: '구독 해지',
     cancelSubConfirm: '구독을 해지할까요? 이미 결제한 기간이 끝날 때까지는 모든 기능을 계속 이용할 수 있습니다.',
     cancelSubDone: '완료되었습니다. 구독은 갱신되지 않으며, 현재 기간이 끝날 때까지 이용할 수 있습니다.',
+    subRenewsOn: '{{date}}에 갱신됩니다.',
+    subEndsOn: '해지됨 — {{date}}까지 이용할 수 있습니다.',
     inPlanSeats: '현재 플랜 · {{n}}석',
     addingSeatsRow: '추가 · {{n}}석',
     payNow: '{{price}} 결제',

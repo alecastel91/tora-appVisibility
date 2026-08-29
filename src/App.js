@@ -601,11 +601,21 @@ function App() {
     }
   };
 
+  // Billing status line in Settings — renewal date, or the access-until date
+  // after a cancellation.
+  const [billingInfo, setBillingInfo] = useState(null);
+  const refreshBillingInfo = useCallback(() => {
+    if (!user?.id || !['MONTHLY', 'YEARLY'].includes(user?.subscriptionTier)) { setBillingInfo(null); return; }
+    apiService.getBillingStatus(user.id).then(setBillingInfo).catch(() => setBillingInfo(null));
+  }, [user?.id, user?.subscriptionTier]);
+  useEffect(() => { if (showSettings) refreshBillingInfo(); }, [showSettings, refreshBillingInfo]);
+
   const handleCancelSubscription = async () => {
     if (!(await appConfirm(t('premium.cancelSubConfirm')))) return;
     try {
       await apiService.cancelSubscription(user?.id);
       appAlert(t('premium.cancelSubDone'));
+      refreshBillingInfo();
     } catch (e) {
       appAlert(e.message || t('premium.paymentFailed'));
     }
@@ -875,6 +885,19 @@ function App() {
                     </>
                   )}
                 </>
+              )}
+
+              {/* Renewal / cancellation status line */}
+              {billingInfo && ['MONTHLY', 'YEARLY'].includes(user?.subscriptionTier) && billingInfo.renewsAt && (
+                billingInfo.cancelAtPeriodEnd ? (
+                  <p className="billing-status-line is-cancelled">
+                    {t('premium.subEndsOn', { date: new Date(billingInfo.renewsAt).toLocaleDateString() })}
+                  </p>
+                ) : (
+                  <p className="billing-status-line">
+                    {t('premium.subRenewsOn', { date: new Date(billingInfo.renewsAt).toLocaleDateString() })}
+                  </p>
+                )
               )}
 
               {/* Trial Countdown */}

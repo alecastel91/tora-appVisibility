@@ -6901,8 +6901,18 @@
 .subscription-modal .modal-body { padding: 20px 20px 22px; }
 .subscription-modal .subscription-content { padding: 4px 0 0; }
 
-/* Manage subscription & billing (Stripe portal) button in Settings */
-.manage-billing-btn { margin: 16px 0 26px; }
+/* Manage subscription & billing (Stripe portal) button in Settings.
+   Stacked billing buttons (manage + cancel) sit tight together. */
+.manage-billing-btn { margin: 16px 0 0; }
+.manage-billing-btn + .manage-billing-btn { margin-top: 8px; }
+.subscription-section .manage-billing-btn:last-of-type { margin-bottom: 12px; }
+
+.billing-status-line {
+  margin: 0 0 22px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.5);
+}
+.billing-status-line.is-cancelled { color: #FFB800; }
 
 /* Seat-change breakdown: what's already paid vs. what's being added */
 .summary-breakdown {

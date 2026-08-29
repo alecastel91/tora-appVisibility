@@ -513,6 +513,8 @@ const zh = {
     cancelSubscription: '取消订阅',
     cancelSubConfirm: '确定取消订阅吗？在已付费周期结束前，你仍可使用全部功能。',
     cancelSubDone: '已完成——订阅将不再续费。当前周期结束前你仍可继续使用。',
+    subRenewsOn: '将于{{date}}续订。',
+    subEndsOn: '已取消——你可以使用到{{date}}。',
     inPlanSeats: '你的方案内 · {{n}} 个席位',
     addingSeatsRow: '新增 · {{n}} 个席位',
     payNow: '支付 {{price}}',

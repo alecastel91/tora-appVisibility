@@ -513,6 +513,8 @@ const es = {
     cancelSubscription: 'Cancelar suscripción',
     cancelSubConfirm: '¿Cancelar tu suscripción? Mantendrás el acceso completo hasta el final del período ya pagado.',
     cancelSubDone: 'Hecho: tu suscripción no se renovará. Mantienes el acceso hasta el final del período actual.',
+    subRenewsOn: 'Se renueva el {{date}}.',
+    subEndsOn: 'Cancelada — mantienes el acceso hasta el {{date}}.',
     inPlanSeats: 'En tu plan · {{n}} plazas',
     addingSeatsRow: 'Añadiendo · {{n}} plaza(s)',
     payNow: 'Pagar {{price}}',
