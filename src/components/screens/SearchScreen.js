@@ -282,6 +282,7 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
         console.log('Like limit reached! Opening modal with:', { limit, tier });
         // Show like limit modal
         setLikeLimitData({ limit, tier });
+        window.dispatchEvent(new CustomEvent('tora:beta-task', { detail: { code: 'T44' } }));
         setShowLikeLimitModal(true);
       } else if (!isVerificationGate(error)) {
         // The gate opens the verification screen by itself; a generic

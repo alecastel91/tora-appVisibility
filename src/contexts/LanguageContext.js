@@ -28,6 +28,7 @@ export const LanguageProvider = ({ children }) => {
     // Get saved language from localStorage or default to English
     return localStorage.getItem('appLanguage') || 'en';
   });
+
   // Bumped when an async language file lands so consumers re-render.
   const [, setLoadedTick] = useState(0);
 
@@ -77,6 +78,12 @@ export const LanguageProvider = ({ children }) => {
   const changeLanguage = (newLanguage) => {
     if (availableLanguages.some((l) => l.code === newLanguage)) {
       setLanguage(newLanguage);
+      // Beta T09: "change the language, then change it back" = two changes.
+      try {
+        const n = (parseInt(localStorage.getItem('tora-beta-lang-changes') || '0', 10) || 0) + 1;
+        localStorage.setItem('tora-beta-lang-changes', String(n));
+        if (n >= 2) window.dispatchEvent(new CustomEvent('tora:beta-task', { detail: { code: 'T09' } }));
+      } catch { /* ignore */ }
     }
   };
 

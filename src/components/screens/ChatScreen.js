@@ -472,6 +472,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
 
   const handleViewOffer = async (dealId) => {
     console.log('handleViewOffer called with dealId:', dealId);
+    window.dispatchEvent(new CustomEvent('tora:beta-task', { detail: { code: 'T18' } }));
     try {
       const response = await apiService.getDeal(dealId, currentUser.id);
       const deal = response.deal || response;

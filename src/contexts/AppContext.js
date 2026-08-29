@@ -570,6 +570,19 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // Beta quasi-auto ticks: screens dispatch 'tora:beta-task' when a tester
+  // performs an action only the client can see (viewed offer terms, hit a
+  // tier limit, switched language twice). No-op outside the beta env.
+  useEffect(() => {
+    if (import.meta.env.VITE_TORA_ENV !== 'beta' || !user?.id) return undefined;
+    const onBetaTask = (e) => {
+      const code = e.detail?.code;
+      if (code) apiService.betaUpdateTask(code, { profileId: user.id, status: 'done' }).catch(() => {});
+    };
+    window.addEventListener('tora:beta-task', onBetaTask);
+    return () => window.removeEventListener('tora:beta-task', onBetaTask);
+  }, [user?.id]);
+
   // A like from a venue/promoter on an artist silently arms a Yearly travel
   // alert on the backend — surface that at the moment it happens, or the
   // feature is invisible. `likedProfile` is optional context from call sites.

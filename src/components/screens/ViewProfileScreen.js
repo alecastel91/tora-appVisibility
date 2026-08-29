@@ -308,6 +308,7 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
 
         // Show like limit modal
         setLikeLimitData({ limit, tier });
+        window.dispatchEvent(new CustomEvent('tora:beta-task', { detail: { code: 'T44' } }));
         setShowLikeLimitModal(true);
       } else {
         if (!isVerificationGate(error)) appAlert(t('search.failedToLike'));
