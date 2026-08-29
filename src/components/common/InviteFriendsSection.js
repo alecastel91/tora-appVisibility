@@ -3,14 +3,16 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
 import InlineDrawer from './InlineDrawer';
+import { BETA_UI } from '../../beta/tasks-strings';
 
 const ROLES = ['ARTIST', 'AGENT', 'PROMOTER', 'VENUE'];
+const IS_BETA = import.meta.env.VITE_TORA_ENV === 'beta';
 
 // Settings section: personal referral invitations. Verified members get 3
 // pending slots; redeemed invites free the slot (and count toward the
 // Ambassador badge / future premium-month rewards).
 const InviteFriendsSection = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAppContext();
   const [data, setData] = useState(null); // { invitations, redeemedCount, pendingCount, cap }
   const [email, setEmail] = useState('');
@@ -58,6 +60,20 @@ const InviteFriendsSection = () => {
     REDEEMED: 'border-[#43E97B]/50 text-[#43E97B]',
     EXPIRED: 'border-white/10 text-white/30',
   };
+
+  // The beta is a closed, roster-controlled cohort — real referrals would
+  // pull outsiders in. Show the feature, explain why it's off.
+  if (IS_BETA) {
+    const ui = BETA_UI[language] || BETA_UI.en;
+    return (
+      <div className="settings-section">
+        <h3>{t('referrals.title')}</h3>
+        <p className="m-0 py-2 text-sm leading-relaxed text-white/50">
+          {ui.inviteUnavailable || BETA_UI.en.inviteUnavailable}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="settings-section">

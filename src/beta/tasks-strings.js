@@ -225,6 +225,7 @@ export const BETA_UI = {
     sendAnother: 'Send another', aboutTask: 'About task', remove: 'remove', loading: 'Loading…',
     loadError: 'Could not load your list.', retry: 'Retry',
     severities: { blocked: 'Blocked me', annoyed: 'Annoyed me', noting: 'Just noting it' },
+    inviteUnavailable: 'Not available during beta testing — the beta is a closed group. Inviting friends unlocks at launch.',
   },
   ja: {
     yourList: 'タスク', tellUs: '報告',
@@ -238,6 +239,7 @@ export const BETA_UI = {
     sendAnother: 'もう1件送る', aboutTask: '対象タスク', remove: '外す', loading: '読み込み中…',
     loadError: 'リストを読み込めませんでした。', retry: '再試行',
     severities: { blocked: '操作できなくなった', annoyed: '不便だった', noting: 'メモ程度' },
+    inviteUnavailable: 'ベータテスト中はご利用いただけません。ベータは限定グループのため、友達招待はローンチ時に解放されます。',
   },
 };
 
