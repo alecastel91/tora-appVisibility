@@ -216,7 +216,7 @@ export const BETA_UI = {
   en: {
     yourList: 'YOUR LIST', tellUs: 'TELL US',
     intro: 'Work through these in any order, over as many sittings as you like.',
-    showMeHow: 'Show me how', confusing: 'This was confusing', skip: 'Skip',
+    showMeHow: 'Show me how', confusing: 'This was confusing', skip: 'Skip', answer: 'Answer',
     skipWhy: 'Why are you skipping it? One line is enough.', cancel: 'Cancel', skipIt: 'Skip it',
     typeQ: 'What kind of thing?', howBad: 'How bad?',
     placeholder: 'What happened? Short and blunt is perfect — "no idea what this button does" is a useful report.',
@@ -229,7 +229,7 @@ export const BETA_UI = {
   ja: {
     yourList: 'タスク', tellUs: '報告',
     intro: '順番は自由です。数分の空き時間に少しずつ進めてください。',
-    showMeHow: 'やり方を見る', confusing: '分かりにくかった', skip: 'スキップ',
+    showMeHow: 'やり方を見る', confusing: '分かりにくかった', skip: 'スキップ', answer: '回答する',
     skipWhy: 'スキップする理由を一言どうぞ。', cancel: 'キャンセル', skipIt: 'スキップする',
     typeQ: 'どんな内容ですか？', howBad: '深刻度は？',
     placeholder: '何が起きましたか？短く率直で十分です──「このボタンが何をするのか分からない」も立派な報告です。',

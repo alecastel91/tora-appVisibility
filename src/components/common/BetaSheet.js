@@ -100,6 +100,16 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
     setSent(false);
   };
 
+  // Debrief tasks (T51/T52) are answered through the feedback form — the
+  // server marks them done when feedback with their taskCode arrives.
+  const answer = (code) => {
+    setTab('tell');
+    setType('Idea');
+    setTaskCode(code);
+    setBody('');
+    setSent(false);
+  };
+
   const pickShots = async (e) => {
     const files = Array.from(e.target.files || []).slice(0, 5 - shots.length);
     e.target.value = '';
@@ -215,8 +225,8 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                           <button
                             type="button"
                             aria-label={done ? 'Done' : 'Mark done'}
-                            onClick={() => { if (!t.autoDetected) setStatus(t.code, done ? 'todo' : 'done'); }}
-                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] ${done ? 'border-[#43E97B]/70 bg-[#43E97B]/20 text-[#43E97B]' : skipped ? 'border-white/20 text-white/30' : 'border-white/25 text-transparent'} ${t.autoDetected ? 'cursor-default' : 'cursor-pointer'}`}
+                            onClick={() => { if (!t.autoDetected && !t.debrief) setStatus(t.code, done ? 'todo' : 'done'); }}
+                            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] ${done ? 'border-[#43E97B]/70 bg-[#43E97B]/20 text-[#43E97B]' : skipped ? 'border-white/20 text-white/30' : 'border-white/25 text-transparent'} ${t.autoDetected || t.debrief ? 'cursor-default' : 'cursor-pointer'}`}
                           >
                             {done ? '✓' : skipped ? '–' : '·'}
                           </button>
@@ -232,6 +242,11 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                             )}
                             {!done && (
                               <div className="mt-1.5 flex flex-wrap gap-3">
+                                {t.debrief && (
+                                  <button type="button" className="border-0 bg-transparent p-0 text-[12px] font-semibold text-[#FF3366] underline" onClick={() => answer(t.code)}>
+                                    {ui.answer}
+                                  </button>
+                                )}
                                 {s.hint && (
                                   <button type="button" className="border-0 bg-transparent p-0 text-[12px] text-white/50 underline" onClick={() => openHintFor(t.code)}>
                                     {ui.showMeHow}
