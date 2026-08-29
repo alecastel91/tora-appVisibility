@@ -903,6 +903,7 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
           ) : (
             actionItems.map(item => {
               const Icon = getActionIcon(item.type);
+              const localized = localizeActionItem(item, t);
               return (
                 <div key={item.id} className={`action-item${item.urgent ? ' urgent' : ''}`}>
                   <div className="action-icon"><Icon /></div>
