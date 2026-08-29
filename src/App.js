@@ -601,6 +601,16 @@ function App() {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    if (!(await appConfirm(t('premium.cancelSubConfirm')))) return;
+    try {
+      await apiService.cancelSubscription(user?.id);
+      appAlert(t('premium.cancelSubDone'));
+    } catch (e) {
+      appAlert(e.message || t('premium.paymentFailed'));
+    }
+  };
+
   // Deep link from lifecycle emails: /?upgrade=premium opens the Premium page.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -855,9 +865,14 @@ function App() {
                   {/* Full-width by design — must sit OUTSIDE the pill row or
                       the row overflows the viewport on MONTHLY. */}
                   {['MONTHLY', 'YEARLY'].includes(user?.subscriptionTier) && (
-                    <button className="btn btn-outline btn-full manage-billing-btn" onClick={handleOpenBillingPortal}>
-                      {t('premium.manageBilling')}
-                    </button>
+                    <>
+                      <button className="btn btn-outline btn-full manage-billing-btn" onClick={handleOpenBillingPortal}>
+                        {t('premium.manageBilling')}
+                      </button>
+                      <button className="btn btn-outline btn-full manage-billing-btn" onClick={handleCancelSubscription}>
+                        {t('premium.cancelSubscription')}
+                      </button>
+                    </>
                   )}
                 </>
               )}

@@ -196,6 +196,12 @@ const SearchScreen = ({ onOpenChat, onNavigateToMessages, onOpenPremium, account
         return profile.id !== user?.id;
       });
       setSearchResults(filteredProfiles);
+
+      // Beta T11: searched with a city filter beyond the member's own city.
+      if (import.meta.env.VITE_TORA_ENV === 'beta'
+        && filters.cities.some((c) => c && c !== user?.city)) {
+        window.dispatchEvent(new CustomEvent('tora:beta-task', { detail: { code: 'T11' } }));
+      }
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults([]);

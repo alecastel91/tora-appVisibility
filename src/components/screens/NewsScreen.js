@@ -164,7 +164,12 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
     setPosting(true);
     try {
       const { post } = await apiService.createPost({ profileId: user.id, text, image: draftImage || undefined });
-      setPosts((prev) => [post, ...(prev || [])]);
+      // Insert below the pinned block — pinned posts always stay on top.
+      setPosts((prev) => {
+        const list = prev || [];
+        const afterPinned = list.reduce((acc, p, i) => (p.pinned ? i + 1 : acc), 0);
+        return [...list.slice(0, afterPinned), post, ...list.slice(afterPinned)];
+      });
       setDraft('');
       setDraftImage(null);
     } catch (e) {

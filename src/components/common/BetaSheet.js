@@ -18,10 +18,10 @@ import { BETA_TASKS_EN, BETA_TASKS_JA, BETA_UI } from '../../beta/tasks-strings'
  * else (route, screen, commit, device, last API error, Sentry event) is
  * captured silently.
  */
-const GROUP_ORDER = ['Setup', 'Discovery', 'Bookings', 'Role: Artist', 'Role: Agent', 'Role: Promoter', 'Role: Venue', 'Community', 'Notifications', 'Plan', 'Break it', 'Debrief'];
+const GROUP_ORDER = ['Setup', 'Calendar', 'Discovery', 'Bookings', 'Role: Artist', 'Role: Agent', 'Role: Promoter', 'Role: Venue', 'Community', 'Notifications', 'Plan', 'Break it', 'Debrief'];
 // FREE/TRIAL testers meet paywalls early — their path is: hit the limits
 // (T44), upgrade with the test card (T45), THEN do the premium-gated work.
-const GROUP_ORDER_FREE = ['Setup', 'Plan', 'Discovery', 'Bookings', 'Role: Artist', 'Role: Agent', 'Role: Promoter', 'Role: Venue', 'Community', 'Notifications', 'Break it', 'Debrief'];
+const GROUP_ORDER_FREE = ['Setup', 'Discovery', 'Plan', 'Calendar', 'Bookings', 'Role: Artist', 'Role: Agent', 'Role: Promoter', 'Role: Venue', 'Community', 'Notifications', 'Break it', 'Debrief'];
 const TYPES = ['Bug', 'Confusing', 'Missing', 'Idea', 'Copy', 'Performance'];
 const SEVERITY_KEYS = ['blocked', 'annoyed', 'noting'];
 
