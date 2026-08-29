@@ -19,6 +19,9 @@ import { BETA_TASKS_EN, BETA_TASKS_JA, BETA_UI } from '../../beta/tasks-strings'
  * captured silently.
  */
 const GROUP_ORDER = ['Setup', 'Discovery', 'Bookings', 'Role: Artist', 'Role: Agent', 'Role: Promoter', 'Role: Venue', 'Community', 'Notifications', 'Plan', 'Break it', 'Debrief'];
+// FREE/TRIAL testers meet paywalls early — their path is: hit the limits
+// (T44), upgrade with the test card (T45), THEN do the premium-gated work.
+const GROUP_ORDER_FREE = ['Setup', 'Plan', 'Discovery', 'Bookings', 'Role: Artist', 'Role: Agent', 'Role: Promoter', 'Role: Venue', 'Community', 'Notifications', 'Break it', 'Debrief'];
 const TYPES = ['Bug', 'Confusing', 'Missing', 'Idea', 'Copy', 'Performance'];
 const SEVERITY_KEYS = ['blocked', 'annoyed', 'noting'];
 
@@ -146,7 +149,9 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
 
   const groups = [];
   if (data?.tasks) {
-    for (const g of GROUP_ORDER) {
+    const order = ['FREE', 'TRIAL'].includes(user?.subscriptionTier) || !user?.subscriptionTier
+      ? GROUP_ORDER_FREE : GROUP_ORDER;
+    for (const g of order) {
       const rows = data.tasks.filter((t) => t.group === g);
       if (rows.length) groups.push([g, rows]);
     }
