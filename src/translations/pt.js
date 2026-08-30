@@ -515,6 +515,7 @@ const pt = {
     cancelSubDone: 'Pronto — sua assinatura não será renovada. Você mantém o acesso até o fim do período atual.',
     subRenewsOn: 'Renova em {{date}}.',
     subEndsOn: 'Cancelada — você mantém o acesso até {{date}}.',
+    subNoRenewal: 'Seu plano é cortesia — não renova automaticamente. O acesso vai até {{date}}.',
     inPlanSeats: 'No seu plano · {{n}} lugares',
     addingSeatsRow: 'A adicionar · {{n}} lugar(es)',
     payNow: 'Pagar {{price}}',

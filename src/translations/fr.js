@@ -515,6 +515,7 @@ const fr = {
     cancelSubDone: 'C\'est fait — votre abonnement ne sera pas renouvelé. Vous conservez l\'accès jusqu\'à la fin de la période en cours.',
     subRenewsOn: 'Renouvellement le {{date}}.',
     subEndsOn: 'Annulé — vous conservez l\'accès jusqu\'au {{date}}.',
+    subNoRenewal: 'Votre offre est offerte — elle ne se renouvelle pas automatiquement. Accès jusqu\'au {{date}}.',
     inPlanSeats: 'Dans votre offre · {{n}} sièges',
     addingSeatsRow: 'Ajout · {{n}} siège(s)',
     payNow: 'Payer {{price}}',

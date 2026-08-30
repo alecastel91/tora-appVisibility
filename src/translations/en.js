@@ -543,6 +543,7 @@ const en = {
     cancelSubDone: 'Done — your subscription will not renew. You keep access until the end of the current period.',
     subRenewsOn: 'Renews on {{date}}.',
     subEndsOn: 'Cancelled — you keep access until {{date}}.',
+    subNoRenewal: 'Your plan is complimentary — it does not renew automatically. Access runs until {{date}}.',
     inPlanSeats: 'In your plan · {{n}} seats',
     addingSeatsRow: 'Adding · {{n}} seat(s)',
     payNow: 'Pay {{price}}',

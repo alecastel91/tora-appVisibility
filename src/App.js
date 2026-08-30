@@ -613,8 +613,15 @@ function App() {
   const handleCancelSubscription = async () => {
     if (!(await appConfirm(t('premium.cancelSubConfirm')))) return;
     try {
-      await apiService.cancelSubscription(user?.id);
-      appAlert(t('premium.cancelSubDone'));
+      const res = await apiService.cancelSubscription(user?.id);
+      if (res?.noRenewal) {
+        // Complimentary plan — nothing renews, access simply runs to its end.
+        appAlert(t('premium.subNoRenewal', {
+          date: res.accessUntil ? new Date(res.accessUntil).toLocaleDateString() : '—',
+        }));
+      } else {
+        appAlert(t('premium.cancelSubDone'));
+      }
       refreshBillingInfo();
     } catch (e) {
       appAlert(e.message || t('premium.paymentFailed'));
@@ -892,6 +899,10 @@ function App() {
                 billingInfo.cancelAtPeriodEnd ? (
                   <p className="billing-status-line is-cancelled">
                     {t('premium.subEndsOn', { date: new Date(billingInfo.renewsAt).toLocaleDateString() })}
+                  </p>
+                ) : !billingInfo.hasStripe ? (
+                  <p className="billing-status-line">
+                    {t('premium.subNoRenewal', { date: new Date(billingInfo.renewsAt).toLocaleDateString() })}
                   </p>
                 ) : (
                   <p className="billing-status-line">
