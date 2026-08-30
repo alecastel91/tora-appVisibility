@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import Header from './components/common/Header';
 import TabBar from './components/common/TabBar';
