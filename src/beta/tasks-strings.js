@@ -142,8 +142,8 @@ export const BETA_TASKS_EN = {
   "hint": "Open the chat, then Make an Offer from that conversation."
  },
  "T36": {
-  "title": "Like an artist whose travel schedule brings them near you, and wait for the alert.",
-  "hint": "Like the artist. TORA alerts you automatically when they add a date near your city. You do not set anything up."
+  "title": "Open a tour in Tour Kickstart and tap I'm interested.",
+  "hint": "Tour tab > Tour Kickstart. One tap — the artist sees interest building city by city. Liking a touring artist also sets up a travel alert for you automatically."
  },
  "T37": {
   "title": "Propose a date on someone's tour.",
@@ -290,7 +290,7 @@ export const BETA_TASKS_JA = {
  T33: { title: '自分としてではなく、担当アーティストの代理でブッキングを交渉する。', hint: '返信時にオファーの主体をアーティストに切り替えます。' },
  T34: { title: '担当アーティストをベニューにメッセージでピッチする。ベニューはオファーを受け取らず、送る側です。', hint: 'ベニューのプロフィールを開いて「ピッチを送る」。興味があればオファーが返ってきます。' },
  T35: { title: 'メッセージで届いたピッチに、オファーを送って返答する。', hint: 'チャットを開き、その会話から「オファーを作成」。' },
- T36: { title: '近くに来る予定のアーティストにいいねして、アラートを待つ。', hint: 'いいねするだけです。あなたの街の近くの日程が追加されるとTORAが自動で通知します。設定は不要です。' },
+ T36: { title: 'Tour Kickstartでツアーを開き、「興味を示す」をタップする。', hint: 'Tourタブ > Tour Kickstart。ワンタップで興味を伝えられます。ツアー中のアーティストにいいねすると、渡航アラートも自動で設定されます。' },
  T37: { title: '誰かのツアーに日程を提案する。', hint: 'ツアーを開いて「日程を提案」。' },
  T38: { title: '同じ夜のオファーを3人の別々のアーティストに送る。', hint: '同じ日付で、3件別々のオファーを。' },
  T39: { title: 'キャパシティとベニュー情報を設定する。', hint: 'プロフィール → 編集。キャパシティ・都市・ジャンル・写真。' },
