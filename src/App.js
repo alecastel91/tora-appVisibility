@@ -617,7 +617,7 @@ function App() {
       // Complimentary plans don't renew, so there is nothing to cancel — the
       // server says so and we explain rather than claiming a cancellation.
       appAlert(res?.noRenewal
-        ? t('premium.subNoRenewal', { date: res.accessUntil ? new Date(res.accessUntil).toLocaleDateString() : '—' })
+        ? t('premium.subNoRenewal', { date: res.accessUntil ? new Date(res.accessUntil).toLocaleDateString(t('dateFormat.locale')) : '—' })
         : t('premium.cancelSubDone'));
       refreshBillingInfo();
     } catch (e) {
@@ -897,7 +897,7 @@ function App() {
                 <p className={`billing-status-line${billingInfo.cancelAtPeriodEnd ? ' is-cancelled' : ''}`}>
                   {t(billingInfo.cancelAtPeriodEnd ? 'premium.subEndsOn'
                     : billingInfo.hasStripe ? 'premium.subRenewsOn' : 'premium.subNoRenewal',
-                  { date: new Date(billingInfo.renewsAt).toLocaleDateString() })}
+                  { date: new Date(billingInfo.renewsAt).toLocaleDateString(t('dateFormat.locale')) })}
                 </p>
               )}
 
