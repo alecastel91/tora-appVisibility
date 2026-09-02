@@ -489,6 +489,10 @@ const SearchGlobe = ({ profiles, onSelectProfile, locked = false, userCity = '',
     setTip(null);
     sheetAnimating.current = true;
     setSheetPx(Math.round(dimsRef.current.h * 0.62));
+    // Beta T11: opened a city on the globe and saw who is there.
+    if (import.meta.env.VITE_TORA_ENV === 'beta') {
+      window.dispatchEvent(new CustomEvent('tora:beta-task', { detail: { code: 'T11' } }));
+    }
   };
   const openCountry = (f) => {
     const name = f.properties?.name || '';

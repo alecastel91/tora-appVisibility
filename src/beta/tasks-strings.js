@@ -42,8 +42,8 @@ export const BETA_TASKS_EN = {
   "hint": "Profile, tap the unverified banner, copy the code, send it as a DM to @tora.verify."
  },
  "T11": {
-  "title": "Search for professionals in a city that is not yours.",
-  "hint": "Search tab. Use the city filter."
+  "title": "Open the globe in Search and tap a city to see who is there.",
+  "hint": "Search tab, Globe view. Pins show where members are — tap one to open that city. The city filter in list view works too."
  },
  "T12": {
   "title": "Like another profile.",
@@ -149,10 +149,6 @@ export const BETA_TASKS_EN = {
   "title": "Propose a date on someone's tour.",
   "hint": "Explore > Tours, open a tour, Propose Date."
  },
- "T38": {
-  "title": "Send three offers for the same night to three different artists.",
-  "hint": "Same date, three separate offers."
- },
  "T39": {
   "title": "Set your capacity and your venue details.",
   "hint": "Profile > Edit. Capacity, city, genres, photos."
@@ -173,10 +169,6 @@ export const BETA_TASKS_EN = {
   "title": "Turn on notifications, then confirm one reaches you.",
   "hint": "The card that appears after login, or Settings > Notifications. On iPhone you must add TORA to your home screen first (task T01)."
  },
- "T44": {
-  "title": "On a FREE account, try to search outside your own city and try to like more than two profiles in a day. Note what stops you.",
-  "hint": "Nothing to find. Just keep going until the app blocks you."
- },
  "T45": {
   "title": "Upgrade to Premium using the test card 4242 4242 4242 4242, any future expiry, any CVC.",
   "hint": "Settings > Premium, or the prompt that appears when you hit a limit."
@@ -184,22 +176,6 @@ export const BETA_TASKS_EN = {
  "T46": {
   "title": "Cancel your subscription, then check what the app tells you about the date your access ends.",
   "hint": "Settings > Manage subscription > Cancel."
- },
- "T47": {
-  "title": "Put your phone in airplane mode halfway through filling in an offer, then turn it back on. Tell us what you lost.",
-  "hint": "No shortcut."
- },
- "T48": {
-  "title": "Log in on your phone and your laptop at the same time. Do something on one and look at the other.",
-  "hint": "No shortcut."
- },
- "T49": {
-  "title": "Switch to your other profile in the middle of a negotiation, then come back to it.",
-  "hint": "Profile picture at the top, switch, then return to Bookings."
- },
- "T50": {
-  "title": "Try to upload a file TORA should refuse: something over 10MB, or a file type that is not an image or a PDF.",
-  "hint": "Try it in a chat and in the contract upload. Tell us whether the error message made sense."
  },
  "T07@AGENT": {
   "title": "Mark available dates for one of your artists for the next two months.",
@@ -211,10 +187,6 @@ export const BETA_TASKS_EN = {
  },
  "T51": {
   "title": "Answer in the Feedback tab: would you run a real booking through TORA next month, yes or no, and why?",
-  "hint": "One sentence is enough."
- },
- "T52": {
-  "title": "Answer in the Feedback tab: what is the one thing that would make you stop using TORA?",
   "hint": "One sentence is enough."
  }
 };
@@ -265,7 +237,7 @@ export const BETA_TASKS_JA = {
  T08: { title: '渡航スケジュールを更新する。', hint: 'プロフィール → 管理 → 渡航スケジュール。都市と滞在日程を追加します。' },
  T09: { title: 'アプリの言語を切り替えて、また元に戻す。', hint: '設定 → 言語。' },
  T10: { title: 'Instagramアカウントを認証する。', hint: 'プロフィールの未認証バナーをタップし、コードをコピーして @tora.verify にDMで送ります。' },
- T11: { title: '自分の街以外の都市でプロフェッショナルを検索する。', hint: '検索タブで都市フィルターを使います。' },
+ T11: { title: 'Searchのグローブを開き、都市をタップしてその街のメンバーを見る。', hint: 'Searchタブのグローブ表示。ピンはメンバーがいる都市です。タップするとその街が開きます。リスト表示の都市フィルターでも構いません。' },
  T12: { title: '他のプロフィールにいいねする。', hint: 'プロフィールカードのハートをタップ。' },
  T13: { title: '担当の相手にコネクション申請を送る。', hint: '相手のプロフィールを開き「つながる」をタップして、短いメッセージを書きます。' },
  T14: { title: 'コネクションにメッセージを送る。', hint: 'メッセージタブ、またはプロフィールのメッセージボタンから。' },
@@ -292,21 +264,14 @@ export const BETA_TASKS_JA = {
  T35: { title: 'メッセージで届いたピッチに、オファーを送って返答する。', hint: 'チャットを開き、その会話から「オファーを作成」。' },
  T36: { title: 'Tour Kickstartでツアーを開き、「興味を示す」をタップする。', hint: 'Tourタブ > Tour Kickstart。ワンタップで興味を伝えられます。ツアー中のアーティストにいいねすると、渡航アラートも自動で設定されます。' },
  T37: { title: '誰かのツアーに日程を提案する。', hint: 'ツアーを開いて「日程を提案」。' },
- T38: { title: '同じ夜のオファーを3人の別々のアーティストに送る。', hint: '同じ日付で、3件別々のオファーを。' },
  T39: { title: 'キャパシティとベニュー情報を設定する。', hint: 'プロフィール → 編集。キャパシティ・都市・ジャンル・写真。' },
  T40: { title: 'テクニカル仕様とホスピタリティ情報をアーティストに共有する。どんなファイルでもOK。', hint: 'チャットのクリップ、またはブッキング内の書類ステップから。' },
  T41: { title: 'Newsに何か投稿する。', hint: 'Newsタブ上部の投稿欄から。' },
  T42: { title: '他の人の投稿にいいねかコメントをする。', hint: '投稿のハートまたはコメントアイコン。' },
  T43: { title: '通知をオンにして、1件届くことを確認する。', hint: 'ログイン後に表示されるカード、または設定 → 通知。iPhoneは先にホーム画面への追加が必要です（タスクT01）。' },
- T44: { title: 'FREEアカウントで、自分の街の外を検索し、1日に3人以上にいいねしてみる。何に止められたかをメモ。', hint: '探すものはありません。アプリにブロックされるまで続けてください。' },
  T45: { title: 'テストカード 4242 4242 4242 4242（期限・CVCは任意）でPremiumにアップグレードする。', hint: '設定 → Premium、または上限に達したときに表示される案内から。' },
  T46: { title: 'サブスクリプションを解約し、アクセス終了日について何と表示されるか確認する。', hint: '設定 → サブスクリプション管理 → 解約。' },
- T47: { title: 'オファー入力の途中で機内モードにして、戻す。何が失われたか教えてください。', hint: '近道なし。' },
- T48: { title: 'スマホとPCで同時にログインする。片方で操作して、もう片方を見る。', hint: '近道なし。' },
- T49: { title: '交渉の途中でもう1つのプロフィールに切り替えて、また戻る。', hint: '上部のプロフィール写真から切り替えて、ブッキングに戻ります。' },
- T50: { title: 'TORAが拒否すべきファイルをアップロードしてみる: 10MB超、または画像・PDF以外。', hint: 'チャットと契約書アップロードの両方で試して、エラーメッセージが分かりやすかったか教えてください。' },
  'T07@AGENT': { title: '担当アーティストの今後2か月の空き日程を登録する。', hint: 'プロフィール > Manage > アーティストを選択 > カレンダー。' },
  'T08@AGENT': { title: '担当アーティストの渡航スケジュールを更新する。', hint: 'プロフィール > Manage > アーティストを選択 > 渡航スケジュール。' },
  T51: { title: 'Feedbackタブで回答: 来月、実際のブッキングをTORAでやりますか？はい/いいえと、その理由。', hint: '一文で十分です。' },
- T52: { title: 'Feedbackタブで回答: TORAを使うのをやめるとしたら、その理由は何ですか？', hint: '一文で十分です。' },
 };
