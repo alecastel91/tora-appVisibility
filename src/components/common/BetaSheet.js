@@ -18,18 +18,13 @@ import { BETA_TASKS_EN, BETA_TASKS_JA, BETA_UI } from '../../beta/tasks-strings'
  * else (route, screen, commit, device, last API error, Sentry event) is
  * captured silently.
  */
-const GROUP_ORDER = ['Setup', 'Calendar', 'Discovery', 'Bookings', 'Role: Artist', 'Role: Agent', 'Role: Promoter', 'Role: Venue', 'Community', 'Notifications', 'Plan', 'Break it', 'Debrief'];
-// FREE/TRIAL testers meet paywalls early — their path is: hit the limits
-// (T44), upgrade with the test card (T45), THEN do the premium-gated work.
-const GROUP_ORDER_FREE = ['Setup', 'Discovery', 'Plan', 'Calendar', 'Bookings', 'Role: Artist', 'Role: Agent', 'Role: Promoter', 'Role: Venue', 'Community', 'Notifications', 'Break it', 'Debrief'];
 const TYPES = ['Bug', 'Confusing', 'Missing', 'Idea', 'Copy', 'Performance'];
 const SEVERITY_KEYS = ['blocked', 'annoyed', 'noting'];
 
 // Role-specific wording overrides use a `CODE@ROLE` key (e.g. T07@AGENT).
 const taskText = (code, lang, role) => {
-  const keyed = role && `${code}@${role}`;
-  return (lang === 'ja' && ((keyed && BETA_TASKS_JA[keyed]) || BETA_TASKS_JA[code]))
-    || (keyed && BETA_TASKS_EN[keyed]) || BETA_TASKS_EN[code] || { title: code, hint: '' };
+  const pick = (dict) => (role && dict[`${code}@${role}`]) || dict[code];
+  return (lang === 'ja' && pick(BETA_TASKS_JA)) || pick(BETA_TASKS_EN) || { title: code, hint: '' };
 };
 
 const currentTab = () => {
@@ -97,19 +92,12 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
     if (openHint !== code) apiService.betaUpdateTask(code, { profileId: user.id, hintOpened: true }).catch(() => {});
   };
 
-  const confusing = (code) => {
+  // Jump to TELL US with a task attached. Debrief rows use it to answer (the
+  // server marks them done when feedback carrying their code arrives);
+  // any row can use it to report confusion.
+  const openFeedback = (code, kind) => {
     setTab('tell');
-    setType('Confusing');
-    setTaskCode(code);
-    setBody('');
-    setSent(false);
-  };
-
-  // Debrief tasks (T51/T52) are answered through the feedback form — the
-  // server marks them done when feedback with their taskCode arrives.
-  const answer = (code) => {
-    setTab('tell');
-    setType('Idea');
+    setType(kind);
     setTaskCode(code);
     setBody('');
     setSent(false);
@@ -162,15 +150,15 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
     }
   };
 
-  const groups = [];
-  if (data?.tasks) {
-    const order = ['FREE', 'TRIAL'].includes(user?.subscriptionTier) || !user?.subscriptionTier
-      ? GROUP_ORDER_FREE : GROUP_ORDER;
-    for (const g of order) {
-      const rows = data.tasks.filter((t) => t.group === g);
-      if (rows.length) groups.push([g, rows]);
-    }
-  }
+  // Chapter order is the server's call (utils/betaTaskPolicy.js) so the sheet,
+  // the cockpit preview and the roster can't drift apart. Fallback: derive
+  // from the tasks themselves (older backend during a deploy window).
+  const order = data?.groupOrder?.length
+    ? data.groupOrder
+    : [...new Set((data?.tasks || []).map((t) => t.group))];
+  const groups = order
+    .map((g) => [g, (data?.tasks || []).filter((t) => t.group === g)])
+    .filter(([, rows]) => rows.length);
 
   return (
     <OverlayPortal>
@@ -248,7 +236,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                             {!done && (
                               <div className="mt-1.5 flex flex-wrap gap-3">
                                 {t.debrief && (
-                                  <button type="button" className="border-0 bg-transparent p-0 text-[12px] font-semibold text-[#FF3366] underline" onClick={() => answer(t.code)}>
+                                  <button type="button" className="border-0 bg-transparent p-0 text-[12px] font-semibold text-[#FF3366] underline" onClick={() => openFeedback(t.code, 'Idea')}>
                                     {ui.answer}
                                   </button>
                                 )}
@@ -257,7 +245,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                                     {ui.showMeHow}
                                   </button>
                                 )}
-                                <button type="button" className="border-0 bg-transparent p-0 text-[12px] text-white/50 underline" onClick={() => confusing(t.code)}>
+                                <button type="button" className="border-0 bg-transparent p-0 text-[12px] text-white/50 underline" onClick={() => openFeedback(t.code, 'Confusing')}>
                                   {ui.confusing}
                                 </button>
                                 {!skipped && !t.autoDetected && (

@@ -34,6 +34,7 @@ const TYPE_TO_TAB = {
   // the outcomes on the agency's own side. All answered from the Requests tab.
   VERIFICATION_VOUCH_REQUEST: 'messages',
   VERIFICATION_APPROVED: 'profile',
+  VERIFICATION_REJECTED: 'profile',
   VERIFICATION_REVOKED: 'profile',
   // Connections / messaging
   CONNECTION_REQUEST: 'messages',

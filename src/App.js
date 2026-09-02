@@ -614,14 +614,11 @@ function App() {
     if (!(await appConfirm(t('premium.cancelSubConfirm')))) return;
     try {
       const res = await apiService.cancelSubscription(user?.id);
-      if (res?.noRenewal) {
-        // Complimentary plan — nothing renews, access simply runs to its end.
-        appAlert(t('premium.subNoRenewal', {
-          date: res.accessUntil ? new Date(res.accessUntil).toLocaleDateString() : '—',
-        }));
-      } else {
-        appAlert(t('premium.cancelSubDone'));
-      }
+      // Complimentary plans don't renew, so there is nothing to cancel — the
+      // server says so and we explain rather than claiming a cancellation.
+      appAlert(res?.noRenewal
+        ? t('premium.subNoRenewal', { date: res.accessUntil ? new Date(res.accessUntil).toLocaleDateString() : '—' })
+        : t('premium.cancelSubDone'));
       refreshBillingInfo();
     } catch (e) {
       appAlert(e.message || t('premium.paymentFailed'));
@@ -894,21 +891,14 @@ function App() {
                 </>
               )}
 
-              {/* Renewal / cancellation status line */}
-              {billingInfo && ['MONTHLY', 'YEARLY'].includes(user?.subscriptionTier) && billingInfo.renewsAt && (
-                billingInfo.cancelAtPeriodEnd ? (
-                  <p className="billing-status-line is-cancelled">
-                    {t('premium.subEndsOn', { date: new Date(billingInfo.renewsAt).toLocaleDateString() })}
-                  </p>
-                ) : !billingInfo.hasStripe ? (
-                  <p className="billing-status-line">
-                    {t('premium.subNoRenewal', { date: new Date(billingInfo.renewsAt).toLocaleDateString() })}
-                  </p>
-                ) : (
-                  <p className="billing-status-line">
-                    {t('premium.subRenewsOn', { date: new Date(billingInfo.renewsAt).toLocaleDateString() })}
-                  </p>
-                )
+              {/* Renewal / cancellation status line. refreshBillingInfo
+                  already clears this for non-paid tiers. */}
+              {billingInfo?.renewsAt && (
+                <p className={`billing-status-line${billingInfo.cancelAtPeriodEnd ? ' is-cancelled' : ''}`}>
+                  {t(billingInfo.cancelAtPeriodEnd ? 'premium.subEndsOn'
+                    : billingInfo.hasStripe ? 'premium.subRenewsOn' : 'premium.subNoRenewal',
+                  { date: new Date(billingInfo.renewsAt).toLocaleDateString() })}
+                </p>
               )}
 
               {/* Trial Countdown */}
