@@ -186,8 +186,8 @@ export const BETA_TASKS_EN = {
   "hint": "Profile > Manage > pick your artist > Travel Schedule. Add a city and the dates."
  },
  "T51": {
-  "title": "Answer in the Feedback tab: would you run a real booking through TORA next month, yes or no, and why?",
-  "hint": "One sentence is enough."
+  "title": "Final check: would you run a real booking through TORA next month? Yes or no, and why.",
+  "hint": "Tap Answer. One sentence is enough."
  }
 };
 
@@ -206,6 +206,10 @@ export const BETA_UI = {
     loadError: 'Could not load your list.', retry: 'Retry',
     severities: { blocked: 'Blocked me', annoyed: 'Annoyed me', noting: 'Just noting it' },
     inviteUnavailable: 'Not available during beta testing — the beta is a closed group. Inviting friends unlocks at launch.',
+    finalCheck: 'FINAL CHECK', finalIntro: 'One question, straight from the founder. Your honest answer shapes what we build next.',
+    yes: 'Yes', no: 'No', whyQ: 'Why?', whyPlaceholder: 'One sentence is enough. Blunt is good.',
+    finalSend: 'Send my answer', finalDone: 'Thank you — that is the one answer we needed.', finalDoneSub: 'Your list is complete. You can still send reports from Tell Us any time.',
+    backToList: 'Back to your list',
   },
   ja: {
     yourList: 'タスク', tellUs: '報告',
@@ -220,6 +224,10 @@ export const BETA_UI = {
     loadError: 'リストを読み込めませんでした。', retry: '再試行',
     severities: { blocked: '操作できなくなった', annoyed: '不便だった', noting: 'メモ程度' },
     inviteUnavailable: 'ベータテスト中はご利用いただけません。ベータは限定グループのため、友達招待はローンチ時に解放されます。',
+    finalCheck: '最終確認', finalIntro: '創業者からの質問はひとつだけ。率直な回答が次に作るものを決めます。',
+    yes: 'はい', no: 'いいえ', whyQ: '理由は？', whyPlaceholder: '一文で十分です。率直にどうぞ。',
+    finalSend: '回答を送る', finalDone: 'ありがとうございます — これが一番知りたかった答えです。', finalDoneSub: 'リストは完了です。「報告」からはいつでも送れます。',
+    backToList: 'リストに戻る',
   },
 };
 
@@ -273,5 +281,5 @@ export const BETA_TASKS_JA = {
  T46: { title: 'サブスクリプションを解約し、アクセス終了日について何と表示されるか確認する。', hint: '設定 → サブスクリプション管理 → 解約。' },
  'T07@AGENT': { title: '担当アーティストの今後2か月の空き日程を登録する。', hint: 'プロフィール > Manage > アーティストを選択 > カレンダー。' },
  'T08@AGENT': { title: '担当アーティストの渡航スケジュールを更新する。', hint: 'プロフィール > Manage > アーティストを選択 > 渡航スケジュール。' },
- T51: { title: 'Feedbackタブで回答: 来月、実際のブッキングをTORAでやりますか？はい/いいえと、その理由。', hint: '一文で十分です。' },
+ T51: { title: '最終確認: 来月、実際のブッキングをTORAで行いますか？はい/いいえと、その理由。', hint: '「回答する」をタップ。一文で十分です。' },
 };

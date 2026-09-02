@@ -53,6 +53,12 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
   const [error, setError] = useState('');
   const shotInputRef = useRef(null);
 
+  // Final Check (debrief) state — its own space, not the Tell Us form.
+  const [debriefCode, setDebriefCode] = useState(null);
+  const [answer, setAnswer] = useState(null);
+  const [why, setWhy] = useState('');
+  const [debriefSent, setDebriefSent] = useState(false);
+
   const mutationSeq = useRef(0);
   const [loadFailed, setLoadFailed] = useState(false);
   const loadTasks = useCallback(async (fresh = false) => {
@@ -92,9 +98,41 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
     if (openHint !== code) apiService.betaUpdateTask(code, { profileId: user.id, hintOpened: true }).catch(() => {});
   };
 
-  // Jump to TELL US with a task attached. Debrief rows use it to answer (the
-  // server marks them done when feedback carrying their code arrives);
-  // any row can use it to report confusion.
+  // The Final Check has its own space: one yes/no question plus a reason,
+  // stored as type 'Debrief' so the cockpit tracks it apart from reports.
+  // The server marks the debrief task done when the answer arrives.
+  const openDebrief = (code) => {
+    setDebriefCode(code); setAnswer(null); setWhy(''); setDebriefSent(false); setError('');
+    setTab('debrief');
+  };
+  const submitDebrief = async () => {
+    if (!answer || !why.trim() || busy) return;
+    setBusy(true); setError('');
+    try {
+      await apiService.betaSendFeedback({
+        profileId: user?.id || null,
+        taskCode: debriefCode,
+        type: 'Debrief',
+        severity: 'noting',
+        body: `${answer === 'yes' ? 'YES' : 'NO'} — ${why.trim()}`,
+        attachments: [],
+        route: window.location.pathname + window.location.search,
+        screen: currentTab(),
+        commit: window.__toraCommit || null,
+        device: { ua: navigator.userAgent, viewport: `${window.innerWidth}x${window.innerHeight}`, standalone: isStandalone(), lang: navigator.language },
+      });
+      setDebriefSent(true);
+      mutationSeq.current += 1;
+      setData((d) => d && { ...d, tasks: d.tasks.map((t) => (t.code === debriefCode ? { ...t, status: 'done' } : t)) });
+    } catch (e2) {
+      setError(e2.message || 'Could not send — try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Jump to TELL US with a task attached — any row can use it to report
+  // confusion.
   const openFeedback = (code, kind) => {
     setTab('tell');
     setType(kind);
@@ -184,7 +222,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
               key={k}
               type="button"
               onClick={() => { setTab(k); setSent(false); }}
-              className={`flex-1 rounded-full py-2 text-[12px] font-semibold tracking-wider ${tab === k ? 'bg-infrared text-white' : 'text-white/60'}`}
+              className={`flex-1 rounded-full py-2 text-[12px] font-semibold tracking-wider ${tab === k || (tab === 'debrief' && k === 'list') ? 'bg-infrared text-white' : 'text-white/60'}`}
             >
               {label}
             </button>
@@ -236,7 +274,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                             {!done && (
                               <div className="mt-1.5 flex flex-wrap gap-3">
                                 {t.debrief && (
-                                  <button type="button" className="border-0 bg-transparent p-0 text-[12px] font-semibold text-[#FF3366] underline" onClick={() => openFeedback(t.code, 'Idea')}>
+                                  <button type="button" className="border-0 bg-transparent p-0 text-[12px] font-semibold text-[#FF3366] underline" onClick={() => openDebrief(t.code)}>
                                     {ui.answer}
                                   </button>
                                 )}
@@ -279,6 +317,48 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                 </div>
               ))}
             </>
+          )}
+
+          {tab === 'debrief' && (
+            debriefSent ? (
+              <div className="pt-10 text-center">
+                <p className="m-0 mb-2 text-[15px] font-semibold text-white">{ui.finalDone}</p>
+                <p className="m-0 mb-6 text-[13px] text-white/60">{ui.finalDoneSub}</p>
+                <button className="btn btn-primary" onClick={() => setTab('list')}>{ui.backToList}</button>
+              </div>
+            ) : (
+              <>
+                <p className="m-0 mb-1 text-[11px] font-semibold uppercase tracking-wider text-[#FF3366]">{ui.finalCheck}</p>
+                <p className="m-0 mb-4 text-[12.5px] text-white/50">{ui.finalIntro}</p>
+                <p className="m-0 mb-4 rounded-xl border border-white/10 bg-white/[0.04] p-3.5 text-[15px] font-semibold leading-snug text-white">
+                  {taskText(debriefCode, language, user?.role).title}
+                </p>
+                <div className="mb-4 flex gap-2">
+                  {[['yes', ui.yes], ['no', ui.no]].map(([k, label]) => (
+                    <button key={k} type="button" onClick={() => setAnswer(k)}
+                      className={`flex-1 rounded-full border py-2.5 text-[14px] font-semibold ${answer === k ? 'border-infrared bg-infrared/20 text-white' : 'border-white/15 text-white/60'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p className="m-0 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40">{ui.whyQ}</p>
+                <textarea
+                  className="message-textarea-bottom w-full"
+                  placeholder={ui.whyPlaceholder}
+                  value={why}
+                  onChange={(e) => setWhy(e.target.value)}
+                  maxLength={2000}
+                  rows={4}
+                />
+                {error && <p className="m-0 mb-3 text-sm text-infrared">{error}</p>}
+                <button className="btn btn-primary btn-full" onClick={submitDebrief} disabled={busy || !answer || !why.trim()}>
+                  {busy ? '…' : ui.finalSend}
+                </button>
+                <button type="button" className="mt-3 w-full border-0 bg-transparent p-0 text-center text-[12px] text-white/40 underline" onClick={() => setTab('list')}>
+                  {ui.backToList}
+                </button>
+              </>
+            )
           )}
 
           {tab === 'tell' && (
