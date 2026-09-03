@@ -4254,7 +4254,9 @@
 
 /* Make Offer Button */
 .chat-offer-button-container {
-  padding: 12px 16px 0;
+  /* Equal padding above and below: the button sits centred between the
+     divider above it and the composer's top border below it. */
+  padding: 12px 16px;
   background: rgba(255, 255, 255, 0.05);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
