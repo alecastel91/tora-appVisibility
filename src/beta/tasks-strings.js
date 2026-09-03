@@ -105,10 +105,6 @@ export const BETA_TASKS_EN = {
   "title": "Confirm you received the payment.",
   "hint": "Payment step on the booking card."
  },
- "T27": {
-  "title": "Take one booking all the way through, from the first message to fully confirmed and paid.",
-  "hint": "No shortcut on this one. It is the whole product."
- },
  "T28": {
   "title": "Accept the agent who asked to represent you.",
   "hint": "Notifications, or the chat with that agent."
@@ -261,7 +257,6 @@ export const BETA_TASKS_JA = {
  T24: { title: '契約ステップをスキップして、その後復元する。', hint: 'ブッキングカードの「契約をスキップ」→「契約ステップを復元」。' },
  T25: { title: 'デポジットを送金済みにして領収書を添付する。画像でもPDFでもOK。', hint: 'ブッキングカードの支払いステップから。' },
  T26: { title: '支払いの受領を確認する。', hint: 'ブッキングカードの支払いステップから。' },
- T27: { title: '最初のメッセージから支払い完了まで、ブッキングを最後までやり切る。', hint: 'これに近道はありません。プロダクトそのものです。' },
  T28: { title: '代理を申し出たエージェントを承諾する。', hint: '通知、またはそのエージェントとのチャットから。' },
  T29: { title: 'プレスキットとテクニカルライダーをアップロードする。どんなファイルでもOK。', hint: 'チャットのクリップ、またはブッキング内の書類ステップから。' },
  T30: { title: 'ロースターにアーティストを3人追加する。', hint: 'プロフィール → 所属アーティスト → 追加。TORA内を検索するか手入力します。' },
@@ -315,7 +310,6 @@ export const BETA_TASKS_BY_LANG = {
     T24: { title: 'Salta il passaggio del contratto, poi ripristinalo.', hint: '"Salta contratto" sulla scheda prenotazione, poi "Ripristina passaggio contratto".' },
     T25: { title: 'Segna un acconto come inviato e allega una ricevuta. Va bene un\'immagine o un PDF.', hint: 'Passaggio Pagamento sulla scheda prenotazione.' },
     T26: { title: 'Conferma di aver ricevuto il pagamento.', hint: 'Passaggio Pagamento sulla scheda prenotazione.' },
-    T27: { title: 'Porta una prenotazione fino in fondo: dal primo messaggio a confermata e pagata.', hint: 'Qui non ci sono scorciatoie. È tutto il prodotto.' },
     T28: { title: 'Accetta l\'agente che ha chiesto di rappresentarti.', hint: 'Notifiche, oppure la chat con quell\'agente.' },
     T29: { title: 'Carica il tuo press kit e il tuo rider tecnico. Va bene qualsiasi file.', hint: 'Graffetta della chat, oppure il passaggio Documenti dentro una prenotazione.' },
     T30: { title: 'Aggiungi tre artisti al tuo roster.', hint: 'Profilo > Artisti rappresentati > Aggiungi. Cerca su TORA o inseriscili a mano.' },
@@ -364,7 +358,6 @@ export const BETA_TASKS_BY_LANG = {
     T24: { title: 'Omite el paso del contrato y luego restáuralo.', hint: '"Omitir contrato" en la tarjeta de la reserva, luego "Restaurar paso del contrato".' },
     T25: { title: 'Marca un depósito como enviado y adjunta un recibo. Vale una imagen o un PDF.', hint: 'Paso Pago en la tarjeta de la reserva.' },
     T26: { title: 'Confirma que recibiste el pago.', hint: 'Paso Pago en la tarjeta de la reserva.' },
-    T27: { title: 'Lleva una reserva hasta el final: del primer mensaje a confirmada y pagada.', hint: 'Aquí no hay atajo. Es el producto entero.' },
     T28: { title: 'Acepta al agente que pidió representarte.', hint: 'Notificaciones, o el chat con ese agente.' },
     T29: { title: 'Sube tu press kit y tu rider técnico. Vale cualquier archivo.', hint: 'Clip del chat, o el paso Documentos dentro de una reserva.' },
     T30: { title: 'Añade tres artistas a tu roster.', hint: 'Perfil > Artistas representados > Añadir. Busca en TORA o escríbelos a mano.' },
@@ -413,7 +406,6 @@ export const BETA_TASKS_BY_LANG = {
     T24: { title: 'Passe l\'étape du contrat, puis rétablis-la.', hint: '« Passer le contrat » sur la carte de réservation, puis « Rétablir l\'étape contrat ».' },
     T25: { title: 'Marque un acompte comme envoyé et joins un reçu. Une image ou un PDF convient.', hint: 'Étape Paiement sur la carte de réservation.' },
     T26: { title: 'Confirme que tu as reçu le paiement.', hint: 'Étape Paiement sur la carte de réservation.' },
-    T27: { title: 'Mène une réservation jusqu\'au bout : du premier message à confirmée et payée.', hint: 'Pas de raccourci ici. C\'est tout le produit.' },
     T28: { title: 'Accepte l\'agent qui a demandé à te représenter.', hint: 'Notifications, ou la discussion avec cet agent.' },
     T29: { title: 'Télécharge ton press kit et ta fiche technique. N\'importe quel fichier convient.', hint: 'Trombone de la discussion, ou l\'étape Documents dans une réservation.' },
     T30: { title: 'Ajoute trois artistes à ton roster.', hint: 'Profil > Artistes représentés > Ajouter. Cherche sur TORA ou saisis-les à la main.' },
@@ -462,7 +454,6 @@ export const BETA_TASKS_BY_LANG = {
     T24: { title: 'Salta o passo do contrato e depois repõe-no.', hint: '"Saltar contrato" no cartão da reserva, depois "Repor passo do contrato".' },
     T25: { title: 'Marca um depósito como enviado e anexa um recibo. Serve uma imagem ou um PDF.', hint: 'Passo Pagamento no cartão da reserva.' },
     T26: { title: 'Confirma que recebeste o pagamento.', hint: 'Passo Pagamento no cartão da reserva.' },
-    T27: { title: 'Leva uma reserva até ao fim: da primeira mensagem até confirmada e paga.', hint: 'Aqui não há atalho. É o produto inteiro.' },
     T28: { title: 'Aceita o agente que pediu para te representar.', hint: 'Notificações, ou a conversa com esse agente.' },
     T29: { title: 'Carrega o teu press kit e o teu rider técnico. Serve qualquer ficheiro.', hint: 'Clipe da conversa, ou o passo Documentos dentro de uma reserva.' },
     T30: { title: 'Adiciona três artistas ao teu roster.', hint: 'Perfil > Artistas representados > Adicionar. Pesquisa no TORA ou escreve-os à mão.' },
@@ -511,7 +502,6 @@ export const BETA_TASKS_BY_LANG = {
     T24: { title: '跳过合同步骤，然后再恢复它。', hint: '预订卡片上的"跳过合同"，再点"恢复合同步骤"。' },
     T25: { title: '把定金标记为已付并附上凭证。图片或 PDF 都可以。', hint: '预订卡片上的付款步骤。' },
     T26: { title: '确认你已收到付款。', hint: '预订卡片上的付款步骤。' },
-    T27: { title: '把一次预订从头走到尾：从第一条消息到确认并付款完成。', hint: '这一项没有捷径，它就是整个产品。' },
     T28: { title: '接受申请代理你的经纪人。', hint: '通知，或与该经纪人的聊天。' },
     T29: { title: '上传你的宣传资料和技术需求单。任何文件都可以。', hint: '聊天里的回形针，或预订里的文件步骤。' },
     T30: { title: '把三位艺人加入你的名册。', hint: '档案 > 代理艺人 > 添加。在 TORA 搜索或手动输入。' },
@@ -560,7 +550,6 @@ export const BETA_TASKS_BY_LANG = {
     T24: { title: '계약 단계를 건너뛴 뒤 다시 복원하세요.', hint: '예약 카드의 "계약 건너뛰기" → "계약 단계 복원".' },
     T25: { title: '계약금을 송금 완료로 표시하고 영수증을 첨부하세요. 이미지나 PDF면 됩니다.', hint: '예약 카드의 결제 단계.' },
     T26: { title: '결제를 받았음을 확인하세요.', hint: '예약 카드의 결제 단계.' },
-    T27: { title: '예약 하나를 끝까지 진행하세요. 첫 메시지부터 확정·결제 완료까지.', hint: '여기엔 지름길이 없습니다. 이게 제품 전체입니다.' },
     T28: { title: '대리를 요청한 에이전트를 수락하세요.', hint: '알림, 또는 그 에이전트와의 채팅.' },
     T29: { title: '프레스 킷과 테크니컬 라이더를 올리세요. 어떤 파일이든 괜찮습니다.', hint: '채팅의 클립, 또는 예약 안의 문서 단계.' },
     T30: { title: '로스터에 아티스트 세 명을 추가하세요.', hint: '프로필 > 소속 아티스트 > 추가. TORA에서 검색하거나 직접 입력하세요.' },
