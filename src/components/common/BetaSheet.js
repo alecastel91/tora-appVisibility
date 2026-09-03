@@ -33,6 +33,14 @@ const currentTab = () => {
   return tabClass ? tabClass.replace('tab-', '') : (window.location.pathname || '/');
 };
 
+const SentScreen = ({ title, sub, cta, onClick }) => (
+  <div className="pt-10 text-center">
+    <p className="m-0 mb-2 text-[15px] font-semibold text-white">{title}</p>
+    <p className="m-0 mb-6 text-[13px] text-white/60">{sub}</p>
+    <button className="btn btn-primary" onClick={onClick}>{cta}</button>
+  </div>
+);
+
 const BetaSheet = ({ open, onClose, language = 'en' }) => {
   const { user } = useAppContext();
   const ui = language === 'ja' ? BETA_UI.ja : BETA_UI.en;
@@ -53,11 +61,22 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
   const [error, setError] = useState('');
   const shotInputRef = useRef(null);
 
-  // Final Check (debrief) state — its own space, not the Tell Us form.
+  // Final Check (debrief): a sub-view of YOUR LIST, not a third tab and not
+  // the Tell Us form. Own busy/error so a failed answer never bleeds into
+  // the report form.
+  const [listView, setListView] = useState('rows'); // 'rows' | 'debrief'
   const [debriefCode, setDebriefCode] = useState(null);
   const [answer, setAnswer] = useState(null);
   const [why, setWhy] = useState('');
+  const [debriefBusy, setDebriefBusy] = useState(false);
   const [debriefSent, setDebriefSent] = useState(false);
+  const [debriefError, setDebriefError] = useState('');
+
+  // The sheet stays mounted while closed — reopen on the list, not on a
+  // stale thank-you screen or a half-written report's error.
+  useEffect(() => {
+    if (open) { showTab('list'); setDebriefError(''); }
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const mutationSeq = useRef(0);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -82,13 +101,21 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
     return () => clearInterval(timer);
   }, [open, tab, loadTasks]);
 
+  // Optimistic local status; server truth arrives on the next poll. Bumping
+  // the sequence discards polls that were already in flight.
+  const markLocal = (code, status) => {
+    mutationSeq.current += 1;
+    setData((d) => d && { ...d, tasks: d.tasks.map((t) => (t.code === code ? { ...t, status } : t)) });
+  };
+  const showTab = (k) => {
+    setTab(k); setSent(false); setError('');
+    if (k === 'list') setListView('rows');
+  };
+
   if (!open) return null;
 
   const setStatus = async (code, status, reason) => {
-    // Optimistic; server truth arrives on next poll. Bump the sequence so
-    // in-flight stale polls are discarded.
-    mutationSeq.current += 1;
-    setData((d) => d && { ...d, tasks: d.tasks.map((t) => (t.code === code ? { ...t, status } : t)) });
+    markLocal(code, status);
     try { await apiService.betaUpdateTask(code, { profileId: user.id, status, skipReason: reason }); } catch { /* next poll corrects */ }
     loadTasks();
   };
@@ -98,36 +125,51 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
     if (openHint !== code) apiService.betaUpdateTask(code, { profileId: user.id, hintOpened: true }).catch(() => {});
   };
 
+  // Silent context attached to every feedback row — screen, device, last
+  // error — so the tester never has to describe them.
+  const silentContext = () => ({
+    route: window.location.pathname + window.location.search,
+    screen: currentTab(),
+    commit: window.__toraCommit || null,
+    device: {
+      ua: navigator.userAgent,
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      standalone: isStandalone(),
+      lang: navigator.language,
+    },
+    sentryEventId: (Sentry.lastEventId && Sentry.lastEventId()) || null,
+    lastApiError: window.__toraLastApiError || null,
+  });
+
   // The Final Check has its own space: one yes/no question plus a reason,
-  // stored as type 'Debrief' so the cockpit tracks it apart from reports.
-  // The server marks the debrief task done when the answer arrives.
+  // stored as type 'Debrief' (answer in the severity slot) so the cockpit
+  // tracks it apart from reports. The server marks the debrief task done
+  // when the answer arrives. A draft for the same question survives leaving
+  // and coming back; a different question or a sent answer starts fresh.
   const openDebrief = (code) => {
-    setDebriefCode(code); setAnswer(null); setWhy(''); setDebriefSent(false); setError('');
-    setTab('debrief');
+    if (code !== debriefCode || debriefSent) { setDebriefCode(code); setAnswer(null); setWhy(''); setDebriefSent(false); }
+    setDebriefError('');
+    setListView('debrief');
   };
   const submitDebrief = async () => {
-    if (!answer || !why.trim() || busy) return;
-    setBusy(true); setError('');
+    if (!answer || !why.trim() || debriefBusy) return;
+    setDebriefBusy(true); setDebriefError('');
     try {
       await apiService.betaSendFeedback({
         profileId: user?.id || null,
         taskCode: debriefCode,
         type: 'Debrief',
-        severity: 'noting',
-        body: `${answer === 'yes' ? 'YES' : 'NO'} — ${why.trim()}`,
+        severity: answer, // 'yes' | 'no'
+        body: why.trim(),
         attachments: [],
-        route: window.location.pathname + window.location.search,
-        screen: currentTab(),
-        commit: window.__toraCommit || null,
-        device: { ua: navigator.userAgent, viewport: `${window.innerWidth}x${window.innerHeight}`, standalone: isStandalone(), lang: navigator.language },
+        ...silentContext(),
       });
       setDebriefSent(true);
-      mutationSeq.current += 1;
-      setData((d) => d && { ...d, tasks: d.tasks.map((t) => (t.code === debriefCode ? { ...t, status: 'done' } : t)) });
+      markLocal(debriefCode, 'done');
     } catch (e2) {
-      setError(e2.message || 'Could not send — try again.');
+      setDebriefError(e2.message || 'Could not send — try again.');
     } finally {
-      setBusy(false);
+      setDebriefBusy(false);
     }
   };
 
@@ -167,17 +209,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
         severity,
         body: body.trim(),
         attachments: shots,
-        route: window.location.pathname + window.location.search,
-        screen: currentTab(),
-        commit: window.__toraCommit || null,
-        device: {
-          ua: navigator.userAgent,
-          viewport: `${window.innerWidth}x${window.innerHeight}`,
-          standalone: isStandalone(),
-          lang: navigator.language,
-        },
-        sentryEventId: (Sentry.lastEventId && Sentry.lastEventId()) || null,
-        lastApiError: window.__toraLastApiError || null,
+        ...silentContext(),
       });
       setSent(true);
       setBody(''); setShots([]); setTaskCode(null);
@@ -221,8 +253,8 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
             <button
               key={k}
               type="button"
-              onClick={() => { setTab(k); setSent(false); }}
-              className={`flex-1 rounded-full py-2 text-[12px] font-semibold tracking-wider ${tab === k || (tab === 'debrief' && k === 'list') ? 'bg-infrared text-white' : 'text-white/60'}`}
+              onClick={() => showTab(k)}
+              className={`flex-1 rounded-full py-2 text-[12px] font-semibold tracking-wider ${tab === k ? 'bg-infrared text-white' : 'text-white/60'}`}
             >
               {label}
             </button>
@@ -230,7 +262,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+24px)]">
-          {tab === 'list' && (
+          {tab === 'list' && listView === 'rows' && (
             <>
               <p className="m-0 mb-4 text-[13px] text-white/60">
                 {ui.intro}
@@ -283,9 +315,11 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                                     {ui.showMeHow}
                                   </button>
                                 )}
-                                <button type="button" className="border-0 bg-transparent p-0 text-[12px] text-white/50 underline" onClick={() => openFeedback(t.code, 'Confusing')}>
-                                  {ui.confusing}
-                                </button>
+                                {!t.debrief && (
+                                  <button type="button" className="border-0 bg-transparent p-0 text-[12px] text-white/50 underline" onClick={() => openFeedback(t.code, 'Confusing')}>
+                                    {ui.confusing}
+                                  </button>
+                                )}
                                 {!skipped && !t.autoDetected && (
                                   <button type="button" className="border-0 bg-transparent p-0 text-[12px] text-white/35 underline" onClick={() => { setSkipFor(t.code); setSkipReason(''); }}>
                                     {ui.skip}
@@ -319,13 +353,9 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
             </>
           )}
 
-          {tab === 'debrief' && (
+          {tab === 'list' && listView === 'debrief' && (
             debriefSent ? (
-              <div className="pt-10 text-center">
-                <p className="m-0 mb-2 text-[15px] font-semibold text-white">{ui.finalDone}</p>
-                <p className="m-0 mb-6 text-[13px] text-white/60">{ui.finalDoneSub}</p>
-                <button className="btn btn-primary" onClick={() => setTab('list')}>{ui.backToList}</button>
-              </div>
+              <SentScreen title={ui.finalDone} sub={ui.finalDoneSub} cta={ui.backToList} onClick={() => setListView('rows')} />
             ) : (
               <>
                 <p className="m-0 mb-1 text-[11px] font-semibold uppercase tracking-wider text-[#FF3366]">{ui.finalCheck}</p>
@@ -350,11 +380,11 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
                   maxLength={2000}
                   rows={4}
                 />
-                {error && <p className="m-0 mb-3 text-sm text-infrared">{error}</p>}
-                <button className="btn btn-primary btn-full" onClick={submitDebrief} disabled={busy || !answer || !why.trim()}>
-                  {busy ? '…' : ui.finalSend}
+                {debriefError && <p className="m-0 mb-3 text-sm text-infrared">{debriefError}</p>}
+                <button className="btn btn-primary btn-full" onClick={submitDebrief} disabled={debriefBusy || !answer || !why.trim()}>
+                  {debriefBusy ? '…' : ui.finalSend}
                 </button>
-                <button type="button" className="mt-3 w-full border-0 bg-transparent p-0 text-center text-[12px] text-white/40 underline" onClick={() => setTab('list')}>
+                <button type="button" className="mt-3 w-full border-0 bg-transparent p-0 text-center text-[12px] text-white/40 underline" onClick={() => setListView('rows')}>
                   {ui.backToList}
                 </button>
               </>
@@ -363,11 +393,7 @@ const BetaSheet = ({ open, onClose, language = 'en' }) => {
 
           {tab === 'tell' && (
             sent ? (
-              <div className="pt-10 text-center">
-                <p className="m-0 mb-2 text-[15px] font-semibold text-white">{ui.received}</p>
-                <p className="m-0 mb-6 text-[13px] text-white/60">{ui.receivedSub}</p>
-                <button className="btn btn-primary" onClick={() => setSent(false)}>{ui.sendAnother}</button>
-              </div>
+              <SentScreen title={ui.received} sub={ui.receivedSub} cta={ui.sendAnother} onClick={() => setSent(false)} />
             ) : (
               <>
                 {taskCode && (
