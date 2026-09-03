@@ -5,7 +5,7 @@ import { useAppContext } from '../../contexts/AppContext';
 import apiService from '../../services/api';
 import { downscaleImageToDataUrl } from '../../utils/image';
 import { isStandalone } from '../../services/install';
-import { BETA_TASKS_EN, BETA_TASKS_JA, BETA_UI } from '../../beta/tasks-strings';
+import { BETA_TASKS_EN, BETA_TASKS_BY_LANG, BETA_UI } from '../../beta/tasks-strings';
 
 /**
  * Beta Tasks & Feedback sheet (TORA_BETA_BRIEF Build Item 2) — the two tabs
@@ -24,7 +24,8 @@ const SEVERITY_KEYS = ['blocked', 'annoyed', 'noting'];
 // Role-specific wording overrides use a `CODE@ROLE` key (e.g. T07@AGENT).
 const taskText = (code, lang, role) => {
   const pick = (dict) => (role && dict[`${code}@${role}`]) || dict[code];
-  return (lang === 'ja' && pick(BETA_TASKS_JA)) || pick(BETA_TASKS_EN) || { title: code, hint: '' };
+  const localized = BETA_TASKS_BY_LANG[lang];
+  return (localized && pick(localized)) || pick(BETA_TASKS_EN) || { title: code, hint: '' };
 };
 
 const currentTab = () => {
@@ -43,7 +44,7 @@ const SentScreen = ({ title, sub, cta, onClick }) => (
 
 const BetaSheet = ({ open, onClose, language = 'en' }) => {
   const { user } = useAppContext();
-  const ui = language === 'ja' ? BETA_UI.ja : BETA_UI.en;
+  const ui = BETA_UI[language] || BETA_UI.en;
   const [tab, setTab] = useState('list');
   const [data, setData] = useState(null);
   const [openHint, setOpenHint] = useState(null);

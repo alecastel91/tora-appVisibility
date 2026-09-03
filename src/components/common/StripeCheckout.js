@@ -86,11 +86,20 @@ const PaymentForm = ({ mode, subscriptionId, paymentIntentId, profileId, coupon,
     setError('');
 
     const confirm = mode === 'setup' ? stripe.confirmSetup : stripe.confirmPayment;
-    const { error: confirmError } = await confirm({
-      elements,
-      redirect: 'if_required', // stay in-app unless the bank forces a redirect for SCA
-      confirmParams: { return_url: window.location.origin },
-    });
+    let confirmError;
+    try {
+      ({ error: confirmError } = await confirm({
+        elements,
+        redirect: 'if_required', // stay in-app unless the bank forces a redirect for SCA
+        confirmParams: { return_url: window.location.origin },
+      }));
+    } catch (e) {
+      // Stripe throws (rather than resolving with `error`) when the Payment
+      // Element never mounted — e.g. the publishable key belongs to a
+      // different Stripe account than the backend's secret key. Without this
+      // the button sat on "Processing…" forever.
+      confirmError = e;
+    }
 
     if (confirmError) {
       setError(confirmError.message || t('premium.paymentFailed'));
@@ -109,7 +118,12 @@ const PaymentForm = ({ mode, subscriptionId, paymentIntentId, profileId, coupon,
   return (
     <form onSubmit={submit}>
       <PromoBanner coupon={coupon} amountDue={amountDue} t={t} />
-      <PaymentElement options={{ layout: 'tabs' }} />
+      <PaymentElement
+        options={{ layout: 'tabs' }}
+        // The element failing to load (key/account mismatch, network) is
+        // otherwise silent: the form renders empty and Subscribe never works.
+        onLoadError={(ev) => setError(ev?.error?.message || t('premium.notConfigured'))}
+      />
       {error && <p className="m-0 mt-3 text-sm text-infrared">{error}</p>}
       <button type="submit" className="btn btn-primary btn-full mt-5" disabled={!stripe || busy}>
         {busy ? t('premium.processing') : (cta || t('premium.subscribeNow'))}
