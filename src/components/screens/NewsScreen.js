@@ -352,9 +352,11 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
             <div className="flex items-start gap-3">
               <Avatar profile={post.author} onClick={() => openAuthor(post.author)} />
               <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2">
+                {/* Badges wrap under the name instead of squeezing it out —
+                    "Pinned" is 11 chars in Italian. */}
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                   <button
-                    className="cursor-pointer truncate border-0 bg-transparent p-0 text-sm font-semibold text-white hover:underline"
+                    className="max-w-full cursor-pointer truncate border-0 bg-transparent p-0 text-sm font-semibold text-white hover:underline"
                     onClick={() => openAuthor(post.author)}
                   >
                     {post.author?.name}
