@@ -570,7 +570,7 @@ const zh = {
   },
 
   pitch: {
-    button: '发送自荐',
+    emptyTitle: '向对方发送自荐：',
     hintVenue: '场地会通过消息查看自荐，如有兴趣会发送报价。',
     hintPromoter: '主办方会通过消息查看自荐，如有兴趣会发送报价。',
   },

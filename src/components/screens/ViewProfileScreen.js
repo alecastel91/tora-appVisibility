@@ -585,24 +585,6 @@ const ViewProfileScreen = ({ profile: passedProfile, onClose, onOpenChat, onNavi
           )}
         </div>
 
-        {/* Pitch path (BI6): offers are one-directional by design — only
-            promoters/venues initiate. Without this, an artist/agent hunts
-            for "Make an Offer" on a venue profile, doesn't find it, and
-            concludes the app is broken. Same CTA, stated rule underneath. */}
-        {['ARTIST', 'AGENT'].includes(currentUser?.role) && ['VENUE', 'PROMOTER'].includes(profile?.role) && (
-          <div className="mb-5">
-            <button
-              className="btn btn-secondary btn-full-width"
-              onClick={isConnected ? handleMessage : handleConnect}
-              disabled={(!isConnected && hasPendingRequest) || actionBusy}
-            >
-              {t('pitch.button')}
-            </button>
-            <p className="m-0 mt-1.5 text-center text-[11.5px] leading-relaxed text-white/40">
-              {profile.role === 'VENUE' ? t('pitch.hintVenue') : t('pitch.hintPromoter')}
-            </p>
-          </div>
-        )}
 
         {/* Sender-side alert: counterparty hasn't verified yet */}
         {fullProfile && fullProfile.verifyStatus !== 'VERIFIED' && (

@@ -1115,8 +1115,19 @@ const ChatScreen = ({ user, onClose, onOpenProfile, openDeal = null, onOpenDealH
         )}
         {filteredMessages.length === 0 && (
           <div className="chat-empty">
-            <p>{t('messages.startConversationWith')} {user.name}</p>
-            <span>{t('messages.sendMessageToBegin')}</span>
+            {/* Offers are one-directional (venues/promoters send them), so an
+                artist opening an empty chat with a venue is told to pitch. */}
+            {['ARTIST', 'AGENT'].includes(currentUser?.role) && ['VENUE', 'PROMOTER'].includes(user?.role) ? (
+              <>
+                <p>{t('pitch.emptyTitle')} {user.name}</p>
+                <span>{user.role === 'VENUE' ? t('pitch.hintVenue') : t('pitch.hintPromoter')}</span>
+              </>
+            ) : (
+              <>
+                <p>{t('messages.startConversationWith')} {user.name}</p>
+                <span>{t('messages.sendMessageToBegin')}</span>
+              </>
+            )}
           </div>
         )}
         {filteredMessages.map((msg, index) => (

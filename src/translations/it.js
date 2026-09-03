@@ -570,7 +570,7 @@ const it = {
   },
 
   pitch: {
-    button: 'Invia una proposta',
+    emptyTitle: 'Invia una proposta a',
     hintVenue: 'Le venue valutano le proposte via messaggio e inviano un\'offerta se interessate.',
     hintPromoter: 'I promoter valutano le proposte via messaggio e inviano un\'offerta se interessati.',
   },

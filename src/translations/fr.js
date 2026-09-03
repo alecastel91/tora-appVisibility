@@ -570,7 +570,7 @@ const fr = {
   },
 
   pitch: {
-    button: 'Envoyer une proposition',
+    emptyTitle: 'Envoie une proposition à',
     hintVenue: 'Les salles examinent les propositions par message et envoient une offre si elles sont intéressées.',
     hintPromoter: 'Les promoteurs examinent les propositions par message et envoient une offre s\'ils sont intéressés.',
   },

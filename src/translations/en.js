@@ -570,7 +570,7 @@ const en = {
   },
 
   pitch: {
-    button: 'Send a pitch',
+    emptyTitle: 'Send a pitch to',
     hintVenue: 'Venues review pitches by message and send an offer if they are interested.',
     hintPromoter: 'Promoters review pitches by message and send an offer if they are interested.',
   },
