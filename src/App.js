@@ -131,18 +131,20 @@ function App() {
   // opened and the user arrived at the conversation list instead. Doing both
   // here makes the order explicit (clear, then set) and gives the three
   // screens one thing to call.
-  const openChatInMessages = (profile) => {
+  const openChatInMessages = (profile, deal = null) => {
     if (!profile) return;
     closeAllOverlays();
     setActiveTab('messages');
     setMountedTabs((prev) => (prev.includes('messages') ? prev : [...prev, 'messages']));
     setActiveChatUser(profile);
+    setChatOpenDeal(deal);
   };
 
   // Overlays belong to the context they were opened in — closed on tab
   // navigation and on logout (a stale overlay otherwise survives re-login).
   const closeAllOverlays = () => {
     setActiveChatUser(null);
+    setChatOpenDeal(null);
     setViewingProfile(null);
     setShowSettings(false);
     setShowPremium(false);
@@ -187,6 +189,8 @@ function App() {
     return () => window.removeEventListener('tora:open-guide', open);
   }, []);
   const [activeChatUser, setActiveChatUser] = useState(null);
+  // Deal the chat should open on arrival (Bookings "Review" CTA) — consumed once.
+  const [chatOpenDeal, setChatOpenDeal] = useState(null);
   const [viewingProfile, setViewingProfile] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
@@ -777,6 +781,8 @@ function App() {
         {activeChatUser && !viewingProfile && (
           <ChatScreen
             user={activeChatUser}
+            openDeal={chatOpenDeal}
+            onOpenDealHandled={() => setChatOpenDeal(null)}
             onClose={() => setActiveChatUser(null)}
             onOpenProfile={(profile) => setViewingProfile(profile)}
           />

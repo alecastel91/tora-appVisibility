@@ -44,7 +44,7 @@ const TRANSLATE_BUTTON_STYLE = {
   letterSpacing: '0.03em',
 };
 
-const ChatScreen = ({ user, onClose, onOpenProfile }) => {
+const ChatScreen = ({ user, onClose, onOpenProfile, openDeal = null, onOpenDealHandled }) => {
   const { user: currentUser, sendMessage, connectedUsers, reloadProfileData } = useAppContext();
   const { t, language } = useLanguage();
   // Per-message translation state, keyed by message id:
@@ -336,6 +336,20 @@ const ChatScreen = ({ user, onClose, onOpenProfile }) => {
     fetchMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id, user?.id]);
+
+  // Arriving from a Bookings "Review" CTA: open the offer straight away, not
+  // just the conversation. A negotiated deal opens its latest counter-offer
+  // (the response actions live there); a fresh offer opens the offer details.
+  useEffect(() => {
+    if (!openDeal || loading) return;
+    const counterMsg = openDeal.status === 'NEGOTIATING'
+      ? [...userMessages].reverse().find((m) => m.dealId === openDeal.id && m.text && m.text.startsWith('Counter-Offer:'))
+      : null;
+    if (counterMsg) handleViewCounterOffer(counterMsg);
+    else handleViewOffer(openDeal.id);
+    if (onOpenDealHandled) onOpenDealHandled();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openDeal?.id, loading]);
 
   // Drop cached translations when the active chat OR the app language changes.
   // ChatScreen isn't remounted per chat, so without this the (msgId → text)
