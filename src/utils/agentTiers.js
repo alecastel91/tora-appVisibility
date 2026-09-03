@@ -23,6 +23,9 @@ function rosterCount(profile) {
 // agents get AGENT_FREE_ARTISTS. Legacy paid agents without a stored seat count
 // fall back to their current roster so they're never retroactively over-cap.
 export function getAgentRosterCap(profile) {
+  // Admin-operated (beta persona) agents represent every tester the ladder
+  // points at them — never capped. Policy here, not a seeded seat count.
+  if (profile?.isAdminOperated) return Infinity;
   if (!isPaidAgent(profile)) return AGENT_FREE_ARTISTS;
   const seats = Number(profile?.agentSeats);
   if (Number.isFinite(seats) && seats > 0) return seats;

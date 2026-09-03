@@ -44,6 +44,10 @@ const TRANSLATE_BUTTON_STYLE = {
   letterSpacing: '0.03em',
 };
 
+// Counter-offers are deal system messages recognised by their body prefix
+// (the backend sets no structured kind on them yet).
+const isCounterOfferMessage = (m) => !!m?.text && m.text.startsWith('Counter-Offer:');
+
 const ChatScreen = ({ user, onClose, onOpenProfile, openDeal = null, onOpenDealHandled }) => {
   const { user: currentUser, sendMessage, connectedUsers, reloadProfileData } = useAppContext();
   const { t, language } = useLanguage();
@@ -339,14 +343,17 @@ const ChatScreen = ({ user, onClose, onOpenProfile, openDeal = null, onOpenDealH
 
   // Arriving from a Bookings "Review" CTA: open the offer straight away, not
   // just the conversation. A negotiated deal opens its latest counter-offer
-  // (the response actions live there); a fresh offer opens the offer details.
+  // (the response actions live there); if that message is not in the loaded
+  // page, leave the thread as is rather than opening the read-only original.
+  // A fresh offer opens the offer details.
   useEffect(() => {
     if (!openDeal || loading) return;
-    const counterMsg = openDeal.status === 'NEGOTIATING'
-      ? [...userMessages].reverse().find((m) => m.dealId === openDeal.id && m.text && m.text.startsWith('Counter-Offer:'))
-      : null;
-    if (counterMsg) handleViewCounterOffer(counterMsg);
-    else handleViewOffer(openDeal.id);
+    if (openDeal.status === 'NEGOTIATING') {
+      const counterMsg = userMessages.findLast((m) => m.dealId === openDeal.id && isCounterOfferMessage(m));
+      if (counterMsg) handleViewCounterOffer(counterMsg);
+    } else {
+      handleViewOffer(openDeal.id);
+    }
     if (onOpenDealHandled) onOpenDealHandled();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openDeal?.id, loading]);
@@ -958,7 +965,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile, openDeal = null, onOpenDealH
       console.log(`  📋 Deal ${dealId}: ${messages.length} messages`);
 
       const offerMsg = messages.find(m => m.text && m.text.includes('New Booking Offer'));
-      const counterOfferMsgs = messages.filter(m => m.text && m.text.startsWith('Counter-Offer:'));
+      const counterOfferMsgs = messages.filter(isCounterOfferMessage);
 
       // Always show the original offer (so the negotiation start is visible)
       if (offerMsg) {
@@ -1119,7 +1126,7 @@ const ChatScreen = ({ user, onClose, onOpenProfile, openDeal = null, onOpenDealH
                 <span>{formatDateSeparator(msg.timestamp)}</span>
               </div>
             )}
-            {msg.text && msg.text.startsWith('Counter-Offer:') ? (
+            {isCounterOfferMessage(msg) ? (
               <div className={`message-with-timestamp ${msg.isMe ? "card-sent" : "card-received"}`}>
                 <div className="offer-card-message">
                   <div className="offer-card-content">

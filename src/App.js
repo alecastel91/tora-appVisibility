@@ -592,7 +592,7 @@ function App() {
     // chatOpen (not a key remount): MessagesScreen refetches once when a
     // chat closes, to pick up read-state changes. A key here remounted the
     // permanently-mounted screen twice per chat session.
-    messages: <MessagesScreen onOpenChat={setActiveChatUser} chatOpen={!!activeChatUser} isActive={activeTab === 'messages'} />,
+    messages: <MessagesScreen onOpenChat={openChatInMessages} chatOpen={!!activeChatUser} isActive={activeTab === 'messages'} />,
   };
 
   // Stripe-hosted billing portal: update card, view invoices, cancel.
@@ -780,10 +780,11 @@ function App() {
         )}
         {activeChatUser && !viewingProfile && (
           <ChatScreen
+            key={activeChatUser.id} // a chat switch remounts: fresh load state, no leaked thread
             user={activeChatUser}
             openDeal={chatOpenDeal}
             onOpenDealHandled={() => setChatOpenDeal(null)}
-            onClose={() => setActiveChatUser(null)}
+            onClose={() => { setActiveChatUser(null); setChatOpenDeal(null); }}
             onOpenProfile={(profile) => setViewingProfile(profile)}
           />
         )}
