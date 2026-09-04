@@ -14,7 +14,7 @@ import { isVerificationGate } from '../../utils/errors';
 import apiService from '../../services/api';
 import LoadingGlobe from '../common/LoadingGlobe';
 import CalendarScreen from './CalendarScreen';
-import LockOverlay from '../common/LockOverlay';
+import LockedPane from '../common/LockedPane';
 import { countriesByZone, genresList, zones } from '../../data/profiles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { isPremiumViewer, isYearlyViewer } from '../../utils/subscription';
@@ -94,23 +94,17 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   // tier sees it as a blurred teaser that opens Premium, exactly as before.
   const renderMyDates = () => {
     const pane = <CalendarScreen embedded={true} onSeeMatches={() => setActiveTab('calendar')} />;
-    if (isPremiumViewer(user)) return <div className="tour-kickstart-content">{pane}</div>;
     return (
       <div className="tour-kickstart-content">
-        <div className="relative overflow-hidden rounded-xl">
-          <div className="blur-[7px] select-none pointer-events-none" aria-hidden>{pane}</div>
-          <button
-            type="button"
-            onClick={() => onOpenPremium && onOpenPremium()}
-            aria-label={t('manage.calendarLockedMsg')}
-            className="absolute inset-0 z-10 w-full border-none bg-transparent p-0 cursor-pointer"
-          >
-            <LockOverlay message={t('manage.calendarLockedMsg')} />
-          </button>
-        </div>
+        {isPremiumViewer(user)
+          ? pane
+          : <LockedPane message={t('manage.calendarLockedMsg')} onUnlock={onOpenPremium}>{pane}</LockedPane>}
       </div>
     );
   };
+  // Agents' matches are driven by their represented artists' dates, edited
+  // per artist from Profile > Manage — an agent has no "My dates".
+  const isAgent = user?.role === 'AGENT';
 
   // Calendar Matches state
   const [viewingProfile, setViewingProfile] = useState(null);
@@ -689,11 +683,16 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
           {/* Bridge to the data these matches come from (the My dates
               sub-tab) — otherwise "I filled in my calendar and nothing happened". */}
           <p className="m-0 mb-4 text-left text-[11.5px] text-white/35 leading-relaxed">
-            {t('tour.matchesSource')}{' '}
+            {t(isAgent ? 'tour.matchesSourceAgent' : 'tour.matchesSource')}{' '}
             <button
               type="button"
               className="border-0 bg-transparent p-0 text-[11.5px] text-white/60 underline"
-              onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
+              onClick={() => {
+                if (!isAgent) { closeTourPanes(); setActiveTab('mydates'); return; }
+                // Agents edit dates per artist: Profile > Manage > the artist.
+                window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab: 'profile' } }));
+                setTimeout(() => window.dispatchEvent(new CustomEvent('tora:open-roster')), 200);
+              }}
             >
               {t('tour.editAvailability')}
             </button>
@@ -2140,13 +2139,15 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       />
       {/* Sub-tabs */}
       <div className="tour-tabs">
-        <button
-          className={`tour-tab ${activeTab === 'mydates' ? 'active' : ''}`}
-          onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
-        >
-          <CalendarIcon />
-          <span>{t('tour.myDates')}</span>
-        </button>
+        {!isAgent && (
+          <button
+            className={`tour-tab ${activeTab === 'mydates' ? 'active' : ''}`}
+            onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
+          >
+            <CalendarIcon />
+            <span>{t('tour.myDates')}</span>
+          </button>
+        )}
         <button
           className={`tour-tab ${activeTab === 'calendar' ? 'active' : ''}`}
           onClick={() => { closeTourPanes(); setActiveTab('calendar'); }}
@@ -2167,7 +2168,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
           fits without scrolling on normal phones; scrolling stays enabled so
           short viewports can still reach the Upgrade CTA */}
       <div className="tour-tab-content">
-        {activeTab === 'mydates' && renderMyDates()}
+        {activeTab === 'mydates' && (isAgent ? renderCalendarMatches() : renderMyDates())}
         {activeTab === 'calendar' && renderCalendarMatches()}
         {activeTab === 'kickstart' && renderTourKickstart()}
       </div>

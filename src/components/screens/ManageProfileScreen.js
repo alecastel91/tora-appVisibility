@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getCurrencySymbol } from '../../utils/currencies';
 import { CloseIcon, CalendarIcon, DollarIcon, TrendingUpIcon, ImageIcon, SlidersIcon, FileTextIcon, FileIcon, AlertIcon, LocationIcon } from '../../utils/icons';
-import CalendarScreen from './CalendarScreen';
 import RevenueChart from '../common/RevenueChart';
 import AddContractModal from '../common/AddContractModal';
 import PdfViewerModal from '../common/PdfViewerModal';
@@ -12,7 +11,7 @@ import { uploadDocument } from '../../services/contractService';
 import { localizeActionItem, getActionIcon, handleActionTarget } from '../../utils/actionItems';
 import { getAuthedBackendUrl, isBackendFileUrl } from '../../utils/urls';
 import { appAlert, appConfirm } from '../../utils/dialogs';
-import LockOverlay from '../common/LockOverlay';
+import LockedPane from '../common/LockedPane';
 import { isPremiumViewer } from '../../utils/subscription';
 
 const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = () => {}, initialTab = null }) => {
@@ -24,24 +23,8 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
   // moved to Tour > My dates, next to the matches they drive.)
   const manageLocked = !isPremiumViewer(user);
 
-  // Same teaser language as ViewProfile's locked tour block: real content
-  // under a heavy blur, with a clickable lock overlay that opens Premium.
-  // The overlay is an absolute sibling (not a wrapper) so the blurred
-  // content's own buttons aren't nested inside a <button>.
   const renderLockedPane = (content, message) => (
-    <div className="relative overflow-hidden rounded-xl">
-      <div className="blur-[7px] select-none pointer-events-none" aria-hidden>
-        {content}
-      </div>
-      <button
-        type="button"
-        onClick={() => onOpenPremium()}
-        aria-label={message}
-        className="absolute inset-0 z-10 w-full border-none bg-transparent p-0 cursor-pointer"
-      >
-        <LockOverlay message={message} />
-      </button>
-    </div>
+    <LockedPane message={message} onUnlock={onOpenPremium}>{content}</LockedPane>
   );
   const [activeTab, setActiveTab] = useState(initialTab || 'dashboard'); // dashboard, documents
   const [upcomingGigs, setUpcomingGigs] = useState(null);

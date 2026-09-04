@@ -920,6 +920,7 @@ const en = {
     calendarMatches: 'Matches',
     myDates: 'My dates',
     matchesSource: 'Matches come from your available dates and travel schedule.',
+    matchesSourceAgent: 'Matches come from your represented artists\' available dates and travel schedules.',
     editAvailability: 'Edit',
     connectWith: 'Connect with {{name}}',
     connectPlaceholder: 'Introduce yourself and mention the calendar match...',
@@ -1873,7 +1874,7 @@ const en = {
         id: 'account',
         title: 'Account and help',
         entries: [
-          { q: 'Availability and travel', a: 'Set your available dates and travel schedule on your profile. Availability is what powers calendar matching in the Tour tab.' },
+          { q: 'Availability and travel', a: 'Set your available dates and travel schedule in the Tour tab, under My dates. Availability is what powers the Matches sub-tab next to it. Agents set dates per represented artist from Profile > Manage.' },
           { q: 'Language and currency', a: 'Both live in Settings. The app is available in eight languages; currency affects how fees are displayed to you.' },
           { q: 'Getting help', a: 'For how-to questions, the Assistant below answers instantly. For anything about your account — login, payments, verification stuck — use the feedback button or email support@torahub.io, because only the team can fix those.' },
                   { q: 'How do I install TORA as an app?', a: 'On iPhone: open TORA in Safari or Chrome, tap Share, then \'Add to Home Screen\'. On Android: Chrome menu > \'Install app\'. TORA then runs full-screen from its own icon, like a native app. In-app browsers (Google app, Instagram) cannot install — open TORA in a real browser first.' },

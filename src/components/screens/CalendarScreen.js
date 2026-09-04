@@ -34,6 +34,14 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
   const [selectedDates, setSelectedDates] = useState(new Set(user?.availableDates || []));
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [schedules, setSchedules] = useState(user?.travelSchedule || []);
+  // Embedded in the keep-mounted Tour tab, this screen outlives a profile
+  // switch: reseed from the new profile or a tap would write the previous
+  // profile's date set onto it.
+  React.useEffect(() => {
+    setSelectedDates(new Set(user?.availableDates || []));
+    setSchedules(user?.travelSchedule || []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
   const [editingScheduleId, setEditingScheduleId] = useState(null);
 
   // Delete confirmation state
@@ -970,6 +978,15 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
             {/* Calendar View Section */}
             <div className="dashboard-section">
               <h3><CalendarIcon /> Calendar View</h3>
+              {onSeeMatches && (
+                <button
+                  type="button"
+                  className="mb-3 border-0 bg-transparent p-0 text-left text-[12px] text-[#FF3366] underline"
+                  onClick={onSeeMatches}
+                >
+                  {t('calendar.seeMatches')} →
+                </button>
+              )}
               <div className="calendar-inline-wrapper">
                 <div className="calendar-header-inline">
                   <button className="calendar-nav-btn" onClick={goToPreviousMonth}>

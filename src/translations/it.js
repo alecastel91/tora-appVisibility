@@ -920,6 +920,7 @@ const it = {
     calendarMatches: 'Corrispondenze',
     myDates: 'Le mie date',
     matchesSource: 'Le corrispondenze nascono dalle tue date disponibili e dal tuo programma di viaggio.',
+    matchesSourceAgent: 'Le corrispondenze nascono dalle date disponibili e dai viaggi degli artisti che rappresenti.',
     editAvailability: 'Modifica',
     connectWith: 'Collegati con {{name}}',
     connectPlaceholder: 'Presentati e menziona il match di calendario...',
@@ -1861,7 +1862,7 @@ const it = {
         id: 'account',
         title: 'Account e aiuto',
         entries: [
-          { q: 'Disponibilità e viaggi', a: 'Imposta le date disponibili e il calendario viaggi sul tuo profilo. È la disponibilità che alimenta l’abbinamento per calendario nella scheda Tour.' },
+          { q: 'Disponibilità e viaggi', a: 'Imposta le tue date disponibili e il programma di viaggio nel tab Tour, in Le mie date. La disponibilità alimenta la sotto-scheda Corrispondenze accanto. Gli agenti lo fanno per artista da Profilo > Gestisci.' },
           { q: 'Lingua e valuta', a: 'Entrambe nelle Impostazioni. L’app è disponibile in otto lingue; la valuta cambia come vedi i cachet.' },
           { q: 'Ottenere aiuto', a: 'Per il «come si fa», l’Assistente qui sotto risponde subito. Per tutto ciò che riguarda il tuo account — accesso, pagamenti, verifica bloccata — usa il pulsante di feedback o scrivi a support@torahub.io: solo il team può risolverli.' },
                   { q: 'Come installo TORA come app?', a: 'Su iPhone: apri TORA in Safari o Chrome, tocca Condividi e poi \'Aggiungi a Home\'. Su Android: menu di Chrome > \'Installa app\'. TORA si apre a schermo intero dalla sua icona, come un\'app nativa. I browser integrati (app Google, Instagram) non possono installare — apri TORA in un browser vero.' },

@@ -159,11 +159,11 @@ function App() {
   // shows content immediately. Delayed so the landing tab paints first.
   useEffect(() => {
     if (!isAuthenticated) {
-      setMountedTabs(['profile']);
+      setMountedTabs([HOME_TAB]);
       return;
     }
     const warmup = setTimeout(
-      () => setMountedTabs(['profile', 'search', 'news', 'tour', 'bookings', 'messages']),
+      () => setMountedTabs([HOME_TAB, 'search', 'profile', 'tour', 'bookings', 'messages']),
       1000
     );
     return () => clearTimeout(warmup);

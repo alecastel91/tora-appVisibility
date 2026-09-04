@@ -920,6 +920,7 @@ const es = {
     calendarMatches: 'Coincidencias',
     myDates: 'Mis fechas',
     matchesSource: 'Las coincidencias salen de tus fechas disponibles y tu calendario de viajes.',
+    matchesSourceAgent: 'Las coincidencias salen de las fechas disponibles y los viajes de los artistas que representas.',
     editAvailability: 'Editar',
     connectWith: 'Conectar con {{name}}',
     connectPlaceholder: 'Preséntate y menciona el match de calendario...',
@@ -1861,7 +1862,7 @@ const es = {
         id: 'account',
         title: 'Cuenta y ayuda',
         entries: [
-          { q: 'Disponibilidad y viajes', a: 'Marca tus fechas disponibles y tu calendario de viajes en el perfil. La disponibilidad es lo que alimenta el emparejamiento por calendario en la pestaña Tour.' },
+          { q: 'Disponibilidad y viajes', a: 'Define tus fechas disponibles y tu calendario de viajes en la pestaña Tour, en Mis fechas. La disponibilidad es lo que alimenta la subpestaña Coincidencias de al lado. Los agentes lo hacen por artista desde Perfil > Gestionar.' },
           { q: 'Idioma y moneda', a: 'Ambos en Ajustes. La app está en ocho idiomas; la moneda cambia cómo ves los cachés.' },
           { q: 'Conseguir ayuda', a: 'Para el «cómo se hace», el Asistente de abajo responde al momento. Para cualquier cosa de tu cuenta — acceso, pagos, verificación atascada — usa el botón de feedback o escribe a support@torahub.io, porque solo el equipo puede arreglarlo.' },
                   { q: '¿Cómo instalo TORA como app?', a: 'En iPhone: abre TORA en Safari o Chrome, toca Compartir y luego \'Añadir a pantalla de inicio\'. En Android: menú de Chrome > \'Instalar aplicación\'. TORA se abre a pantalla completa desde su propio icono, como una app nativa. Los navegadores integrados (app de Google, Instagram) no pueden instalar — abre TORA en un navegador real.' },
