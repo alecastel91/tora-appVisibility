@@ -797,6 +797,14 @@ const CalendarScreen = ({ onClose, embedded = false }) => {
             {/* Calendar View Section */}
             <div className="dashboard-section">
               <h3><CalendarIcon /> Calendar View</h3>
+              {/* The other half of the loop: these dates feed Tour > Matches. */}
+              <button
+                type="button"
+                className="mb-3 border-0 bg-transparent p-0 text-left text-[12px] text-[#FF3366] underline"
+                onClick={() => window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab: 'tour' } }))}
+              >
+                {t('calendar.seeMatches')} →
+              </button>
               <div className="calendar-inline-wrapper">
                 <div className="calendar-header-inline">
                   <button className="calendar-nav-btn" onClick={goToPreviousMonth}>

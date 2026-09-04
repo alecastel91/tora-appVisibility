@@ -28,11 +28,11 @@ export const BETA_TASKS_EN = {
  },
  "T07": {
   "title": "Mark your available dates for the next two months.",
-  "hint": "Profile > Manage > Calendar. Tap the dates you are free."
+  "hint": "Profile > Manage > Availability & travel. Tap the dates you are free."
  },
  "T08": {
   "title": "Update your travel schedule.",
-  "hint": "Profile > Manage > Travel Schedule. Add a city and the dates you will be there."
+  "hint": "Profile > Manage > Availability & travel > Travel schedule. Add a city and the dates you will be there."
  },
  "T09": {
   "title": "Change the app language, then change it back to the one you prefer.",
@@ -176,11 +176,11 @@ export const BETA_TASKS_EN = {
  },
  "T07@AGENT": {
   "title": "Mark available dates for one of your artists for the next two months.",
-  "hint": "Profile > Manage > pick your artist > Calendar. Tap the dates they are free."
+  "hint": "Profile > Manage > pick your artist > Availability & travel. Tap the dates they are free."
  },
  "T08@AGENT": {
   "title": "Update the travel schedule of one of your artists.",
-  "hint": "Profile > Manage > pick your artist > Travel Schedule. Add a city and the dates."
+  "hint": "Profile > Manage > pick your artist > Availability & travel > Travel schedule. Add a city and the dates."
  },
  "T51": {
   "title": "Final check: would you run a real booking through TORA next month? Yes or no, and why.",
@@ -350,8 +350,8 @@ export const BETA_TASKS_BY_LANG = {
    T04: { title: '2つ目のプロフィールを作成する。', hint: '上部のプロフィール写真をタップ →「プロフィールを追加」。割り当てられた2つ目のロールを選びます。' },
    T05: { title: 'プロフィールを完成させる: 自己紹介・ジャンル・都市・リンク2つ以上。', hint: 'プロフィール → 編集。' },
    T06: { title: 'プロフィール写真をアップロードする。', hint: 'プロフィール → 編集 → 写真をタップ。' },
-   T07: { title: '今後2か月の空き日程を登録する。', hint: 'プロフィール → 管理 → カレンダー。空いている日をタップします。' },
-   T08: { title: '渡航スケジュールを更新する。', hint: 'プロフィール → 管理 → 渡航スケジュール。都市と滞在日程を追加します。' },
+   T07: { title: '今後2か月の空き日程を登録する。', hint: 'プロフィール → 管理 → 空き日程と渡航。空いている日をタップします。' },
+   T08: { title: '渡航スケジュールを更新する。', hint: 'プロフィール → 管理 → 空き日程と渡航 → 渡航スケジュール。都市と滞在日程を追加します。' },
    T09: { title: 'アプリの言語を切り替えて、また元に戻す。', hint: '設定 → 言語。' },
    T10: { title: 'Instagramアカウントを認証する。', hint: 'プロフィールの未認証バナーをタップし、コードをコピーして @tora.verify にDMで送ります。' },
    T11: { title: 'Searchのグローブを開き、都市をタップしてその街のメンバーを見る。', hint: 'Searchタブのグローブ表示。ピンはメンバーがいる都市です。タップするとその街が開きます。リスト表示の都市フィルターでも構いません。' },
@@ -387,8 +387,8 @@ export const BETA_TASKS_BY_LANG = {
    T43: { title: '通知をオンにして、1件届くことを確認する。', hint: 'ログイン後に表示されるカード、または設定 → 通知。iPhoneは先にホーム画面への追加が必要です（タスクT01）。' },
    T45: { title: 'テストカード 4242 4242 4242 4242（期限・CVCは任意）でPremiumにアップグレードする。', hint: '設定 → Premium、または上限に達したときに表示される案内から。' },
    T46: { title: 'サブスクリプションを解約し、アクセス終了日について何と表示されるか確認する。', hint: '設定 → サブスクリプション管理 → 解約。' },
-   'T07@AGENT': { title: '担当アーティストの今後2か月の空き日程を登録する。', hint: 'プロフィール > Manage > アーティストを選択 > カレンダー。' },
-   'T08@AGENT': { title: '担当アーティストの渡航スケジュールを更新する。', hint: 'プロフィール > Manage > アーティストを選択 > 渡航スケジュール。' },
+   'T07@AGENT': { title: '担当アーティストの今後2か月の空き日程を登録する。', hint: 'プロフィール → 管理 → アーティストを選択 → 空き日程と渡航。空いている日をタップします。' },
+   'T08@AGENT': { title: '担当アーティストの渡航スケジュールを更新する。', hint: 'プロフィール → 管理 → アーティストを選択 → 空き日程と渡航 → 渡航スケジュール。都市と日程を追加します。' },
    T51: { title: '最終確認: 来月、実際のブッキングをTORAで行いますか？はい/いいえと、その理由。', hint: '「回答する」をタップ。一文で十分です。' },
   },
   it: {
@@ -398,8 +398,8 @@ export const BETA_TASKS_BY_LANG = {
     T04: { title: 'Crea il tuo secondo profilo.', hint: 'Tocca la tua foto profilo in alto, poi "Aggiungi profilo". Scegli il secondo ruolo che ti è stato assegnato.' },
     T05: { title: 'Completa il profilo: bio, generi, città e almeno due link.', hint: 'Profilo, poi Modifica.' },
     T06: { title: 'Carica una foto profilo.', hint: 'Profilo, Modifica, tocca la foto.' },
-    T07: { title: 'Segna le tue date disponibili per i prossimi due mesi.', hint: 'Profilo > Gestisci > Calendario. Tocca i giorni in cui sei libero.' },
-    T08: { title: 'Aggiorna il tuo programma di viaggio.', hint: 'Profilo > Gestisci > Programma di viaggio. Aggiungi una città e le date in cui ci sarai.' },
+    T07: { title: 'Segna le tue date disponibili per i prossimi due mesi.', hint: 'Profilo > Gestisci > Disponibilità e viaggi. Tocca i giorni in cui sei libero.' },
+    T08: { title: 'Aggiorna il tuo programma di viaggio.', hint: 'Profilo > Gestisci > Disponibilità e viaggi > Programma di viaggio. Aggiungi una città e le date in cui ci sarai.' },
     T09: { title: 'Cambia la lingua dell\'app, poi rimetti quella che preferisci.', hint: 'Impostazioni > Lingua.' },
     T10: { title: 'Verifica il tuo account Instagram.', hint: 'Profilo, tocca il banner "non verificato", copia il codice e invialo in DM a @tora.verify.' },
     T11: { title: 'Apri il globo in Search e tocca una città per vedere chi c\'è.', hint: 'Tab Search, vista Globo. I pin mostrano dove sono i membri: toccane uno per aprire quella città. Funziona anche il filtro città nella vista elenco.' },
@@ -435,8 +435,8 @@ export const BETA_TASKS_BY_LANG = {
     T43: { title: 'Attiva le notifiche, poi verifica che una ti arrivi.', hint: 'La scheda che compare dopo il login, oppure Impostazioni > Notifiche. Su iPhone devi prima aggiungere TORA alla schermata Home (attività T01).' },
     T45: { title: 'Passa a Premium con la carta di test 4242 4242 4242 4242, scadenza futura qualsiasi, CVC qualsiasi.', hint: 'Impostazioni > Premium, oppure l\'avviso che compare quando raggiungi un limite.' },
     T46: { title: 'Annulla l\'abbonamento, poi controlla cosa dice l\'app sulla data di fine accesso.', hint: 'Impostazioni > Gestisci abbonamento > Annulla.' },
-    'T07@AGENT': { title: 'Segna le date disponibili di uno dei tuoi artisti per i prossimi due mesi.', hint: 'Profilo > Gestisci > scegli l\'artista > Calendario. Tocca i giorni in cui è libero.' },
-    'T08@AGENT': { title: 'Aggiorna il programma di viaggio di uno dei tuoi artisti.', hint: 'Profilo > Gestisci > scegli l\'artista > Programma di viaggio. Aggiungi una città e le date.' },
+    'T07@AGENT': { title: 'Segna le date disponibili di uno dei tuoi artisti per i prossimi due mesi.', hint: 'Profilo > Gestisci > scegli l\'artista > Disponibilità e viaggi. Tocca i giorni in cui è libero.' },
+    'T08@AGENT': { title: 'Aggiorna il programma di viaggio di uno dei tuoi artisti.', hint: 'Profilo > Gestisci > scegli l\'artista > Disponibilità e viaggi > Programma di viaggio. Aggiungi una città e le date.' },
     T51: { title: 'Verifica finale: il mese prossimo gestiresti una prenotazione vera su TORA? Sì o no, e perché.', hint: 'Tocca Rispondi. Basta una frase.' },
   },
   es: {
@@ -446,8 +446,8 @@ export const BETA_TASKS_BY_LANG = {
     T04: { title: 'Crea tu segundo perfil.', hint: 'Toca tu foto de perfil arriba y luego "Añadir perfil". Elige el segundo rol que te asignaron.' },
     T05: { title: 'Completa tu perfil: bio, géneros, ciudad y al menos dos enlaces.', hint: 'Perfil, luego Editar.' },
     T06: { title: 'Sube una foto de perfil.', hint: 'Perfil, Editar, toca la foto.' },
-    T07: { title: 'Marca tus fechas disponibles para los próximos dos meses.', hint: 'Perfil > Gestionar > Calendario. Toca los días en que estás libre.' },
-    T08: { title: 'Actualiza tu calendario de viajes.', hint: 'Perfil > Gestionar > Calendario de viajes. Añade una ciudad y las fechas en que estarás allí.' },
+    T07: { title: 'Marca tus fechas disponibles para los próximos dos meses.', hint: 'Perfil > Gestionar > Disponibilidad y viajes. Toca los días en que estás libre.' },
+    T08: { title: 'Actualiza tu calendario de viajes.', hint: 'Perfil > Gestionar > Disponibilidad y viajes > Calendario de viajes. Añade una ciudad y las fechas en que estarás allí.' },
     T09: { title: 'Cambia el idioma de la app y vuelve al que prefieras.', hint: 'Ajustes > Idioma.' },
     T10: { title: 'Verifica tu cuenta de Instagram.', hint: 'Perfil, toca el aviso "sin verificar", copia el código y envíalo por DM a @tora.verify.' },
     T11: { title: 'Abre el globo en Search y toca una ciudad para ver quién está allí.', hint: 'Pestaña Search, vista Globo. Los pines muestran dónde hay miembros: toca uno para abrir esa ciudad. El filtro de ciudad en la vista de lista también sirve.' },
@@ -483,8 +483,8 @@ export const BETA_TASKS_BY_LANG = {
     T43: { title: 'Activa las notificaciones y confirma que te llega una.', hint: 'La tarjeta que aparece tras iniciar sesión, o Ajustes > Notificaciones. En iPhone primero debes añadir TORA a la pantalla de inicio (tarea T01).' },
     T45: { title: 'Pásate a Premium con la tarjeta de prueba 4242 4242 4242 4242, cualquier caducidad futura y cualquier CVC.', hint: 'Ajustes > Premium, o el aviso que aparece al llegar a un límite.' },
     T46: { title: 'Cancela tu suscripción y comprueba qué te dice la app sobre la fecha en que termina tu acceso.', hint: 'Ajustes > Gestionar suscripción > Cancelar.' },
-    'T07@AGENT': { title: 'Marca las fechas disponibles de uno de tus artistas para los próximos dos meses.', hint: 'Perfil > Gestionar > elige tu artista > Calendario. Toca los días en que está libre.' },
-    'T08@AGENT': { title: 'Actualiza el calendario de viajes de uno de tus artistas.', hint: 'Perfil > Gestionar > elige tu artista > Calendario de viajes. Añade una ciudad y las fechas.' },
+    'T07@AGENT': { title: 'Marca las fechas disponibles de uno de tus artistas para los próximos dos meses.', hint: 'Perfil > Gestionar > elige tu artista > Disponibilidad y viajes. Toca los días en que está libre.' },
+    'T08@AGENT': { title: 'Actualiza el calendario de viajes de uno de tus artistas.', hint: 'Perfil > Gestionar > elige tu artista > Disponibilidad y viajes > Calendario de viajes. Añade una ciudad y las fechas.' },
     T51: { title: 'Pregunta final: ¿harías una reserva real a través de TORA el mes que viene? Sí o no, y por qué.', hint: 'Toca Responder. Con una frase basta.' },
   },
   fr: {
@@ -494,8 +494,8 @@ export const BETA_TASKS_BY_LANG = {
     T04: { title: 'Crée ton second profil.', hint: 'Touche ta photo de profil en haut, puis « Ajouter un profil ». Choisis le second rôle qui t\'a été attribué.' },
     T05: { title: 'Complète ton profil : bio, genres, ville et au moins deux liens.', hint: 'Profil, puis Modifier.' },
     T06: { title: 'Ajoute une photo de profil.', hint: 'Profil, Modifier, touche la photo.' },
-    T07: { title: 'Indique tes dates disponibles pour les deux prochains mois.', hint: 'Profil > Gérer > Calendrier. Touche les jours où tu es libre.' },
-    T08: { title: 'Mets à jour ton planning de déplacements.', hint: 'Profil > Gérer > Planning de déplacements. Ajoute une ville et les dates où tu y seras.' },
+    T07: { title: 'Indique tes dates disponibles pour les deux prochains mois.', hint: 'Profil > Gérer > Disponibilités et déplacements. Touche les jours où tu es libre.' },
+    T08: { title: 'Mets à jour ton planning de déplacements.', hint: 'Profil > Gérer > Disponibilités et déplacements > Planning de déplacements. Ajoute une ville et les dates où tu y seras.' },
     T09: { title: 'Change la langue de l\'app, puis remets celle que tu préfères.', hint: 'Réglages > Langue.' },
     T10: { title: 'Vérifie ton compte Instagram.', hint: 'Profil, touche le bandeau « non vérifié », copie le code et envoie-le en DM à @tora.verify.' },
     T11: { title: 'Ouvre le globe dans Search et touche une ville pour voir qui s\'y trouve.', hint: 'Onglet Search, vue Globe. Les épingles montrent où sont les membres : touche-en une pour ouvrir la ville. Le filtre par ville de la vue liste marche aussi.' },
@@ -531,8 +531,8 @@ export const BETA_TASKS_BY_LANG = {
     T43: { title: 'Active les notifications, puis vérifie qu\'une te parvient.', hint: 'La carte qui apparaît après la connexion, ou Réglages > Notifications. Sur iPhone, il faut d\'abord ajouter TORA à l\'écran d\'accueil (tâche T01).' },
     T45: { title: 'Passe à Premium avec la carte de test 4242 4242 4242 4242, n\'importe quelle date future, n\'importe quel CVC.', hint: 'Réglages > Premium, ou l\'invite qui apparaît quand tu atteins une limite.' },
     T46: { title: 'Annule ton abonnement, puis vérifie ce que l\'app t\'indique sur la date de fin d\'accès.', hint: 'Réglages > Gérer l\'abonnement > Annuler.' },
-    'T07@AGENT': { title: 'Indique les dates disponibles d\'un de tes artistes pour les deux prochains mois.', hint: 'Profil > Gérer > choisis ton artiste > Calendrier. Touche les jours où il est libre.' },
-    'T08@AGENT': { title: 'Mets à jour le planning de déplacements d\'un de tes artistes.', hint: 'Profil > Gérer > choisis ton artiste > Planning de déplacements. Ajoute une ville et les dates.' },
+    'T07@AGENT': { title: 'Indique les dates disponibles d\'un de tes artistes pour les deux prochains mois.', hint: 'Profil > Gérer > choisis ton artiste > Disponibilités et déplacements. Touche les jours où il est libre.' },
+    'T08@AGENT': { title: 'Mets à jour le planning de déplacements d\'un de tes artistes.', hint: 'Profil > Gérer > choisis ton artiste > Disponibilités et déplacements > Planning de déplacements. Ajoute une ville et les dates.' },
     T51: { title: 'Dernière question : ferais-tu une vraie réservation via TORA le mois prochain ? Oui ou non, et pourquoi.', hint: 'Touche Répondre. Une phrase suffit.' },
   },
   pt: {
@@ -542,8 +542,8 @@ export const BETA_TASKS_BY_LANG = {
     T04: { title: 'Cria o teu segundo perfil.', hint: 'Toca na tua foto de perfil no topo e depois em "Adicionar perfil". Escolhe o segundo papel que te foi atribuído.' },
     T05: { title: 'Completa o teu perfil: bio, géneros, cidade e pelo menos dois links.', hint: 'Perfil, depois Editar.' },
     T06: { title: 'Carrega uma foto de perfil.', hint: 'Perfil, Editar, toca na foto.' },
-    T07: { title: 'Marca as tuas datas disponíveis para os próximos dois meses.', hint: 'Perfil > Gerir > Calendário. Toca nos dias em que estás livre.' },
-    T08: { title: 'Atualiza o teu calendário de viagens.', hint: 'Perfil > Gerir > Calendário de viagens. Adiciona uma cidade e as datas em que lá estarás.' },
+    T07: { title: 'Marca as tuas datas disponíveis para os próximos dois meses.', hint: 'Perfil > Gerir > Disponibilidade e viagens. Toca nos dias em que estás livre.' },
+    T08: { title: 'Atualiza o teu calendário de viagens.', hint: 'Perfil > Gerir > Disponibilidade e viagens > Calendário de viagens. Adiciona uma cidade e as datas em que lá estarás.' },
     T09: { title: 'Muda o idioma da app e depois volta ao que preferes.', hint: 'Definições > Idioma.' },
     T10: { title: 'Verifica a tua conta de Instagram.', hint: 'Perfil, toca no aviso "não verificado", copia o código e envia-o por DM para @tora.verify.' },
     T11: { title: 'Abre o globo em Search e toca numa cidade para ver quem lá está.', hint: 'Separador Search, vista Globo. Os pinos mostram onde há membros: toca num para abrir essa cidade. O filtro de cidade na vista de lista também funciona.' },
@@ -579,8 +579,8 @@ export const BETA_TASKS_BY_LANG = {
     T43: { title: 'Ativa as notificações e confirma que recebes uma.', hint: 'O cartão que aparece depois de entrares, ou Definições > Notificações. No iPhone tens primeiro de adicionar o TORA ao ecrã inicial (tarefa T01).' },
     T45: { title: 'Passa a Premium com o cartão de teste 4242 4242 4242 4242, qualquer validade futura, qualquer CVC.', hint: 'Definições > Premium, ou o aviso que aparece quando atinges um limite.' },
     T46: { title: 'Cancela a tua subscrição e vê o que a app te diz sobre a data em que o acesso termina.', hint: 'Definições > Gerir subscrição > Cancelar.' },
-    'T07@AGENT': { title: 'Marca as datas disponíveis de um dos teus artistas para os próximos dois meses.', hint: 'Perfil > Gerir > escolhe o artista > Calendário. Toca nos dias em que está livre.' },
-    'T08@AGENT': { title: 'Atualiza o calendário de viagens de um dos teus artistas.', hint: 'Perfil > Gerir > escolhe o artista > Calendário de viagens. Adiciona uma cidade e as datas.' },
+    'T07@AGENT': { title: 'Marca as datas disponíveis de um dos teus artistas para os próximos dois meses.', hint: 'Perfil > Gerir > escolhe o artista > Disponibilidade e viagens. Toca nos dias em que está livre.' },
+    'T08@AGENT': { title: 'Atualiza o calendário de viagens de um dos teus artistas.', hint: 'Perfil > Gerir > escolhe o artista > Disponibilidade e viagens > Calendário de viagens. Adiciona uma cidade e as datas.' },
     T51: { title: 'Pergunta final: farias uma reserva real através do TORA no próximo mês? Sim ou não, e porquê.', hint: 'Toca em Responder. Uma frase chega.' },
   },
   zh: {
@@ -590,8 +590,8 @@ export const BETA_TASKS_BY_LANG = {
     T04: { title: '创建你的第二个档案。', hint: '点顶部的头像，再点"添加档案"。选择分配给你的第二个角色。' },
     T05: { title: '完善档案：简介、曲风、城市，以及至少两个链接。', hint: '档案 → 编辑。' },
     T06: { title: '上传一张头像。', hint: '档案 → 编辑 → 点头像。' },
-    T07: { title: '标记未来两个月的空档日期。', hint: '档案 > 管理 > 日历。点选你有空的日期。' },
-    T08: { title: '更新你的行程安排。', hint: '档案 > 管理 > 行程安排。添加城市和你在那里的日期。' },
+    T07: { title: '标记未来两个月的空档日期。', hint: '档案 > 管理 > 档期与行程。点选你有空的日期。' },
+    T08: { title: '更新你的行程安排。', hint: '档案 > 管理 > 档期与行程 > 行程安排。添加城市和你在那里的日期。' },
     T09: { title: '切换应用语言，再切回你习惯的语言。', hint: '设置 > 语言。' },
     T10: { title: '验证你的 Instagram 账号。', hint: '档案页点"未验证"横幅，复制验证码，私信发给 @tora.verify。' },
     T11: { title: '在 Search 打开地球视图，点一个城市看看谁在那里。', hint: 'Search 标签页，地球视图。图钉表示成员所在城市，点一下即可打开。列表视图里的城市筛选也可以。' },
@@ -627,8 +627,8 @@ export const BETA_TASKS_BY_LANG = {
     T43: { title: '开启通知，并确认能收到一条。', hint: '登录后出现的卡片，或设置 > 通知。iPhone 需要先把 TORA 添加到主屏幕（任务 T01）。' },
     T45: { title: '用测试卡 4242 4242 4242 4242 升级到 Premium，有效期任意未来日期，CVC 任意。', hint: '设置 > Premium，或达到上限时出现的提示。' },
     T46: { title: '取消订阅，然后看看应用对访问截止日期的说明。', hint: '设置 > 管理订阅 > 取消。' },
-    'T07@AGENT': { title: '为你的一位艺人标记未来两个月的空档日期。', hint: '档案 > 管理 > 选择艺人 > 日历。点选对方有空的日期。' },
-    'T08@AGENT': { title: '更新你的一位艺人的行程安排。', hint: '档案 > 管理 > 选择艺人 > 行程安排。添加城市和日期。' },
+    'T07@AGENT': { title: '为你的一位艺人标记未来两个月的空档日期。', hint: '档案 > 管理 > 选择艺人 > 档期与行程。点选对方有空的日期。' },
+    'T08@AGENT': { title: '更新你的一位艺人的行程安排。', hint: '档案 > 管理 > 选择艺人 > 档期与行程 > 行程安排。添加城市和日期。' },
     T51: { title: '最后一问：下个月你会用 TORA 做一次真实的预订吗？是或否，以及原因。', hint: '点"回答"。一句话就够。' },
   },
   ko: {
@@ -638,8 +638,8 @@ export const BETA_TASKS_BY_LANG = {
     T04: { title: '두 번째 프로필을 만드세요.', hint: '상단의 프로필 사진을 누르고 "프로필 추가". 배정받은 두 번째 역할을 선택하세요.' },
     T05: { title: '프로필을 완성하세요: 소개, 장르, 도시, 링크 2개 이상.', hint: '프로필 → 편집.' },
     T06: { title: '프로필 사진을 올리세요.', hint: '프로필 → 편집 → 사진을 누르세요.' },
-    T07: { title: '앞으로 두 달간 가능한 날짜를 표시하세요.', hint: '프로필 > 관리 > 캘린더. 비어 있는 날짜를 누르세요.' },
-    T08: { title: '이동 일정을 업데이트하세요.', hint: '프로필 > 관리 > 이동 일정. 도시와 머무는 날짜를 추가하세요.' },
+    T07: { title: '앞으로 두 달간 가능한 날짜를 표시하세요.', hint: '프로필 > 관리 > 가능 일정·이동. 비어 있는 날짜를 누르세요.' },
+    T08: { title: '이동 일정을 업데이트하세요.', hint: '프로필 > 관리 > 가능 일정·이동 > 이동 일정. 도시와 머무는 날짜를 추가하세요.' },
     T09: { title: '앱 언어를 바꿨다가 원래 언어로 되돌리세요.', hint: '설정 > 언어.' },
     T10: { title: 'Instagram 계정을 인증하세요.', hint: '프로필의 "미인증" 배너를 누르고 코드를 복사해 @tora.verify에 DM으로 보내세요.' },
     T11: { title: 'Search에서 지구본을 열고 도시를 눌러 누가 있는지 보세요.', hint: 'Search 탭, 지구본 보기. 핀은 멤버가 있는 도시입니다. 하나를 누르면 그 도시가 열립니다. 목록 보기의 도시 필터도 됩니다.' },
@@ -675,8 +675,8 @@ export const BETA_TASKS_BY_LANG = {
     T43: { title: '알림을 켜고 하나가 도착하는지 확인하세요.', hint: '로그인 후 나타나는 카드, 또는 설정 > 알림. iPhone은 먼저 TORA를 홈 화면에 추가해야 합니다(과제 T01).' },
     T45: { title: '테스트 카드 4242 4242 4242 4242(만료일·CVC는 아무거나)로 Premium으로 업그레이드하세요.', hint: '설정 > Premium, 또는 한도에 도달했을 때 나오는 안내.' },
     T46: { title: '구독을 취소한 뒤, 이용 종료일에 대해 앱이 뭐라고 알려주는지 확인하세요.', hint: '설정 > 구독 관리 > 취소.' },
-    'T07@AGENT': { title: '소속 아티스트 한 명의 앞으로 두 달간 가능한 날짜를 표시하세요.', hint: '프로필 > 관리 > 아티스트 선택 > 캘린더. 비어 있는 날짜를 누르세요.' },
-    'T08@AGENT': { title: '소속 아티스트 한 명의 이동 일정을 업데이트하세요.', hint: '프로필 > 관리 > 아티스트 선택 > 이동 일정. 도시와 날짜를 추가하세요.' },
+    'T07@AGENT': { title: '소속 아티스트 한 명의 앞으로 두 달간 가능한 날짜를 표시하세요.', hint: '프로필 > 관리 > 아티스트 선택 > 가능 일정·이동. 비어 있는 날짜를 누르세요.' },
+    'T08@AGENT': { title: '소속 아티스트 한 명의 이동 일정을 업데이트하세요.', hint: '프로필 > 관리 > 아티스트 선택 > 가능 일정·이동 > 이동 일정. 도시와 날짜를 추가하세요.' },
     T51: { title: '마지막 질문: 다음 달에 TORA로 실제 예약을 진행하시겠어요? 예/아니오와 그 이유.', hint: '"답하기"를 누르세요. 한 문장이면 충분합니다.' },
   },
 };

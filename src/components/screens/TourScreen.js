@@ -657,6 +657,22 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             </p>
             <FilterButton count={matchFilterCount} onClick={() => setShowMatchFilters(true)} label={t('search.filters')} />
           </div>
+          {/* Bridge to the data these matches come from (Profile > Manage >
+              Availability & travel) — otherwise "I filled in my calendar and
+              nothing happened". Same route the onboarding checklist uses. */}
+          <p className="m-0 mb-4 text-left text-[11.5px] text-white/35 leading-relaxed">
+            {t('tour.matchesSource')}{' '}
+            <button
+              type="button"
+              className="border-0 bg-transparent p-0 text-[11.5px] text-white/60 underline"
+              onClick={() => {
+                window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab: 'profile' } }));
+                setTimeout(() => window.dispatchEvent(new CustomEvent('tora:open-manage-calendar')), 200);
+              }}
+            >
+              {t('tour.editAvailability')}
+            </button>
+          </p>
 
           <div className="feature-preview">
             {/* Agent-only: filter matches to one represented artist (own row). */}
