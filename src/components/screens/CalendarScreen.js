@@ -8,22 +8,30 @@ import apiService from '../../services/api';
 import { appAlert } from '../../utils/dialogs';
 import { isYearlyViewer } from '../../utils/subscription';
 
-const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
+/**
+ * Own availability + travel schedule. With `targetProfile` (an agent editing a
+ * represented artist from Tour > Calendar) every read and write goes to that
+ * profile instead of the active one, and updates flow back through
+ * `onTargetUpdated` rather than the app context.
+ */
+const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, targetProfile = null, onTargetUpdated = null }) => {
   const { t } = useLanguage();
   const { user, updateUser } = useAppContext();
+  const profile = targetProfile || user;
+  const applyUpdate = (p) => (targetProfile ? onTargetUpdated && onTargetUpdated(p) : updateUser(p));
   // Calendar privacy: tightening to CONNECTED_ONLY is the Yearly perk;
   // relaxing back to EVERYONE stays available at any tier so a lapsed
   // subscriber is never trapped with a hidden calendar (backend agrees).
-  const canEditVisibility = isYearlyViewer(user);
+  const canEditVisibility = isYearlyViewer(profile);
   const canSelectVisibility = (value) => value === 'EVERYONE' || canEditVisibility;
   const [visibilitySaving, setVisibilitySaving] = useState(false);
   const handleVisibilityChange = async (value) => {
     if (!canSelectVisibility(value) || visibilitySaving) return;
-    if ((user?.calendarVisibility || 'EVERYONE') === value) return;
+    if ((profile?.calendarVisibility || 'EVERYONE') === value) return;
     setVisibilitySaving(true);
     try {
-      const updatedProfile = await apiService.updateProfile(user.id, { calendarVisibility: value });
-      updateUser(updatedProfile);
+      const updatedProfile = await apiService.updateProfile(profile.id, { calendarVisibility: value });
+      applyUpdate(updatedProfile);
     } catch (error) {
       console.error('Failed to update calendar visibility:', error);
       appAlert(t('calendar.visibilitySaveFailed'));
@@ -31,17 +39,17 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
       setVisibilitySaving(false);
     }
   };
-  const [selectedDates, setSelectedDates] = useState(new Set(user?.availableDates || []));
+  const [selectedDates, setSelectedDates] = useState(new Set(profile?.availableDates || []));
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [schedules, setSchedules] = useState(user?.travelSchedule || []);
+  const [schedules, setSchedules] = useState(profile?.travelSchedule || []);
   // Embedded in the keep-mounted Tour tab, this screen outlives a profile
   // switch: reseed from the new profile or a tap would write the previous
   // profile's date set onto it.
   React.useEffect(() => {
-    setSelectedDates(new Set(user?.availableDates || []));
-    setSchedules(user?.travelSchedule || []);
+    setSelectedDates(new Set(profile?.availableDates || []));
+    setSchedules(profile?.travelSchedule || []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [profile?.id]);
   const [editingScheduleId, setEditingScheduleId] = useState(null);
 
   // Delete confirmation state
@@ -51,19 +59,19 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
   // Upcoming events state for Promoters/Venues
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [expandedDealId, setExpandedDealId] = useState(null);
-  const isPromoterOrVenue = user?.role === 'PROMOTER' || user?.role === 'VENUE';
+  const isPromoterOrVenue = profile?.role === 'PROMOTER' || profile?.role === 'VENUE';
 
   // Drag selection state
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState(null);
   const [dragMode, setDragMode] = useState(null); // 'select' or 'deselect'
-  const [hasDragged, setHasDragged] = useState(false); // Track if user actually dragged
+  const [hasDragged, setHasDragged] = useState(false); // Track if profile actually dragged
 
 // Refresh travel schedule and available dates from backend when calendar opens
   React.useEffect(() => {
     const refreshCalendarData = async () => {
       try {
-        const profileId = user?.id;
+        const profileId = profile?.id;
         if (!profileId) return;
 
         console.log('[CalendarScreen] Refreshing calendar data from backend...');
@@ -76,8 +84,8 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
         setSelectedDates(new Set(freshProfile.availableDates || []));
 
         // Also update context to keep it in sync
-        updateUser({
-          ...user,
+        applyUpdate({
+          ...profile,
           travelSchedule: freshProfile.travelSchedule || [],
           availableDates: freshProfile.availableDates || []
         });
@@ -93,18 +101,18 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
 
   // Update schedules when user changes (to keep in sync with context)
   React.useEffect(() => {
-    if (user?.travelSchedule) {
-      setSchedules(user.travelSchedule);
+    if (profile?.travelSchedule) {
+      setSchedules(profile.travelSchedule);
     }
-  }, [user?.travelSchedule]);
+  }, [profile?.travelSchedule]);
 
   // Fetch upcoming events (all roles — counterparty differs per side)
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
-      if (!user?.id) return;
+      if (!profile?.id) return;
 
       try {
-        const response = await apiService.getDeals({ profileId: user.id });
+        const response = await apiService.getDeals({ profileId: profile.id });
 
         if (response && response.deals) {
           // Filter for upcoming events (future dates with active statuses)
@@ -130,7 +138,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
     };
 
     fetchUpcomingEvents();
-  }, [user?.id]);
+  }, [profile?.id]);
 
   // NOTE: We refresh both availableDates and travelSchedule from backend on mount
   // This ensures we have the latest data when switching between CalendarScreen and ManageArtistScreen
@@ -195,13 +203,13 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
 
   const handleClose = () => {
     console.log('[CalendarScreen] Closing with schedules:', schedules);
-    console.log('[CalendarScreen] User object:', user);
+    console.log('[CalendarScreen] User object:', profile);
 
     // Get profile ID - try multiple possible fields
-    const profileId = user?.id;
+    const profileId = profile?.id;
 
     if (!profileId) {
-      console.error('[CalendarScreen] Cannot save - Profile ID is missing. User object:', user);
+      console.error('[CalendarScreen] Cannot save - Profile ID is missing. User object:', profile);
       // Still close the screen even if we can't save
       onClose();
       return;
@@ -211,13 +219,13 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
 
     // Update context immediately with current state before closing
     const updatedUserData = {
-      ...user,
+      ...profile,
       availableDates: Array.from(selectedDates),
       travelSchedule: schedules
     };
 
     console.log('[CalendarScreen] Updating context with:', updatedUserData);
-    updateUser(updatedUserData);
+    applyUpdate(updatedUserData);
 
     // Close immediately
     onClose();
@@ -247,10 +255,10 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
   // Save dates to backend
   const saveDatesToBackend = async (dates) => {
     try {
-      const profileId = user?.id;
+      const profileId = profile?.id;
 
       if (!profileId) {
-        console.error('[CalendarScreen] Cannot save available dates - Profile ID is missing, user:', user);
+        console.error('[CalendarScreen] Cannot save available dates - Profile ID is missing, profile:', profile);
         return;
       }
 
@@ -258,10 +266,10 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
 
       // Update context immediately
       const updatedUserData = {
-        ...user,
+        ...profile,
         availableDates: Array.from(dates)
       };
-      updateUser(updatedUserData);
+      applyUpdate(updatedUserData);
       console.log('[CalendarScreen] Context updated');
 
       // Save to backend using apiService (same as handleClose does at line 175)
@@ -431,7 +439,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
       setSchedules(updatedSchedules);
 
       try {
-        const profileId = user.id || user.id;
+        const profileId = profile.id || profile.id;
 
         if (!profileId) {
           console.error('Profile ID is missing');
@@ -440,12 +448,12 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
 
         // Save to backend
         const updatedProfile = await apiService.updateProfile(profileId, {
-          ...user,
+          ...profile,
           travelSchedule: updatedSchedules
         });
 
         // Update context with backend response
-        updateUser(updatedProfile);
+        applyUpdate(updatedProfile);
 
         setShowLocationModal(false);
         setEditingScheduleId(null);
@@ -505,7 +513,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
     });
 
     try {
-      const profileId = user.id;
+      const profileId = profile.id;
 
       if (!profileId) {
         console.error('Profile ID is missing');
@@ -516,13 +524,13 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
 
       // Save to backend
       const updatedProfile = await apiService.updateProfile(profileId, {
-        ...user,
+        ...profile,
         travelSchedule: updatedSchedules
       });
 
       // Update local state
       setSchedules(updatedSchedules);
-      updateUser(updatedProfile);
+      applyUpdate(updatedProfile);
 
       // Close confirmation dialog
       setShowDeleteConfirmation(false);
@@ -767,13 +775,13 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
       <div className="calendar-content" style={embedded ? { padding: '0' } : {}}>
         {/* Calendar privacy — who sees availability + travel schedule.
             Restricting to connections-only is the Yearly perk; reopening to
-            everyone stays available at any tier (no lapsed-user trap). */}
-        {user?.role === 'ARTIST' && (
+            everyone stays available at any tier (no lapsed-profile trap). */}
+        {profile?.role === 'ARTIST' && (
           <div className="dashboard-section">
             <h3>{t('calendar.visibilityTitle')}</h3>
             <div className="flex gap-2">
               {['EVERYONE', 'CONNECTED_ONLY'].map((value) => {
-                const active = (user?.calendarVisibility || 'EVERYONE') === value;
+                const active = (profile?.calendarVisibility || 'EVERYONE') === value;
                 const selectable = canSelectVisibility(value);
                 return (
                   <button
@@ -1085,7 +1093,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null }) => {
                   {upcomingEvents.map((event) => {
                     const d = new Date(event.date);
                     const parts = [
-                      user?.role === 'AGENT' ? event.artist?.name : null,
+                      profile?.role === 'AGENT' ? event.artist?.name : null,
                       event.venue?.name,
                       event.city,
                     ].filter(Boolean);

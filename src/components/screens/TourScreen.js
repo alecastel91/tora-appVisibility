@@ -68,10 +68,10 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   );
 
   // Tab state
-  // 'mydates' (own availability + travel), 'calendar' (matches), 'kickstart'.
-  // Opens on My dates — your own data comes first, the matches it drives
-  // next. Agents have no own dates, so they open on Matches.
-  const [activeTab, setActiveTab] = useState(user?.role === 'AGENT' ? 'calendar' : 'mydates');
+  // 'mydates' (Calendar: availability + travel, per artist for agents),
+  // 'calendar' (Matches), 'kickstart'. Opens on Calendar — your data first,
+  // the matches it drives next.
+  const [activeTab, setActiveTab] = useState('mydates');
   // Deep-links: ViewProfile's tour block asks for Kickstart; the onboarding
   // checklist and the Matches "Edit" link ask for My dates. The sessionStorage
   // flags cover the case where TourScreen wasn't mounted yet when the event
@@ -94,8 +94,62 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   // My dates: own availability + travel schedule (moved here from Profile >
   // Manage so the data and the matches it drives live under one tab). Free
   // tier sees it as a blurred teaser that opens Premium, exactly as before.
+  // Agents edit the calendar of one represented artist at a time — the
+  // selector above the calendar picks which. Same screen for every role.
+  const isAgent = user?.role === 'AGENT';
+  const roster = isAgent ? (Array.isArray(user?.representingArtists) ? user.representingArtists : []) : [];
+  const [calendarArtist, setCalendarArtist] = useState(null); // { id, name, ...fresh profile }
+  useEffect(() => {
+    if (!isAgent) return;
+    const first = roster[0];
+    if (first && !roster.some((a) => (a.profileId || a.id) === calendarArtist?.id)) {
+      setCalendarArtist({ id: first.profileId || first.id, name: first.name, role: 'ARTIST' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAgent, roster.map((a) => a.profileId || a.id).join(',')]);
   const renderMyDates = () => {
-    const pane = <CalendarScreen embedded={true} onSeeMatches={() => setActiveTab('calendar')} />;
+    let pane;
+    if (isAgent && !roster.length) {
+      pane = (
+        <p className="m-0 py-8 text-center text-sm text-white/45">
+          {t('tour.calendarNoArtists')}{' '}
+          <button type="button" className="border-0 bg-transparent p-0 text-sm text-white/70 underline"
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab: 'profile' } }));
+              setTimeout(() => window.dispatchEvent(new CustomEvent('tora:open-roster')), 200);
+            }}>
+            {t('tour.calendarAddArtists')}
+          </button>
+        </p>
+      );
+    } else if (isAgent) {
+      pane = (
+        <>
+          <div className="mb-4 flex flex-wrap gap-1.5">
+            {roster.map((a) => {
+              const id = a.profileId || a.id; const on = calendarArtist?.id === id;
+              return (
+                <button key={id} type="button" onClick={() => setCalendarArtist({ id, name: a.name, role: 'ARTIST' })}
+                  className={`rounded-full border px-3 py-1.5 text-[12px] ${on ? 'border-infrared bg-infrared/20 text-white' : 'border-white/15 text-white/60'}`}>
+                  {a.name}
+                </button>
+              );
+            })}
+          </div>
+          {calendarArtist && (
+            <CalendarScreen
+              key={calendarArtist.id}
+              embedded={true}
+              targetProfile={calendarArtist}
+              onTargetUpdated={(p) => setCalendarArtist((cur) => ({ ...cur, ...p, id: cur.id }))}
+              onSeeMatches={() => setActiveTab('calendar')}
+            />
+          )}
+        </>
+      );
+    } else {
+      pane = <CalendarScreen embedded={true} onSeeMatches={() => setActiveTab('calendar')} />;
+    }
     return (
       <div className="tour-kickstart-content">
         {isPremiumViewer(user)
@@ -104,9 +158,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       </div>
     );
   };
-  // Agents' matches are driven by their represented artists' dates, edited
-  // per artist from Profile > Manage — an agent has no "My dates".
-  const isAgent = user?.role === 'AGENT';
 
   // Calendar Matches state
   const [viewingProfile, setViewingProfile] = useState(null);
@@ -689,12 +740,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             <button
               type="button"
               className="border-0 bg-transparent p-0 text-[11.5px] text-white/60 underline"
-              onClick={() => {
-                if (!isAgent) { closeTourPanes(); setActiveTab('mydates'); return; }
-                // Agents edit dates per artist: Profile > Manage > the artist.
-                window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab: 'profile' } }));
-                setTimeout(() => window.dispatchEvent(new CustomEvent('tora:open-roster')), 200);
-              }}
+              onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
             >
               {t('tour.editAvailability')}
             </button>
@@ -2141,15 +2187,13 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       />
       {/* Sub-tabs */}
       <div className="tour-tabs">
-        {!isAgent && (
-          <button
-            className={`tour-tab ${activeTab === 'mydates' ? 'active' : ''}`}
-            onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
-          >
-            <CalendarIcon />
-            <span>{t('tour.myDates')}</span>
-          </button>
-        )}
+        <button
+          className={`tour-tab ${activeTab === 'mydates' ? 'active' : ''}`}
+          onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
+        >
+          <CalendarIcon />
+          <span>{t('tour.myDates')}</span>
+        </button>
         <button
           className={`tour-tab ${activeTab === 'calendar' ? 'active' : ''}`}
           onClick={() => { closeTourPanes(); setActiveTab('calendar'); }}
@@ -2170,7 +2214,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
           fits without scrolling on normal phones; scrolling stays enabled so
           short viewports can still reach the Upgrade CTA */}
       <div className="tour-tab-content">
-        {activeTab === 'mydates' && (isAgent ? renderCalendarMatches() : renderMyDates())}
+        {activeTab === 'mydates' && renderMyDates()}
         {activeTab === 'calendar' && renderCalendarMatches()}
         {activeTab === 'kickstart' && renderTourKickstart()}
       </div>

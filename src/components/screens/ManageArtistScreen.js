@@ -18,7 +18,7 @@ import { raProfileUrl } from '../../utils/urls';
 const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
   const { user, preferredCurrency, reloadProfileData } = useAppContext();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, events, info, documents
+  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, info, documents (calendar: Tour > Calendar > artist)
   const [artistProfile, setArtistProfile] = useState(artist); // Store full artist profile
   const [selectedDates, setSelectedDates] = useState(new Set(artist?.availableDates || []));
   const [travelSchedule, setTravelSchedule] = useState(artist.travelSchedule || []);
@@ -2204,12 +2204,6 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
           {t('manageArtist.dashboard')}
         </button>
         <button
-          className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
-          onClick={() => setActiveTab('events')}
-        >
-          {t('manageArtist.calendar')}
-        </button>
-        <button
           className={`tab-button ${activeTab === 'info' ? 'active' : ''}`}
           onClick={() => setActiveTab('info')}
         >
@@ -2232,7 +2226,6 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
                      [mask-image:radial-gradient(70%_100%_at_50%_0%,black,transparent)]"
         />
         {activeTab === 'dashboard' && renderDashboardTab()}
-        {activeTab === 'events' && renderEventsTab()}
         {activeTab === 'info' && renderArtistInfoTab()}
         {activeTab === 'documents' && renderDocumentsTab()}
       </div>
