@@ -918,6 +918,7 @@ const en = {
     tourKickstart: 'Tour Kickstart',
     agentsNotAvailable: 'This feature is available for Artists, Promoters, and Venues',
     calendarMatches: 'Matches',
+    myDates: 'My dates',
     matchesSource: 'Matches come from your available dates and travel schedule.',
     editAvailability: 'Edit',
     connectWith: 'Connect with {{name}}',

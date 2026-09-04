@@ -66,7 +66,7 @@ const OnboardingChecklist = () => {
         ? [{
             key: 'setAvailability',
             done: (user.availableDates || []).length > 0,
-            go: () => goProfileThen('tora:open-manage-calendar'),
+            go: () => { sessionStorage.setItem('tora:tour-mydates-intent', '1'); goTab('tour'); window.dispatchEvent(new CustomEvent('tora:tour-mydates')); },
           }]
         : []),
     {

@@ -918,6 +918,7 @@ const zh = {
     tourKickstart: 'Tour Kickstart',
     agentsNotAvailable: '此功能面向艺人、主办方和场地开放',
     calendarMatches: '匹配',
+    myDates: '我的档期',
     matchesSource: '匹配基于你的空档日期和行程安排。',
     editAvailability: '编辑',
     connectWith: '与{{name}}建立联系',

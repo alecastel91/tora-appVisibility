@@ -918,6 +918,7 @@ const fr = {
     tourKickstart: 'Tour Kickstart',
     agentsNotAvailable: 'Cette fonctionnalité est disponible pour les artistes, promoteurs et salles',
     calendarMatches: 'Correspondances',
+    myDates: 'Mes dates',
     matchesSource: 'Les correspondances viennent de tes dates disponibles et de ton planning de déplacements.',
     editAvailability: 'Modifier',
     connectWith: 'Se connecter avec {{name}}',

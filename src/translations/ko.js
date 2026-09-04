@@ -918,6 +918,7 @@ const ko = {
     tourKickstart: 'Tour Kickstart',
     agentsNotAvailable: '이 기능은 아티스트, 프로모터, 베뉴만 사용할 수 있습니다',
     calendarMatches: '매치',
+    myDates: '내 일정',
     matchesSource: '매치는 내 가능 일정과 이동 일정을 기준으로 만들어집니다.',
     editAvailability: '편집',
     connectWith: '{{name}} 님과 연결',

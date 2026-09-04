@@ -13,6 +13,8 @@ import { CalendarIcon, PlaneIcon, LocationIcon, HandshakeIcon, DollarIcon, Targe
 import { isVerificationGate } from '../../utils/errors';
 import apiService from '../../services/api';
 import LoadingGlobe from '../common/LoadingGlobe';
+import CalendarScreen from './CalendarScreen';
+import LockOverlay from '../common/LockOverlay';
 import { countriesByZone, genresList, zones } from '../../data/profiles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { isPremiumViewer, isYearlyViewer } from '../../utils/subscription';
@@ -66,22 +68,49 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   );
 
   // Tab state
-  const [activeTab, setActiveTab] = useState('calendar');  // 'calendar' or 'kickstart'
-  // Deep-link: ViewProfile's tour block routes here and asks for Kickstart.
-  // The sessionStorage flag covers the case where TourScreen wasn't mounted
-  // yet when the event fired (event listeners only exist after mount).
+  // 'mydates' (own availability + travel), 'calendar' (matches), 'kickstart'
+  const [activeTab, setActiveTab] = useState('calendar');
+  // Deep-links: ViewProfile's tour block asks for Kickstart; the onboarding
+  // checklist and the Matches "Edit" link ask for My dates. The sessionStorage
+  // flags cover the case where TourScreen wasn't mounted yet when the event
+  // fired (event listeners only exist after mount).
   useEffect(() => {
-    if (sessionStorage.getItem('tora:tour-kickstart-intent')) {
-      sessionStorage.removeItem('tora:tour-kickstart-intent');
-      setActiveTab('kickstart');
+    const intents = { 'tora:tour-kickstart-intent': 'kickstart', 'tora:tour-mydates-intent': 'mydates' };
+    for (const [flag, tab] of Object.entries(intents)) {
+      if (sessionStorage.getItem(flag)) { sessionStorage.removeItem(flag); setActiveTab(tab); }
     }
-    const openKickstart = () => {
-      sessionStorage.removeItem('tora:tour-kickstart-intent');
-      setActiveTab('kickstart');
-    };
+    const openKickstart = () => { sessionStorage.removeItem('tora:tour-kickstart-intent'); setActiveTab('kickstart'); };
+    const openMyDates = () => { sessionStorage.removeItem('tora:tour-mydates-intent'); setActiveTab('mydates'); };
     window.addEventListener('tora:tour-kickstart', openKickstart);
-    return () => window.removeEventListener('tora:tour-kickstart', openKickstart);
+    window.addEventListener('tora:tour-mydates', openMyDates);
+    return () => {
+      window.removeEventListener('tora:tour-kickstart', openKickstart);
+      window.removeEventListener('tora:tour-mydates', openMyDates);
+    };
   }, []);
+
+  // My dates: own availability + travel schedule (moved here from Profile >
+  // Manage so the data and the matches it drives live under one tab). Free
+  // tier sees it as a blurred teaser that opens Premium, exactly as before.
+  const renderMyDates = () => {
+    const pane = <CalendarScreen embedded={true} onSeeMatches={() => setActiveTab('calendar')} />;
+    if (isPremiumViewer(user)) return <div className="tour-kickstart-content">{pane}</div>;
+    return (
+      <div className="tour-kickstart-content">
+        <div className="relative overflow-hidden rounded-xl">
+          <div className="blur-[7px] select-none pointer-events-none" aria-hidden>{pane}</div>
+          <button
+            type="button"
+            onClick={() => onOpenPremium && onOpenPremium()}
+            aria-label={t('manage.calendarLockedMsg')}
+            className="absolute inset-0 z-10 w-full border-none bg-transparent p-0 cursor-pointer"
+          >
+            <LockOverlay message={t('manage.calendarLockedMsg')} />
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   // Calendar Matches state
   const [viewingProfile, setViewingProfile] = useState(null);
@@ -657,18 +686,14 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
             </p>
             <FilterButton count={matchFilterCount} onClick={() => setShowMatchFilters(true)} label={t('search.filters')} />
           </div>
-          {/* Bridge to the data these matches come from (Profile > Manage >
-              Availability & travel) — otherwise "I filled in my calendar and
-              nothing happened". Same route the onboarding checklist uses. */}
+          {/* Bridge to the data these matches come from (the My dates
+              sub-tab) — otherwise "I filled in my calendar and nothing happened". */}
           <p className="m-0 mb-4 text-left text-[11.5px] text-white/35 leading-relaxed">
             {t('tour.matchesSource')}{' '}
             <button
               type="button"
               className="border-0 bg-transparent p-0 text-[11.5px] text-white/60 underline"
-              onClick={() => {
-                window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab: 'profile' } }));
-                setTimeout(() => window.dispatchEvent(new CustomEvent('tora:open-manage-calendar')), 200);
-              }}
+              onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
             >
               {t('tour.editAvailability')}
             </button>
@@ -2116,10 +2141,17 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       {/* Sub-tabs */}
       <div className="tour-tabs">
         <button
+          className={`tour-tab ${activeTab === 'mydates' ? 'active' : ''}`}
+          onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
+        >
+          <CalendarIcon />
+          <span>{t('tour.myDates')}</span>
+        </button>
+        <button
           className={`tour-tab ${activeTab === 'calendar' ? 'active' : ''}`}
           onClick={() => { closeTourPanes(); setActiveTab('calendar'); }}
         >
-          <CalendarIcon />
+          <TargetIcon />
           <span>{t('tour.calendarMatches')}</span>
         </button>
         <button
@@ -2135,7 +2167,9 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
           fits without scrolling on normal phones; scrolling stays enabled so
           short viewports can still reach the Upgrade CTA */}
       <div className="tour-tab-content">
-        {activeTab === 'calendar' ? renderCalendarMatches() : renderTourKickstart()}
+        {activeTab === 'mydates' && renderMyDates()}
+        {activeTab === 'calendar' && renderCalendarMatches()}
+        {activeTab === 'kickstart' && renderTourKickstart()}
       </div>
       </div>
 

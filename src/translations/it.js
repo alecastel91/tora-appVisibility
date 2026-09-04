@@ -918,6 +918,7 @@ const it = {
     tourKickstart: 'Tour Kickstart',
     agentsNotAvailable: 'Questa funzione è disponibile per artisti, promoter e locali',
     calendarMatches: 'Corrispondenze',
+    myDates: 'Le mie date',
     matchesSource: 'Le corrispondenze nascono dalle tue date disponibili e dal tuo programma di viaggio.',
     editAvailability: 'Modifica',
     connectWith: 'Collegati con {{name}}',

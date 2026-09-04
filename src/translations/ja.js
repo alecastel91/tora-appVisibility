@@ -918,6 +918,7 @@ const ja = {
     tourKickstart: 'Tour Kickstart',
     agentsNotAvailable: 'この機能はアーティスト・プロモーター・会場向けです',
     calendarMatches: 'マッチ',
+    myDates: '自分の日程',
     matchesSource: 'マッチはあなたの空き日程と渡航スケジュールから生まれます。',
     editAvailability: '編集',
     connectWith: '{{name}}とつながる',

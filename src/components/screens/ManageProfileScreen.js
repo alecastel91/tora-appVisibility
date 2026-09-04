@@ -18,9 +18,10 @@ import { isPremiumViewer } from '../../utils/subscription';
 const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = () => {}, initialTab = null }) => {
   const { user, preferredCurrency, reloadProfileData } = useAppContext();
   const { t } = useLanguage();
-  // Free tier sees Dashboard + Calendar as blurred teasers that open
-  // Premium. Documents stays open — riders/press kits feed accepted deals
-  // and gating them would break bookings already in motion.
+  // Free tier sees the Dashboard as a blurred teaser that opens Premium.
+  // Documents stays open — riders/press kits feed accepted deals and gating
+  // them would break bookings already in motion. (Availability + travel
+  // moved to Tour > My dates, next to the matches they drive.)
   const manageLocked = !isPremiumViewer(user);
 
   // Same teaser language as ViewProfile's locked tour block: real content
@@ -42,7 +43,7 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
       </button>
     </div>
   );
-  const [activeTab, setActiveTab] = useState(initialTab || 'dashboard'); // dashboard, calendar, documents
+  const [activeTab, setActiveTab] = useState(initialTab || 'dashboard'); // dashboard, documents
   const [upcomingGigs, setUpcomingGigs] = useState(null);
   const [ytdRevenue, setYtdRevenue] = useState(null);
   const [revenueEvents, setRevenueEvents] = useState([]); // [{date, amount}] in preferred currency
@@ -917,12 +918,6 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
           {t('manage.dashboard')}
         </button>
         <button
-          className={`tab-button ${activeTab === 'calendar' ? 'active' : ''}`}
-          onClick={() => handleTabChange('calendar')}
-        >
-          {t('manage.calendar')}
-        </button>
-        <button
           className={`tab-button ${activeTab === 'documents' ? 'active' : ''}`}
           onClick={() => handleTabChange('documents')}
         >
@@ -941,9 +936,6 @@ const ManageProfileScreen = ({ onClose, onSwitchTab = () => {}, onOpenPremium = 
         {activeTab === 'dashboard' && (manageLocked
           ? renderLockedPane(renderDashboardTab(), t('manage.dashboardLockedMsg'))
           : renderDashboardTab())}
-        {activeTab === 'calendar' && (manageLocked
-          ? renderLockedPane(<CalendarScreen embedded={true} />, t('manage.calendarLockedMsg'))
-          : <CalendarScreen embedded={true} />)}
         {activeTab === 'documents' && renderDocumentsTab()}
       </div>
 
