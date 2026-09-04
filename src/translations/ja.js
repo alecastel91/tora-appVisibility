@@ -921,6 +921,8 @@ const ja = {
     myDates: 'カレンダー',
     calendarNoArtists: 'ロースターにアーティストを追加すると、ここでカレンダーを管理できます。',
     calendarAddArtists: 'ロースターを開く',
+    calendarIntro: '空いている日と滞在先を登録しましょう。マッチと渡航アラートはこの情報をもとに動きます。',
+    kickstartIntro: '地域ごとにツアーを計画し、ベニューやプロモーターから日程の提案を受け取りましょう。',
     matchesSource: 'マッチはあなたの空き日程と渡航スケジュールから生まれます。',
     matchesSourceAgent: 'マッチは担当アーティストの空き日程と渡航スケジュールから生まれます。',
     editAvailability: '編集',

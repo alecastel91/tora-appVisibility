@@ -921,6 +921,8 @@ const en = {
     myDates: 'Calendar',
     calendarNoArtists: 'Add artists to your roster to manage their calendars here.',
     calendarAddArtists: 'Open roster',
+    calendarIntro: 'Mark the dates you\'re free and where you\'ll be. Matches and travel alerts run on this.',
+    kickstartIntro: 'Plan a tour by region and let venues and promoters propose dates along the way.',
     matchesSource: 'Matches come from your available dates and travel schedule.',
     matchesSourceAgent: 'Matches come from your represented artists\' available dates and travel schedules.',
     editAvailability: 'Edit',

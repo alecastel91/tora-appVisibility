@@ -921,6 +921,8 @@ const fr = {
     myDates: 'Calendrier',
     calendarNoArtists: 'Ajoute des artistes à ton roster pour gérer ici leurs calendriers.',
     calendarAddArtists: 'Ouvrir le roster',
+    calendarIntro: 'Indique les jours où tu es libre et où tu seras. Les correspondances et les alertes déplacement s\'appuient dessus.',
+    kickstartIntro: 'Planifie une tournée par région et laisse salles et promoteurs proposer des dates en chemin.',
     matchesSource: 'Les correspondances viennent de tes dates disponibles et de ton planning de déplacements.',
     matchesSourceAgent: 'Les correspondances viennent des dates disponibles et des déplacements des artistes que tu représentes.',
     editAvailability: 'Modifier',

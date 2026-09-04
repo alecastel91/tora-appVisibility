@@ -94,19 +94,51 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   // My dates: own availability + travel schedule (moved here from Profile >
   // Manage so the data and the matches it drives live under one tab). Free
   // tier sees it as a blurred teaser that opens Premium, exactly as before.
-  // Agents edit the calendar of one represented artist at a time — the
-  // selector above the calendar picks which. Same screen for every role.
+  // Represented-artist selection shared by the three sub-tabs (agents).
+  const [artistFilter, setArtistFilter] = useState('all');
+  // ---- One header for the three sub-tabs -----------------------------
+  // Intro sentence on the left, optional action on the right, and for agents
+  // the represented-artist picker underneath. `artistFilter` is shared: the
+  // artist picked on any sub-tab is the one Calendar edits, Matches filters
+  // and Kickstart lists.
   const isAgent = user?.role === 'AGENT';
   const roster = isAgent ? (Array.isArray(user?.representingArtists) ? user.representingArtists : []) : [];
-  const [calendarArtist, setCalendarArtist] = useState(null); // { id, name, ...fresh profile }
+  const rosterId = (a) => a.profileId || a.id;
+  const renderArtistPicker = ({ allowAll }) => (
+    <div className="matches-filters">
+      <div className="filter-group" style={{ flex: 1 }}>
+        <label className="filter-label">{t('tour.artist')}</label>
+        <select
+          className="filter-select"
+          style={{ width: '100%' }}
+          value={allowAll ? artistFilter : (artistFilter === 'all' ? rosterId(roster[0]) : artistFilter)}
+          onChange={(e) => setArtistFilter(e.target.value)}
+        >
+          {allowAll && <option value="all">{t('tour.allArtists')}</option>}
+          {roster.map((a) => <option key={rosterId(a)} value={rosterId(a)}>{a.name}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+  const renderSubTabHeader = ({ intro, action = null, allowAll = true }) => (
+    <>
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1 text-left text-xs leading-relaxed text-white/45">{intro}</div>
+        {action}
+      </div>
+      {isAgent && roster.length > 0 && renderArtistPicker({ allowAll })}
+    </>
+  );
+
+  // Calendar sub-tab: own availability + travel, or one represented artist's.
+  const calendarArtistId = isAgent ? (artistFilter === 'all' ? (roster[0] ? rosterId(roster[0]) : null) : artistFilter) : null;
+  const [calendarArtist, setCalendarArtist] = useState(null); // fresh profile of the picked artist
   useEffect(() => {
-    if (!isAgent) return;
-    const first = roster[0];
-    if (first && !roster.some((a) => (a.profileId || a.id) === calendarArtist?.id)) {
-      setCalendarArtist({ id: first.profileId || first.id, name: first.name, role: 'ARTIST' });
-    }
+    if (!calendarArtistId) { setCalendarArtist(null); return; }
+    const a = roster.find((x) => rosterId(x) === calendarArtistId);
+    setCalendarArtist(a ? { id: calendarArtistId, name: a.name, role: 'ARTIST' } : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAgent, roster.map((a) => a.profileId || a.id).join(',')]);
+  }, [calendarArtistId]);
   const renderMyDates = () => {
     let pane;
     if (isAgent && !roster.length) {
@@ -123,38 +155,26 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
         </p>
       );
     } else if (isAgent) {
-      pane = (
-        <>
-          <div className="mb-4 flex flex-wrap gap-1.5">
-            {roster.map((a) => {
-              const id = a.profileId || a.id; const on = calendarArtist?.id === id;
-              return (
-                <button key={id} type="button" onClick={() => setCalendarArtist({ id, name: a.name, role: 'ARTIST' })}
-                  className={`rounded-full border px-3 py-1.5 text-[12px] ${on ? 'border-infrared bg-infrared/20 text-white' : 'border-white/15 text-white/60'}`}>
-                  {a.name}
-                </button>
-              );
-            })}
-          </div>
-          {calendarArtist && (
-            <CalendarScreen
-              key={calendarArtist.id}
-              embedded={true}
-              targetProfile={calendarArtist}
-              onTargetUpdated={(p) => setCalendarArtist((cur) => ({ ...cur, ...p, id: cur.id }))}
-              onSeeMatches={() => setActiveTab('calendar')}
-            />
-          )}
-        </>
+      pane = calendarArtist && (
+        <CalendarScreen
+          key={calendarArtist.id}
+          embedded={true}
+          targetProfile={calendarArtist}
+          onTargetUpdated={(p) => setCalendarArtist((cur) => ({ ...cur, ...p, id: cur.id }))}
+          onSeeMatches={() => setActiveTab('calendar')}
+        />
       );
     } else {
       pane = <CalendarScreen embedded={true} onSeeMatches={() => setActiveTab('calendar')} />;
     }
     return (
       <div className="tour-kickstart-content">
-        {isPremiumViewer(user)
-          ? pane
-          : <LockedPane message={t('manage.calendarLockedMsg')} onUnlock={onOpenPremium}>{pane}</LockedPane>}
+        <div className="coming-soon-placeholder">
+          {renderSubTabHeader({ intro: t('tour.calendarIntro'), allowAll: false })}
+          {isPremiumViewer(user)
+            ? pane
+            : <LockedPane message={t('manage.calendarLockedMsg')} onUnlock={onOpenPremium}>{pane}</LockedPane>}
+        </div>
       </div>
     );
   };
@@ -210,7 +230,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const toggleRole = (r) => setRolesFilter((prev) =>
     prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
   // Agents: filter matches down to a single represented artist.
-  const [artistFilter, setArtistFilter] = useState('all');
   const [calendarMatches, setCalendarMatches] = useState([]);
 
   // Industry travel feed: every active schedule (connected > liked > others),
@@ -727,46 +746,25 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     return (
       <div className="tour-kickstart-content">
         <div className="coming-soon-placeholder">
-          <div className="mb-6 flex items-center justify-between gap-3">
-            <p className="m-0 text-left text-xs text-white/45 leading-relaxed flex-1">
-              {t('tour.matchesIntro')}
-            </p>
-            <FilterButton count={matchFilterCount} onClick={() => setShowMatchFilters(true)} label={t('search.filters')} />
-          </div>
-          {/* Bridge to the data these matches come from (the My dates
-              sub-tab) — otherwise "I filled in my calendar and nothing happened". */}
-          <p className="m-0 mb-4 text-left text-[11.5px] text-white/35 leading-relaxed">
-            {t(isAgent ? 'tour.matchesSourceAgent' : 'tour.matchesSource')}{' '}
-            <button
-              type="button"
-              className="border-0 bg-transparent p-0 text-[11.5px] text-white/60 underline"
-              onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
-            >
-              {t('tour.editAvailability')}
-            </button>
-          </p>
+          {renderSubTabHeader({
+            intro: (
+              <>
+                <p className="m-0">{t('tour.matchesIntro')}</p>
+                {/* Where the matches come from — otherwise "I filled in my
+                    calendar and nothing happened". */}
+                <p className="m-0 mt-1 text-white/35">
+                  {t(isAgent ? 'tour.matchesSourceAgent' : 'tour.matchesSource')}{' '}
+                  <button type="button" className="border-0 bg-transparent p-0 text-xs text-white/60 underline"
+                    onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}>
+                    {t('tour.editAvailability')}
+                  </button>
+                </p>
+              </>
+            ),
+            action: <FilterButton count={matchFilterCount} onClick={() => setShowMatchFilters(true)} label={t('search.filters')} />,
+          })}
 
           <div className="feature-preview">
-            {/* Agent-only: filter matches to one represented artist (own row). */}
-            {user?.role === 'AGENT' && (user.representingArtists || []).length > 0 && (
-              <div className="matches-filters">
-                <div className="filter-group" style={{ flex: 1 }}>
-                  <label className="filter-label">{t('tour.artist')}</label>
-                  <select
-                    className="filter-select"
-                    style={{ width: '100%' }}
-                    value={artistFilter}
-                    onChange={(e) => setArtistFilter(e.target.value)}
-                  >
-                    <option value="all">{t('tour.allArtists')}</option>
-                    {(user.representingArtists || []).map((a) => {
-                      const id = a.profileId || a.id;
-                      return <option key={id} value={id}>{a.name}</option>;
-                    })}
-                  </select>
-                </div>
-              </div>
-            )}
 
             {matches.length > 0 ? (
               <div className="matches-results">
@@ -1753,20 +1751,28 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
 
     // ARTISTS + AGENTS: Create and manage tours
     if (isArtist) {
+      const visibleTours = isAgent && artistFilter !== 'all' ? myTours.filter((tour) => tour.artist?.id === artistFilter) : myTours;
       return (
         <div className="tour-kickstart-content">
+          <div className="coming-soon-placeholder">
+            {renderSubTabHeader({
+              intro: t('tour.kickstartIntro'),
+              action: (
+                <button className="btn btn-primary btn-small shrink-0" onClick={() => { closeTourPanes(); setShowCreateTourModal(true); }}>
+                  <span>+ {t('tour.createTour')}</span>
+                </button>
+              ),
+            })}
+          </div>
           <div className="tour-kickstart-section">
             <div className="section-header">
               <h3>{t('tour.myTours')}</h3>
-              <button className="btn btn-primary btn-small" onClick={() => { closeTourPanes(); setShowCreateTourModal(true); }}>
-                <span>+ {t('tour.createTour')}</span>
-              </button>
             </div>
 
             {/* Tour cards or empty state */}
             {toursLoading ? (
               <LoadingGlobe label={t('tour.loadingTours')} />
-            ) : myTours.length === 0 ? (
+            ) : visibleTours.length === 0 ? (
               <div className="tour-empty-state">
                 <PlaneIcon />
                 <p>{t('tour.noToursYet')}</p>
@@ -1774,7 +1780,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               </div>
             ) : (
               <div className="tour-cards-list">
-                {myTours.map(tour => {
+                {visibleTours.map(tour => {
                   const pct = Math.min(100, Math.round(((tour.totalRevenue || 0) / (tour.minRevenue || 1)) * 100));
                   const statusPill = {
                     ACTIVE: 'text-role-agent border-role-agent/50',
