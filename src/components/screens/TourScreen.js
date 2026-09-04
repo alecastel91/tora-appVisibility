@@ -171,9 +171,13 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       <div className="tour-kickstart-content">
         <div className="coming-soon-placeholder">
           {renderSubTabHeader({ intro: t('tour.calendarIntro'), allowAll: false })}
-          {isPremiumViewer(user)
-            ? pane
-            : <LockedPane message={t('manage.calendarLockedMsg')} onUnlock={onOpenPremium}>{pane}</LockedPane>}
+          {/* The placeholder centres text for the header; the calendar's own
+              tiles (travel schedule, upcoming events) read left-aligned. */}
+          <div className="text-left">
+            {isPremiumViewer(user)
+              ? pane
+              : <LockedPane message={t('manage.calendarLockedMsg')} onUnlock={onOpenPremium}>{pane}</LockedPane>}
+          </div>
         </div>
       </div>
     );
