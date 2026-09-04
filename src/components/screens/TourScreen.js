@@ -105,7 +105,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const roster = isAgent ? (Array.isArray(user?.representingArtists) ? user.representingArtists : []) : [];
   const rosterId = (a) => a.profileId || a.id;
   const renderArtistPicker = ({ allowAll }) => (
-    <div className="matches-filters">
+    <div className="matches-filters text-left">
       <div className="filter-group" style={{ flex: 1 }}>
         <label className="filter-label">{t('tour.artist')}</label>
         <select
