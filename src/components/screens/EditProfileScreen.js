@@ -315,17 +315,17 @@ const EditProfileScreen = ({ onClose }) => {
             />
           </div>
 
+          {/* A profile's role is fixed at creation (the backend ignores it on
+              update anyway); a different role means a second profile. */}
           <div className="form-group">
             <label>{t('editProfile.role')}</label>
-            <select
-              value={editedUser.role || ''}
-              onChange={(e) => setEditedUser({ ...editedUser, role: e.target.value })}
-            >
-              <option value="ARTIST">{t('search.roleArtist')}</option>
-              <option value="VENUE">{t('search.roleVenue')}</option>
-              <option value="PROMOTER">{t('search.rolePromoter')}</option>
-              <option value="AGENT">{t('search.roleAgent')}</option>
-            </select>
+            <input
+              type="text"
+              value={t(`search.role${(editedUser.role || 'ARTIST').charAt(0)}${(editedUser.role || 'ARTIST').slice(1).toLowerCase()}`)}
+              readOnly
+              disabled
+            />
+            <p className="m-0 mt-1.5 text-[11.5px] leading-relaxed text-white/40">{t('editProfile.roleFixed')}</p>
           </div>
 
           {/* City-first location picker (same UX as the apply form) */}

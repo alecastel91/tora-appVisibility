@@ -1094,6 +1094,7 @@ const pt = {
   },
 
   editProfile: {
+    roleFixed: 'O papel é definido ao criar o perfil. Para outro papel, adiciona outro perfil a partir do menu da tua foto de perfil.',
     venueRooms: 'Salas / Palcos',
     venueRoomsPlaceholder: 'ex. 2',
     profileIdMissing: 'Falta o ID do perfil. Termina a sessão e volte a entrar.',

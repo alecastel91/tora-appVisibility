@@ -1094,6 +1094,7 @@ const it = {
   },
 
   editProfile: {
+    roleFixed: 'Il ruolo si sceglie alla creazione del profilo. Per un ruolo diverso, aggiungi un altro profilo dal menu della tua foto profilo.',
     venueRooms: 'Sale / Palchi',
     venueRoomsPlaceholder: 'es. 2',
     profileIdMissing: 'ID profilo mancante. Esci e accedi di nuovo.',

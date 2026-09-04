@@ -1094,6 +1094,7 @@ const fr = {
   },
 
   editProfile: {
+    roleFixed: 'Le rôle est fixé à la création du profil. Pour un autre rôle, ajoute un second profil depuis le menu de ta photo de profil.',
     venueRooms: 'Salles / Scènes',
     venueRoomsPlaceholder: 'ex. 2',
     profileIdMissing: 'ID de profil manquant. Déconnectez-vous puis reconnectez-vous.',

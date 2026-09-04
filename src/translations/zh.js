@@ -1094,6 +1094,7 @@ const zh = {
   },
 
   editProfile: {
+    roleFixed: '角色在创建档案时确定。如需其他角色，请从头像菜单添加新的档案。',
     venueRooms: '厅数 / 舞台数',
     venueRoomsPlaceholder: '例如 2',
     profileIdMissing: '缺少档案ID。请退出后重新登录。',

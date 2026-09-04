@@ -1094,6 +1094,7 @@ const ko = {
   },
 
   editProfile: {
+    roleFixed: '역할은 프로필을 만들 때 정해집니다. 다른 역할이 필요하면 프로필 사진 메뉴에서 새 프로필을 추가하세요.',
     venueRooms: '룸 / 스테이지',
     venueRoomsPlaceholder: '예: 2',
     profileIdMissing: '프로필 ID가 없습니다. 로그아웃 후 다시 로그인해 주세요.',

@@ -1097,6 +1097,7 @@ const en = {
   
   // Edit Profile
   editProfile: {
+    roleFixed: 'Your role is set when the profile is created. For a different role, add another profile from your profile picture menu.',
     venueRooms: 'Rooms / Stages',
     venueRoomsPlaceholder: 'e.g. 2',
     profileIdMissing: 'Profile ID is missing. Please log out and log back in.',

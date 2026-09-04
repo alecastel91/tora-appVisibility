@@ -1094,6 +1094,7 @@ const ja = {
   },
 
   editProfile: {
+    roleFixed: 'ロールはプロフィール作成時に決まります。別のロールが必要な場合は、プロフィール写真のメニューから新しいプロフィールを追加してください。',
     venueRooms: 'フロア / ステージ数',
     venueRoomsPlaceholder: '例: 2',
     profileIdMissing: 'プロフィールIDが見つかりません。ログアウトして再度ログインしてください。',
