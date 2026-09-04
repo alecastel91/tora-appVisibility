@@ -7,12 +7,14 @@ const TabBar = ({ activeTab, onTabChange, unreadMessagesCount = 0, unreadProposa
   const { t } = useLanguage();
 
   const tabs = [
-    { id: 'profile', icon: ProfileIcon, label: t('nav.profile') },
-    { id: 'search', icon: SearchIcon, label: t('nav.search') },
+    // Feed first, profile last — the order thumbs already know from
+    // Instagram/LinkedIn/X; the two work tabs sit under the right thumb.
     { id: 'news', icon: NewsIcon, label: t('nav.news') },
+    { id: 'search', icon: SearchIcon, label: t('nav.search') },
     { id: 'tour', icon: PlaneIcon, label: t('nav.tour') },
     { id: 'bookings', icon: BookingsIcon, label: t('nav.bookings') },
-    { id: 'messages', icon: MessageIcon, label: t('nav.messages') }
+    { id: 'messages', icon: MessageIcon, label: t('nav.messages') },
+    { id: 'profile', icon: ProfileIcon, label: t('nav.profile') }
   ];
 
   return (

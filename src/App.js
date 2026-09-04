@@ -60,10 +60,9 @@ function App() {
     : '';
   const [authMode, setAuthMode] = useState(resetToken ? 'reset' : (inviteCodeFromUrl ? 'signup' : 'login'));
   const [loading, setLoading] = useState(true);
-  // Beta lands on News so testers see the pinned intro post first
-  const [activeTab, setActiveTab] = useState(
-    import.meta.env.VITE_TORA_ENV === 'beta' ? 'news' : 'profile',
-  );
+  // News is home: first tab in the bar, and where every session starts.
+  const HOME_TAB = 'news';
+  const [activeTab, setActiveTab] = useState(HOME_TAB);
 
   // Cross-screen tab navigation (e.g. ViewProfile -> Tour Kickstart).
   // Goes through switchTab so the target joins mountedTabs (keep-mounted
@@ -106,7 +105,7 @@ function App() {
   // hidden with display:none, so switching back is instant — no refetch,
   // no rebuild. Realtime subscriptions (deals, inbox) and the context poll
   // keep hidden tabs fresh. Scroll position is saved per tab.
-  const [mountedTabs, setMountedTabs] = useState(['profile']);
+  const [mountedTabs, setMountedTabs] = useState([HOME_TAB]);
   const appContentRef = useRef(null);
   const tabScrollPositions = useRef({});
   const switchTab = (tab) => {
@@ -296,7 +295,7 @@ function App() {
       apiService.removeToken();
       updateUser(null);
       closeAllOverlays();
-      setActiveTab('profile');
+      setActiveTab(HOME_TAB);
       setIsAuthenticated(false);
     };
     window.addEventListener('tora:session-expired', onExpired);
@@ -500,9 +499,9 @@ function App() {
     apiService.logout();
     setIsAuthenticated(false);
     updateUser(null);
-    // next login starts fresh on the Profile tab
+    // next login starts fresh on the home tab
     closeAllOverlays();
-    setActiveTab('profile');
+    setActiveTab(HOME_TAB);
   };
 
   const handlePasswordChange = async () => {
