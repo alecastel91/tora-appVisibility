@@ -68,8 +68,10 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   );
 
   // Tab state
-  // 'mydates' (own availability + travel), 'calendar' (matches), 'kickstart'
-  const [activeTab, setActiveTab] = useState('calendar');
+  // 'mydates' (own availability + travel), 'calendar' (matches), 'kickstart'.
+  // Opens on My dates — your own data comes first, the matches it drives
+  // next. Agents have no own dates, so they open on Matches.
+  const [activeTab, setActiveTab] = useState(user?.role === 'AGENT' ? 'calendar' : 'mydates');
   // Deep-links: ViewProfile's tour block asks for Kickstart; the onboarding
   // checklist and the Matches "Edit" link ask for My dates. The sessionStorage
   // flags cover the case where TourScreen wasn't mounted yet when the event
