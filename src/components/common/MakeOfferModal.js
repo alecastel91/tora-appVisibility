@@ -1,3 +1,4 @@
+import { clampDateRange } from '../../utils/dates';
 import React, { useState, useEffect } from 'react';
 import { CURRENCY_OPTIONS } from './CurrencyOptions';
 import ReactDOM from 'react-dom';
@@ -8,6 +9,9 @@ import apiService from '../../services/api';
 import CitySearch from './CitySearch';
 import VenueSearch from './VenueSearch';
 import { useLanguage } from '../../contexts/LanguageContext';
+
+// The final payment can never be due before the deposit.
+const DEADLINE_KEYS = { start: 'depositDeadline', end: 'finalPaymentDeadline' };
 
 const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDrawer = false }) => {
   const { t } = useLanguage();
@@ -874,20 +878,21 @@ const MakeOfferModal = ({ isOpen, onClose, recipientProfile, onSuccess, dockAsDr
             <div className="form-row">
               <div className="form-group">
                 <label>{t('offer.depositDeadline')}</label>
-                <input className="form-input"
+                <input
+                  className="form-input"
                   type="date"
                   value={formData.depositDeadline}
-                  onChange={(e) => handleChange('depositDeadline', e.target.value)}
-                  className="form-input"
+                  onChange={(e) => setFormData((prev) => clampDateRange(prev, 'depositDeadline', e.target.value, DEADLINE_KEYS))}
                 />
               </div>
               <div className="form-group">
                 <label>{t('offer.finalPaymentDeadline')}</label>
-                <input className="form-input"
-                  type="date"
-                  value={formData.finalPaymentDeadline}
-                  onChange={(e) => handleChange('finalPaymentDeadline', e.target.value)}
+                <input
                   className="form-input"
+                  type="date"
+                  min={formData.depositDeadline || undefined}
+                  value={formData.finalPaymentDeadline}
+                  onChange={(e) => setFormData((prev) => clampDateRange(prev, 'finalPaymentDeadline', e.target.value, DEADLINE_KEYS))}
                 />
               </div>
             </div>

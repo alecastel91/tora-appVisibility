@@ -5,6 +5,7 @@ import { zones, countriesByZone, citiesByCountry } from '../../data/profiles';
 import { CloseIcon, CalendarIcon, ListIcon } from '../../utils/icons';
 import Modal from '../common/Modal';
 import apiService from '../../services/api';
+import { clampDateRange } from '../../utils/dates';
 import { appAlert } from '../../utils/dialogs';
 import { isYearlyViewer } from '../../utils/subscription';
 
@@ -1210,12 +1211,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
               className="form-input"
               type="date"
               value={scheduleForm.startDate}
-              onChange={(e) => {
-                const startDate = e.target.value;
-                // An end before the new start is impossible — snap it to the start.
-                const endDate = scheduleForm.endDate && scheduleForm.endDate < startDate ? startDate : scheduleForm.endDate;
-                setScheduleForm({ ...scheduleForm, startDate, endDate });
-              }}
+              onChange={(e) => setScheduleForm(clampDateRange(scheduleForm, 'startDate', e.target.value))}
             />
           </div>
           <div className="form-group">
@@ -1225,12 +1221,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
               type="date"
               min={scheduleForm.startDate || undefined}
               value={scheduleForm.endDate}
-              onChange={(e) => {
-                // Belt and braces with `min`: a picker that still lets an
-                // earlier day through gets snapped to the start.
-                const v = e.target.value;
-                setScheduleForm({ ...scheduleForm, endDate: scheduleForm.startDate && v && v < scheduleForm.startDate ? scheduleForm.startDate : v });
-              }}
+              onChange={(e) => setScheduleForm(clampDateRange(scheduleForm, 'endDate', e.target.value))}
             />
           </div>
 

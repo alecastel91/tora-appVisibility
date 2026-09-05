@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatEventDate, formatTimestamp } from './dates.js';
+import { formatEventDate, formatTimestamp, clampDateRange } from './dates.js';
 
 // This file is run under TZ=America/Sao_Paulo (see package.json "test") — a zone
 // 3 hours west of UTC, where the off-by-one bug (F5-01) manifests. If the pin
@@ -25,4 +25,18 @@ test('formatTimestamp renders in local zone (a moment, not a calendar date)', ()
   const s = formatTimestamp('2026-10-01T00:00:00.000Z', 'en-US');
   assert.match(s, /Sep 30, 2026/);
   assert.match(s, /09:00\s?PM|21:00/);
+});
+
+test('clampDateRange: a later start drags the end along', () => {
+  assert.deepEqual(clampDateRange({ startDate: '2026-10-05', endDate: '2026-10-08' }, 'startDate', '2026-10-20'), { startDate: '2026-10-20', endDate: '2026-10-20' });
+});
+test('clampDateRange: an end before the start snaps to the start', () => {
+  assert.deepEqual(clampDateRange({ startDate: '2026-09-09', endDate: '2026-09-09' }, 'endDate', '2026-09-02'), { startDate: '2026-09-09', endDate: '2026-09-09' });
+});
+test('clampDateRange: valid changes pass through, empty values never snap, custom keys work', () => {
+  assert.deepEqual(clampDateRange({ startDate: '2026-09-09', endDate: '2026-09-12' }, 'endDate', '2026-09-30'), { startDate: '2026-09-09', endDate: '2026-09-30' });
+  assert.deepEqual(clampDateRange({ startDate: '', endDate: '2026-09-12' }, 'startDate', '2026-09-20'), { startDate: '2026-09-20', endDate: '2026-09-20' });
+  assert.deepEqual(clampDateRange({ startDate: '2026-09-09', endDate: '' }, 'endDate', ''), { startDate: '2026-09-09', endDate: '' });
+  const keys = { start: 'depositDeadline', end: 'finalPaymentDeadline' };
+  assert.deepEqual(clampDateRange({ depositDeadline: '2026-11-01', finalPaymentDeadline: '2026-11-10' }, 'depositDeadline', '2026-11-20', keys), { depositDeadline: '2026-11-20', finalPaymentDeadline: '2026-11-20' });
 });

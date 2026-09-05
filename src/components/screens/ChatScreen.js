@@ -3,7 +3,7 @@ import OverlayPortal from '../common/OverlayPortal';
 import { CURRENCY_OPTIONS } from '../common/CurrencyOptions';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { formatEventDate } from '../../utils/dates';
+import { formatEventDate, clampDateRange } from '../../utils/dates';
 import apiService from '../../services/api';
 import { celebrateMoment, MOMENT } from '../../utils/celebrations';
 import contractService from '../../services/contractService';
@@ -46,6 +46,9 @@ const TRANSLATE_BUTTON_STYLE = {
 
 // Counter-offers are deal system messages recognised by their body prefix
 // (the backend sets no structured kind on them yet).
+// The final payment can never be due before the deposit (same rule as MakeOffer).
+const DEADLINE_KEYS = { start: 'depositDeadline', end: 'finalPaymentDeadline' };
+
 const isCounterOfferMessage = (m) => !!m?.text && m.text.startsWith('Counter-Offer:');
 
 const ChatScreen = ({ user, onClose, onOpenProfile, openDeal = null, onOpenDealHandled }) => {
@@ -2621,20 +2624,21 @@ const ChatScreen = ({ user, onClose, onOpenProfile, openDeal = null, onOpenDealH
                   <div className="form-row">
                     <div className="form-group">
                       <label>{t('offer.depositDeadline')}</label>
-                      <input className="form-input"
+                      <input
+                        className="form-input"
                         type="date"
                         value={reviewData.depositDeadline || ''}
-                        onChange={(e) => setReviewData({ ...reviewData, depositDeadline: e.target.value })}
-                        className="form-input"
+                        onChange={(e) => setReviewData((prev) => clampDateRange(prev, 'depositDeadline', e.target.value, DEADLINE_KEYS))}
                       />
                     </div>
                     <div className="form-group">
                       <label>{t('offer.finalPaymentDeadline')}</label>
-                      <input className="form-input"
-                        type="date"
-                        value={reviewData.finalPaymentDeadline || ''}
-                        onChange={(e) => setReviewData({ ...reviewData, finalPaymentDeadline: e.target.value })}
+                      <input
                         className="form-input"
+                        type="date"
+                        min={reviewData.depositDeadline || undefined}
+                        value={reviewData.finalPaymentDeadline || ''}
+                        onChange={(e) => setReviewData((prev) => clampDateRange(prev, 'finalPaymentDeadline', e.target.value, DEADLINE_KEYS))}
                       />
                     </div>
                   </div>

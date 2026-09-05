@@ -5,7 +5,7 @@ import { CURRENCY_OPTIONS, CURRENCY_OPTIONS_WITH_SYMBOL } from '../common/Curren
 import ReactDOM from 'react-dom';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { formatEventDate } from '../../utils/dates';
+import { formatEventDate, clampDateRange } from '../../utils/dates';
 import { subscribeToTours } from '../../services/realtime';
 import ViewProfileScreen from './ViewProfileScreen';
 import MakeOfferModal from '../common/MakeOfferModal';
@@ -39,14 +39,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const handleDateChange = (field) => (e) => {
     const el = e.target;
     const value = el.value;
-    setTourForm((prev) => {
-      const next = { ...prev, [field]: value };
-      // The end date can never precede the start: a later start snaps the
-      // end forward, and an end picked before the start snaps to the start.
-      if (field === 'startDate' && prev.endDate && prev.endDate < value) next.endDate = value;
-      if (field === 'endDate' && prev.startDate && value && value < prev.startDate) next.endDate = prev.startDate;
-      return next;
-    });
+    setTourForm((prev) => clampDateRange(prev, field, value));
     if (typeof window !== 'undefined'
         && window.matchMedia
         && window.matchMedia('(pointer: fine)').matches) {
@@ -989,7 +982,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     // Date validation - end date must be after start date
     const startDate = new Date(tourForm.startDate);
     const endDate = new Date(tourForm.endDate);
-    if (endDate <= startDate) {
+    if (endDate < startDate) {
       appAlert(t('tour.endDateAfterStart'));
       return;
     }
@@ -1104,7 +1097,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     // Date validation - end date must be after start date
     const startDate = new Date(tourForm.startDate);
     const endDate = new Date(tourForm.endDate);
-    if (endDate <= startDate) {
+    if (endDate < startDate) {
       appAlert(t('tour.endDateAfterStart'));
       return;
     }

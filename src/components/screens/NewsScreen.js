@@ -91,9 +91,48 @@ const Avatar = ({ profile, size = 'h-10 w-10', onClick }) => (
 // Global industry feed: member posts + automated milestones. Content is
 // visible to every tier; FREE members hit an upgrade prompt when opening a
 // profile outside their country (mirrors the search country-lock).
+// Inline editor for a post (multiline) or a comment (single line). Holds
+// its own draft so typing never re-renders the whole feed; Enter saves a
+// single-line draft (not mid-IME composition), Escape cancels either.
+const InlineEditor = ({ initial, multiline, maxLength, allowEmpty = false, onSave, onCancel, t }) => {
+  const [text, setText] = useState(initial || '');
+  const [busy, setBusy] = useState(false);
+  const canSave = !busy && (allowEmpty || text.trim().length > 0);
+  const save = async () => {
+    if (!canSave) return;
+    setBusy(true);
+    try { await onSave(text); } finally { setBusy(false); }
+  };
+  const onKeyDown = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); onCancel(); return; }
+    if (!multiline && e.key === 'Enter' && !e.nativeEvent?.isComposing) { e.preventDefault(); save(); }
+  };
+  const Field = multiline ? 'textarea' : 'input';
+  return (
+    <div className={multiline ? 'mt-3' : 'mt-1 flex items-center gap-2'}>
+      <Field
+        type={multiline ? undefined : 'text'}
+        className={multiline ? 'message-textarea-bottom w-full' : 'form-input flex-1 text-xs'}
+        rows={multiline ? 4 : undefined}
+        value={text}
+        maxLength={maxLength}
+        autoFocus
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={onKeyDown}
+      />
+      <div className={multiline ? 'mt-2 flex gap-2' : 'flex gap-2'}>
+        <button type="button" className="btn btn-outline btn-sm" onClick={onCancel}>{t('common.cancel')}</button>
+        <button type="button" className="btn btn-primary btn-sm" disabled={!canSave} onClick={save}>{busy ? '…' : t('common.save')}</button>
+      </div>
+    </div>
+  );
+};
+
 const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
   const { t, language } = useLanguage();
-  const { user } = useAppContext();
+  const { user, userProfiles } = useAppContext();
+  // Authorship is per account: any of my profiles counts as mine.
+  const myProfileIds = new Set([user?.id, ...(userProfiles || []).map((p) => p.id)].filter(Boolean));
   const [posts, setPosts] = useState(null);
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
@@ -105,34 +144,28 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
   const [openComments, setOpenComments] = useState({}); // postId -> { comments, hasMore, nextCursor }
   const [commentDrafts, setCommentDrafts] = useState({});
   const [menuFor, setMenuFor] = useState(null);
-  // Inline editing of your own post / comment: { id, text } while open.
-  const [editingPost, setEditingPost] = useState(null);
-  const [editingComment, setEditingComment] = useState(null);
-  const [editBusy, setEditBusy] = useState(false);
-  const savePostEdit = async (post) => {
-    if (editBusy || !editingPost || editingPost.id !== post.id) return;
-    setEditBusy(true);
+  // One inline edit open at a time: { kind: 'post' | 'comment', id }.
+  // The draft lives in InlineEditor; the server row is the truth after save.
+  const [editing, setEditing] = useState(null);
+  const isEditing = (kind, id) => editing?.kind === kind && editing.id === id;
+  const bumpPostCount = (postId, field, delta) => setPosts((prev) => prev.map((p) => (
+    p.id === postId ? { ...p, [field]: Math.max(0, (p[field] || 0) + delta) } : p
+  )));
+  const patchComments = (postId, fn) => setOpenComments((prev) => (
+    prev[postId] ? { ...prev, [postId]: { ...prev[postId], comments: fn(prev[postId].comments || []) } } : prev
+  ));
+  const saveEdit = async (post, comment, text) => {
     try {
-      const res = await apiService.updatePost(post.id, user.id, editingPost.text);
-      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, text: res.post?.text ?? editingPost.text } : p)));
-      setEditingPost(null);
+      if (comment) {
+        const { comment: saved } = await apiService.updateComment(post.id, comment.id, user.id, text);
+        patchComments(post.id, (list) => list.map((c) => (c.id === comment.id ? { ...c, text: saved.text } : c)));
+      } else {
+        const { post: saved } = await apiService.updatePost(post.id, user.id, text);
+        setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, text: saved.text } : p)));
+      }
+      setEditing(null);
     } catch (e) {
       appAlert(e.message || t('news.editFailed'));
-    } finally {
-      setEditBusy(false);
-    }
-  };
-  const saveCommentEdit = async (post, comment) => {
-    if (editBusy || !editingComment || editingComment.id !== comment.id) return;
-    setEditBusy(true);
-    try {
-      const res = await apiService.updateComment(post.id, comment.id, user.id, editingComment.text);
-      setOpenComments((prev) => ({ ...prev, [post.id]: { ...prev[post.id], comments: prev[post.id].comments.map((c) => (c.id === comment.id ? { ...c, text: res.comment?.text ?? editingComment.text } : c)) } }));
-      setEditingComment(null);
-    } catch (e) {
-      appAlert(e.message || t('news.editFailed'));
-    } finally {
-      setEditBusy(false);
     }
   };
   const busyRef = useRef(false);
@@ -263,7 +296,7 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
         [post.id]: { ...prev[post.id], comments: [...(prev[post.id]?.comments || []), comment] },
       }));
       setCommentDrafts((prev) => ({ ...prev, [post.id]: '' }));
-      setPosts((prev) => prev.map((p) => p.id === post.id ? { ...p, commentsCount: p.commentsCount + 1 } : p));
+      bumpPostCount(post.id, 'commentsCount', 1);
     } catch (e) {
       if (!isVerificationGate(e)) appAlert(e.message || t('news.commentFailed'));
     }
@@ -286,8 +319,8 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
     if (!ok) return;
     try {
       await apiService.deleteComment(post.id, comment.id, user.id);
-      setOpenComments((prev) => ({ ...prev, [post.id]: { ...prev[post.id], comments: prev[post.id].comments.filter((c) => c.id !== comment.id) } }));
-      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, commentsCount: Math.max(0, (p.commentsCount || 1) - 1) } : p)));
+      patchComments(post.id, (list) => list.filter((c) => c.id !== comment.id)); // no-op if the thread was closed meanwhile
+      bumpPostCount(post.id, 'commentsCount', -1);
     } catch (e) {
       appAlert(e.message || t('news.deleteCommentFailed'));
     }
@@ -385,7 +418,7 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
 
       {(posts || []).map((post) => {
         const m = milestone(post);
-        const isOwn = post.author?.id === user?.id;
+        const isOwn = myProfileIds.has(post.author?.id);
         const official = !!post.author?.isOfficial;
         const thread = openComments[post.id];
         return (
@@ -442,16 +475,16 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
                   <div className="absolute right-0 top-8 z-20 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#16161c] py-1"
                        onClick={(e) => e.stopPropagation()}>
                     {isOwn && post.type === 'TEXT' && (
-                      <button className="block w-full cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-xs text-white/80 hover:bg-white/5"
-                              onClick={() => { setMenuFor(null); setEditingPost({ id: post.id, text: post.text || '' }); }}>
-                        {t('common.edit')}
-                      </button>
-                    )}
-                    {isOwn && post.type === 'TEXT' && (
-                      <button className="block w-full cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-xs text-white/80 hover:bg-white/5"
-                              onClick={() => deletePost(post)}>
+                      <>
+                        <button className="block w-full cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-xs text-white/80 hover:bg-white/5"
+                                onClick={() => { setMenuFor(null); setEditing({ kind: 'post', id: post.id }); }}>
+                          {t('common.edit')}
+                        </button>
+                        <button className="block w-full cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-xs text-white/80 hover:bg-white/5"
+                                onClick={() => deletePost(post)}>
                         {t('common.delete')}
                       </button>
+                      </>
                     )}
                     {!isOwn && (
                       <button className="block w-full cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-xs text-infrared hover:bg-white/5"
@@ -474,23 +507,9 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
               </div>
             ) : (
               <>
-                {editingPost?.id === post.id ? (
-                  <div className="mt-3">
-                    <textarea
-                      className="message-textarea-bottom w-full"
-                      value={editingPost.text}
-                      maxLength={2000}
-                      rows={4}
-                      autoFocus
-                      onChange={(e) => setEditingPost({ id: post.id, text: e.target.value })}
-                    />
-                    <div className="mt-2 flex gap-2">
-                      <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditingPost(null)}>{t('common.cancel')}</button>
-                      <button type="button" className="btn btn-primary btn-sm" disabled={editBusy || (!editingPost.text.trim() && !post.imageUrl)} onClick={() => savePostEdit(post)}>
-                        {editBusy ? '…' : t('common.save')}
-                      </button>
-                    </div>
-                  </div>
+                {isEditing('post', post.id) ? (
+                  <InlineEditor initial={post.text} multiline maxLength={2000} allowEmpty={!!post.imageUrl} t={t}
+                    onSave={(text) => saveEdit(post, null, text)} onCancel={() => setEditing(null)} />
                 ) : post.text && (
                   <p className="m-0 mt-3 whitespace-pre-wrap text-sm leading-relaxed text-white/85">{linkify(post.text)}</p>
                 )}
@@ -531,33 +550,20 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
                         <span className="truncate text-xs font-semibold text-white">{c.author?.name}</span>
                         <span className="shrink-0 text-[10px] text-white/30">{relativeTime(c.createdAt, t)}</span>
                         {/* Edit: your own comment. Delete: yours, or any under your own post. */}
-                        {c.author?.id === user?.id && editingComment?.id !== c.id && (
-                          <button type="button" className="ml-auto shrink-0 border-0 bg-transparent p-0 text-[10px] text-white/35 underline hover:text-white/70"
-                            onClick={() => setEditingComment({ id: c.id, text: c.text })}>
-                            {t('common.edit')}
-                          </button>
-                        )}
-                        {(c.author?.id === user?.id || isOwn) && (
-                          <button type="button" className={`${c.author?.id === user?.id ? '' : 'ml-auto '}shrink-0 border-0 bg-transparent p-0 text-[10px] text-white/35 underline hover:text-white/70`}
-                            onClick={() => deleteComment(post, c)}>
-                            {t('common.delete')}
-                          </button>
-                        )}
+                        {(() => {
+                          const mine = myProfileIds.has(c.author?.id);
+                          const link = 'shrink-0 border-0 bg-transparent p-0 text-[10px] text-white/35 underline hover:text-white/70';
+                          return (mine || isOwn) && !isEditing('comment', c.id) && (
+                            <span className="ml-auto flex shrink-0 gap-2">
+                              {mine && <button type="button" className={link} onClick={() => setEditing({ kind: 'comment', id: c.id })}>{t('common.edit')}</button>}
+                              <button type="button" className={link} onClick={() => deleteComment(post, c)}>{t('common.delete')}</button>
+                            </span>
+                          );
+                        })()}
                       </div>
-                      {editingComment?.id === c.id ? (
-                        <div className="mt-1 flex items-center gap-2">
-                          <input
-                            type="text"
-                            className="form-input flex-1 text-xs"
-                            value={editingComment.text}
-                            maxLength={600}
-                            autoFocus
-                            onChange={(e) => setEditingComment({ id: c.id, text: e.target.value })}
-                            onKeyDown={(e) => { if (e.key === 'Enter') saveCommentEdit(post, c); if (e.key === 'Escape') setEditingComment(null); }}
-                          />
-                          <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditingComment(null)}>{t('common.cancel')}</button>
-                          <button type="button" className="btn btn-primary btn-sm" disabled={editBusy || !editingComment.text.trim()} onClick={() => saveCommentEdit(post, c)}>{t('common.save')}</button>
-                        </div>
+                      {isEditing('comment', c.id) ? (
+                        <InlineEditor initial={c.text} maxLength={600} t={t}
+                          onSave={(text) => saveEdit(post, c, text)} onCancel={() => setEditing(null)} />
                       ) : (
                         <p className="m-0 mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-white/75">{linkify(c.text)}</p>
                       )}
@@ -569,7 +575,7 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
                     type="text"
                     value={commentDrafts[post.id] || ''}
                     onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                    onKeyDown={(e) => { if (e.key === 'Enter') submitComment(post); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent?.isComposing) submitComment(post); }}
                     placeholder={t('news.commentPlaceholder')}
                     maxLength={600}
                     className="form-input min-w-0 flex-1 !py-2 text-xs"

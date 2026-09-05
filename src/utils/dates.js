@@ -55,3 +55,18 @@ export function formatTimestamp(value, locale, opts = {}) {
     ...opts,
   });
 }
+
+/**
+ * Keep an ordered pair of 'YYYY-MM-DD' strings consistent when one side
+ * changes: the end can never precede the start. Moving the start past the end
+ * drags the end along; picking an end before the start snaps it to the start.
+ * Keys default to startDate/endDate; pass others for e.g. deposit/final deadlines.
+ */
+export function clampDateRange(prev, field, value, keys = { start: 'startDate', end: 'endDate' }) {
+  const next = { ...prev, [field]: value };
+  const start = next[keys.start];
+  const end = next[keys.end];
+  if (field === keys.start && end && value && end < value) next[keys.end] = value;
+  if (field === keys.end && start && value && value < start) next[keys.end] = start;
+  return next;
+}
