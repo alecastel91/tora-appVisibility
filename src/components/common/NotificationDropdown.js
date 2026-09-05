@@ -53,6 +53,7 @@ const TYPE_TO_TAB = {
   // News feed
   CONNECTION_POSTED: 'news',
   OFFICIAL_POST: 'news',
+  POST_COMMENTED: 'news',
 };
 
 const NotificationDropdown = ({ onClose, onClearNotifications, onSwitchTab }) => {
