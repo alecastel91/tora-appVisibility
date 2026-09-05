@@ -41,8 +41,10 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     const value = el.value;
     setTourForm((prev) => {
       const next = { ...prev, [field]: value };
-      // The end date can never precede the start: a later start snaps it.
+      // The end date can never precede the start: a later start snaps the
+      // end forward, and an end picked before the start snaps to the start.
       if (field === 'startDate' && prev.endDate && prev.endDate < value) next.endDate = value;
+      if (field === 'endDate' && prev.startDate && value && value < prev.startDate) next.endDate = prev.startDate;
       return next;
     });
     if (typeof window !== 'undefined'

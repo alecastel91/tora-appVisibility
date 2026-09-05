@@ -1225,7 +1225,12 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
               type="date"
               min={scheduleForm.startDate || undefined}
               value={scheduleForm.endDate}
-              onChange={(e) => setScheduleForm({...scheduleForm, endDate: e.target.value})}
+              onChange={(e) => {
+                // Belt and braces with `min`: a picker that still lets an
+                // earlier day through gets snapped to the start.
+                const v = e.target.value;
+                setScheduleForm({ ...scheduleForm, endDate: scheduleForm.startDate && v && v < scheduleForm.startDate ? scheduleForm.startDate : v });
+              }}
             />
           </div>
 
