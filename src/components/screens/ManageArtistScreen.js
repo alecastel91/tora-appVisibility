@@ -1412,59 +1412,6 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
     );
   };
 
-  const renderEventsTab = () => (
-    <div className="events-tab">
-      {/* Calendar View */}
-      <div className="dashboard-section">
-        <h3><CalendarIcon /> {t('manageArtist.calendarView')}</h3>
-        {renderInlineCalendar()}
-
-        {/* Travel Schedules */}
-        <div className="travel-schedules-section">
-          <div className="travel-schedules-header">
-            <h3><PlaneIcon /> {t('manageArtist.travelSchedules')}</h3>
-            <button className="btn btn-primary btn-sm" onClick={openTravelModal}>{t('manageArtist.addSchedule')}</button>
-          </div>
-
-          {travelSchedule.length === 0 ? (
-            <div className="travel-schedules-empty">
-              <p>{t('manageArtist.noSchedulesYet')}</p>
-              <button className="btn-add-travel-schedule" onClick={openTravelModal}>
-                {t('manageArtist.addTravelScheduleCta')}
-              </button>
-            </div>
-          ) : (
-            <div className="travel-schedules-list">
-              {travelSchedule.map((schedule, index) => (
-                <div key={index} className="travel-schedule-item">
-                  <div className="schedule-location">
-                    {getLocationDisplay(schedule)}
-                  </div>
-                  <div className="schedule-bottom-row">
-                    {formatScheduleDate(schedule.startDate)} - {formatScheduleDate(schedule.endDate)}
-                    <button className="icon-btn-edit" onClick={() => editTravelSchedule(index)} title={t('manageArtist.editSchedule')}>
-                      <EditIcon />
-                    </button>
-                    <button className="icon-btn-delete" onClick={() => deleteTravelSchedule(index)} title={t('manageArtist.deleteSchedule')}>
-                      <TrashIcon />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Event List */}
-      <div className="dashboard-section">
-        <div className="section-header">
-          <h3><ListIcon /> {t('manageArtist.upcomingEvents')}</h3>
-        </div>
-        {renderUpcomingEvents()}
-      </div>
-    </div>
-  );
 
   // Document Management Functions
   const handleAddDocument = (category) => {

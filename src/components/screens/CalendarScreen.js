@@ -83,12 +83,12 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
         // Update available dates from backend
         setSelectedDates(new Set(freshProfile.availableDates || []));
 
-        // Also update context to keep it in sync
-        applyUpdate({
-          ...profile,
-          travelSchedule: freshProfile.travelSchedule || [],
-          availableDates: freshProfile.availableDates || []
-        });
+        // Keep the owner in sync. A target profile (agent editing an artist)
+        // starts as { id, name, role } — it needs the whole fresh row so the
+        // visibility toggle and tier checks read the artist, not nothing.
+        applyUpdate(targetProfile
+          ? { ...profile, ...freshProfile, id: profile.id }
+          : { ...profile, travelSchedule: freshProfile.travelSchedule || [], availableDates: freshProfile.availableDates || [] });
 
         console.log('[CalendarScreen] Calendar data refreshed successfully');
       } catch (error) {
@@ -97,7 +97,8 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
     };
 
     refreshCalendarData();
-  }, []); // Run once when component mounts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.id]); // on mount and whenever the profile being edited changes
 
   // Update schedules when user changes (to keep in sync with context)
   React.useEffect(() => {
