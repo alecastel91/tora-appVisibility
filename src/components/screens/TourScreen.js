@@ -39,7 +39,12 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   const handleDateChange = (field) => (e) => {
     const el = e.target;
     const value = el.value;
-    setTourForm((prev) => ({ ...prev, [field]: value }));
+    setTourForm((prev) => {
+      const next = { ...prev, [field]: value };
+      // The end date can never precede the start: a later start snaps it.
+      if (field === 'startDate' && prev.endDate && prev.endDate < value) next.endDate = value;
+      return next;
+    });
     if (typeof window !== 'undefined'
         && window.matchMedia
         && window.matchMedia('(pointer: fine)').matches) {
@@ -1402,6 +1407,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               <label>{t('calendar.endDate')} *</label>
               <input
                 type="date"
+                min={tourForm.startDate || undefined}
                 value={tourForm.endDate}
                 onChange={handleDateChange('endDate')}
                 className="form-input"
@@ -1587,6 +1593,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
               <label>{t('calendar.endDate')} *</label>
               <input
                 type="date"
+                min={tourForm.startDate || undefined}
                 value={tourForm.endDate}
                 onChange={handleDateChange('endDate')}
                 className="form-input"

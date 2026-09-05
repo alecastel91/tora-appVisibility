@@ -1945,6 +1945,8 @@ const en = {
     reportConfirm: "Report this post to the TORA team?",
     reportThanks: "Thanks — our team will review this post.",
     deleteConfirm: "Delete this post?",
+    deleteCommentConfirm: 'Delete this comment?',
+    deleteCommentFailed: 'Could not delete the comment. Please try again.',
     postFailed: "Something went wrong. Try again.",
     commentFailed: "Could not post the comment.",
     upgradeToView: "Profiles outside your country are a Premium feature. The feed stays global for everyone.",

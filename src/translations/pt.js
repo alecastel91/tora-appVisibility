@@ -1933,6 +1933,8 @@ const pt = {
     reportConfirm: "Denunciar este post à equipe TORA?",
     reportThanks: "Obrigado — nossa equipe vai analisar.",
     deleteConfirm: "Excluir este post?",
+    deleteCommentConfirm: 'Excluir este comentário?',
+    deleteCommentFailed: 'Não foi possível excluir o comentário. Tente novamente.',
     postFailed: "Algo deu errado. Tente novamente.",
     commentFailed: "Não foi possível publicar o comentário.",
     upgradeToView: "Ver perfis de outros países é um recurso Premium. O feed continua global para todos.",

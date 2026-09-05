@@ -259,7 +259,7 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
       setOpenComments((prev) => ({ ...prev, [post.id]: { ...prev[post.id], comments: prev[post.id].comments.filter((c) => c.id !== comment.id) } }));
       setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, commentsCount: Math.max(0, (p.commentsCount || 1) - 1) } : p)));
     } catch (e) {
-      appAlert(e.message || t('news.deleteFailed'));
+      appAlert(e.message || t('news.deleteCommentFailed'));
     }
   };
 

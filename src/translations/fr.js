@@ -1933,6 +1933,8 @@ const fr = {
     reportConfirm: "Signaler cette publication à l'équipe TORA ?",
     reportThanks: "Merci — notre équipe va l’examiner.",
     deleteConfirm: "Supprimer cette publication ?",
+    deleteCommentConfirm: 'Supprimer ce commentaire ?',
+    deleteCommentFailed: 'Impossible de supprimer le commentaire. Réessaie.',
     postFailed: "Une erreur est survenue. Réessayez.",
     commentFailed: "Impossible de publier le commentaire.",
     upgradeToView: "Consulter les profils d'autres pays est une fonction Premium. Le fil reste mondial pour tous.",

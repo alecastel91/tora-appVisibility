@@ -1210,7 +1210,12 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
               className="form-input"
               type="date"
               value={scheduleForm.startDate}
-              onChange={(e) => setScheduleForm({...scheduleForm, startDate: e.target.value})}
+              onChange={(e) => {
+                const startDate = e.target.value;
+                // An end before the new start is impossible — snap it to the start.
+                const endDate = scheduleForm.endDate && scheduleForm.endDate < startDate ? startDate : scheduleForm.endDate;
+                setScheduleForm({ ...scheduleForm, startDate, endDate });
+              }}
             />
           </div>
           <div className="form-group">
@@ -1218,6 +1223,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
             <input
               className="form-input"
               type="date"
+              min={scheduleForm.startDate || undefined}
               value={scheduleForm.endDate}
               onChange={(e) => setScheduleForm({...scheduleForm, endDate: e.target.value})}
             />
