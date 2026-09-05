@@ -1935,6 +1935,7 @@ const pt = {
     deleteConfirm: "Excluir este post?",
     deleteCommentConfirm: 'Excluir este comentário?',
     deleteCommentFailed: 'Não foi possível excluir o comentário. Tente novamente.',
+    editFailed: 'Não foi possível salvar as alterações. Tente novamente.',
     postFailed: "Algo deu errado. Tente novamente.",
     commentFailed: "Não foi possível publicar o comentário.",
     upgradeToView: "Ver perfis de outros países é um recurso Premium. O feed continua global para todos.",

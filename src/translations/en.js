@@ -1947,6 +1947,7 @@ const en = {
     deleteConfirm: "Delete this post?",
     deleteCommentConfirm: 'Delete this comment?',
     deleteCommentFailed: 'Could not delete the comment. Please try again.',
+    editFailed: 'Could not save your changes. Please try again.',
     postFailed: "Something went wrong. Try again.",
     commentFailed: "Could not post the comment.",
     upgradeToView: "Profiles outside your country are a Premium feature. The feed stays global for everyone.",

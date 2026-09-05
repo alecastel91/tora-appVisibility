@@ -364,6 +364,24 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async updatePost(postId, profileId, text) {
+    const response = await fetch(`${API_URL}/posts/${postId}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId, text }),
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateComment(postId, commentId, profileId, text) {
+    const response = await fetch(`${API_URL}/posts/${postId}/comments/${commentId}`, {
+      method: 'PUT',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId, text }),
+    });
+    return this.handleResponse(response);
+  }
+
   async deleteComment(postId, commentId, profileId) {
     const response = await fetch(`${API_URL}/posts/${postId}/comments/${commentId}`, {
       method: 'DELETE',

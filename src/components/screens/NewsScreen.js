@@ -105,6 +105,36 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
   const [openComments, setOpenComments] = useState({}); // postId -> { comments, hasMore, nextCursor }
   const [commentDrafts, setCommentDrafts] = useState({});
   const [menuFor, setMenuFor] = useState(null);
+  // Inline editing of your own post / comment: { id, text } while open.
+  const [editingPost, setEditingPost] = useState(null);
+  const [editingComment, setEditingComment] = useState(null);
+  const [editBusy, setEditBusy] = useState(false);
+  const savePostEdit = async (post) => {
+    if (editBusy || !editingPost || editingPost.id !== post.id) return;
+    setEditBusy(true);
+    try {
+      const res = await apiService.updatePost(post.id, user.id, editingPost.text);
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, text: res.post?.text ?? editingPost.text } : p)));
+      setEditingPost(null);
+    } catch (e) {
+      appAlert(e.message || t('news.editFailed'));
+    } finally {
+      setEditBusy(false);
+    }
+  };
+  const saveCommentEdit = async (post, comment) => {
+    if (editBusy || !editingComment || editingComment.id !== comment.id) return;
+    setEditBusy(true);
+    try {
+      const res = await apiService.updateComment(post.id, comment.id, user.id, editingComment.text);
+      setOpenComments((prev) => ({ ...prev, [post.id]: { ...prev[post.id], comments: prev[post.id].comments.map((c) => (c.id === comment.id ? { ...c, text: res.comment?.text ?? editingComment.text } : c)) } }));
+      setEditingComment(null);
+    } catch (e) {
+      appAlert(e.message || t('news.editFailed'));
+    } finally {
+      setEditBusy(false);
+    }
+  };
   const busyRef = useRef(false);
 
   // Suggested milestones arrive in their OWN array on page 1. The CLIENT
@@ -413,6 +443,12 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
                        onClick={(e) => e.stopPropagation()}>
                     {isOwn && post.type === 'TEXT' && (
                       <button className="block w-full cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-xs text-white/80 hover:bg-white/5"
+                              onClick={() => { setMenuFor(null); setEditingPost({ id: post.id, text: post.text || '' }); }}>
+                        {t('common.edit')}
+                      </button>
+                    )}
+                    {isOwn && post.type === 'TEXT' && (
+                      <button className="block w-full cursor-pointer border-0 bg-transparent px-4 py-2.5 text-left text-xs text-white/80 hover:bg-white/5"
                               onClick={() => deletePost(post)}>
                         {t('common.delete')}
                       </button>
@@ -438,7 +474,24 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
               </div>
             ) : (
               <>
-                {post.text && (
+                {editingPost?.id === post.id ? (
+                  <div className="mt-3">
+                    <textarea
+                      className="message-textarea-bottom w-full"
+                      value={editingPost.text}
+                      maxLength={2000}
+                      rows={4}
+                      autoFocus
+                      onChange={(e) => setEditingPost({ id: post.id, text: e.target.value })}
+                    />
+                    <div className="mt-2 flex gap-2">
+                      <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditingPost(null)}>{t('common.cancel')}</button>
+                      <button type="button" className="btn btn-primary btn-sm" disabled={editBusy || (!editingPost.text.trim() && !post.imageUrl)} onClick={() => savePostEdit(post)}>
+                        {editBusy ? '…' : t('common.save')}
+                      </button>
+                    </div>
+                  </div>
+                ) : post.text && (
                   <p className="m-0 mt-3 whitespace-pre-wrap text-sm leading-relaxed text-white/85">{linkify(post.text)}</p>
                 )}
                 {post.imageUrl && (
@@ -477,15 +530,37 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
                       <div className="flex items-baseline gap-2">
                         <span className="truncate text-xs font-semibold text-white">{c.author?.name}</span>
                         <span className="shrink-0 text-[10px] text-white/30">{relativeTime(c.createdAt, t)}</span>
-                        {/* Your own comment, or any comment under your own post */}
-                        {(c.author?.id === user?.id || isOwn) && (
+                        {/* Edit: your own comment. Delete: yours, or any under your own post. */}
+                        {c.author?.id === user?.id && editingComment?.id !== c.id && (
                           <button type="button" className="ml-auto shrink-0 border-0 bg-transparent p-0 text-[10px] text-white/35 underline hover:text-white/70"
+                            onClick={() => setEditingComment({ id: c.id, text: c.text })}>
+                            {t('common.edit')}
+                          </button>
+                        )}
+                        {(c.author?.id === user?.id || isOwn) && (
+                          <button type="button" className={`${c.author?.id === user?.id ? '' : 'ml-auto '}shrink-0 border-0 bg-transparent p-0 text-[10px] text-white/35 underline hover:text-white/70`}
                             onClick={() => deleteComment(post, c)}>
                             {t('common.delete')}
                           </button>
                         )}
                       </div>
-                      <p className="m-0 mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-white/75">{linkify(c.text)}</p>
+                      {editingComment?.id === c.id ? (
+                        <div className="mt-1 flex items-center gap-2">
+                          <input
+                            type="text"
+                            className="form-input flex-1 text-xs"
+                            value={editingComment.text}
+                            maxLength={600}
+                            autoFocus
+                            onChange={(e) => setEditingComment({ id: c.id, text: e.target.value })}
+                            onKeyDown={(e) => { if (e.key === 'Enter') saveCommentEdit(post, c); if (e.key === 'Escape') setEditingComment(null); }}
+                          />
+                          <button type="button" className="btn btn-outline btn-sm" onClick={() => setEditingComment(null)}>{t('common.cancel')}</button>
+                          <button type="button" className="btn btn-primary btn-sm" disabled={editBusy || !editingComment.text.trim()} onClick={() => saveCommentEdit(post, c)}>{t('common.save')}</button>
+                        </div>
+                      ) : (
+                        <p className="m-0 mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-white/75">{linkify(c.text)}</p>
+                      )}
                     </div>
                   </div>
                 ))}

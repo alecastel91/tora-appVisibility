@@ -1935,6 +1935,7 @@ const it = {
     deleteConfirm: "Eliminare questo post?",
     deleteCommentConfirm: 'Eliminare questo commento?',
     deleteCommentFailed: 'Impossibile eliminare il commento. Riprova.',
+    editFailed: 'Impossibile salvare le modifiche. Riprova.',
     postFailed: "Qualcosa è andato storto. Riprova.",
     commentFailed: "Impossibile pubblicare il commento.",
     upgradeToView: "Vedere i profili di altri paesi è una funzione Premium. Il feed resta globale per tutti.",

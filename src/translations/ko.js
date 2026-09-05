@@ -1935,6 +1935,7 @@ const ko = {
     deleteConfirm: "이 게시물을 삭제할까요?",
     deleteCommentConfirm: '이 댓글을 삭제할까요?',
     deleteCommentFailed: '댓글을 삭제하지 못했습니다. 다시 시도해 주세요.',
+    editFailed: '변경 사항을 저장하지 못했습니다. 다시 시도해 주세요.',
     postFailed: "문제가 발생했습니다. 다시 시도해 주세요.",
     commentFailed: "댓글을 게시하지 못했습니다.",
     upgradeToView: "다른 국가의 프로필 열람은 프리미엄 기능입니다. 피드는 모두에게 글로벌로 공개됩니다.",

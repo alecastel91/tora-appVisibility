@@ -1935,6 +1935,7 @@ const zh = {
     deleteConfirm: "删除此帖？",
     deleteCommentConfirm: '删除这条评论？',
     deleteCommentFailed: '无法删除评论，请重试。',
+    editFailed: '无法保存更改，请重试。',
     postFailed: "出错了，请重试。",
     commentFailed: "评论发布失败。",
     upgradeToView: "查看其他国家的档案是高级功能。动态本身对所有人全球可见。",

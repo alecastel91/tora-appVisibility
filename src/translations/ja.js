@@ -1935,6 +1935,7 @@ const ja = {
     deleteConfirm: "この投稿を削除しますか？",
     deleteCommentConfirm: 'このコメントを削除しますか？',
     deleteCommentFailed: 'コメントを削除できませんでした。もう一度お試しください。',
+    editFailed: '変更を保存できませんでした。もう一度お試しください。',
     postFailed: "エラーが発生しました。もう一度お試しください。",
     commentFailed: "コメントを投稿できませんでした。",
     upgradeToView: "国外のプロフィール閲覧はプレミアム機能です。フィード自体は全員グローバルに見られます。",
