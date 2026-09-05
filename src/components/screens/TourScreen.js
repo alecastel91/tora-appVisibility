@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import OverlayPortal from '../common/OverlayPortal';
 import FilterSheet, { FilterButton } from '../common/FilterSheet';
 import { CURRENCY_OPTIONS, CURRENCY_OPTIONS_WITH_SYMBOL } from '../common/CurrencyOptions';
@@ -18,6 +18,8 @@ import LockedPane from '../common/LockedPane';
 import { countriesByZone, genresList, zones } from '../../data/profiles';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { isPremiumViewer, isYearlyViewer } from '../../utils/subscription';
+import { rosterEntryId } from '../../utils/representation';
+import { goProfileThen } from '../../utils/navigation';
 
 const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange, onOpenPremium, accountUser, isActive = true }) => {
   const { user, getCalendarMatches, sentRequests, sendConnectionRequest, connectedUsers } = useAppContext();
@@ -68,42 +70,53 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   );
 
   // Tab state
-  // 'mydates' (Calendar: availability + travel, per artist for agents),
-  // 'calendar' (Matches), 'kickstart'. Opens on Calendar — your data first,
-  // the matches it drives next.
-  const [activeTab, setActiveTab] = useState('mydates');
+  // 'calendar' (availability + travel, per artist for agents), 'matches',
+  // 'kickstart'. Opens on Calendar — your data first, the matches it drives
+  // next — unless the viewer would only meet the Premium teaser there.
+  const [activeTab, setActiveTab] = useState(isPremiumViewer(user) ? 'calendar' : 'matches');
   // Deep-links: ViewProfile's tour block asks for Kickstart; the onboarding
-  // checklist and the Matches "Edit" link ask for My dates. The sessionStorage
+  // checklist and the Matches "Edit" link ask for Calendar. The sessionStorage
   // flags cover the case where TourScreen wasn't mounted yet when the event
   // fired (event listeners only exist after mount).
   useEffect(() => {
-    const intents = { 'tora:tour-kickstart-intent': 'kickstart', 'tora:tour-mydates-intent': 'mydates' };
+    const intents = { 'tora:tour-kickstart-intent': 'kickstart', 'tora:tour-calendar-intent': 'calendar' };
     for (const [flag, tab] of Object.entries(intents)) {
       if (sessionStorage.getItem(flag)) { sessionStorage.removeItem(flag); setActiveTab(tab); }
     }
     const openKickstart = () => { sessionStorage.removeItem('tora:tour-kickstart-intent'); setActiveTab('kickstart'); };
-    const openMyDates = () => { sessionStorage.removeItem('tora:tour-mydates-intent'); setActiveTab('mydates'); };
+    const openCalendar = () => { sessionStorage.removeItem('tora:tour-calendar-intent'); setActiveTab('calendar'); };
     window.addEventListener('tora:tour-kickstart', openKickstart);
-    window.addEventListener('tora:tour-mydates', openMyDates);
+    window.addEventListener('tora:tour-calendar', openCalendar);
     return () => {
       window.removeEventListener('tora:tour-kickstart', openKickstart);
-      window.removeEventListener('tora:tour-mydates', openMyDates);
+      window.removeEventListener('tora:tour-calendar', openCalendar);
     };
   }, []);
 
   // My dates: own availability + travel schedule (moved here from Profile >
   // Manage so the data and the matches it drives live under one tab). Free
   // tier sees it as a blurred teaser that opens Premium, exactly as before.
-  // Represented-artist selection shared by the three sub-tabs (agents).
+  // ---- Represented-artist selection shared by the three sub-tabs -------
+  // `artistFilter` is what the agent picked ('all' or an id). It is resolved
+  // against the CURRENT roster every render, so an artist removed from the
+  // roster (Tour stays mounted) falls back to 'all' / the first artist
+  // instead of a dead id: `selectedArtistId` for Matches/Kickstart (may be
+  // 'all'), `calendarArtistId` for Calendar (never 'all').
   const [artistFilter, setArtistFilter] = useState('all');
-  // ---- One header for the three sub-tabs -----------------------------
-  // Intro sentence on the left, optional action on the right, and for agents
-  // the represented-artist picker underneath. `artistFilter` is shared: the
-  // artist picked on any sub-tab is the one Calendar edits, Matches filters
-  // and Kickstart lists.
   const isAgent = user?.role === 'AGENT';
   const roster = isAgent ? (Array.isArray(user?.representingArtists) ? user.representingArtists : []) : [];
-  const rosterId = (a) => a.profileId || a.id;
+  const inRoster = roster.some((a) => rosterEntryId(a) === artistFilter);
+  const selectedArtistId = inRoster ? artistFilter : 'all';
+  const calendarArtistId = inRoster ? artistFilter : (roster[0] ? rosterEntryId(roster[0]) : null);
+  const calendarArtist = useMemo(() => {
+    const a = roster.find((x) => rosterEntryId(x) === calendarArtistId);
+    return a ? { id: calendarArtistId, name: a.name, role: 'ARTIST' } : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendarArtistId, roster.map(rosterEntryId).join(',')]);
+
+  // ---- One header for the three sub-tabs -----------------------------
+  // Intro sentence on the left, optional action on the right, and for agents
+  // the represented-artist picker underneath.
   const renderArtistPicker = ({ allowAll }) => (
     <div className="matches-filters text-left">
       <div className="filter-group" style={{ flex: 1 }}>
@@ -111,11 +124,11 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
         <select
           className="filter-select"
           style={{ width: '100%' }}
-          value={allowAll ? artistFilter : (artistFilter === 'all' ? rosterId(roster[0]) : artistFilter)}
+          value={allowAll ? selectedArtistId : calendarArtistId}
           onChange={(e) => setArtistFilter(e.target.value)}
         >
           {allowAll && <option value="all">{t('tour.allArtists')}</option>}
-          {roster.map((a) => <option key={rosterId(a)} value={rosterId(a)}>{a.name}</option>)}
+          {roster.map((a) => <option key={rosterEntryId(a)} value={rosterEntryId(a)}>{a.name}</option>)}
         </select>
       </div>
     </div>
@@ -131,41 +144,25 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   );
 
   // Calendar sub-tab: own availability + travel, or one represented artist's.
-  const calendarArtistId = isAgent ? (artistFilter === 'all' ? (roster[0] ? rosterId(roster[0]) : null) : artistFilter) : null;
-  const [calendarArtist, setCalendarArtist] = useState(null); // fresh profile of the picked artist
-  useEffect(() => {
-    if (!calendarArtistId) { setCalendarArtist(null); return; }
-    const a = roster.find((x) => rosterId(x) === calendarArtistId);
-    setCalendarArtist(a ? { id: calendarArtistId, name: a.name, role: 'ARTIST' } : null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calendarArtistId]);
   const renderMyDates = () => {
+    const premium = isPremiumViewer(user); // the teaser renders a preview: no fetches
     let pane;
     if (isAgent && !roster.length) {
       pane = (
         <p className="m-0 py-8 text-center text-sm text-white/45">
           {t('tour.calendarNoArtists')}{' '}
           <button type="button" className="border-0 bg-transparent p-0 text-sm text-white/70 underline"
-            onClick={() => {
-              window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab: 'profile' } }));
-              setTimeout(() => window.dispatchEvent(new CustomEvent('tora:open-roster')), 200);
-            }}>
+            onClick={() => goProfileThen('tora:open-roster')}>
             {t('tour.calendarAddArtists')}
           </button>
         </p>
       );
     } else if (isAgent) {
       pane = calendarArtist && (
-        <CalendarScreen
-          key={calendarArtist.id}
-          embedded={true}
-          targetProfile={calendarArtist}
-          onTargetUpdated={(p) => setCalendarArtist((cur) => ({ ...cur, ...p, id: cur.id }))}
-          onSeeMatches={() => setActiveTab('calendar')}
-        />
+        <CalendarScreen key={calendarArtist.id} embedded={true} targetProfile={calendarArtist} preview={!premium} onSeeMatches={() => setActiveTab('matches')} />
       );
     } else {
-      pane = <CalendarScreen embedded={true} onSeeMatches={() => setActiveTab('calendar')} />;
+      pane = <CalendarScreen embedded={true} preview={!premium} onSeeMatches={() => setActiveTab('matches')} />;
     }
     return (
       <div className="tour-kickstart-content">
@@ -174,7 +171,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
           {/* The placeholder centres text for the header; the calendar's own
               tiles (travel schedule, upcoming events) read left-aligned. */}
           <div className="text-left">
-            {isPremiumViewer(user)
+            {premium
               ? pane
               : <LockedPane message={t('manage.calendarLockedMsg')} onUnlock={onOpenPremium}>{pane}</LockedPane>}
           </div>
@@ -233,7 +230,6 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   };
   const toggleRole = (r) => setRolesFilter((prev) =>
     prev.includes(r) ? prev.filter((x) => x !== r) : [...prev, r]);
-  // Agents: filter matches down to a single represented artist.
   const [calendarMatches, setCalendarMatches] = useState([]);
 
   // Industry travel feed: every active schedule (connected > liked > others),
@@ -290,7 +286,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   loadFeedPageRef.current = loadFeedPage;
 
   useEffect(() => {
-    if (activeTab === 'calendar' && isActive && user?.id) {
+    if (activeTab === 'matches' && isActive && user?.id) {
       loadFeedPage(true); // owns the page/hasMore reset
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -438,20 +434,18 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   // match on behalf of each represented artist (each match is tagged with the
   // artist it belongs to).
   useEffect(() => {
+    // Only while Matches is actually on screen — Calendar opens first now.
+    if (activeTab !== 'matches' || !isActive) return;
     const fetchCalendarMatches = async () => {
       if (!user || !isPremiumUser()) {
         setCalendarMatches([]);
         return;
       }
 
-      const isAgent = user.role === 'AGENT';
-
       // Resolve the "source" profiles whose availability drives the matching.
       let sources = [];
       if (isAgent) {
-        const ids = (user.representingArtists || [])
-          .map((a) => a.profileId || a.id)
-          .filter(Boolean);
+        const ids = roster.map(rosterEntryId).filter(Boolean);
         if (ids.length === 0) { setCalendarMatches([]); return; }
         const artistProfiles = await Promise.all(
           ids.map((id) => apiService.getProfile(id).catch(() => null))
@@ -506,7 +500,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
     };
 
     fetchCalendarMatches();
-  }, [user?.id, user?.role, user?.subscriptionTier, user?.availableDates?.length, user?.representingArtists?.length, activeTab]);
+  }, [user?.id, user?.role, user?.subscriptionTier, user?.availableDates?.length, user?.representingArtists?.length, activeTab, isActive]);
 
   // Fetch tours when Kickstart tab is active
   useEffect(() => {
@@ -627,7 +621,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
   // every agent match (an agent has no genres of their own).
   const filteredMatches = allMatches.filter(match => {
     // Represented-artist filter (agents only)
-    if (artistFilter !== 'all' && match.forArtist?.id !== artistFilter) {
+    if (selectedArtistId !== 'all' && match.forArtist?.id !== selectedArtistId) {
       return false;
     }
 
@@ -759,7 +753,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
                 <p className="m-0 mt-1 text-white/35">
                   {t(isAgent ? 'tour.matchesSourceAgent' : 'tour.matchesSource')}{' '}
                   <button type="button" className="border-0 bg-transparent p-0 text-xs text-white/60 underline"
-                    onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}>
+                    onClick={() => { closeTourPanes(); setActiveTab('calendar'); }}>
                     {t('tour.editAvailability')}
                   </button>
                 </p>
@@ -1755,7 +1749,7 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
 
     // ARTISTS + AGENTS: Create and manage tours
     if (isArtist) {
-      const visibleTours = isAgent && artistFilter !== 'all' ? myTours.filter((tour) => tour.artist?.id === artistFilter) : myTours;
+      const visibleTours = isAgent && selectedArtistId !== 'all' ? myTours.filter((tour) => tour.artist?.id === selectedArtistId) : myTours;
       return (
         <div className="tour-kickstart-content">
           <div className="coming-soon-placeholder">
@@ -1942,12 +1936,10 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       return (
         <div className="tour-kickstart-content">
           <div className="tour-kickstart-section">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <p className="m-0 text-left text-xs text-white/45 leading-relaxed flex-1">
-                {t('tour.tourOpportunitiesDesc')}
-              </p>
-              <FilterButton count={tourFilterCount} onClick={() => setShowTourFilters(true)} label={t('search.filters')} />
-            </div>
+            {renderSubTabHeader({
+              intro: t('tour.tourOpportunitiesDesc'),
+              action: <FilterButton count={tourFilterCount} onClick={() => setShowTourFilters(true)} label={t('search.filters')} />,
+            })}
 
             {/* Full-page filters — shared FilterSheet (no Roles for tours) */}
             {showTourFilters && (
@@ -2198,15 +2190,15 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
       {/* Sub-tabs */}
       <div className="tour-tabs">
         <button
-          className={`tour-tab ${activeTab === 'mydates' ? 'active' : ''}`}
-          onClick={() => { closeTourPanes(); setActiveTab('mydates'); }}
+          className={`tour-tab ${activeTab === 'calendar' ? 'active' : ''}`}
+          onClick={() => { closeTourPanes(); setActiveTab('calendar'); }}
         >
           <CalendarIcon />
           <span>{t('tour.myDates')}</span>
         </button>
         <button
-          className={`tour-tab ${activeTab === 'calendar' ? 'active' : ''}`}
-          onClick={() => { closeTourPanes(); setActiveTab('calendar'); }}
+          className={`tour-tab ${activeTab === 'matches' ? 'active' : ''}`}
+          onClick={() => { closeTourPanes(); setActiveTab('matches'); }}
         >
           <TargetIcon />
           <span>{t('tour.calendarMatches')}</span>
@@ -2224,8 +2216,8 @@ const TourScreen = ({ onOpenChat, onNavigateToMessages, onUnreadProposalsChange,
           fits without scrolling on normal phones; scrolling stays enabled so
           short viewports can still reach the Upgrade CTA */}
       <div className="tour-tab-content">
-        {activeTab === 'mydates' && renderMyDates()}
-        {activeTab === 'calendar' && renderCalendarMatches()}
+        {activeTab === 'calendar' && renderMyDates()}
+        {activeTab === 'matches' && renderCalendarMatches()}
         {activeTab === 'kickstart' && renderTourKickstart()}
       </div>
       </div>

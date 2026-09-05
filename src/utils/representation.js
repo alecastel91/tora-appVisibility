@@ -10,6 +10,11 @@ export function toRepEntries(representedBy) {
   return representedBy ? [representedBy] : [];
 }
 
+/** Id of a `representingArtists` roster entry (older rows carry `id`, newer `profileId`). */
+export function rosterEntryId(entry) {
+  return entry?.profileId || entry?.id || null;
+}
+
 export function repEntryId(entry) {
   return entry ? (entry.profileId || entry.agentId || entry.id || null) : null;
 }

@@ -14,15 +14,21 @@ import { isYearlyViewer } from '../../utils/subscription';
  * profile instead of the active one, and updates flow back through
  * `onTargetUpdated` rather than the app context.
  */
-const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, targetProfile = null, onTargetUpdated = null }) => {
+const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, targetProfile = null, preview = false }) => {
   const { t } = useLanguage();
   const { user, updateUser } = useAppContext();
-  const profile = targetProfile || user;
-  const applyUpdate = (p) => (targetProfile ? onTargetUpdated && onTargetUpdated(p) : updateUser(p));
+  // A target (agent editing a represented artist) is owned here: the parent
+  // hands in { id, name, role } and this screen loads and keeps the fresh row.
+  // Remounted per artist (key) by the parent, so no cross-artist bleed.
+  const [target, setTarget] = useState(targetProfile);
+  const profile = targetProfile ? target : user;
+  const applyUpdate = (p) => (targetProfile ? setTarget((cur) => ({ ...cur, ...p, id: cur.id })) : updateUser(p));
   // Calendar privacy: tightening to CONNECTED_ONLY is the Yearly perk;
   // relaxing back to EVERYONE stays available at any tier so a lapsed
   // subscriber is never trapped with a hidden calendar (backend agrees).
-  const canEditVisibility = isYearlyViewer(profile);
+  // Own calendar: the viewer's tier. An artist edited by their agent: the
+  // artist's Yearly flag (the API exposes it as a boolean to non-owners).
+  const canEditVisibility = isYearlyViewer(profile) || !!profile?.yearlyFlag;
   const canSelectVisibility = (value) => value === 'EVERYONE' || canEditVisibility;
   const [visibilitySaving, setVisibilitySaving] = useState(false);
   const handleVisibilityChange = async (value) => {
@@ -65,10 +71,12 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState(null);
   const [dragMode, setDragMode] = useState(null); // 'select' or 'deselect'
-  const [hasDragged, setHasDragged] = useState(false); // Track if profile actually dragged
+  const [hasDragged, setHasDragged] = useState(false); // Track if the user actually dragged
 
 // Refresh travel schedule and available dates from backend when calendar opens
   React.useEffect(() => {
+    if (preview) return undefined; // blurred teaser — no fetches
+    let cancelled = false;
     const refreshCalendarData = async () => {
       try {
         const profileId = profile?.id;
@@ -76,6 +84,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
 
         console.log('[CalendarScreen] Refreshing calendar data from backend...');
         const freshProfile = await apiService.getProfile(profileId);
+        if (cancelled) return; // the profile changed while this was in flight
 
         // Update travel schedule
         setSchedules(freshProfile.travelSchedule || []);
@@ -97,6 +106,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
     };
 
     refreshCalendarData();
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id]); // on mount and whenever the profile being edited changes
 
@@ -110,12 +120,17 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
   // Fetch upcoming events (all roles — counterparty differs per side)
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
-      if (!profile?.id) return;
+      if (!profile?.id || preview) return;
 
       try {
-        const response = await apiService.getDeals({ profileId: profile.id });
+        // Deals are read as the caller's own profile (an agent's list already
+        // includes their roster's deals); for a target artist keep only theirs.
+        const response = await apiService.getDeals({ profileId: user.id });
 
         if (response && response.deals) {
+          if (targetProfile) {
+            response.deals = response.deals.filter((d) => [d.artistId, d.bookedArtistId].includes(profile.id));
+          }
           // Filter for upcoming events (future dates with active statuses)
           const today = new Date();
           today.setHours(0, 0, 0, 0);
@@ -141,9 +156,6 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
     fetchUpcomingEvents();
   }, [profile?.id]);
 
-  // NOTE: We refresh both availableDates and travelSchedule from backend on mount
-  // This ensures we have the latest data when switching between CalendarScreen and ManageArtistScreen
-  
   const [scheduleForm, setScheduleForm] = useState({
     zone: '',
     country: '',
@@ -440,7 +452,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
       setSchedules(updatedSchedules);
 
       try {
-        const profileId = profile.id || profile.id;
+        const profileId = profile.id;
 
         if (!profileId) {
           console.error('Profile ID is missing');
@@ -448,10 +460,9 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
         }
 
         // Save to backend
-        const updatedProfile = await apiService.updateProfile(profileId, {
-          ...profile,
-          travelSchedule: updatedSchedules
-        });
+        // Send only the field that changed — a spread of a not-yet-refreshed
+        // target would carry the roster's stale name.
+        const updatedProfile = await apiService.updateProfile(profileId, { travelSchedule: updatedSchedules });
 
         // Update context with backend response
         applyUpdate(updatedProfile);
@@ -524,10 +535,7 @@ const CalendarScreen = ({ onClose, embedded = false, onSeeMatches = null, target
       }
 
       // Save to backend
-      const updatedProfile = await apiService.updateProfile(profileId, {
-        ...profile,
-        travelSchedule: updatedSchedules
-      });
+      const updatedProfile = await apiService.updateProfile(profileId, { travelSchedule: updatedSchedules });
 
       // Update local state
       setSchedules(updatedSchedules);

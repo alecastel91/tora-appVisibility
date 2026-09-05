@@ -1,3 +1,4 @@
+import { goTab, goProfileThen, goTourSubTab } from '../../utils/navigation';
 import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -18,13 +19,6 @@ const OnboardingChecklist = () => {
 
   if (!user?.id) return null;
 
-  const goTab = (tab) => window.dispatchEvent(new CustomEvent('tora:navigate-tab', { detail: { tab } }));
-  // Navigate to the Profile tab, then open the exact sub-screen the action
-  // needs (small delay so the mounted ProfileScreen receives the event).
-  const goProfileThen = (event) => {
-    goTab('profile');
-    setTimeout(() => window.dispatchEvent(new CustomEvent(event)), 200);
-  };
   // Land directly on the Tour Kickstart sub-tab (same intent flag ViewProfile
   // uses) — and count the visit immediately.
   const goKickstart = () => {
@@ -66,7 +60,7 @@ const OnboardingChecklist = () => {
         ? [{
             key: 'setAvailability',
             done: (user.availableDates || []).length > 0,
-            go: () => { sessionStorage.setItem('tora:tour-mydates-intent', '1'); goTab('tour'); window.dispatchEvent(new CustomEvent('tora:tour-mydates')); },
+            go: () => goTourSubTab('calendar'),
           }]
         : []),
     {
