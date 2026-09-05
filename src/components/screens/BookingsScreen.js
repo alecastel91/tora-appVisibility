@@ -46,6 +46,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       url = getFullUrl(`/api/contracts/view/${deal.contract.documentId}`);
     }
     if (url) setPdfViewerUrl(url);
+    else appAlert(t('bookings.noContractFile')); // a status without a file must not fail silently
   };
 
   const [activeTab, setActiveTab] = useState('upcoming'); // 'upcoming', 'past', or 'declined'

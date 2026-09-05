@@ -127,6 +127,7 @@ const zh = {
   },
 
   bookings: {
+    noContractFile: '此预订尚未附上合同文件。',
     aPromoter: "主办方",
     venueRequestBadge: "场地请求",
     venueConsentTitle: "{{promoter}} 想在 {{date}} 于您的场地举办活动",

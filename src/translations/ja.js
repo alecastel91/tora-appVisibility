@@ -127,6 +127,7 @@ const ja = {
   },
 
   bookings: {
+    noContractFile: 'このブッキングにはまだ契約書ファイルが添付されていません。',
     aPromoter: "プロモーター",
     venueRequestBadge: "会場リクエスト",
     venueConsentTitle: "{{promoter}}が{{date}}にあなたの会場でイベントを開催したいと希望しています",

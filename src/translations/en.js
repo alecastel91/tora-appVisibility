@@ -127,6 +127,7 @@ const en = {
   },
 
   bookings: {
+    noContractFile: 'No contract file is attached to this booking yet.',
     aPromoter: "A promoter",
     venueRequestBadge: "Venue Request",
     venueConsentTitle: "{{promoter}} wants to hold an event at your venue on {{date}}",

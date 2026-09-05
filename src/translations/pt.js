@@ -127,6 +127,7 @@ const pt = {
   },
 
   bookings: {
+    noContractFile: 'Ainda não há um arquivo de contrato anexado a esta reserva.',
     aPromoter: "Um promotor",
     venueRequestBadge: "Solicitação de Local",
     venueConsentTitle: "{{promoter}} quer realizar um evento no seu local em {{date}}",

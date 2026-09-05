@@ -127,6 +127,7 @@ const it = {
   },
 
   bookings: {
+    noContractFile: 'A questa prenotazione non è ancora allegato un file di contratto.',
     aPromoter: "Un promoter",
     venueRequestBadge: "Richiesta Locale",
     venueConsentTitle: "{{promoter}} vuole organizzare un evento nel tuo locale il {{date}}",

@@ -127,6 +127,7 @@ const ko = {
   },
 
   bookings: {
+    noContractFile: '이 예약에는 아직 계약서 파일이 첨부되지 않았습니다.',
     aPromoter: "프로모터",
     venueRequestBadge: "베뉴 요청",
     venueConsentTitle: "{{promoter}}님이 {{date}}에 회원님의 베뉴에서 이벤트를 열고자 합니다",
