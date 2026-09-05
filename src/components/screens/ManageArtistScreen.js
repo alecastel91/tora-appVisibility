@@ -20,7 +20,6 @@ const ManageArtistScreen = ({ artist, onClose, onSwitchTab = () => {} }) => {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, info, documents (calendar: Tour > Calendar > artist)
   const [artistProfile, setArtistProfile] = useState(artist); // Store full artist profile
-  const [travelSchedule, setTravelSchedule] = useState(artist.travelSchedule || []);
   const [actionItems, setActionItems] = useState([]);
 
   // Cached representingArtists entries use `profileId`; full Profile objects use `id`. Accept either.
