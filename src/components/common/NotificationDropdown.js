@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { renderNotificationText } from '../../utils/notificationText';
 import { useAppContext } from '../../contexts/AppContext';
 
 // Notification type → which tab to navigate to when the user clicks the row.
@@ -57,7 +58,7 @@ const TYPE_TO_TAB = {
 };
 
 const NotificationDropdown = ({ onClose, onClearNotifications, onSwitchTab }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { notifications } = useAppContext();
 
   const getTimeAgo = (timestamp) => {
@@ -106,7 +107,7 @@ const NotificationDropdown = ({ onClose, onClearNotifications, onSwitchTab }) =>
                 tabIndex={routable ? 0 : undefined}
                 onKeyDown={(e) => { if (routable && (e.key === 'Enter' || e.key === ' ')) handleNotificationClick(notif); }}
               >
-                <p>{notif.message || notif.text}</p>
+                <p>{renderNotificationText(notif, t, t('dateFormat.locale') || language)}</p>
                 <span className="notification-time">{getTimeAgo(notif.createdAt || notif.timestamp)}</span>
               </div>
             );
