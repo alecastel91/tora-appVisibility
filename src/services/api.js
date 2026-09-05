@@ -364,6 +364,15 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async deleteComment(postId, commentId, profileId) {
+    const response = await fetch(`${API_URL}/posts/${postId}/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ profileId }),
+    });
+    return this.handleResponse(response);
+  }
+
   async togglePostLike(postId, profileId) {
     const response = await fetch(`${API_URL}/posts/${postId}/like`, {
       method: 'POST',

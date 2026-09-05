@@ -251,6 +251,18 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
     }
   };
 
+  const deleteComment = async (post, comment) => {
+    const ok = await appConfirm(t('news.deleteCommentConfirm'), { confirmLabel: t('common.delete'), danger: true });
+    if (!ok) return;
+    try {
+      await apiService.deleteComment(post.id, comment.id, user.id);
+      setOpenComments((prev) => ({ ...prev, [post.id]: { ...prev[post.id], comments: prev[post.id].comments.filter((c) => c.id !== comment.id) } }));
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, commentsCount: Math.max(0, (p.commentsCount || 1) - 1) } : p)));
+    } catch (e) {
+      appAlert(e.message || t('news.deleteFailed'));
+    }
+  };
+
   const deletePost = async (post) => {
     setMenuFor(null);
     const ok = await appConfirm(t('news.deleteConfirm'), { confirmLabel: t('common.delete'), danger: true });
@@ -465,6 +477,13 @@ const NewsScreen = ({ onOpenProfile, onOpenPremium }) => {
                       <div className="flex items-baseline gap-2">
                         <span className="truncate text-xs font-semibold text-white">{c.author?.name}</span>
                         <span className="shrink-0 text-[10px] text-white/30">{relativeTime(c.createdAt, t)}</span>
+                        {/* Your own comment, or any comment under your own post */}
+                        {(c.author?.id === user?.id || isOwn) && (
+                          <button type="button" className="ml-auto shrink-0 border-0 bg-transparent p-0 text-[10px] text-white/35 underline hover:text-white/70"
+                            onClick={() => deleteComment(post, c)}>
+                            {t('common.delete')}
+                          </button>
+                        )}
                       </div>
                       <p className="m-0 mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-white/75">{linkify(c.text)}</p>
                     </div>
