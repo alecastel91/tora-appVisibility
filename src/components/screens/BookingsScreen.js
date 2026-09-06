@@ -1126,17 +1126,12 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   const otherPartyName = onArtistSide
                     ? (deal.venue?.name || t('bookings.theVenue'))
                     : (deal.artist?.name || t('bookings.theArtist'));
-                  // Own side's signature (the agent signs for the artist,
-                  // so match by side, not by profile id).
-                  const mySignedAt = (deal.contract.signatures || [])
-                    .find((sig) => (sig.role === 'ARTIST') === onArtistSide)?.signedAt;
 
                   if (onArtistSide) {
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {!isFullySigned && (
                           <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
-                            {mySignedAt && `${t('bookings.signedByYouOn', { date: new Date(mySignedAt).toLocaleDateString(t('dateFormat.locale')) })} · `}
                             {t('bookings.waitingCountersign', { name: otherPartyName })}
                           </span>
                         )}
@@ -1247,10 +1242,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   </button>
                 )}
 
-                {/* Who signed, and when — the timestamped record of each
-                    signature (own side first). The certificate carries the
-                    same data plus the drawn signatures. */}
-                {(deal.contract?.signatures || []).length > 0 && (() => {
+                {/* Once both sides signed: who signed and when (own side
+                    first) plus the certificate that carries the drawn
+                    signatures. Before that the waiting line says it all. */}
+                {deal.contract?.status === 'FULLY_SIGNED' && (deal.contract.signatures || []).length > 0 && (() => {
                   const onArtistSide = isArtistSideForDeal(deal, currentUser);
                   const mine = (sig) => (sig.role === 'ARTIST') === onArtistSide;
                   const sigs = [...deal.contract.signatures].sort((a, b) => mine(b) - mine(a));
@@ -1763,11 +1758,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       </div>
 
       {deals.length > 0 && (
-        <div className="mb-3 grid grid-cols-2 gap-2">
+        <div className="bookings-filters">
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className="agent-artist-select"
+            className="agent-artist-select bookings-filter-select"
             aria-label={t('bookings.filterActionNeeded')}
           >
             <option value="all">{t('bookings.filterActionAny')}</option>
@@ -1776,7 +1771,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="agent-artist-select"
+            className="agent-artist-select bookings-filter-select"
             aria-label={t('bookings.filterStatus')}
           >
             <option value="all">{t('bookings.filterStatus')}: {t('bookings.filterAllStatuses')}</option>

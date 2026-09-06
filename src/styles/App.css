@@ -13445,3 +13445,54 @@ body.beta-env #root {
   .celebration-card,
   .celebration-glow { animation: none; }
 }
+
+/* Bookings: inline filter dropdowns between the tab row and the first
+   month cluster — breathing room on both sides. */
+.bookings-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 18px 0 16px;
+}
+.bookings-filter-select {
+  background-color: #101015;
+  border-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+.bookings-filter-select option {
+  background: #101015;
+  color: #fff;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.bookings-filters + .bookings-list .bookings-cluster:first-child { margin-top: 0; }
+
+/* Settings: Premium entrance card (the header star is gone). */
+.settings-premium-card {
+  margin: 4px 0 18px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 51, 102, 0.35);
+  background: linear-gradient(135deg, rgba(255, 51, 102, 0.14), rgba(107, 95, 255, 0.10));
+  text-align: center;
+}
+.settings-premium-card strong {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.settings-premium-card p {
+  margin: 6px 0 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.65);
+}
+.settings-premium-card .btn { width: 100%; }

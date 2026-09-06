@@ -816,14 +816,18 @@ function App() {
             {/* Subscription & Usage Section */}
             <div className="settings-section subscription-section">
               <h3>{user?.role === 'AGENT' ? t('settingsExtra.agentPlan') : t('settingsExtra.subscriptionUsage')}</h3>
-              {/* The Premium page left the header (2026-09-06); this is its
-                  entrance for every tier and role. */}
-              <button
-                className="btn btn-outline btn-full manage-billing-btn"
-                onClick={() => { setShowSettings(false); setShowPremium(true); }}
-              >
-                {t('premium.title')}
-              </button>
+              {/* The Premium page left the header (2026-09-06); this card is
+                  its entrance for every tier and role. */}
+              <div className="settings-premium-card">
+                <strong>{t('premium.title')}</strong>
+                <p>{t('settingsExtra.premiumTeaser')}</p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => { setShowSettings(false); setShowPremium(true); }}
+                >
+                  {t('settingsExtra.explorePremium')}
+                </button>
+              </div>
 
               {user?.role === 'AGENT' ? (
                 <>
