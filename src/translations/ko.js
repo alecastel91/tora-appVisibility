@@ -514,6 +514,7 @@ const ko = {
     subtitle: '전 세계 음악 프로페셔널과 연결하고 독점 기능을 이용하세요',
     upgradeToPremium: '프리미엄으로 업그레이드',
     upgradeToYearly: '연간 플랜으로 업그레이드',
+    onYearlyAlready: 'Yearly 이용 중',
     currentPlan: '현재 플랜',
     cancelAnytime: '언제든지 해지할 수 있습니다. 모든 가격은 EUR 기준입니다.',
     autoRenew: '매 {{cycle}}마다 자동 갱신 · 언제든지 해지 가능',

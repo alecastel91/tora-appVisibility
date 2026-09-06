@@ -1394,18 +1394,20 @@ function App() {
               return (
               <>
                 <div className="premium-pricing">
-                  {!hasYearly && (
-                    <div className={`price-card${hasMonthly ? ' is-current' : ''}`}>
-                      {hasMonthly && <div className="badge badge-current">{t('premium.currentPlan')}</div>}
-                      <h4>{t('premium.monthly')}</h4>
-                      <div className="price">€19.90<span>/month</span></div>
-                      {hasMonthly ? (
-                        <button className="btn btn-outline" disabled>{t('premium.currentPlan')}</button>
-                      ) : (
-                        <button className="btn btn-outline" onClick={() => handleSelectPlan('monthly')}>{t('premium.chooseMonthly')}</button>
-                      )}
-                    </div>
-                  )}
+                  {/* Monthly always leads — the first price on the page is
+                      the small one. A Yearly subscriber sees it inert. */}
+                  <div className={`price-card${hasMonthly ? ' is-current' : ''}`}>
+                    {hasMonthly && <div className="badge badge-current">{t('premium.currentPlan')}</div>}
+                    <h4>{t('premium.monthly')}</h4>
+                    <div className="price">€19.90<span>/month</span></div>
+                    {hasMonthly ? (
+                      <button className="btn btn-outline" disabled>{t('premium.currentPlan')}</button>
+                    ) : hasYearly ? (
+                      <button className="btn btn-outline" disabled>{t('premium.onYearlyAlready')}</button>
+                    ) : (
+                      <button className="btn btn-outline" onClick={() => handleSelectPlan('monthly')}>{t('premium.chooseMonthly')}</button>
+                    )}
+                  </div>
                   <div className={`price-card featured${hasYearly ? ' is-current' : ''}`}>
                     <div className="badge">{hasYearly ? t('premium.currentPlan') : t('premium.yearlySaveBadge')}</div>
                     <h4>{t('premium.yearly')}</h4>

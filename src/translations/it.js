@@ -514,6 +514,7 @@ const it = {
     subtitle: 'Collegati con professionisti della musica in tutto il mondo e accedi a funzioni esclusive',
     upgradeToPremium: 'Passa a Premium',
     upgradeToYearly: 'Passa al piano annuale',
+    onYearlyAlready: 'Sei già su Yearly',
     currentPlan: 'Piano attuale',
     cancelAnytime: 'Disdici quando vuoi. Tutti i prezzi sono in EUR.',
     autoRenew: 'Si rinnova automaticamente ogni {{cycle}} · disdici quando vuoi',

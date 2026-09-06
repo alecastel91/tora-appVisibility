@@ -514,6 +514,7 @@ const ja = {
     subtitle: '世界中の音楽プロフェッショナルとつながり、限定機能を利用しましょう',
     upgradeToPremium: 'プレミアムにアップグレード',
     upgradeToYearly: '年間プランにアップグレード',
+    onYearlyAlready: 'Yearlyプランご利用中',
     currentPlan: '現在のプラン',
     cancelAnytime: 'いつでもキャンセル可能。価格はすべてユーロ表示です。',
     autoRenew: '{{cycle}}ごとに自動更新 · いつでも解約可能',

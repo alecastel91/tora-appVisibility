@@ -38,9 +38,9 @@ const bandLabel = (band, i) => {
  */
 const AgentSeatPricing = ({ rosterCount = 0, currentSeats = 0, isPaid = false, currentInterval = 'month', onSubscribe }) => {
   const { t } = useLanguage();
-  // Paid agents start on their ACTUAL billing interval, so the CTA reads as
-  // "current plan" until they change something (seats or interval).
-  const [interval, setInterval] = useState(isPaid ? currentInterval : 'month');
+  // Always lands on Monthly — the first price shown is the small one. A
+  // yearly agent flips the toggle back to see their current plan.
+  const [interval, setInterval] = useState('month');
   // Seats the agent already holds and won't be charged again for: a paid agent's
   // purchased seats, or a free agent's current roster (their included allowance).
   const baseline = isPaid ? currentSeats : rosterCount;

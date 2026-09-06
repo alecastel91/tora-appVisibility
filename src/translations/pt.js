@@ -514,6 +514,7 @@ const pt = {
     subtitle: 'Conecte-se a profissionais de música de todo o mundo e acesse a funcionalidades exclusivas',
     upgradeToPremium: 'Mudar para Premium',
     upgradeToYearly: 'Mudar para o plano anual',
+    onYearlyAlready: 'Você já está no Yearly',
     currentPlan: 'Plano atual',
     cancelAnytime: 'Cancele quando quiser. Todos os preços em EUR.',
     autoRenew: 'Renova automaticamente a cada {{cycle}} · cancele quando quiser',

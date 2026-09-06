@@ -542,6 +542,7 @@ const en = {
     subtitle: 'Connect with music professionals worldwide and access exclusive features',
     upgradeToPremium: 'Upgrade to Premium',
     upgradeToYearly: 'Upgrade to Yearly',
+    onYearlyAlready: 'You\'re on Yearly',
     currentPlan: 'Current plan',
     cancelAnytime: 'Cancel anytime. All prices in EUR.',
     autoRenew: 'Renews automatically every {{cycle}} · cancel anytime',

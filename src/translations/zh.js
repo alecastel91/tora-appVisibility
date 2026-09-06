@@ -514,6 +514,7 @@ const zh = {
     subtitle: '与全球音乐专业人士建立联系，使用专属功能',
     upgradeToPremium: '升级到高级版',
     upgradeToYearly: '升级为年付',
+    onYearlyAlready: '您已订阅 Yearly',
     currentPlan: '当前方案',
     cancelAnytime: '随时可取消。所有价格均以欧元计。',
     autoRenew: '每{{cycle}}自动续订 · 可随时取消',
