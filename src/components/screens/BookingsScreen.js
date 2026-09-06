@@ -598,16 +598,18 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   // — the render loop calls these hundreds of times per bookings page, so
   // rebuilding the maps per call was thousands of t() lookups per render.
   const labelMaps = useMemo(() => ({
+    // Insertion order = booking flow; the status filter dropdown lists
+    // these as they come.
     status: {
       'PENDING': t('bookings.statusPending'),
       'NEGOTIATING': t('bookings.statusNegotiating'),
-      'DECLINED': t('bookings.statusDeclined'),
-      'CANCELLED': t('bookings.statusCancelled'),
+      'ACCEPTED': t('bookings.statusAccepted'),
+      'CONTRACT SIGNED': t('bookings.statusContractSigned'),
+      'DOCS SHARED': t('bookings.statusDocsShared'),
       'PAID': t('bookings.statusPaid'),
       'COMPLETED': t('bookings.statusCompleted'),
-      'DOCS SHARED': t('bookings.statusDocsShared'),
-      'CONTRACT SIGNED': t('bookings.statusContractSigned'),
-      'ACCEPTED': t('bookings.statusAccepted'),
+      'DECLINED': t('bookings.statusDeclined'),
+      'CANCELLED': t('bookings.statusCancelled'),
     },
     docCat: {
       pressKit: t('chat.pressKit'),

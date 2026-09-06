@@ -1375,8 +1375,8 @@ function App() {
                 })()}
                 <AgentSeatPricing
                   rosterCount={user?.representingArtists?.length || 0}
-                  currentSeats={user?.agentSeats || 0}
-                  isPaid={isPaidAgent(user)}
+                  currentSeats={user?.isAdminOperated ? 0 : (user?.agentSeats || 0)}
+                  isPaid={isPaidAgent(user) && !user?.isAdminOperated}
                   currentInterval={user?.subscriptionTier === 'YEARLY' ? 'year' : 'month'}
                   onSubscribe={(interval, detail) => handleSelectPlan(interval === 'year' ? 'yearly' : 'monthly', detail)}
                 />
@@ -1385,8 +1385,12 @@ function App() {
               // Reflect the current plan: a Monthly subscriber sees Monthly as
               // their current plan and Yearly as an upgrade; a Yearly subscriber
               // is already at the top; FREE/TRIAL sees both as choices.
-              const hasMonthly = user?.subscriptionTier === 'MONTHLY';
-              const hasYearly = user?.subscriptionTier === 'YEARLY';
+              // Comp (admin-operated) profiles get the public showcase —
+              // Monthly first, then Yearly — the page is a demo for them, and
+              // the first price a visitor meets must be the small one.
+              const comp = !!user?.isAdminOperated;
+              const hasMonthly = !comp && user?.subscriptionTier === 'MONTHLY';
+              const hasYearly = !comp && user?.subscriptionTier === 'YEARLY';
               return (
               <>
                 <div className="premium-pricing">
