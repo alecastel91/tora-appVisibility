@@ -11,7 +11,9 @@ export const BADGE_ACCENT = BADGE_ACCENTS;
 // Quiet profile entry point: a small shield pill with the earned-badge
 // count. Tap → overlay with the earned badges as flip cards (locked badges
 // are simply absent here — only the owner's Achievements hub greys them).
-const ProfileBadges = ({ badges }) => {
+// With `onOpenHub` (own profile) the pill always renders and opens that
+// hub instead — it replaced the header shield.
+const ProfileBadges = ({ badges, onOpenHub }) => {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [flipped, setFlipped] = useState(() => new Set());
@@ -22,7 +24,7 @@ const ProfileBadges = ({ badges }) => {
     max: BADGE_TIER_COUNT[b.key] || 0,
   })), [badges]);
 
-  if (items.length === 0) return null;
+  if (items.length === 0 && !onOpenHub) return null;
 
   const toggleFlip = (key) => {
     setFlipped((prev) => {
@@ -38,7 +40,7 @@ const ProfileBadges = ({ badges }) => {
         <button
           type="button"
           aria-label={t('badges.sectionTitle')}
-          onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+          onClick={(e) => { e.stopPropagation(); if (onOpenHub) onOpenHub(); else setOpen(true); }}
           className="profile-badges-pill flex cursor-pointer items-center gap-1.5 rounded-full border border-white/12 bg-[#0c0c11] px-3 py-1.5 text-white/70 transition-colors hover:border-white/30 hover:text-white [&_svg]:h-3.5 [&_svg]:w-3.5"
         >
           <ShieldIcon />

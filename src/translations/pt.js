@@ -128,6 +128,11 @@ const pt = {
 
   bookings: {
     noContractFile: 'Ainda não há um arquivo de contrato anexado a esta reserva.',
+    filterStatus: 'Status',
+    filterActionNeeded: 'Ação necessária',
+    filterActionAny: 'Todas as reservas',
+    filterActionOnly: 'Precisa da minha ação',
+    signedByYouOn: 'Assinado por você em {{date}}',
     aPromoter: "Um promotor",
     venueRequestBadge: "Solicitação de Local",
     venueConsentTitle: "{{promoter}} quer realizar um evento no seu local em {{date}}",
@@ -1047,6 +1052,8 @@ const pt = {
     pastEventsTitle: 'Flyers de eventos passados',
     uploadFailed: 'Não foi possível carregar a imagem. Tente novamente.',
     deleteFailed: 'Não foi possível excluir o perfil. Tente novamente.',
+    setAsDefault: 'Definir como padrão',
+    defaultProfile: 'Padrão',
     manageLabel: 'Gerenciar',
     findAgentLabel: 'Agente representante',
     switchProfileLabel: 'Mudar de perfil',

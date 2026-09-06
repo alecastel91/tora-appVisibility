@@ -128,6 +128,11 @@ const ko = {
 
   bookings: {
     noContractFile: '이 예약에는 아직 계약서 파일이 첨부되지 않았습니다.',
+    filterStatus: '상태',
+    filterActionNeeded: '조치 필요',
+    filterActionAny: '모든 부킹',
+    filterActionOnly: '내 조치 필요',
+    signedByYouOn: '{{date}}에 서명함',
     aPromoter: "프로모터",
     venueRequestBadge: "베뉴 요청",
     venueConsentTitle: "{{promoter}}님이 {{date}}에 회원님의 베뉴에서 이벤트를 열고자 합니다",
@@ -1047,6 +1052,8 @@ const ko = {
     pastEventsTitle: '지난 이벤트 플라이어',
     uploadFailed: '이미지를 업로드하지 못했습니다. 다시 시도해 주세요.',
     deleteFailed: '프로필을 삭제하지 못했습니다. 다시 시도해 주세요.',
+    setAsDefault: '기본으로 설정',
+    defaultProfile: '기본',
     manageLabel: '관리',
     findAgentLabel: '담당 에이전트',
     switchProfileLabel: '프로필 전환',

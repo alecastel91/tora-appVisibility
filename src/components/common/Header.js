@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import NotificationDropdown from './NotificationDropdown';
-import { BellIcon, GearIcon, StarIcon, ShieldIcon } from '../../utils/icons';
+import { BellIcon, GearIcon } from '../../utils/icons';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-const Header = ({ onOpenSettings, onOpenPremium, onOpenAchievements, accountUser, onSwitchTab, activeTab }) => {
-  const { notifications, clearNotificationDot, user } = useAppContext();
+const Header = ({ onOpenSettings, accountUser, onSwitchTab, activeTab }) => {
+  const { notifications, clearNotificationDot } = useAppContext();
   const { t } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasNotificationDot, setHasNotificationDot] = useState(true);
@@ -40,23 +40,11 @@ const Header = ({ onOpenSettings, onOpenPremium, onOpenAchievements, accountUser
     }
   };
 
-  const handlePremiumClick = () => {
-    if (onOpenPremium) {
-      onOpenPremium();
-    }
-  };
-
-  // Round glass icon button (Obsidian Neon). Base classes shared by all three.
+  // Round glass icon button (Obsidian Neon). Base classes shared by all.
   const iconBtnClasses = `relative w-9 h-9 rounded-full border border-white/10 bg-[#111117]
                           flex items-center justify-center text-white cursor-pointer
                           transition-colors hover:border-infrared/40 hover:bg-white/[0.1]
                           [&>svg]:w-[18px] [&>svg]:h-[18px]`;
-
-  // Premium star keeps its tier tint (gold = YEARLY, crimson = MONTHLY).
-  const premiumTint =
-    user?.subscriptionTier === 'YEARLY' ? 'text-[#FFD700] [&>svg]:fill-[#FFD700]' :
-    user?.subscriptionTier === 'MONTHLY' ? 'text-infrared [&>svg]:fill-infrared' :
-    '';
 
   return (
     <header className="app-header sticky top-0 z-[100] flex items-center justify-between
@@ -85,18 +73,6 @@ const Header = ({ onOpenSettings, onOpenPremium, onOpenAchievements, accountUser
             <path d="M9.5 9a2.5 2.5 0 0 1 4.86.82c0 1.67-2.5 2.5-2.5 2.5" />
             <circle cx="11.9" cy="15.5" r="0.4" fill="currentColor" />
           </svg>
-        </button>
-        <button
-          className={iconBtnClasses}
-          onClick={() => onOpenAchievements && onOpenAchievements()}
-        >
-          <ShieldIcon />
-        </button>
-        <button
-          className={`${iconBtnClasses} ${premiumTint}`}
-          onClick={handlePremiumClick}
-        >
-          <StarIcon />
         </button>
         <button
           className={iconBtnClasses}

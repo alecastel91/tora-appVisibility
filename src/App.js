@@ -583,7 +583,7 @@ function App() {
   };
 
   const tabScreens = {
-    profile: <ProfileScreen onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} onSwitchTab={switchTab} />,
+    profile: <ProfileScreen onOpenPremium={() => setShowPremium(true)} onOpenAchievements={() => setShowAchievements(true)} accountUser={accountUser} onSwitchTab={switchTab} />,
     search: <SearchScreen onOpenChat={openChatInMessages} onNavigateToMessages={() => switchTab('messages')} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} />,
     news: <NewsScreen onOpenProfile={(profile) => setViewingProfile(profile)} onOpenPremium={() => setShowPremium(true)} />,
     tour: <TourScreen onOpenChat={openChatInMessages} onNavigateToMessages={() => switchTab('messages')} onUnreadProposalsChange={setUnreadProposalsCount} onOpenPremium={() => setShowPremium(true)} accountUser={accountUser} isActive={activeTab === 'tour'} />,
@@ -746,8 +746,6 @@ function App() {
         <GettingStartedSheet open={showGettingStarted} onClose={closeGettingStarted} />
         <Header
           onOpenSettings={() => setShowSettings(true)}
-          onOpenPremium={() => setShowPremium(true)}
-          onOpenAchievements={() => setShowAchievements(true)}
           accountUser={accountUser}
           onSwitchTab={switchTab}
           activeTab={activeTab}
@@ -815,28 +813,6 @@ function App() {
             </div>
 
             <div className="settings-content">
-            {/* Account Section */}
-            <div className="settings-section">
-              <h3>{t('settings.account')}</h3>
-              {(accountUser?.firstName || accountUser?.lastName) && (
-                <div className="settings-item">
-                  <span>{t('settingsExtra.name')}</span>
-                  <span className="settings-value">{[accountUser.firstName, accountUser.lastName].filter(Boolean).join(' ')}</span>
-                </div>
-              )}
-              {accountUser?.phone && (
-                <div className="settings-item">
-                  <span>{t('settingsExtra.phone')}</span>
-                  <span className="settings-value">{accountUser.phone}</span>
-                </div>
-              )}
-              <div className="settings-item">
-                <span>{t('settings.email')}</span>
-                <span className="settings-value">{accountUser?.email || user?.email || 'Not available'}</span>
-              </div>
-              <button className="btn btn-outline btn-change-password" onClick={() => setShowPasswordChange(true)}>{t('settings.changePassword')}</button>
-            </div>
-
             {/* Subscription & Usage Section */}
             <div className="settings-section subscription-section">
               <h3>{user?.role === 'AGENT' ? t('settingsExtra.agentPlan') : t('settingsExtra.subscriptionUsage')}</h3>
@@ -1019,6 +995,28 @@ function App() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Account Section */}
+            <div className="settings-section">
+              <h3>{t('settings.account')}</h3>
+              {(accountUser?.firstName || accountUser?.lastName) && (
+                <div className="settings-item">
+                  <span>{t('settingsExtra.name')}</span>
+                  <span className="settings-value">{[accountUser.firstName, accountUser.lastName].filter(Boolean).join(' ')}</span>
+                </div>
+              )}
+              {accountUser?.phone && (
+                <div className="settings-item">
+                  <span>{t('settingsExtra.phone')}</span>
+                  <span className="settings-value">{accountUser.phone}</span>
+                </div>
+              )}
+              <div className="settings-item">
+                <span>{t('settings.email')}</span>
+                <span className="settings-value">{accountUser?.email || user?.email || 'Not available'}</span>
+              </div>
+              <button className="btn btn-outline btn-change-password" onClick={() => setShowPasswordChange(true)}>{t('settings.changePassword')}</button>
             </div>
 
             <div className="settings-section">

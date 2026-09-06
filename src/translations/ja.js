@@ -128,6 +128,11 @@ const ja = {
 
   bookings: {
     noContractFile: 'このブッキングにはまだ契約書ファイルが添付されていません。',
+    filterStatus: 'ステータス',
+    filterActionNeeded: '要対応',
+    filterActionAny: 'すべてのブッキング',
+    filterActionOnly: '自分の対応が必要',
+    signedByYouOn: '{{date}}に署名済み',
     aPromoter: "プロモーター",
     venueRequestBadge: "会場リクエスト",
     venueConsentTitle: "{{promoter}}が{{date}}にあなたの会場でイベントを開催したいと希望しています",
@@ -1047,6 +1052,8 @@ const ja = {
     pastEventsTitle: '過去イベントのフライヤー',
     uploadFailed: '画像のアップロードに失敗しました。もう一度お試しください。',
     deleteFailed: 'プロフィールの削除に失敗しました。もう一度お試しください。',
+    setAsDefault: 'デフォルトに設定',
+    defaultProfile: 'デフォルト',
     manageLabel: '管理',
     findAgentLabel: '担当エージェント',
     switchProfileLabel: 'プロフィール切替',

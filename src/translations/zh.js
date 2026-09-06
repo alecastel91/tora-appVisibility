@@ -128,6 +128,11 @@ const zh = {
 
   bookings: {
     noContractFile: '此预订尚未附上合同文件。',
+    filterStatus: '状态',
+    filterActionNeeded: '需要处理',
+    filterActionAny: '全部预订',
+    filterActionOnly: '需要我处理',
+    signedByYouOn: '您已于{{date}}签署',
     aPromoter: "主办方",
     venueRequestBadge: "场地请求",
     venueConsentTitle: "{{promoter}} 想在 {{date}} 于您的场地举办活动",
@@ -1047,6 +1052,8 @@ const zh = {
     pastEventsTitle: '往期活动海报',
     uploadFailed: '图片上传失败。请重试。',
     deleteFailed: '档案删除失败。请重试。',
+    setAsDefault: '设为默认',
+    defaultProfile: '默认',
     manageLabel: '管理',
     findAgentLabel: '签约经纪人',
     switchProfileLabel: '切换档案',

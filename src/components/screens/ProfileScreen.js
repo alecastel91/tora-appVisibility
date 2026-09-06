@@ -79,7 +79,7 @@ const ActionCard = ({ icon, label, onClick, dot }) => {
 // 1234 -> "1.2K" for the stats row.
 const fmtStat = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K` : `${n ?? 0}`);
 
-const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
+const ProfileScreen = ({ onOpenPremium, onOpenAchievements, accountUser, onSwitchTab }) => {
   const { user, updateUser, userProfiles, switchProfile, addProfile, deleteProfile, likedProfiles, likedProfilesData, connectedUsers, connectedUsersData, likerProfilesData } = useAppContext();
   const { t } = useLanguage();
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -121,6 +121,21 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
   const [showConnectionsList, setShowConnectionsList] = useState(false);
   const [showAllGenres, setShowAllGenres] = useState(false);
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
+  // Profile the app opens on at login. Owner-chosen in the switcher; the
+  // server orders /me default-first, this mirrors it until the next load.
+  const [defaultProfileId, setDefaultProfileId] = useState(accountUser?.defaultProfileId || null);
+  useEffect(() => { setDefaultProfileId(accountUser?.defaultProfileId || null); }, [accountUser?.defaultProfileId]);
+  const setAsDefault = async (profileId) => {
+    const prev = defaultProfileId;
+    setDefaultProfileId(profileId);
+    try {
+      await apiService.updateUserPreferences({ defaultProfileId: profileId });
+    } catch (err) {
+      setDefaultProfileId(prev);
+      appAlert(err.message || t('common.error'));
+    }
+  };
+  const switcherProfiles = [...userProfiles].sort((a, b) => (b.id === defaultProfileId) - (a.id === defaultProfileId));
   const [showVerification, setShowVerification] = useState(false);
   // Action-required dots next to Manage CTAs. `ownHasActions` is true when
   // the active profile has at least one action item; `artistActionsMap`
@@ -560,7 +575,7 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
                          tracking-[0.2em] font-tech ${roleBadgeClasses[user?.role] || 'text-white/70 border-white/20'}`}>
           {roleLabel(user?.role || 'ARTIST', t)}
         </div>
-        <ProfileBadges badges={ownBadges} />
+        <ProfileBadges badges={ownBadges} onOpenHub={onOpenAchievements} />
 
         {user?.genres && user.genres.length > 0 && (
           <div className="flex flex-col items-center mt-3">
@@ -952,9 +967,10 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
             </p>
           )}
           <div className="flex flex-col gap-2.5">
-            {userProfiles.map(profile => {
+            {switcherProfiles.map(profile => {
               const profileId = profile.id;
               const isActive = profileId === user?.id;
+              const isDefault = profileId === defaultProfileId;
               const avatarClass = getAvatarClass(profile.role);
 
               return (
@@ -983,6 +999,22 @@ const ProfileScreen = ({ onOpenPremium, accountUser, onSwitchTab }) => {
                     </span>
                     <p className="text-xs text-white/50 truncate leading-none m-0">{profile.location}</p>
                   </div>
+                  {userProfiles.length > 1 && (
+                    <button
+                      className={`shrink-0 p-2 rounded-lg transition-colors cursor-pointer bg-transparent border-none
+                                  ${isDefault ? 'text-[#FFD700]' : 'text-white/35 hover:text-white'}`}
+                      aria-label={isDefault ? t('profile.defaultProfile') : t('profile.setAsDefault')}
+                      title={isDefault ? t('profile.defaultProfile') : t('profile.setAsDefault')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isDefault) setAsDefault(profileId);
+                      }}
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill={isDefault ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    </button>
+                  )}
                   {isActive && (
                     <svg className="shrink-0 text-infrared" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />

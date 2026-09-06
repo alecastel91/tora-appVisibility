@@ -128,6 +128,11 @@ const en = {
 
   bookings: {
     noContractFile: 'No contract file is attached to this booking yet.',
+    filterStatus: 'Status',
+    filterActionNeeded: 'Action needed',
+    filterActionAny: 'All bookings',
+    filterActionOnly: 'Needs my action',
+    signedByYouOn: 'Signed by you on {{date}}',
     aPromoter: "A promoter",
     venueRequestBadge: "Venue Request",
     venueConsentTitle: "{{promoter}} wants to hold an event at your venue on {{date}}",
@@ -1049,6 +1054,8 @@ const en = {
     pastEventsTitle: 'Past Event Flyers',
     uploadFailed: 'Failed to upload image. Please try again.',
     deleteFailed: 'Failed to delete profile. Please try again.',
+    setAsDefault: 'Set as default',
+    defaultProfile: 'Default',
     manageLabel: 'Manage',
     findAgentLabel: 'Representing Agent',
     switchProfileLabel: 'Switch Profile',

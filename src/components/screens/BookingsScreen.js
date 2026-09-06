@@ -18,6 +18,7 @@ import { summarizeDealPayment, dealDeadlines } from '../../utils/paymentSummary'
 import { getAuthedBackendUrl, buildPaymentProofUrl } from '../../utils/urls';
 import { subscribeToDeals } from '../../services/realtime';
 import LoadingGlobe from '../common/LoadingGlobe';
+import FilterSheet, { FilterButton } from '../common/FilterSheet';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatEventDate } from '../../utils/dates';
 import { appAlert, appConfirm } from '../../utils/dialogs';
@@ -31,6 +32,35 @@ function validatePaymentProof(file) {
   }
   return null;
 }
+
+// Display status derived from the workflow state. Skipped steps do NOT
+// promote the label (only voluntary completion does). Actions UI keeps
+// advancing independently — gated by the per-step "resolved" checks.
+const getDealDisplayStatus = (deal) => {
+  // Pre-acceptance statuses pass through unchanged.
+  if (deal.status === 'PENDING' || deal.status === 'NEGOTIATING' || deal.status === 'DECLINED') {
+    return deal.status;
+  }
+  // The two real end states. These are now recorded rather than inferred —
+  // COMPLETED used to be guessed here from "fully paid and confirmed",
+  // which disagreed with what badges counted, so a booking could read as
+  // finished on this card while counting as unfinished everywhere else.
+  if (deal.status === 'CANCELLED') return 'CANCELLED';
+  if (deal.status === 'COMPLETED') return 'COMPLETED';
+  const payment = deal.payment || {};
+  const fullyPaidAndConfirmed = !!payment.fullPaymentProof?.confirmedAt
+    || ((Number(deal.currentFee) || 0) > 0 && (Array.isArray(payment.depositHistory) ? payment.depositHistory : [])
+        .reduce((s, e) => s + (e.confirmedAt ? (Number(e.amount) || 0) : 0), 0) >= (Number(deal.currentFee) || 0));
+  // Paid in full but not yet closed by hand: the money is settled, the
+  // booking is not. It reads as PAID rather than borrowing COMPLETED.
+  if (fullyPaidAndConfirmed) return 'PAID';
+  const docs = deal.sharedDocuments || {};
+  const anyDocActivelyShared = DOC_CATEGORIES.some((c) => docs[c.key]?.documentId);
+  if (anyDocActivelyShared) return 'DOCS SHARED';
+  const contractActuallySigned = deal.contract?.status === 'FULLY_SIGNED' && !deal.contract?.skipped;
+  if (contractActuallySigned) return 'CONTRACT SIGNED';
+  return 'ACCEPTED';
+};
 
 const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onActionCountChange }) => {
   const { t } = useLanguage();
@@ -81,6 +111,11 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
 
   // Agent artist filter
   const [selectedArtistFilter, setSelectedArtistFilter] = useState('all');
+  // Card filters (shared FilterSheet): display statuses + "needs my action".
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [actionFilter, setActionFilter] = useState('all');
+  const [showBookingFilters, setShowBookingFilters] = useState(false);
+  const bookingFilterCount = (statusFilter.length ? 1 : 0) + (actionFilter !== 'all' ? 1 : 0);
   const representedArtists = currentUser?.role === 'AGENT' ? (currentUser.representingArtists || []) : [];
   const [dealToWithdraw, setDealToWithdraw] = useState(null);
   const [pendingContractToSign, setPendingContractToSign] = useState(null); // { documentData, deal }
@@ -458,13 +493,13 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       // in the same tab.
       const isOff = deal.status === 'DECLINED' || deal.status === 'CANCELLED';
 
-      if (tab === 'declined') {
-        return isOff;
-      } else if (tab === 'upcoming') {
-        return dealDate >= today && !isOff;
-      } else {
-        return dealDate < today && !isOff;
-      }
+      const inTab = tab === 'declined' ? isOff
+        : tab === 'upcoming' ? dealDate >= today && !isOff
+        : dealDate < today && !isOff;
+      if (!inTab) return false;
+
+      if (actionFilter === 'needed' && !actionableDealIds.has(deal.id)) return false;
+      return statusFilter.length === 0 || statusFilter.includes(getDealDisplayStatus(deal));
     });
   };
 
@@ -560,35 +595,6 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       default:
         return 'status-badge';
     }
-  };
-
-  // Display status derived from the workflow state. Skipped steps do NOT
-  // promote the label (only voluntary completion does). Actions UI keeps
-  // advancing independently — gated by the per-step "resolved" checks.
-  const getDealDisplayStatus = (deal) => {
-    // Pre-acceptance statuses pass through unchanged.
-    if (deal.status === 'PENDING' || deal.status === 'NEGOTIATING' || deal.status === 'DECLINED') {
-      return deal.status;
-    }
-    // The two real end states. These are now recorded rather than inferred —
-    // COMPLETED used to be guessed here from "fully paid and confirmed",
-    // which disagreed with what badges counted, so a booking could read as
-    // finished on this card while counting as unfinished everywhere else.
-    if (deal.status === 'CANCELLED') return 'CANCELLED';
-    if (deal.status === 'COMPLETED') return 'COMPLETED';
-    const payment = deal.payment || {};
-    const fullyPaidAndConfirmed = !!payment.fullPaymentProof?.confirmedAt
-      || ((Number(deal.currentFee) || 0) > 0 && (Array.isArray(payment.depositHistory) ? payment.depositHistory : [])
-          .reduce((s, e) => s + (e.confirmedAt ? (Number(e.amount) || 0) : 0), 0) >= (Number(deal.currentFee) || 0));
-    // Paid in full but not yet closed by hand: the money is settled, the
-    // booking is not. It reads as PAID rather than borrowing COMPLETED.
-    if (fullyPaidAndConfirmed) return 'PAID';
-    const docs = deal.sharedDocuments || {};
-    const anyDocActivelyShared = DOC_CATEGORIES.some((c) => docs[c.key]?.documentId);
-    if (anyDocActivelyShared) return 'DOCS SHARED';
-    const contractActuallySigned = deal.contract?.status === 'FULLY_SIGNED' && !deal.contract?.skipped;
-    if (contractActuallySigned) return 'CONTRACT SIGNED';
-    return 'ACCEPTED';
   };
 
   // Localized display helpers. Maps are memoized on the language (t identity)
@@ -1123,12 +1129,17 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   const otherPartyName = onArtistSide
                     ? (deal.venue?.name || t('bookings.theVenue'))
                     : (deal.artist?.name || t('bookings.theArtist'));
+                  // Own side's signature (the agent signs for the artist,
+                  // so match by side, not by profile id).
+                  const mySignedAt = (deal.contract.signatures || [])
+                    .find((sig) => (sig.role === 'ARTIST') === onArtistSide)?.signedAt;
 
                   if (onArtistSide) {
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {!isFullySigned && (
                           <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+                            {mySignedAt && `${t('bookings.signedByYouOn', { date: new Date(mySignedAt).toLocaleDateString(t('dateFormat.locale')) })} · `}
                             {t('bookings.waitingCountersign', { name: otherPartyName })}
                           </span>
                         )}
@@ -1718,6 +1729,41 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
           )}
         </button>
       </div>
+
+      {deals.length > 0 && (
+        <div className="mb-3 flex items-center justify-end gap-2">
+          {bookingFilterCount > 0 && (
+            <button
+              type="button"
+              className="cursor-pointer border-none bg-transparent text-[12px] text-white/50 underline hover:text-white"
+              onClick={() => { setStatusFilter([]); setActionFilter('all'); }}
+            >
+              {t('search.clearFilters')}
+            </button>
+          )}
+          <FilterButton count={bookingFilterCount} onClick={() => setShowBookingFilters(true)} label={t('search.filters')} />
+        </div>
+      )}
+      {showBookingFilters && (
+        <FilterSheet
+          values={{ status: statusFilter, action: actionFilter }}
+          clearedValues={{ status: [], action: 'all' }}
+          onClose={() => setShowBookingFilters(false)}
+          onApply={(v) => {
+            setStatusFilter(v.status); setActionFilter(v.action);
+            setShowBookingFilters(false);
+          }}
+          sections={[
+            { key: 'action', label: t('bookings.filterActionNeeded'), multi: false, allLabel: t('bookings.filterActionAny'),
+              options: () => [
+                { value: 'all', label: t('bookings.filterActionAny') },
+                { value: 'needed', label: t('bookings.filterActionOnly') },
+              ] },
+            { key: 'status', label: t('bookings.filterStatus'), multi: true,
+              options: () => Object.entries(labelMaps.status).map(([value, label]) => ({ value, label })) },
+          ]}
+        />
+      )}
 
       {/* Agent artist filter dropdown */}
       {currentUser?.role === 'AGENT' && representedArtists.length > 0 && (
