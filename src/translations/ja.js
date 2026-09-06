@@ -128,6 +128,10 @@ const ja = {
 
   bookings: {
     noContractFile: 'このブッキングにはまだ契約書ファイルが添付されていません。',
+    filterAllStatuses: 'すべて',
+    signaturesTitle: '署名',
+    yourSignature: 'あなたの署名',
+    viewCertificate: '署名証明書',
     filterStatus: 'ステータス',
     filterActionNeeded: '要対応',
     filterActionAny: 'すべてのブッキング',

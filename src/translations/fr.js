@@ -128,6 +128,10 @@ const fr = {
 
   bookings: {
     noContractFile: 'Aucun fichier de contrat n\'est encore joint à cette réservation.',
+    filterAllStatuses: 'Tous',
+    signaturesTitle: 'Signatures',
+    yourSignature: 'Votre signature',
+    viewCertificate: 'Certificat de signature',
     filterStatus: 'Statut',
     filterActionNeeded: 'Action requise',
     filterActionAny: 'Toutes les réservations',

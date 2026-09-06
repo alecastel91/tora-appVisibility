@@ -18,7 +18,6 @@ import { summarizeDealPayment, dealDeadlines } from '../../utils/paymentSummary'
 import { getAuthedBackendUrl, buildPaymentProofUrl } from '../../utils/urls';
 import { subscribeToDeals } from '../../services/realtime';
 import LoadingGlobe from '../common/LoadingGlobe';
-import FilterSheet, { FilterButton } from '../common/FilterSheet';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatEventDate } from '../../utils/dates';
 import { appAlert, appConfirm } from '../../utils/dialogs';
@@ -111,11 +110,9 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
 
   // Agent artist filter
   const [selectedArtistFilter, setSelectedArtistFilter] = useState('all');
-  // Card filters (shared FilterSheet): display statuses + "needs my action".
-  const [statusFilter, setStatusFilter] = useState([]);
+  // Inline card filters: display status + "needs my action".
+  const [statusFilter, setStatusFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
-  const [showBookingFilters, setShowBookingFilters] = useState(false);
-  const bookingFilterCount = (statusFilter.length ? 1 : 0) + (actionFilter !== 'all' ? 1 : 0);
   const representedArtists = currentUser?.role === 'AGENT' ? (currentUser.representingArtists || []) : [];
   const [dealToWithdraw, setDealToWithdraw] = useState(null);
   const [pendingContractToSign, setPendingContractToSign] = useState(null); // { documentData, deal }
@@ -499,7 +496,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       if (!inTab) return false;
 
       if (actionFilter === 'needed' && !actionableDealIds.has(deal.id)) return false;
-      return statusFilter.length === 0 || statusFilter.includes(getDealDisplayStatus(deal));
+      return statusFilter === 'all' || statusFilter === getDealDisplayStatus(deal);
     });
   };
 
@@ -1250,6 +1247,41 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                   </button>
                 )}
 
+                {/* Who signed, and when — the timestamped record of each
+                    signature (own side first). The certificate carries the
+                    same data plus the drawn signatures. */}
+                {(deal.contract?.signatures || []).length > 0 && (() => {
+                  const onArtistSide = isArtistSideForDeal(deal, currentUser);
+                  const mine = (sig) => (sig.role === 'ARTIST') === onArtistSide;
+                  const sigs = [...deal.contract.signatures].sort((a, b) => mine(b) - mine(a));
+                  const certPath = deal.contract.certificateOfCompletion?.storagePath;
+                  return (
+                    <div className="mt-2 w-full rounded-xl border border-white/10 bg-black/30 p-3 text-left">
+                      <div className="mb-1.5 text-[10px] font-tech uppercase tracking-[0.15em] text-white/45">{t('bookings.signaturesTitle')}</div>
+                      {sigs.map((sig, i) => (
+                        <div key={i} className="flex flex-wrap items-baseline gap-x-2 text-[12px] leading-relaxed">
+                          <span className={mine(sig) ? 'text-infrared font-medium' : 'text-white/80'}>
+                            {mine(sig) ? t('bookings.yourSignature') : sig.fullName}
+                          </span>
+                          {mine(sig) && sig.fullName && <span className="text-white/50">{sig.fullName}</span>}
+                          <span className="text-white/45">
+                            {new Date(sig.signedAt).toLocaleString(t('dateFormat.locale'), { dateStyle: 'medium', timeStyle: 'short' })}
+                          </span>
+                        </div>
+                      ))}
+                      {certPath && (
+                        <button
+                          type="button"
+                          className="mt-2 cursor-pointer border-none bg-transparent p-0 text-[12px] text-white/60 underline hover:text-white"
+                          onClick={() => setPdfViewerUrl(getFullUrl(`/api/contracts/files/${encodeURIComponent(certPath)}`, deal.id))}
+                        >
+                          {t('bookings.viewCertificate')}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 {/* Reopen a skipped contract — artist-side only, before the
                     booking is completed. Undoes an accidental skip so a real
                     contract can be sent; documents and payment stay intact. */}
@@ -1731,38 +1763,28 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       </div>
 
       {deals.length > 0 && (
-        <div className="mb-3 flex items-center justify-end gap-2">
-          {bookingFilterCount > 0 && (
-            <button
-              type="button"
-              className="cursor-pointer border-none bg-transparent text-[12px] text-white/50 underline hover:text-white"
-              onClick={() => { setStatusFilter([]); setActionFilter('all'); }}
-            >
-              {t('search.clearFilters')}
-            </button>
-          )}
-          <FilterButton count={bookingFilterCount} onClick={() => setShowBookingFilters(true)} label={t('search.filters')} />
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <select
+            value={actionFilter}
+            onChange={(e) => setActionFilter(e.target.value)}
+            className="agent-artist-select"
+            aria-label={t('bookings.filterActionNeeded')}
+          >
+            <option value="all">{t('bookings.filterActionAny')}</option>
+            <option value="needed">{t('bookings.filterActionOnly')}</option>
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="agent-artist-select"
+            aria-label={t('bookings.filterStatus')}
+          >
+            <option value="all">{t('bookings.filterStatus')}: {t('bookings.filterAllStatuses')}</option>
+            {Object.entries(labelMaps.status).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
         </div>
-      )}
-      {showBookingFilters && (
-        <FilterSheet
-          values={{ status: statusFilter, action: actionFilter }}
-          clearedValues={{ status: [], action: 'all' }}
-          onClose={() => setShowBookingFilters(false)}
-          onApply={(v) => {
-            setStatusFilter(v.status); setActionFilter(v.action);
-            setShowBookingFilters(false);
-          }}
-          sections={[
-            { key: 'action', label: t('bookings.filterActionNeeded'), multi: false, allLabel: t('bookings.filterActionAny'),
-              options: () => [
-                { value: 'all', label: t('bookings.filterActionAny') },
-                { value: 'needed', label: t('bookings.filterActionOnly') },
-              ] },
-            { key: 'status', label: t('bookings.filterStatus'), multi: true,
-              options: () => Object.entries(labelMaps.status).map(([value, label]) => ({ value, label })) },
-          ]}
-        />
       )}
 
       {/* Agent artist filter dropdown */}

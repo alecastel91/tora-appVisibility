@@ -128,6 +128,10 @@ const it = {
 
   bookings: {
     noContractFile: 'A questa prenotazione non è ancora allegato un file di contratto.',
+    filterAllStatuses: 'Tutti',
+    signaturesTitle: 'Firme',
+    yourSignature: 'La tua firma',
+    viewCertificate: 'Certificato di firma',
     filterStatus: 'Stato',
     filterActionNeeded: 'Azione richiesta',
     filterActionAny: 'Tutte le prenotazioni',

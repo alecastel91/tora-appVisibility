@@ -128,6 +128,10 @@ const zh = {
 
   bookings: {
     noContractFile: '此预订尚未附上合同文件。',
+    filterAllStatuses: '全部',
+    signaturesTitle: '签名',
+    yourSignature: '您的签名',
+    viewCertificate: '签署证明',
     filterStatus: '状态',
     filterActionNeeded: '需要处理',
     filterActionAny: '全部预订',

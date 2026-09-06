@@ -128,6 +128,10 @@ const ko = {
 
   bookings: {
     noContractFile: '이 예약에는 아직 계약서 파일이 첨부되지 않았습니다.',
+    filterAllStatuses: '전체',
+    signaturesTitle: '서명',
+    yourSignature: '내 서명',
+    viewCertificate: '서명 증명서',
     filterStatus: '상태',
     filterActionNeeded: '조치 필요',
     filterActionAny: '모든 부킹',

@@ -128,6 +128,10 @@ const es = {
 
   bookings: {
     noContractFile: 'Esta reserva aún no tiene un archivo de contrato adjunto.',
+    filterAllStatuses: 'Todos',
+    signaturesTitle: 'Firmas',
+    yourSignature: 'Tu firma',
+    viewCertificate: 'Certificado de firma',
     filterStatus: 'Estado',
     filterActionNeeded: 'Acción requerida',
     filterActionAny: 'Todas las reservas',

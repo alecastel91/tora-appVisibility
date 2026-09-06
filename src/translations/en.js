@@ -128,6 +128,10 @@ const en = {
 
   bookings: {
     noContractFile: 'No contract file is attached to this booking yet.',
+    filterAllStatuses: 'All',
+    signaturesTitle: 'Signatures',
+    yourSignature: 'Your signature',
+    viewCertificate: 'Signing certificate',
     filterStatus: 'Status',
     filterActionNeeded: 'Action needed',
     filterActionAny: 'All bookings',
