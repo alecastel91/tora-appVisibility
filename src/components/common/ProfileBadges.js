@@ -45,7 +45,7 @@ const ProfileBadges = ({ badges, onOpenHub }) => {
         >
           <ShieldIcon />
           <span className="text-[10px] font-tech uppercase tracking-[0.15em]">
-            {t('badges.sectionTitle')} · {items.length}
+            {t('badges.sectionTitle')}{items.length > 0 && ` · ${items.length}`}
           </span>
         </button>
       </div>

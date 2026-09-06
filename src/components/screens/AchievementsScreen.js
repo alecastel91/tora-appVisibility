@@ -8,7 +8,7 @@ import BadgeFlipCard from '../common/BadgeFlipCard';
 
 // Own achievements hub: 2-per-row grid of flip cards. Front = glyph +
 // current tier + progress; hover (desktop) or tap (mobile) turns the card
-// to reveal the description. Opened from the header shield icon.
+// to reveal the description. Opened from the badges pill on the own profile.
 const AchievementsScreen = ({ onClose }) => {
   const { t } = useLanguage();
   const { user } = useAppContext();

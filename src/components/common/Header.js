@@ -4,7 +4,7 @@ import { BellIcon, GearIcon } from '../../utils/icons';
 import { useAppContext } from '../../contexts/AppContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-const Header = ({ onOpenSettings, accountUser, onSwitchTab, activeTab }) => {
+const Header = ({ onOpenSettings, onSwitchTab, activeTab }) => {
   const { notifications, clearNotificationDot } = useAppContext();
   const { t } = useLanguage();
   const [showNotifications, setShowNotifications] = useState(false);

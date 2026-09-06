@@ -747,7 +747,8 @@ export const AppProvider = ({ children }) => {
     setPreferredCurrency,
     accountSubscriptionTier,
     setAccountSubscriptionTier,
-    setRefreshAccountUserCallback
+    setRefreshAccountUserCallback,
+    refreshAccountUser: refreshAccountUserCallback
   };
 
   return (

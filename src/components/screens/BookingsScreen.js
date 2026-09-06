@@ -19,7 +19,7 @@ import { getAuthedBackendUrl, buildPaymentProofUrl } from '../../utils/urls';
 import { subscribeToDeals } from '../../services/realtime';
 import LoadingGlobe from '../common/LoadingGlobe';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { formatEventDate } from '../../utils/dates';
+import { formatTimestamp, formatEventDate } from '../../utils/dates';
 import { appAlert, appConfirm } from '../../utils/dialogs';
 import { roleLabel } from '../../utils/roles';
 
@@ -35,6 +35,13 @@ function validatePaymentProof(file) {
 // Display status derived from the workflow state. Skipped steps do NOT
 // promote the label (only voluntary completion does). Actions UI keeps
 // advancing independently — gated by the per-step "resolved" checks.
+// Display statuses in booking-flow order — the status filter lists them
+// as they come; the two dead ends sit last and only ever apply to the
+// Cancelled tab.
+const DEAL_DISPLAY_STATUSES = ['PENDING', 'NEGOTIATING', 'ACCEPTED', 'CONTRACT SIGNED', 'DOCS SHARED', 'PAID', 'COMPLETED', 'DECLINED', 'CANCELLED'];
+const OFF_STATUSES = ['DECLINED', 'CANCELLED'];
+const statusesForTab = (tab) => DEAL_DISPLAY_STATUSES.filter((st) => OFF_STATUSES.includes(st) === (tab === 'declined'));
+
 const getDealDisplayStatus = (deal) => {
   // Pre-acceptance statuses pass through unchanged.
   if (deal.status === 'PENDING' || deal.status === 'NEGOTIATING' || deal.status === 'DECLINED') {
@@ -113,6 +120,10 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   // Inline card filters: display status + "needs my action".
   const [statusFilter, setStatusFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
+  const selectTab = (tab) => {
+    setActiveTab(tab);
+    if (!statusesForTab(tab).includes(statusFilter)) setStatusFilter('all');
+  };
   const representedArtists = currentUser?.role === 'AGENT' ? (currentUser.representingArtists || []) : [];
   const [dealToWithdraw, setDealToWithdraw] = useState(null);
   const [pendingContractToSign, setPendingContractToSign] = useState(null); // { documentData, deal }
@@ -490,13 +501,13 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       // in the same tab.
       const isOff = deal.status === 'DECLINED' || deal.status === 'CANCELLED';
 
-      const inTab = tab === 'declined' ? isOff
-        : tab === 'upcoming' ? dealDate >= today && !isOff
-        : dealDate < today && !isOff;
-      if (!inTab) return false;
-
-      if (actionFilter === 'needed' && !actionableDealIds.has(deal.id)) return false;
-      return statusFilter === 'all' || statusFilter === getDealDisplayStatus(deal);
+      if (tab === 'declined') {
+        return isOff;
+      } else if (tab === 'upcoming') {
+        return dealDate >= today && !isOff;
+      } else {
+        return dealDate < today && !isOff;
+      }
     });
   };
 
@@ -544,7 +555,13 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
     return sortedClusters;
   };
 
-  const filteredDeals = filterDeals();
+  // Inline filters apply to the list only — the tab badges keep counting
+  // every actionable deal, filtered or not.
+  const filteredDeals = useMemo(() => filterDeals().filter((d) =>
+    (actionFilter !== 'needed' || actionableDealIds.has(d.id))
+    && (statusFilter === 'all' || statusFilter === getDealDisplayStatus(d))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [deals, activeTab, selectedArtistFilter, actionFilter, statusFilter, actionableDealIds, currentUser?.id, currentUser?.role]);
 
   // Badge counts = bookings waiting on THIS user, per tab. They used to show
   // filteredDeals.length on the open tab only, which just restated the number
@@ -598,18 +615,16 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
   // — the render loop calls these hundreds of times per bookings page, so
   // rebuilding the maps per call was thousands of t() lookups per render.
   const labelMaps = useMemo(() => ({
-    // Insertion order = booking flow; the status filter dropdown lists
-    // these as they come.
     status: {
       'PENDING': t('bookings.statusPending'),
       'NEGOTIATING': t('bookings.statusNegotiating'),
-      'ACCEPTED': t('bookings.statusAccepted'),
-      'CONTRACT SIGNED': t('bookings.statusContractSigned'),
-      'DOCS SHARED': t('bookings.statusDocsShared'),
-      'PAID': t('bookings.statusPaid'),
-      'COMPLETED': t('bookings.statusCompleted'),
       'DECLINED': t('bookings.statusDeclined'),
       'CANCELLED': t('bookings.statusCancelled'),
+      'PAID': t('bookings.statusPaid'),
+      'COMPLETED': t('bookings.statusCompleted'),
+      'DOCS SHARED': t('bookings.statusDocsShared'),
+      'CONTRACT SIGNED': t('bookings.statusContractSigned'),
+      'ACCEPTED': t('bookings.statusAccepted'),
     },
     docCat: {
       pressKit: t('chat.pressKit'),
@@ -1248,8 +1263,9 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                     first) plus the certificate that carries the drawn
                     signatures. Before that the waiting line says it all. */}
                 {deal.contract?.status === 'FULLY_SIGNED' && (deal.contract.signatures || []).length > 0 && (() => {
-                  const onArtistSide = isArtistSideForDeal(deal, currentUser);
-                  const mine = (sig) => (sig.role === 'ARTIST') === onArtistSide;
+                  // "Your signature" = signed by this profile; the agent's
+                  // signature shows under their name on the artist's card.
+                  const mine = (sig) => sig.signedBy === currentUser.id;
                   const sigs = [...deal.contract.signatures].sort((a, b) => mine(b) - mine(a));
                   const certPath = deal.contract.certificateOfCompletion?.storagePath;
                   return (
@@ -1262,7 +1278,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
                           </span>
                           {mine(sig) && sig.fullName && <span className="text-white/50">{sig.fullName}</span>}
                           <span className="text-white/45">
-                            {new Date(sig.signedAt).toLocaleString(t('dateFormat.locale'), { dateStyle: 'medium', timeStyle: 'short' })}
+                            {formatTimestamp(sig.signedAt, t('dateFormat.locale'))}
                           </span>
                         </div>
                       ))}
@@ -1729,7 +1745,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
       <div className="bookings-tabs">
         <button
           className={`bookings-tab ${activeTab === 'upcoming' ? 'active' : ''}`}
-          onClick={() => setActiveTab('upcoming')}
+          onClick={() => selectTab('upcoming')}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           {t('bookings.tabUpcoming')}
@@ -1739,7 +1755,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         </button>
         <button
           className={`bookings-tab ${activeTab === 'past' ? 'active' : ''}`}
-          onClick={() => setActiveTab('past')}
+          onClick={() => selectTab('past')}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           {t('bookings.tabPast')}
@@ -1749,7 +1765,7 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
         </button>
         <button
           className={`bookings-tab ${activeTab === 'declined' ? 'active' : ''}`}
-          onClick={() => setActiveTab('declined')}
+          onClick={() => selectTab('declined')}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
           {t('bookings.tabDeclined')}
@@ -1777,8 +1793,8 @@ const BookingsScreen = ({ onOpenChat, onNavigateToMessages, isActive = true, onA
             aria-label={t('bookings.filterStatus')}
           >
             <option value="all">{t('bookings.filterStatus')}: {t('bookings.filterAllStatuses')}</option>
-            {Object.entries(labelMaps.status).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
+            {statusesForTab(activeTab).map((value) => (
+              <option key={value} value={value}>{labelMaps.status[value]}</option>
             ))}
           </select>
         </div>

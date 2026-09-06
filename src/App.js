@@ -18,7 +18,8 @@ import Modal from './components/common/Modal';
 import AgentSeatPricing from './components/common/AgentSeatPricing';
 import AgentTierCard from './components/common/AgentTierCard';
 import ExtrasShop from './components/common/ExtrasShop';
-import { isPaidAgent, rosterUsage } from './utils/agentTiers';
+import { rosterUsage } from './utils/agentTiers';
+import { billingTier } from './utils/subscription';
 import { useLanguage } from './contexts/LanguageContext';
 import { useAppContext } from './contexts/AppContext';
 import apiService from './services/api';
@@ -746,7 +747,6 @@ function App() {
         <GettingStartedSheet open={showGettingStarted} onClose={closeGettingStarted} />
         <Header
           onOpenSettings={() => setShowSettings(true)}
-          accountUser={accountUser}
           onSwitchTab={switchTab}
           activeTab={activeTab}
         />
@@ -1210,7 +1210,11 @@ function App() {
         </Modal>
 
         {/* Premium Upgrade Screen */}
-        {showPremium && (
+        {showPremium && (() => {
+          // Billing view: a comp (admin-operated) account is shown the public
+          // prices — see billingTier. Paid agents keep their real seats/plan.
+          const paidAgent = user?.role === 'AGENT' && billingTier(user) !== 'FREE';
+          return (
           <div className="screen active premium-screen">
             <div className="premium-header">
               <button className="back-button" onClick={() => setShowPremium(false)}>
@@ -1367,16 +1371,16 @@ function App() {
                         </div>
                         <div className="agent-status-bar"><span style={{ width: `${pct}%` }} /></div>
                       </div>
-                      <span className={`agent-status-plan${isPaidAgent(user) ? ' is-paid' : ''}`}>
-                        {isPaidAgent(user) ? t('agentSeatCard.perSeatPlan') : t('agentSeatCard.freePlan')}
+                      <span className={`agent-status-plan${paidAgent ? ' is-paid' : ''}`}>
+                        {paidAgent ? t('agentSeatCard.perSeatPlan') : t('agentSeatCard.freePlan')}
                       </span>
                     </div>
                   );
                 })()}
                 <AgentSeatPricing
                   rosterCount={user?.representingArtists?.length || 0}
-                  currentSeats={user?.isAdminOperated ? 0 : (user?.agentSeats || 0)}
-                  isPaid={isPaidAgent(user) && !user?.isAdminOperated}
+                  currentSeats={paidAgent ? (user?.agentSeats || 0) : 0}
+                  isPaid={paidAgent}
                   currentInterval={user?.subscriptionTier === 'YEARLY' ? 'year' : 'month'}
                   onSubscribe={(interval, detail) => handleSelectPlan(interval === 'year' ? 'yearly' : 'monthly', detail)}
                 />
@@ -1385,12 +1389,8 @@ function App() {
               // Reflect the current plan: a Monthly subscriber sees Monthly as
               // their current plan and Yearly as an upgrade; a Yearly subscriber
               // is already at the top; FREE/TRIAL sees both as choices.
-              // Comp (admin-operated) profiles get the public showcase —
-              // Monthly first, then Yearly — the page is a demo for them, and
-              // the first price a visitor meets must be the small one.
-              const comp = !!user?.isAdminOperated;
-              const hasMonthly = !comp && user?.subscriptionTier === 'MONTHLY';
-              const hasYearly = !comp && user?.subscriptionTier === 'YEARLY';
+              const hasMonthly = billingTier(user) === 'MONTHLY';
+              const hasYearly = billingTier(user) === 'YEARLY';
               return (
               <>
                 <div className="premium-pricing">
@@ -1432,7 +1432,8 @@ function App() {
             <ExtrasShop user={user} />
           </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* Feature explainer — plain-language description of a table row */}
         <Modal

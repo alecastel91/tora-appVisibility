@@ -5,6 +5,14 @@ import { isPaidAgent } from './agentTiers';
  * subscriptionTier (TRIAL only while it hasn't expired); agents unlock via
  * an active member subscription (their roster is billed per seat).
  */
+/**
+ * Admin-operated (comp) profiles are seeded as YEARLY so feature gates open
+ * for them, but they never pay. Billing surfaces (Premium page, seat picker)
+ * read the tier through here so a comp account is shown the public prices.
+ */
+export const isCompAccount = (user) => !!user?.isAdminOperated;
+export const billingTier = (user) => (isCompAccount(user) ? 'FREE' : (user?.subscriptionTier || 'FREE'));
+
 export function isPremiumViewer(user) {
   if (!user) return false;
   // Agents unlock via a paid member subscription (MONTHLY/YEARLY).

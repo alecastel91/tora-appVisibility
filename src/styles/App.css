@@ -13471,7 +13471,6 @@ body.beta-env #root {
   text-transform: none;
   letter-spacing: normal;
 }
-.bookings-filters + .bookings-list .bookings-cluster:first-child { margin-top: 0; }
 
 /* Settings: Premium entrance card (the header star is gone). */
 .settings-premium-card {
