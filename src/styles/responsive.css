@@ -308,13 +308,21 @@
      Tour screen stops being a fixed-height box with its own scroll area,
      which showed a second scrollbar. The sub-tab row sticks to the top. */
   .tour-screen.screen.active {
+    display: block !important;
     height: auto !important;
     overflow: visible;
   }
 
+  .tour-screen.screen.active > .relative.isolate {
+    display: block;
+  }
+
+  /* Both axes visible: an overflow-x:hidden box is still a scroll container
+     and swallowed wheel events on the calendar. */
   .tour-tab-content {
     flex: none;
-    overflow-y: visible;
+    overflow: visible;
+    -webkit-overflow-scrolling: auto;
     min-height: 60vh; /* the FREE gate pane still has room to center in */
   }
 
