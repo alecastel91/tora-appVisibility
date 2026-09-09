@@ -34,3 +34,23 @@ root.render(
     </Sentry.ErrorBoundary>
   </React.StrictMode>
 );
+// PWA updates: the new service worker takes control right after a deploy
+// (skipWaiting + clientsClaim) but the open page keeps its old bundle until
+// a reload — testers had to hard-refresh twice. Reload once when control
+// changes, unless the member is typing; then wait for the tab to come back.
+if ('serviceWorker' in navigator) {
+  let hadController = !!navigator.serviceWorker.controller;
+  const typing = () => {
+    const el = document.activeElement;
+    return !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+  };
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    const wasUpdate = hadController;
+    hadController = true;
+    if (!wasUpdate) return; // first install, nothing stale on screen
+    if (!typing()) { window.location.reload(); return; }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') window.location.reload();
+    }, { once: true });
+  });
+}
