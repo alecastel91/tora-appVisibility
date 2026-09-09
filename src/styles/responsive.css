@@ -304,6 +304,28 @@
     max-width: 760px;
   }
 
+  /* One scroller only: on desktop the page (.app-content) scrolls and the
+     Tour screen stops being a fixed-height box with its own scroll area,
+     which showed a second scrollbar. The sub-tab row sticks to the top. */
+  .tour-screen.screen.active {
+    height: auto !important;
+    overflow: visible;
+  }
+
+  .tour-tab-content {
+    flex: none;
+    overflow-y: visible;
+    min-height: 60vh; /* the FREE gate pane still has room to center in */
+  }
+
+  .tour-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(8px);
+  }
+
   body:has(> .md-drawer) .app-content > .tab-panel > .screen.tour-screen {
     max-width: 480px;
     margin-left: 0;
